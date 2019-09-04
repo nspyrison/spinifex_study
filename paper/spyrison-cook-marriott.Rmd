@@ -1,0 +1,93 @@
+---
+output: pdf_document
+title: >
+  The effects of interaction while visualizing multivariate data
+author:
+  - name: Nicholas Spyrison
+    affiliation: Monash University
+    address:
+    - Faculty of Information Technology
+    email:  nicholas.spyrison@monash.edu
+  - name: Dianne Cook
+    affiliation: Monash University
+    address:
+    - Department of Econometrics and Business Statistics
+    email:  dicook@monash.edu
+  - name: Kim Marriott
+    affiliation: Monash University
+    address:
+    - Faculty of Information Technology
+    email:  Kim.Marriott@monash.edu
+abstract: >
+  abstract for spinifex study
+keywords: exploratory data analysis, projection pursuit, high dimensional data, data visualization, cluster analysis, dimension reduction,  statistical graphics, data science, user study, between users,
+---
+
+
+```{r setup_paper, include=FALSE}
+# ---
+# preamble: >
+#   % preamble packages
+# link-citations: true
+# fig_caption: yes
+# toc: false
+# 
+# bibliography: spyrison-cook.bib
+# output: rticles::ieee_article
+# ---
+# \bibliography{spyrison-cook}
+
+knitr::opts_chunk$set(
+  fig.align = "center", 
+  echo = TRUE, 
+  collapse = TRUE,
+  message = FALSE, 
+  warning = FALSE, 
+  error = FALSE,
+  cache = FALSE,
+  cache.lazy = FALSE
+)
+library(spinifex)
+library(ggplot2)
+library(gridExtra)
+library(dplyr)
+
+# Hypothesis: 
+# does the availability of the manual tour improve the ability of the analyst 
+# to understand the importance of variables contributing to the structure?
+
+# Factors: manual tour vs not (grand tour, or static only)
+# Block/control: dimensionality p, n clusters, g, important vars d, var-covar s
+# replication: 24 within-subject of all 3 factors, 4 controls, sampled from 
+# datasets
+# Randomization: latin square; 8 get each factor first.
+# of those 8, 4 get one factor second, 4 get the other factor second.
+# Response: Accuracy in determining important variable.
+# measure: accuracy, speed (caped at 2min) ease of use, ease of understanding, ease of prefrence 
+```
+
+
+# Introduction
+
+# Hypothesis
+
+# Experimental design {#sec:results}
+
+## Factors {#sec:vis_methods}
+
+
+
+## Controls
+
+## Response & measures
+
+## Randomization & replication
+
+## Experimental results {#sec:results}
+
+# Acknowledgments
+
+<!-- This article was created in R [@r_core_team_r:_2019], using \_CRANpkg{knitr} [@stodden_knitr:_2014] and \_CRANpkg{rmarkdown} [@xie_r_2018], with code generating the examples inline. The source files for this article be found at [github.com/nspyrison/spinifex_study/](https://github.com/nspyrison/spinifex_paper/). The source code for the \_pkg{spinifex} package can be found at [github.com/nspyrison/spinifex/](https://github.com/nspyrison/spinifex/). -->
+
+
+# Bibliography
