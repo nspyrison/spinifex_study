@@ -3,6 +3,7 @@ library("ggplot2")
 library("spinifex")
 
 dat <- tourr::rescale(tourr::flea[, 1:6])
+#dat <- c(flea[, 1:6], olive, wine, mtcars)
 
 n_blocks <- 1:4
 s_blocks <- c("p", "n", "d", "s")
@@ -42,25 +43,25 @@ for (i in n_blocks){
 panel_intro <- tabPanel("Study introduction",
                         h3("Welcome to the study")
 )
-panel_p_intro <- tabPanel("Introduction",
+panel_p_intro <- tabPanel("Introduction -- data dimensionality, p",
                           h3("In this section you will be asked to determine the number of dimensions contained in the data."),
                           h4("Each task contains different data, with the display as demonstrated below."),
                           h4("You have 2 minutes to study the display before being prompted to submit your answer."),
                           plotOutput("plot_pdemo")
 )
-panel_n_intro <- tabPanel("Introduction",
+panel_n_intro <- tabPanel("Introduction -- clusters, n",
                           h3("In this section you will be asked to determine the number of clusters contained in the data."),
                           h4("Each task contains different data, with the display as demonstrated below."),
                           h4("You have 2 minutes to study the display before being prompted to submit your answer."),
                           plotOutput("plot_ndemo")
 )
-panel_d_intro <- tabPanel("Introduction",
+panel_d_intro <- tabPanel("Introduction -- important variables, d",
                           h3("In this section you will be asked to determine the number of how few variables accurately portray the variation in the data."),
                           h4("Each task contains different data, with the display as demonstrated below."),
                           h4("You have 2 minutes to study the display before being prompted to submit your answer."),
                           plotOutput("plot_ddemo")
 )
-panel_s_intro <- tabPanel("Introduction",
+panel_s_intro <- tabPanel("Introduction -- covariance, s",
                           h3("In this section you will be asked to determine which variables are highly correlated."),
                           h4("Each task contains different data, with the display as demonstrated below."),
                           h4("You have 2 minutes to study the display before being prompted to submit your answer."),
@@ -68,24 +69,65 @@ panel_s_intro <- tabPanel("Introduction",
 )
 
 ### Survey Tab
-survey_questions <- c("How easy was this to use?",
-                      "How confidence of the answers were you?",
-                      "How easy was this to understand?",
-                      "How likely would you be to use this visual?")
+survey_questions <- c("This visualization was easy to use.",
+                      "I am confident of my answers.",
+                      "This visualization is easily understandable.",
+                      "I would recomend using this visualization.",
+                      "I am an expert on multivarite data and related visualiztion.",
+                      "I have broad experience with data disualization.",
+                      "I had previous knowledge of this visualization.")
 panel_survey <- 
   tabPanel("Survey",
-           sliderInput("ans_ease", survey_questions[1],
-                       min = 1, max = 10, value = 5
+           h3("How much do you agree with the following statments."),
+           h4(survey_questions[1]),
+           sliderInput("ans_ease", 
+                       label = div(style='width:300px;', 
+                                   div(style='float:left;', 'strongly disagree'), 
+                                   div(style='float:right;', 'strongly agree')),
+                       min = 1, max = 9, value = 5
            ),
-           sliderInput("ans_confidence", survey_questions[2],
-                       min = 1, max = 10, value = 5
+           h4(survey_questions[2]),
+           sliderInput("ans_confidence", 
+                       label = div(style='width:300px;', 
+                                   div(style='float:left;', 'strongly disagree'), 
+                                   div(style='float:right;', 'strongly agree')),
+                       min = 1, max = 9, value = 5
            ),
-           sliderInput("ans_understand", survey_questions[3],
-                       min = 1, max = 10, value = 5
+           h4(survey_questions[3]),
+           sliderInput("ans_understand", 
+                       label = div(style='width:300px;', 
+                                   div(style='float:left;', 'strongly disagree'), 
+                                   div(style='float:right;', 'strongly agree')),
+                       min = 1, max = 9, value = 5
            ),
-           sliderInput("ans_use", survey_questions[4],
-                       min = 1, max = 10, value = 5
-           )
+           h4(survey_questions[4]),
+           sliderInput("ans_use", 
+                       label = div(style='width:300px;', 
+                                   div(style='float:left;', 'strongly disagree'), 
+                                   div(style='float:right;', 'strongly agree')),
+                       min = 1, max = 9, value = 5
+           ),
+           h4(survey_questions[5]),
+           sliderInput("ans_high_dim", 
+                       label = div(style='width:300px;', 
+                                   div(style='float:left;', 'strongly disagree'), 
+                                   div(style='float:right;', 'strongly agree')),
+                       min = 1, max = 9, value = 5
+           ),
+           h4(survey_questions[6]),
+           sliderInput("ans_data_vis", 
+                       label = div(style='width:300px;', 
+                                   div(style='float:left;', 'strongly disagree'), 
+                                   div(style='float:right;', 'strongly agree')),
+                       min = 1, max = 9, value = 5
+           ),
+           h4(survey_questions[7]),
+           sliderInput("ans_previous_knowledge", 
+                       label = div(style='width:300px;', 
+                                   div(style='float:left;', 'strongly disagree'), 
+                                   div(style='float:right;', 'strongly agree')),
+                       min = 1, max = 9, value = 5
+           ) # & sex?
 )
 
 ### Answer table columns
@@ -95,12 +137,11 @@ col_question <- c(rep(s_questions, each = 4),
                   survey_questions)
 #col_dataset <- 
 
-panel_finalize <- tabPanel("finalize",
+panel_finalize <- tabPanel("Review answers",
                            tableOutput("ans_tbl"),
                            h4("Thank you for participating.")
 )
 
-print("got here2")
 ##### ui, combine tabPanels -----
 ui <- fluidPage(
   titlePanel("Multivariate data visualization study"),
@@ -124,7 +165,7 @@ ui <- fluidPage(
     panel_d2,
     panel_d3,
     panel_d4,
-    "Variance-covariance, s",
+    "Covariance, s",
     panel_s_intro,
     panel_s1,
     panel_s2,
@@ -194,9 +235,6 @@ server <- function(input, output, session) {
   })
 }
 
-print("got here4")
-print(paste0("panel_p1 class: ", class(panel_p1)))
-print(paste0("plot_p1$data class: ", class(plot_p1$data)))
 ### Combine as shiny app.
 shinyApp(ui = ui, server = server)
 

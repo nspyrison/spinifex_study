@@ -1,41 +1,42 @@
 ---
 output: pdf_document
 title: >
-  The effects of interaction while visualizing multivariate data
+  The effects of interaction on linear projections of multivariate data
 author:
-  - name: Nicholas Spyrison
-    affiliation: Monash University
-    address:
-    - Faculty of Information Technology
-    email:  nicholas.spyrison@monash.edu
-  - name: Dianne Cook
-    affiliation: Monash University
-    address:
-    - Department of Econometrics and Business Statistics
-    email:  dicook@monash.edu
-  - name: Kim Marriott
-    affiliation: Monash University
-    address:
-    - Faculty of Information Technology
-    email:  Kim.Marriott@monash.edu
+  Nick, Di, Kim
 abstract: >
-  abstract for spinifex study
+  abstract text here
 keywords: exploratory data analysis, projection pursuit, high dimensional data, data visualization, cluster analysis, dimension reduction,  statistical graphics, data science, user study, between users,
 ---
 
 
 ```{r setup_paper, include=FALSE}
 # ---
+  # - name: Nicholas Spyrison
+  #   # affiliation: Monash University
+  #   # address:
+  #   # - Faculty of Information Technology
+  #   # email:  nicholas.spyrison@monash.edu
+  # - name: Dianne Cook
+  #   # affiliation: Monash University
+  #   # address:
+  #   # - Department of Econometrics and Business Statistics
+  #   # email:  dicook@monash.edu
+  # - name: Kim Marriott
+  #   # affiliation: Monash University
+  #   # address:
+  #   # - Faculty of Information Technology
+  #   # email:  Kim.Marriott@monash.edu
 # preamble: >
 #   % preamble packages
 # link-citations: true
 # fig_caption: yes
 # toc: false
 # 
-# bibliography: spyrison-cook.bib
+# bibliography: spyrison-cook-marriott.bib
 # output: rticles::ieee_article
 # ---
-# \bibliography{spyrison-cook}
+# \bibliography{spyrison-cook-marriott}
 
 knitr::opts_chunk$set(
   fig.align = "center", 
@@ -60,10 +61,10 @@ library(dplyr)
 # Block/control: dimensionality p, n clusters, g, important vars d, var-covar s
 # replication: 24 within-subject of all 3 factors, 4 controls, sampled from 
 # datasets
-# Randomization: latin square; 8 get each factor first.
+# Randomization: Latin square; 8 get each factor first.
 # of those 8, 4 get one factor second, 4 get the other factor second.
-# Response: Accuracy in determining important variable.
-# measure: accuracy, speed (caped at 2min) ease of use, ease of understanding, ease of prefrence 
+# Response: Accuracy in determining important variables.
+# measure: accuracy, speed (capped at 2min) ease of use, ease of understanding, ease of preference 
 ```
 
 
@@ -71,19 +72,41 @@ library(dplyr)
 
 # Hypothesis
 
+Does the finer control afforded by the manual tour improve the ability of the analyst to understand the importance of variables contributing to the structure?
+
 # Experimental design {#sec:results}
+
+## Participant population
+
+A sample of convenience was taken from postgraduate students in the department of econometrics and business statistics at Monash University, based in Melbourne, Australia.
 
 ## Factors {#sec:vis_methods}
 
+Each participant was randomly split into one of 3 even factor groups. The first group saw only a single static linear projection, that of the first two principal components of the data. The second group watched a 30-second loop of a Grand tour. 
+The remaining group was allowed to control an interactive manual tour for their duration. 
 
+## Block treatments
 
-## Controls
-
-## Response & measures
+Each participant performed each of 4 block treatments in random order. The blocks consisted of determining the dimensionality of the dataset, `p`, the number of the clusters, `n`, the number of important variables, `d`, and identification of variable with significant covariance, `s`.
 
 ## Randomization & replication
 
+Participants were randomly assigned to one of 3 factors deciding which visual method they received. The blocks were performed in a random order for each participant. Within each block, participants performed 4 replications, answering the block question for each of the 4 datasets in a random order before proceeding to the next block.  
+
+
+## Response & measures
+
+Each block was introduced and demonstrated directly preceding each block. During this introductory segment, each participant was shown the visual for their factor with a written description of the block and how to discern it with the same toy data set. Participants were free to ask questions and clarification from the proctor at this time.  Questions were not allowed outside of the introductory segments. Participants received exactly 2 minutes to study/explore each repetition's projection before answering a question regarding it. Answers came in the form of a numeric input for three blocks - namely, dimensionality, clusters, and important variables (`p`, `n`, and `d` respectively). For the remaining block, covariance `s`, a checkmark box was provided for each variable. Participants we instructed to mark all variables, if any, that were highly correlated. None of the data sets contained more than a single group of highly-correlated variables.
+
+After responses for each block were collected, participants were given a short survey of 7 subjective questions on a 9-point Likert scale. These questions covered familiarity and expertise with multivariate data, its visualization, as well as, ease of use, understandability, confidence, and likely hood to recommend their factors visualization.
+
+Eye-tracking devices were also used to follow the gaze of participants as the study, including the survey was conducted.
+
 ## Experimental results {#sec:results}
+
+# Accompanying tool: spinifex application 
+
+# Discussion
 
 # Acknowledgments
 

@@ -1,0 +1,182 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={The effects of interaction on linear projections of multivariate data},
+            pdfauthor={Nick, Di, Kim},
+            pdfkeywords={exploratory data analysis, projection pursuit, high dimensional data,
+data visualization, cluster analysis, dimension reduction, statistical
+graphics, data science, user study, between users,},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\providecommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{The effects of interaction on linear projections of multivariate data}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{Nick, Di, Kim}
+    \preauthor{\centering\large\emph}
+  \postauthor{\par}
+    \date{}
+    \predate{}\postdate{}
+  
+
+\begin{document}
+\maketitle
+\begin{abstract}
+abstract text here
+\end{abstract}
+
+\hypertarget{introduction}{%
+\section{Introduction}\label{introduction}}
+
+\hypertarget{hypothesis}{%
+\section{Hypothesis}\label{hypothesis}}
+
+Does the finer control afforded by the manual tour improve the ability
+of the analyst to understand the importance of variables contributing to
+the structure?
+
+\hypertarget{sec:results}{%
+\section{Experimental design}\label{sec:results}}
+
+\hypertarget{participant-population}{%
+\subsection{Participant population}\label{participant-population}}
+
+A sample of convience was taken from postgraduate students in the
+department of econometrics and business statistics at Monash University,
+based in Melbourne, Australia.
+
+\hypertarget{sec:vis_methods}{%
+\subsection{Factors}\label{sec:vis_methods}}
+
+Each participant was randomly split into one of 3 even factor groups.
+The first group saw only a single static linar projection, that of first
+two principal componets of the data. The second group watched a 30
+second loop of Grand tour. The remaining group was allowed to control an
+interactive manual tour for their duration.
+
+\hypertarget{block-treatments}{%
+\subsection{Block treatments}\label{block-treatments}}
+
+Each participant performed each of 4 block treatments in random order.
+The blocks consisted of determing the the dimensionality of the dataset,
+\texttt{p}, the number of the clusters, \texttt{n}, the number of
+important variables, \texttt{d}, and if there existed an significant
+covariance, \texttt{s}.
+
+\hypertarget{randomization-replication}{%
+\subsection{Randomization \&
+replication}\label{randomization-replication}}
+
+Paricipants were randomly assigned to one of 3 factors deciding which
+visual methed they recieved. The blocks were performed in a random order
+for each participant. Within each block, pacticipants performed 4
+replications, answering the block question for each of the 4 datasets in
+a random order before proceeding to the next block.
+
+\hypertarget{response-measures}{%
+\subsection{Response \& measures}\label{response-measures}}
+
+Each block was introduced and demonstrated directly preceeding each
+block. During this introductory question each participant was shown the
+visual for their factor with a writen description of the block and how
+to descern it with the same toy data set. Participants recieved exactly
+2 minutes to study/explore each repitition's projection before answering
+a question regarding it. Answers came in the form of a numeric input for
+three blocks - namely, dimensionality, clusters, and imporant variables
+(\texttt{p}, \texttt{n}, and \texttt{d} respectivly). For the remaining
+block, covariance \texttt{s}, a checkmark box was provided for each
+varible. Pacticipants we instructed to mark all variables, if any, that
+were highly correlated. None of the data sets contained more than a
+single group of highly-correlated variables.
+
+After responses for each block were collected, paricipants were given a
+short survey of 7 subjective questions on a 9-point Likert scale. These
+questions covered familiarity and expertise with multivariate data, its
+visualization, as well as, ease of use, understandability, confidence,
+and likely hood to recomend their factors visualization.
+
+Eye tracking devices were also used to follow gaze of participants as
+the study, including the survey was conducted.
+
+\hypertarget{sec:results}{%
+\subsection{Experimental results}\label{sec:results}}
+
+\hypertarget{discussion}{%
+\section{Discussion}\label{discussion}}
+
+\hypertarget{acknowledgments}{%
+\section{Acknowledgments}\label{acknowledgments}}
+
+\hypertarget{bibliography}{%
+\section{Bibliography}\label{bibliography}}
+
+
+\end{document}
