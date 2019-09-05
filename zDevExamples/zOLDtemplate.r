@@ -4,9 +4,9 @@ n_controls <- 1:4
 s_controls <- c("p", "n", "d", "s")
 s_reps <- 1:4
 s_questions <- c("How many dimensions does the data have?",
-                "How many clusters exsit?",
-                "How few dimensions could the data be represented in?",
-                "Which dimensions are highly correlated?")
+                 "How many clusters exsit?",
+                 "How few dimensions could the data be represented in?",
+                 "Which dimensions are highly correlated?")
 
 ### Create plots, 'plot_',ctrl,rep
 x <- NULL
@@ -51,7 +51,7 @@ panel_survey <-
            sliderInput("q_useagain", "How likely would you be to use this visual?",
                        min = 1, max = 10, value = NULL
            )
-)
+  )
 
 panel_finalize <- tabPanel("finalize",
                            h4("Thank you for participating.")
