@@ -6,10 +6,9 @@ dat <- tourr::rescale(tourr::flea[, 1:6])
 #dat <- c(flea[, 1:6], olive, wine, mtcars)
 
 n_blocks <- 1:4
-s_blocks <- c("p", "n", "d", "s")
+s_blocks <- c("n", "d", "s")
 s_reps <- 1:4
-s_questions <- c("How many dimensions does the data have?",
-                 "How many clusters exist?",
+s_questions <- c("How many clusters exist?",
                  "How few dimensions could the data be represented in?",
                  "Which dimensions are highly correlated?")
 
@@ -39,15 +38,9 @@ for (i in n_blocks){
   }
 }
 
-### Introduction tabs
+### Introduction tabPanels -----
 panel_intro <- tabPanel("Study introduction",
                         h3("Welcome to the study")
-)
-panel_p_intro <- tabPanel("Introduction -- data dimensionality, p",
-                          h3("In this section you will be asked to determine the number of dimensions contained in the data."),
-                          h4("Each task contains different data, with the display as demonstrated below."),
-                          h4("You have 2 minutes to study the display before being prompted to submit your answer."),
-                          plotOutput("plot_pdemo")
 )
 panel_n_intro <- tabPanel("Introduction -- clusters, n",
                           h3("In this section you will be asked to determine the number of clusters contained in the data."),
@@ -68,7 +61,7 @@ panel_s_intro <- tabPanel("Introduction -- covariance, s",
                           plotOutput("plot_sdemo")
 )
 
-### Survey Tab
+### Survey tabPanel ----
 survey_questions <- c("This visualization was easy to use.",
                       "I am confident of my answers.",
                       "This visualization is easily understandable.",
@@ -127,18 +120,20 @@ panel_survey <-
                                    div(style='float:left;', 'strongly disagree'), 
                                    div(style='float:right;', 'strongly agree')),
                        min = 1, max = 9, value = 5
-           ) # & sex?
+           ) # ask for sex?
 )
 
 ### Answer table columns
 col_blockrep <- c(paste0(rep(s_blocks, each=max(s_reps)), s_reps),
-                  paste0("survey", 1:4))
+                  paste0("survey", 1:7))
 col_question <- c(rep(s_questions, each = 4),
                   survey_questions)
 #col_dataset <- 
 
 panel_finalize <- tabPanel("Review answers",
                            tableOutput("ans_tbl"),
+                           actionButton("save_ans", "save results"),
+                           verbatimTextOutput("save_msg"),
                            h4("Thank you for participating.")
 )
 
@@ -147,12 +142,6 @@ ui <- fluidPage(
   titlePanel("Multivariate data visualization study"),
   navlistPanel(
     panel_intro,
-    "Data diminsionality, p",
-    panel_p_intro,
-    panel_p1,
-    panel_p2,
-    panel_p3,
-    panel_p4,
     "Number of clusters, n",
     panel_n_intro,
     panel_n1,
@@ -180,10 +169,6 @@ ui <- fluidPage(
 
 ##### server, render outputs ----
 server <- function(input, output, session) {
-  output$plot_p1 <- renderPlot(plot_p1)
-  output$plot_p2 <- renderPlot(plot_p2)
-  output$plot_p3 <- renderPlot(plot_p3)
-  output$plot_p4 <- renderPlot(plot_p4)
   output$plot_n1 <- renderPlot(plot_n1)
   output$plot_n2 <- renderPlot(plot_n2)
   output$plot_n3 <- renderPlot(plot_n3)
@@ -210,11 +195,7 @@ server <- function(input, output, session) {
     data.frame(blockrep = col_blockrep,
                question = col_question,
                #dataset = col_dataset,
-               answer = c(input$ans_p1,
-                          input$ans_p2,
-                          input$ans_p3,
-                          input$ans_p4,
-                          input$ans_n1,
+               answer = c(input$ans_n1,
                           input$ans_n2,
                           input$ans_n3,
                           input$ans_n4,
@@ -229,9 +210,33 @@ server <- function(input, output, session) {
                           input$ans_ease,
                           input$ans_confidence,
                           input$ans_understand,
-                          input$ans_use
+                          input$ans_use,
+                          input$ans_high_dim,
+                          input$ans_data_vis,
+                          input$ans_previous_knowledge
                           )
     )
+  })
+  
+  observeEvent(input$save_ans, {
+    df <- ans_tbl()
+    if (max(is.na(df)) == 1) {
+      output$save_msg <- renderText("Please verify that all questions have been answered.")
+      return()
+    }
+    if (min(df[(nrow(df) - 6):nrow(df), 3] == 5) == 1) {
+      output$save_msg <- renderText("Please verify that the survey has been answered.")
+      return()
+    }
+    save_n <- 1
+    save_file <- paste0(sprintf("study_reponses%03d", save_n), ".csv")
+    while (file.exists(save_file)){
+      save_n <- save_n + 1
+      save_file <- paste0(sprintf("study_reponses%03d", save_n), ".csv")
+    }
+    write.csv(ans_tbl(), file = save_file, row.names = FALSE)
+    output$save_msg <- 
+      renderPrint(paste0("Reponses saved as ", save_file))
   })
 }
 
