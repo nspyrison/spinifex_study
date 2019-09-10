@@ -1,6 +1,7 @@
 source('global.R', local = TRUE)
 
 library("GGally")
+library("lubridate")
 
 ##### Private, static content ----
 ### Create PCA ggplots, 'pca_',blck,rep
@@ -15,7 +16,7 @@ for (blck in s_blocks){
       theme_minimal()
     assign(paste0("pca_", blck, rep), plot)
   }
-} 
+}
 
 ### Create SPLOM ggplots, 'splom_',blck,rep
 # TODO: currently no way to reach splom plots. add radio buttons to ui.
@@ -35,6 +36,7 @@ for (blck in s_blocks){
 
 ##### UI, combine tabPanels -----
 ui <- fluidPage( ### INPUT, need to size to number of reps
+  textOutput('timer_disp'),
   titlePanel("Multivariate data visualization study"),
   navlistPanel(
     panel_study_intro,
@@ -62,6 +64,16 @@ ui <- fluidPage( ### INPUT, need to size to number of reps
 
 ##### Server function, dynamic outputs ----
 server <- function(input, output, session) {  ### INPUT, need to size to number of reps
+  timer <- reactiveVal(120)
+  timer_active <- reactiveVal(TRUE)
+  timer_disp <- reactive({ 
+    if (timer_active()) {
+      paste("Time left: ", seconds_to_period(timer()))
+    } else ("Time has expired, please enter your best guess and proceed.")
+    
+  })
+  
+  output$timer_disp <- renderText({timer_disp()})
   output$plot_n1 <- renderPlot(pca_n1)
   output$plot_n2 <- renderPlot(pca_n2)
   output$plot_n3 <- renderPlot(pca_n3)
@@ -75,12 +87,12 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   output$plot_ddemo <- renderPlot(pca_ddemo)
   output$plot_sdemo <- renderPlot(pca_sdemo)
   output$ans_tbl <- renderTable({
-    ans_tbl()[ , !(names(ans_tbl()) %in% "dataset")] # mask dataset from users
+    ans_tbl()[ , !(names(ans_tbl()) %in% "dataset")] # hide dataset from users
   })
   output$dev_msg <- renderPrint(cat("dev msg -- \n",
-                                    "browser: ", input$browser, "\n",
+                                    "timer: ", timer(), "\n",
                                     sep = ""))
-  
+  ### Response table
   ans_tbl <- reactive({
     data.frame(blockrep = col_blockrep, ### INPUT, need to size to number of reps
                question = col_question,
@@ -105,6 +117,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     )
   })
   
+  ### Check reponse table
   observeEvent(input$save_ans, {
     df <- ans_tbl()
     if (max(is.na(df)) == 1) { # Check that all tasks have answers.
@@ -125,6 +138,28 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     output$save_msg <- 
       renderPrint(paste0("Reponses saved as ", save_file))
   })
+  
+  ### Timer
+  observe({
+    invalidateLater(1000, session)
+    isolate({
+      if(timer_active())
+      {
+        timer(timer() - 1)
+        if(timer()<1)
+        {
+          timer_active(FALSE)
+          # showModal(modalDialog(
+          #   title = "Important message",
+          #   "Countdown completed!"
+          # ))
+        }
+      }
+    })
+  })
+  
+
+ 
 }
 
 ### Combine as shiny app.

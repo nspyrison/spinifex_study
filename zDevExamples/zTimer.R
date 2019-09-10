@@ -10,7 +10,7 @@ if (interactive()) {
     
     # Anything that calls autoInvalidate will automatically invalidate
     # every 2 seconds.
-    autoInvalidate <- reactiveTimer(10*1000)
+    autoInvalidate <- reactiveTimer(2*1000)
     
     observe({
       # Invalidate and re-execute this reactive expression every time the
