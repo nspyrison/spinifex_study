@@ -1,127 +1,106 @@
-source('global.R', local = TRUE)
+source('global.r', local = TRUE)
 
 library("GGally")
 library("lubridate")
 
 ##### Private, static content ----
 ### Create PCA ggplots, 'pca_',blck,rep
+s_pca <- NULL
 for (blck in s_blocks){
-  for (rep in c("demo", s_reps)){
+  for (rep in c("demo", 1:n_reps)){
     if (rep == "demo") {
       pca <- data.frame(prcomp(demo_dat)$x)
     } else {
       pca <- data.frame(prcomp(s_samp_dat[[as.integer(rep)]])$x)
     }
-    plot <- ggplot(pca, mapping = aes(x = PC1, y = PC2)) + geom_point() +
+    pca_plot <- ggplot(pca, mapping = aes(x = PC1, y = PC2)) + geom_point() +
       theme_minimal()
-    assign(paste0("pca_", blck, rep), plot)
+    
+    s_pca[[length(s_pca) + 1]] <- pca_plot
   }
 }
 
 ### Create SPLOM ggplots, 'splom_',blck,rep
 # TODO: currently no way to reach splom plots. add radio buttons to ui.
+s_splom <- NULL
 for (blck in s_blocks){
-  for (rep in c("demo", s_reps)){
+  for (rep in c("demo", 1:n_reps)){
     if (rep == "demo") {
       dat <- demo_dat
     } else {
       dat <- s_samp_dat[[as.integer(rep)]]
     }
-    plot <- GGally::ggpairs(data = dat, alpha = .2) +
+    splom_plot <- GGally::ggpairs(data = dat) + #, alpha = .2) +
       theme_minimal()
-    assign(paste0("splom_", blck, rep), plot)
+    
+    s_splom[[length(s_splom) + 1]] <- splom_plot
   }
 } 
 
-
-##### UI, combine tabPanels -----
-ui <- fluidPage( ### INPUT, need to size to number of reps
-  textOutput('timer_disp'),
-  titlePanel("Multivariate data visualization study"),
-  navlistPanel(
-    panel_study_intro,
-    "Number of clusters, n",
-    panel_n_intro,
-    panel_n1,
-    panel_n2,
-    panel_n3,
-    "Important dimensions, d",
-    panel_d_intro,
-    panel_d1,
-    panel_d2,
-    panel_d3,
-    "Covariance, s",
-    panel_s_intro,
-    panel_s1,
-    panel_s2,
-    panel_s3,
-    "Wrap up",
-    panel_survey,
-    panel_finalize
-  )
-  , verbatimTextOutput("dev_msg")
-)
-
 ##### Server function, dynamic outputs ----
 server <- function(input, output, session) {  ### INPUT, need to size to number of reps
-  timer <- reactiveVal(120)
-  timer_active <- reactiveVal(TRUE)
-  timer_disp <- reactive({ 
-    if (timer_active()) {
-      paste("Time left: ", seconds_to_period(timer()))
-    } else ("Time has expired, please enter your best guess and proceed.")
-    
-  })
+  rv <- reactiveValues()
+  rv$task_num <- 1
+  rv$timer <- 120
+  rv$timer_active <- TRUE
+  rv$task_responses <- rep(NA, each = n_blocks * n_reps)
   
-  output$timer_disp <- renderText({timer_disp()})
-  output$plot_n1 <- renderPlot(pca_n1)
-  output$plot_n2 <- renderPlot(pca_n2)
-  output$plot_n3 <- renderPlot(pca_n3)
-  output$plot_d1 <- renderPlot(pca_d1)
-  output$plot_d2 <- renderPlot(pca_d2)
-  output$plot_d3 <- renderPlot(pca_d3)
-  output$plot_s1 <- renderPlot(pca_s1)
-  output$plot_s2 <- renderPlot(pca_s2)
-  output$plot_s3 <- renderPlot(pca_s3)
-  output$plot_ndemo <- renderPlot(pca_ndemo)
-  output$plot_ddemo <- renderPlot(pca_ddemo)
-  output$plot_sdemo <- renderPlot(pca_sdemo)
+  ### Outputs
+  output$timer_disp <- renderText({
+    if (rv$timer_active) {
+      paste("Time left: ", seconds_to_period(rv$timer))
+    } else ("Time has expired, please enter your best guess and proceed.")
+  })
+  output$header_text <- renderText(s_header_text[rv$task_num])
+  output$question_text <- renderText(s_question_text[rv$task_num])
+  output$top_text <- renderText(s_top_text[rv$task_num])
+  output$bottom_text <- renderText(s_bottom_text[rv$task_num])
+  output$task_plot <- renderPlot({s_pca[[rv$task_num]]}) 
   output$ans_tbl <- renderTable({
     ans_tbl()[ , !(names(ans_tbl()) %in% "dataset")] # hide dataset from users
   })
   output$dev_msg <- renderPrint(cat("dev msg -- \n",
-                                    "timer: ", timer(), "\n",
+                                    "rv$timer: ", rv$timer, "\n",
+                                    "rv$task_num: ", rv$task_num, "\n",
+                                    "s_header_text[rv$task_num]): ", s_header_text[rv$task_num], "\n",
+                                    "input$task_response: ", input$task_response, "\n",
                                     sep = ""))
+  
   ### Response table
   ans_tbl <- reactive({
-    data.frame(blockrep = col_blockrep, ### INPUT, need to size to number of reps
-               question = col_question,
-               dataset = col_dataset,
-               answer = c(input$ans_n1, 
-                          input$ans_n2,
-                          input$ans_n3,
-                          input$ans_d1,
-                          input$ans_d2,
-                          input$ans_d3,
-                          input$ans_s1,
-                          input$ans_s2,
-                          input$ans_s3,
-                          input$ans_ease,
-                          input$ans_confidence,
-                          input$ans_understand,
-                          input$ans_use,
-                          input$ans_high_dim,
-                          input$ans_data_vis,
-                          input$ans_previous_knowledge
-                          )
-    )
+    col_responses <- c(rv$task_responses,
+                       input$ans_ease,
+                       input$ans_confidence,
+                       input$ans_understand,
+                       input$ans_use,
+                       input$ans_high_dim,
+                       input$ans_data_vis,
+                       input$ans_previous_knowledge)
+    data.frame(blockrep  = col_blockrep,
+               question  = col_question,
+               dataset   = col_dataset,
+               responses = col_responses)
   })
   
-  ### Check reponse table
+  ### Next task button
+  observeEvent(input$next_task_button, {
+    if (rv$task_num < length(s_header_text)){
+      # if (input$task_response == ""){
+      #   output$response_msg <- renderText("Please enter a response before continuing.")
+      #   return()
+      # }
+      rv$task_responses[rv$task_num] <- input$task_response
+      rv$task_num <- rv$task_num + 1
+      output$response_msg <- renderText("")
+      updateNumericInput(session, "task_response", value = "")
+    }
+  })
+  
+  ### Save reponse table
   observeEvent(input$save_ans, {
     df <- ans_tbl()
     if (max(is.na(df)) == 1) { # Check that all tasks have answers.
-      output$save_msg <- renderText("Please verify that all questions have been answered.")
+      output$save_msg <- renderText("Please verify that all tasks have been answered.")
       return()
     }
     if (min(df[(nrow(df) - 6):nrow(df), 3] == 5) == 1) { # Check that all survey questions not default.
@@ -143,12 +122,12 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   observe({
     invalidateLater(1000, session)
     isolate({
-      if(timer_active())
+      if(rv$timer_active)
       {
-        timer(timer() - 1)
-        if(timer()<1)
+        rv$timer <- rv$timer - 1
+        if(rv$timer < 1)
         {
-          timer_active(FALSE)
+          rv$timer_active <- FALSE
           # showModal(modalDialog(
           #   title = "Important message",
           #   "Countdown completed!"
