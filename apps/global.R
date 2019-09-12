@@ -79,6 +79,9 @@ s_bottom_text <- c(rbind(intro_bottom_row, m_blank), "")
 ### Task panels
 panel_task <- tabPanel("Tasks", 
                        sidebarPanel(
+                         selectInput("static_method", label = "method", 
+                                     choices = c("pca", "splom"),
+                                     selected = "pca"),
                          hr(), # horizontal line
                          actionButton("next_task_button", "Next task")
                        ),
