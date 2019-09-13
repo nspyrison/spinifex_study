@@ -14,29 +14,14 @@ for (blck in s_blocks){
       pca <- data.frame(prcomp(s_samp_dat[[as.integer(rep)]])$x)
     }
     pca_plot <- ggplot(pca, mapping = aes(x = PC1, y = PC2)) + geom_point() +
-      theme_minimal() + theme(axis.text.x = element_blank(),
-                              axis.text.y = element_blank())
+      theme_minimal() + theme(aspect.ratio = 1) +
+      theme(axis.text.x = element_blank(),
+            axis.text.y = element_blank())
     
     s_pca[[length(s_pca) + 1]] <- pca_plot
   }
 }
 
-### Create SPLOM ggplots, 'splom_',blck,rep
-s_splom <- NULL
-for (blck in s_blocks){
-  for (rep in c("demo", 1:n_reps)){
-    if (rep == "demo") {
-      dat <- demo_dat
-    } else {
-      dat <- s_samp_dat[[as.integer(rep)]]
-    }
-    splom_plot <- GGally::ggpairs(data = dat) + #, alpha = .2) +
-      theme_minimal() + theme(axis.text.x = element_blank(),
-                              axis.text.y = element_blank())
-    
-    s_splom[[length(s_splom) + 1]] <- splom_plot
-  }
-} 
 
 ##### Server function, dynamic outputs ----
 server <- function(input, output, session) {  ### INPUT, need to size to number of reps
@@ -70,8 +55,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ### Plot
   task_plot <- reactive({
     if (rv$timer_active | nchar(s_header_text[rv$task_num]) != 10) {
-      if (input$static_method == "pca") {return(s_pca[[rv$task_num]])}
-      if (input$static_method == "splom") {return(s_splom[[rv$task_num]])}
+      return(s_pca[[rv$task_num]])
     }
   })
   

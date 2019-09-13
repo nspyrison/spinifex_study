@@ -10,10 +10,9 @@ demo_dat <- tourr::flea[, 1:6]
 s_dat <- list(olive, wine, mtcars)
 uo_dat_names <- c("olive", "wine", "mtcars")
 s_blocks <- c("n", "d", "s")
-s_block_names <- c("clusters, n", "important variable, d", "correlated variables, s")
+s_block_names <- c("clusters, n", "important variable, r", "correlated variables, s")
 s_block_questions <- c("How many clusters exist?",
-                       "How few dimensions could the data be represented in?",
-                       "Which dimensions are highly correlated?")
+                       "Rank the variables in order of importance for distinguishing groups.")
 s_survey_questions <- c("This visualization was easy to use.", ### INPUT
                         "I am confident of my answers.",
                         "This visualization is easily understandable.",
@@ -75,13 +74,12 @@ s_top_text <- c(rbind(intro_top_row, m_blank), "")
 intro_bottom_row <- "You have 2 minutes to study the display before being prompted to submit your answer."
 s_bottom_text <- c(rbind(intro_bottom_row, m_blank), "")
 
-##### tabPanels -----
+##### UI, tabPanels -----
 ### Task panels
 panel_task <- tabPanel("Tasks", 
                        sidebarPanel(
-                         selectInput("static_method", label = "method", 
-                                     choices = c("pca", "splom"),
-                                     selected = "pca"),
+                         ##TODO: add PC checkbox/radio buttons here.
+                         #checkboxGroupInput("plot_components", "components to include", )
                          hr(), # horizontal line
                          actionButton("next_task_button", "Next task")
                        ),
