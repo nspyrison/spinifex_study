@@ -4,15 +4,17 @@
 library("ggplot2")
 library("spinifex")
 library("shiny")
+library("tidyr")
+
 
 ### Required inputs
-demo_dat <- tourr::flea[, 1:6]
-s_dat <- list(olive, wine, mtcars)
-uo_dat_names <- c("olive", "wine", "mtcars")
+intro_dat <- tourr::rescale(tourr::flea[, 1:6])
+n_reps <- 3
 s_blocks <- c("n", "d", "s")
 s_block_names <- c("clusters, n", "important variable, r", "correlated variables, s")
 s_block_questions <- c("How many clusters exist?",
-                       "Rank the variables in order of importance for distinguishing groups.")
+                       "Rank the variables in order of importance for distinguishing groups.",
+                       "dummy 3rd question")
 s_survey_questions <- c("This visualization was easy to use.", ### INPUT
                         "I am confident of my answers.",
                         "This visualization is easily understandable.",
@@ -22,38 +24,69 @@ s_survey_questions <- c("This visualization was easy to use.", ### INPUT
                         "I had previous knowledge of this visualization.")
 
 n_blocks <- length(s_blocks)
-n_reps <- length(s_dat)
 s_blockrep_id <- paste0(rep(s_blocks, each = n_reps), rep(1:n_reps, n_reps))
 
-dat_order <- sample(1:n_reps, n_reps, replace = F)
-o_s_dat <- s_dat[dat_order] # Ordered Set of DATa
-col_dataset <- c(rep(uo_dat_names[dat_order], n_reps), 
-                 rep(NA, length(s_survey_questions)))
-
-###### Sample and order data ----
-### Create samples, of the set of data with point jitter 
-s_samp_dat <- NULL
-for (i in 1:n_reps) {
-  n <- nrow(o_s_dat[[i]])
-  row_samp <- sample(1:n, n, replace = T)
-  dat_samp <- o_s_dat[[i]][row_samp, ]
-  
-  jitter <- function(x){
-    if (is.numeric(x)) {
-      swing <- 1 / 40 * (max(x) - min(x))
-      x <- x + runif(n, -swing, swing)
-    }
-    else NULL # Null non-numeric columns, will be droped.
+###### Simulate clusters
+sim_cluster <- function(p = 10, pnoise = 4, cl = 4){
+  #p = 10; pnoise = 4; cl = 4
+  x <- NULL
+  ncl <- NULL
+  mncl <- NULL
+  vc <- NULL
+  for (i in 1:cl) {
+    n <- sample(30:150, 1)
+    # vc <- matrix(sample(seq(-0.1, 0.7, by = 0.1), 1), nrow = p, ncol = p) # Add some association
+    #shouldn' we have random symetric matrix for vc?
+    vc <- matrix(sample(seq(-.1, 0.7, by = 0.1), p * p, replace = T), nrow = p) 
+    ind <- lower.tri(vc) 
+    vc[ind] <- t(vc)[ind] 
+    #TODO: Err: sigma is numerically not positive semidefinite.
+    ## make.positive.definite works, but then the values are ulgy, try from 0:.7?
+    vc <- lqmm::make.positive.definite(vc) # Variance-covariance matrix
+    diag(vc) <- 1
+    mn <- c(sample(seq(-3, 3, 1), p-pnoise, replace=T), rep(0, pnoise))
+    x <- rbind(x, rmvnorm(n=n, mean=mn, vc))
+    ncl <- c(ncl, n)
+    mncl <- rbind(mncl, mn)
   }
+  x <- scale(x)
+  x <- as.data.frame(x)
+  # ncl # Sizes of the clusters, and clusters are sequential row numbers
+  # mncl # cluster means
   
-  l_x <- lapply(dat_samp, jitter)
-  col_remaining <- length(unlist(l_x)) / n
-  df_x <- data.frame(matrix(unlist(l_x), ncol = col_remaining, byrow = F))
-  colnames_x <- names(l_x)[unlist(lapply(l_x, is.numeric))]
-  colnames(df_x) <- colnames_x
+  # Show color on plots to check clustering
+  cluster <- factor(rep(letters[1:cl], ncl))
+  cluster_col <- col_of(cluster)
   
-  s_samp_dat[[i]] <- df_x
+  # Scramble rows and columns
+  cluster
+  x.indx <- sample(1:nrow(x))
+  y.indx <- sample(1:ncol(x))
+  x <- x[x.indx, y.indx]
+  cluster <- cluster[x.indx]
+  
+  #animate_xy(x, axes="bottomleft", guided_tour(holes()), sphere = TRUE, col=class_col)
+  attr(x, "ncl") <- ncl
+  attr(x, "mncl") <- mncl
+  attr(x, "vc") <- vc
+  attr(x, "cluster") <- cluster
+  return(x)
 }
+
+s_dat <- NULL
+for (i in 1:n_reps){
+  this_sim <- sim_cluster(p = 10, pnoise = 4, cl = 4)
+  colnames(this_sim) <- paste0("V", 1:10)
+  s_dat[[length(s_dat) + 1]] <- this_sim
+}
+df_simulation <- NULL
+for (i in 1: length(s_dat)) {
+  this_df <- data.frame(s_dat[[i]], simulation = i)
+  df_simulation <- rbind(df_simulation, this_df)
+}
+ndf_simulation <- tidyr::nest(df_simulation, -simulation)
+ndf_simulation <- rbind(nest_simulation, nest_simulation, nest_simulation, ### INPUT
+                        NA, NA, NA, NA, NA, NA, NA )
 
 ###### Text sets -----
 intro_header_row <- paste0("Introduction -- ", s_block_names)

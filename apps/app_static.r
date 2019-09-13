@@ -1,7 +1,7 @@
 source('global.r', local = TRUE)
 
 library("GGally")
-library("lubridate")
+library("lubridate") # For timer
 
 ##### Private, static content ----
 ### Create PCA ggplots, 'pca_',blck,rep
@@ -9,9 +9,9 @@ s_pca <- NULL
 for (blck in s_blocks){
   for (rep in c("introduction", 1:n_reps)){
     if (rep == "introduction") {
-      pca <- data.frame(prcomp(demo_dat)$x)
+      pca <- data.frame(prcomp(intro_dat)$x)
     } else {
-      pca <- data.frame(prcomp(s_samp_dat[[as.integer(rep)]])$x)
+      pca <- data.frame(prcomp(s_dat[[as.integer(rep)]])$x)
     }
     pca_plot <- ggplot(pca, mapping = aes(x = PC1, y = PC2)) + geom_point() +
       theme_minimal() + theme(aspect.ratio = 1) +
@@ -35,7 +35,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   output$timer_disp <- renderText({
     if (nchar(s_header_text[rv$task_num]) == 10) { # 10 for "Task -- xn"
       if (rv$timer < 1) {return("Time has expired, please enter your best guess and proceed.")
-      } else {paste0("Time left: ", seconds_to_period(rv$timer))}
+      } else {paste0("Time left: ", lubridate::seconds_to_period(rv$timer))}
     } else {return()}
   })
   output$header_text <- renderText(s_header_text[rv$task_num])
@@ -44,7 +44,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   output$bottom_text <- renderText(s_bottom_text[rv$task_num])
   output$task_plot <- renderPlot({task_plot()}) 
   output$ans_tbl <- renderTable({
-    ans_tbl()[ , !(names(ans_tbl()) %in% "dataset")] # hide dataset from users
+    ans_tbl()[ , !(names(ans_tbl()) %in% "simulation")] # hide dataset from users
   })
   output$dev_msg <- renderPrint(cat("dev msg -- \n",
                                     "rv$timer: ", rv$timer, "\n",
@@ -69,10 +69,11 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                        input$ans_high_dim,
                        input$ans_data_vis,
                        input$ans_previous_knowledge)
-    data.frame(blockrep  = col_blockrep,
-               question  = col_question,
-               dataset   = col_dataset,
-               responses = col_responses)
+    data.frame(blockrep   = col_blockrep,
+               question   = col_question,
+               sim_id = ndf_simulation$simulation,
+               data = ndf_simulation$data,
+               responses  = col_responses)
   })
   
   ### Next task button

@@ -11,7 +11,8 @@ ncl <- NULL
 mncl <- NULL
 for (i in 1:cl) {
   n <- sample(30:150, 1)
-  vc <- matrix(sample(seq(-0.1, 0.7, 0.1), 1), p, p) # Add some association
+  vc <- matrix(sample(seq(-0.1, 0.7, by = 0.1), 1), nrow = p, ncol = p) # Add some association
+  #shouldn' we have random symetric matrix for vc?
   diag(vc) <- 1
   mn <- c(sample(seq(-3, 3, 1), p-pnoise, replace=T), rep(0, pnoise))
   x <- rbind(x, rmvnorm(n=n, mean=mn, vc))
