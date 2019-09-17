@@ -10,13 +10,20 @@ for (blck in s_blocks){
   for (rep in c("introduction", 1:n_reps)){
     if (rep == "introduction") {
       pca <- data.frame(prcomp(intro_dat)$x)
+      col <- intro_col
+      pch <- intro_pch
     } else {
       pca <- data.frame(prcomp(s_dat[[as.integer(rep)]])$x)
+      col <- col_of(attributes(s_dat[[as.integer(rep)]])$cluster)
+      pch <- pch_of(attributes(s_dat[[as.integer(rep)]])$cluster)
     }
-    pca_plot <- ggplot(pca, mapping = aes(x = PC1, y = PC2)) + geom_point() +
+    pca_plot <- ggplot(pca, mapping = aes(x = PC1, y = PC2), ) +
+      geom_point(color = col, shape = pch) +
       theme_minimal() + theme(aspect.ratio = 1) +
+      scale_color_brewer(palette = "Dark2") +
       theme(axis.text.x = element_blank(),
-            axis.text.y = element_blank())
+            axis.text.y = element_blank(),
+            legend.position = 'none')
     
     s_pca[[length(s_pca) + 1]] <- pca_plot
   }
@@ -50,7 +57,8 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                     "rv$timer: ", rv$timer, "\n",
                                     "rv$task_num: ", rv$task_num, "\n",
                                     "s_header_text[rv$task_num]: ", s_header_text[rv$task_num], "\n",
-                                    "input$task_response: ", input$task_response, "\n",
+                                    "input$task_response: ",     input$task_response, "\n",
+                                    "head(col): ", head(col),
                                     sep = ""))
   ### Plot
   task_plot <- reactive({
@@ -69,11 +77,11 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                        input$ans_high_dim,
                        input$ans_data_vis,
                        input$ans_previous_knowledge)
-    data.frame(blockrep   = col_blockrep,
-               question   = col_question,
-               sim_id = ndf_simulation$simulation,
-               data = ndf_simulation$data,
-               responses  = col_responses)
+    data.frame(blockrep  = col_blockrep,
+               question  = col_question,
+               sim_id    = col_sim_id,
+               #sim      = nest((col_sim)), # a list with uneven tibbles 
+               responses = col_responses)
   })
   
   ### Next task button
@@ -112,15 +120,23 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       output$save_msg <- renderText("Please verify that the survey has been answered.")
       return()
     }
-    save_n <- 1
-    save_file <- paste0(sprintf("study_reponses%03d", save_n), ".csv")
+    
+    save_num <- 1
+    save_name <- sprintf("reponse_table%03d", save_num)
+    save_file <- paste0(save_name, ".csv")
     while (file.exists(save_file)){
-      save_n <- save_n + 1
-      save_file <- paste0(sprintf("study_reponses%03d", save_n), ".csv")
+      save_num <- save_num + 1
+      save_name <- sprintf("reponse_table%03d", save_num)
+      save_file <- paste0(save_name, ".csv")
     }
-    write.csv(ans_tbl(), file = save_file, row.names = FALSE)
-    output$save_msg <- 
-      renderPrint(paste0("Reponses saved as ", save_file))
+    assign(save_name, ans_tbl())
+    write.csv(response_table, file = save_file, row.names = FALSE)
+    sim_save_name <- sprintf("simulation_data%03d", save_num)
+    sim_save_file <- paste0(sim_save_name, ".csv")
+    assign(sprintf("reponse_table%03d", save_num), s_dat)
+    write.csv(ndf_simulation, file = sim_save_file, row.names = FALSE)
+    output$save_msg <- renderPrint(paste0("Reponses saved as ", save_file, ", 
+                         and data saved as ", sim_save_file, "."))
   })
   
   ### Timer

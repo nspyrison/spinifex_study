@@ -5,10 +5,13 @@ library("ggplot2")
 library("spinifex")
 library("shiny")
 library("tidyr")
+library("mvtnorm")
 
 
 ### Required inputs
 intro_dat <- tourr::rescale(tourr::flea[, 1:6])
+intro_col <- col_of(tourr::flea$species)
+intro_pch <- pch_of(tourr::flea$species)
 n_reps <- 3
 s_blocks <- c("n", "d", "s")
 s_block_names <- c("clusters, n", "important variable, r", "correlated variables, s")
@@ -70,6 +73,7 @@ sim_cluster <- function(p = 10, pnoise = 4, cl = 4){
   attr(x, "mncl") <- mncl
   attr(x, "vc") <- vc
   attr(x, "cluster") <- cluster
+  attr(x, "x.indx") <- x.indx
   return(x)
 }
 
@@ -85,8 +89,11 @@ for (i in 1: length(s_dat)) {
   df_simulation <- rbind(df_simulation, this_df)
 }
 ndf_simulation <- tidyr::nest(df_simulation, -simulation)
-ndf_simulation <- rbind(nest_simulation, nest_simulation, nest_simulation, ### INPUT
+col_ndf_simulation <- rbind(ndf_simulation, ndf_simulation, ndf_simulation, ### INPUT
                         NA, NA, NA, NA, NA, NA, NA )
+col_sim_id <- col_ndf_simulation$simulation
+col_sim    <- col_ndf_simulation$data # List of different dim df, doesn't stay nested.
+
 
 ###### Text sets -----
 intro_header_row <- paste0("Introduction -- ", s_block_names)
@@ -109,6 +116,11 @@ s_bottom_text <- c(rbind(intro_bottom_row, m_blank), "")
 
 ##### UI, tabPanels -----
 ### Task panels
+l_choices <- list(NULL)
+for (i in 1:5){ 
+  l_choices[[i]] <- i
+}
+names(l_choices) <- paste0("choice ", 1:5)
 panel_task <- tabPanel("Tasks", 
                        sidebarPanel(
                          ##TODO: add PC checkbox/radio buttons here.
@@ -121,7 +133,23 @@ panel_task <- tabPanel("Tasks",
                                  verbatimTextOutput("top_text"),
                                  plotOutput("task_plot"),
                                  verbatimTextOutput("question_text"),
-                                 numericInput("task_response", "", "", min = 0, max = 100),
+                                 # conditionalPanel('output.panelStatus', 
+                                 #                  h2(paste0("Condition met!!!; ", rv$task_num %in% 1))
+                                 # ),
+                                 
+                                 # checkboxGroupInput("checkGroup", "",
+                                 #                    choices = l_choices,
+                                 #                    selected = NULL, inline = T),
+                                 checkboxGroupInput(inputId="test1", label="Test1", choices=1:9, inline = TRUE),
+                                 checkboxGroupInput(inputId="test2", label="Test2", choices=1:9, inline = TRUE),
+                                 checkboxGroupInput(inputId="test3", label="Test3", choices=1:9, inline = TRUE),
+                                 checkboxGroupInput(inputId="test4", label="Test4", choices=1:9, inline = TRUE),
+                                 checkboxGroupInput(inputId="test5", label="Test5", choices=1:9, inline = TRUE),
+                                 checkboxGroupInput(inputId="test6", label="Test6", choices=1:9, inline = TRUE),
+                                 checkboxGroupInput(inputId="test7", label="Test7", choices=1:9, inline = TRUE),
+                                 checkboxGroupInput(inputId="test8", label="Test8", choices=1:9, inline = TRUE),
+                                 checkboxGroupInput(inputId="test9", label="Test9", choices=1:9, inline = TRUE),
+                                 
                                  verbatimTextOutput("response_msg"), 
                                  verbatimTextOutput("bottom_text")
                        )
@@ -202,3 +230,4 @@ ui <- fluidPage(
              panel_finalize)
   , verbatimTextOutput("dev_msg")
 )
+
