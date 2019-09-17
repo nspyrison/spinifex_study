@@ -57,7 +57,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                     "rv$timer: ", rv$timer, "\n",
                                     "rv$task_num: ", rv$task_num, "\n",
                                     "s_header_text[rv$task_num]: ", s_header_text[rv$task_num], "\n",
-                                    "input$task_response: ",     input$task_response, "\n",
+                                    "input$task_response: ", input$task_response, "\n",
                                     "head(col): ", head(col),
                                     sep = ""))
   ### Plot

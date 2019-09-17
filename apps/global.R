@@ -90,7 +90,7 @@ for (i in 1: length(s_dat)) {
 }
 ndf_simulation <- tidyr::nest(df_simulation, -simulation)
 col_ndf_simulation <- rbind(ndf_simulation, ndf_simulation, ndf_simulation, ### INPUT
-                        NA, NA, NA, NA, NA, NA, NA )
+                            NA, NA, NA, NA, NA, NA, NA)
 col_sim_id <- col_ndf_simulation$simulation
 col_sim    <- col_ndf_simulation$data # List of different dim df, doesn't stay nested.
 
@@ -121,38 +121,36 @@ for (i in 1:5){
   l_choices[[i]] <- i
 }
 names(l_choices) <- paste0("choice ", 1:5)
-panel_task <- tabPanel("Tasks", 
-                       sidebarPanel(
-                         ##TODO: add PC checkbox/radio buttons here.
-                         #checkboxGroupInput("plot_components", "components to include", )
-                         hr(), # horizontal line
-                         actionButton("next_task_button", "Next task")
-                       ),
-                       mainPanel(textOutput('timer_disp'),
-                                 verbatimTextOutput("header_text"),
-                                 verbatimTextOutput("top_text"),
-                                 plotOutput("task_plot"),
-                                 verbatimTextOutput("question_text"),
-                                 # conditionalPanel('output.panelStatus', 
-                                 #                  h2(paste0("Condition met!!!; ", rv$task_num %in% 1))
-                                 # ),
-                                 
-                                 # checkboxGroupInput("checkGroup", "",
-                                 #                    choices = l_choices,
-                                 #                    selected = NULL, inline = T),
-                                 checkboxGroupInput(inputId="test1", label="Test1", choices=1:9, inline = TRUE),
-                                 checkboxGroupInput(inputId="test2", label="Test2", choices=1:9, inline = TRUE),
-                                 checkboxGroupInput(inputId="test3", label="Test3", choices=1:9, inline = TRUE),
-                                 checkboxGroupInput(inputId="test4", label="Test4", choices=1:9, inline = TRUE),
-                                 checkboxGroupInput(inputId="test5", label="Test5", choices=1:9, inline = TRUE),
-                                 checkboxGroupInput(inputId="test6", label="Test6", choices=1:9, inline = TRUE),
-                                 checkboxGroupInput(inputId="test7", label="Test7", choices=1:9, inline = TRUE),
-                                 checkboxGroupInput(inputId="test8", label="Test8", choices=1:9, inline = TRUE),
-                                 checkboxGroupInput(inputId="test9", label="Test9", choices=1:9, inline = TRUE),
-                                 
-                                 verbatimTextOutput("response_msg"), 
-                                 verbatimTextOutput("bottom_text")
-                       )
+panel_task <- tabPanel(
+  "Tasks", 
+  sidebarPanel(
+    ##TODO: add PC checkbox/radio buttons here.
+    #checkboxGroupInput("plot_components", "components to include", )
+    hr(), # horizontal line
+    actionButton("next_task_button", "Next task")
+  ),
+  mainPanel(textOutput('timer_disp'),
+            verbatimTextOutput("header_text"),
+            verbatimTextOutput("top_text"),
+            plotOutput("task_plot"),
+            verbatimTextOutput("question_text"),
+            h3("Importance of variables"),
+            checkboxGroupInput(inputId="test1", 
+                               label=div(style='width:358px;',
+                                         div(style='float:left;', 'most important'),
+                                         div(style='float:right;', 'least important')), 
+                               choices=1:9, inline = TRUE),
+            checkboxGroupInput(inputId="test2", label="Variable 2", choices=1:9, inline = TRUE),
+            checkboxGroupInput(inputId="test3", label="Variable 3", choices=1:9, inline = TRUE),
+            checkboxGroupInput(inputId="test4", label="Variable 4", choices=1:9, inline = TRUE),
+            checkboxGroupInput(inputId="test5", label="Variable 5", choices=1:9, inline = TRUE),
+            checkboxGroupInput(inputId="test6", label="Variable 6", choices=1:9, inline = TRUE),
+            checkboxGroupInput(inputId="test7", label="Variable 7", choices=1:9, inline = TRUE),
+            checkboxGroupInput(inputId="test8", label="Variable 8", choices=1:9, inline = TRUE),
+            checkboxGroupInput(inputId="test9", label="Variable 9", choices=1:9, inline = TRUE),
+            verbatimTextOutput("response_msg"), 
+            verbatimTextOutput("bottom_text")
+  )
 )
 
 ### Introduction tabPanels
