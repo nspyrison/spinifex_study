@@ -28,9 +28,10 @@ s_survey_questions <- c("This visualization was easy to use.", ### INPUT
 
 n_blocks <- length(s_blocks)
 s_blockrep_id <- paste0(rep(s_blocks, each = n_reps), rep(1:n_reps, n_reps))
+n_task_pgs <- n_blocks * (n_reps + 1)
 
 ###### Simulate clusters
-sim_cluster <- function(p = 10, pnoise = 4, cl = 4){
+simulate_clusters <- function(p = 10, pnoise = 4, cl = 4){
   #p = 10; pnoise = 4; cl = 4
   x <- NULL
   ncl <- NULL
@@ -47,8 +48,8 @@ sim_cluster <- function(p = 10, pnoise = 4, cl = 4){
     ## make.positive.definite works, but then the values are ulgy, try from 0:.7?
     vc <- lqmm::make.positive.definite(vc) # Variance-covariance matrix
     diag(vc) <- 1
-    mn <- c(sample(seq(-3, 3, 1), p-pnoise, replace=T), rep(0, pnoise))
-    x <- rbind(x, rmvnorm(n=n, mean=mn, vc))
+    mn <- c(sample(seq(-3, 3, 1), p - pnoise, replace = T), rep(0, pnoise))
+    x <- rbind(x, rmvnorm(n = n, mean = mn, vc))
     ncl <- c(ncl, n)
     mncl <- rbind(mncl, mn)
   }
@@ -77,21 +78,21 @@ sim_cluster <- function(p = 10, pnoise = 4, cl = 4){
   return(x)
 }
 
-s_dat <- NULL
+s_dat <- list(intro_dat) # intro is 1,
 for (i in 1:n_reps){
-  this_sim <- sim_cluster(p = 10, pnoise = 4, cl = 4)
+  this_sim <- simulate_clusters(p = 10, pnoise = 4, cl = 4)
   colnames(this_sim) <- paste0("V", 1:10)
   s_dat[[length(s_dat) + 1]] <- this_sim
 }
 df_simulation <- NULL
-for (i in 1: length(s_dat)) {
-  this_df <- data.frame(s_dat[[i]], simulation = i)
+for (i in 2: length(s_dat)) {
+  this_df <- data.frame(s_dat[[i]], simulation_id = i-1)
   df_simulation <- rbind(df_simulation, this_df)
 }
-ndf_simulation <- tidyr::nest(df_simulation, -simulation)
+ndf_simulation <- tidyr::nest(df_simulation, -simulation_id)
 col_ndf_simulation <- rbind(ndf_simulation, ndf_simulation, ndf_simulation, ### INPUT
                             NA, NA, NA, NA, NA, NA, NA)
-col_sim_id <- col_ndf_simulation$simulation
+col_sim_id <- col_ndf_simulation$simulation_id
 col_sim    <- col_ndf_simulation$data # List of different dim df, doesn't stay nested.
 
 
@@ -125,7 +126,8 @@ panel_task <- tabPanel(
   "Tasks", 
   sidebarPanel(
     ##TODO: add PC checkbox/radio buttons here.
-    #checkboxGroupInput("plot_components", "components to include", )
+    fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
+             column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2"))),
     hr(), # horizontal line
     actionButton("next_task_button", "Next task")
   ),
@@ -134,7 +136,6 @@ panel_task <- tabPanel(
             verbatimTextOutput("top_text"),
             plotOutput("task_plot"),
             verbatimTextOutput("question_text"),
-            h3("Importance of variables"),
             checkboxGroupInput(inputId="test1", 
                                label=div(style='width:358px;',
                                          div(style='float:left;', 'most important'),

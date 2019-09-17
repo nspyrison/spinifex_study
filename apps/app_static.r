@@ -3,88 +3,56 @@ source('global.r', local = TRUE)
 library("GGally")
 library("lubridate") # For timer
 
-##### Private, static content ----
-### Create PCA ggplots, 'pca_',blck,rep
-s_pca <- NULL
-for (blck in s_blocks){
-  for (rep in c("introduction", 1:n_reps)){
-    if (rep == "introduction") {
-      pca <- data.frame(prcomp(intro_dat)$x)
-      col <- intro_col
-      pch <- intro_pch
-    } else {
-      pca <- data.frame(prcomp(s_dat[[as.integer(rep)]])$x)
-      col <- col_of(attributes(s_dat[[as.integer(rep)]])$cluster)
-      pch <- pch_of(attributes(s_dat[[as.integer(rep)]])$cluster)
-    }
-    pca_plot <- ggplot(pca, mapping = aes(x = PC1, y = PC2), ) +
-      geom_point(color = col, shape = pch) +
-      theme_minimal() + theme(aspect.ratio = 1) +
-      scale_color_brewer(palette = "Dark2") +
-      theme(axis.text.x = element_blank(),
-            axis.text.y = element_blank(),
-            legend.position = 'none')
-    
-    s_pca[[length(s_pca) + 1]] <- pca_plot
-  }
-}
-
-
 ##### Server function, dynamic outputs ----
 server <- function(input, output, session) {  ### INPUT, need to size to number of reps
+  ### Initialization -----
   rv <- reactiveValues()
   rv$task_num <- 1
   rv$timer <- 120
   rv$timer_active <- TRUE
   rv$task_responses <- rep(NA, each = n_blocks * n_reps)
   
-  ### Outputs
-  output$timer_disp <- renderText({
-    if (nchar(s_header_text[rv$task_num]) == 10) { # 10 for "Task -- xn"
-      if (rv$timer < 1) {return("Time has expired, please enter your best guess and proceed.")
-      } else {paste0("Time left: ", lubridate::seconds_to_period(rv$timer))}
-    } else {return()}
+  pg_dat <- reactive({
+    
   })
-  output$header_text <- renderText(s_header_text[rv$task_num])
-  output$question_text <- renderText(s_question_text[rv$task_num])
-  output$top_text <- renderText(s_top_text[rv$task_num])
-  output$bottom_text <- renderText(s_bottom_text[rv$task_num])
-  output$task_plot <- renderPlot({task_plot()}) 
-  output$ans_tbl <- renderTable({
-    ans_tbl()[ , !(names(ans_tbl()) %in% "simulation")] # hide dataset from users
-  })
-  output$dev_msg <- renderPrint(cat("dev msg -- \n",
-                                    "rv$timer: ", rv$timer, "\n",
-                                    "rv$task_num: ", rv$task_num, "\n",
-                                    "s_header_text[rv$task_num]: ", s_header_text[rv$task_num], "\n",
-                                    "input$task_response: ", input$task_response, "\n",
-                                    "head(col): ", head(col),
-                                    sep = ""))
-  ### Plot
+  
+  ### PCA Plot -----
+  #TODO: turn this into a full reactive function
   task_plot <- reactive({
     if (rv$timer_active | nchar(s_header_text[rv$task_num]) != 10) {
-      return(s_pca[[rv$task_num]])
+      dataset_num <- rv$task_num %% (n_reps + 1)
+      dat <- s_dat[[dataset_num]]
+      pca <- data.frame(prcomp(dat)$x)
+      col <- col_of(attributes(dat)$cluster)
+      pch <- pch_of(attributes(dat)$cluster)
+      
+      pca_plot <- 
+        ggplot(pca, mapping = aes(x = input$x_axis, y = input$y_axis)) +
+        geom_point(color = col, shape = pch) +
+        theme_minimal() + theme(aspect.ratio = 1) +
+        scale_color_brewer(palette = "Dark2") +
+        theme(axis.text.x = element_blank(),
+              axis.text.y = element_blank(),
+              legend.position = 'none')
+      
+      return(pca_plot)
     }
   })
   
-  ### Response table
-  ans_tbl <- reactive({
-    col_responses <- c(rv$task_responses,
-                       input$ans_ease,
-                       input$ans_confidence,
-                       input$ans_understand,
-                       input$ans_use,
-                       input$ans_high_dim,
-                       input$ans_data_vis,
-                       input$ans_previous_knowledge)
-    data.frame(blockrep  = col_blockrep,
-               question  = col_question,
-               sim_id    = col_sim_id,
-               #sim      = nest((col_sim)), # a list with uneven tibbles 
-               responses = col_responses)
+  ### Update axis selection -----
+  observe({
+    d <- ncol(s_dat[[rv$task_num]])
+    updateRadioButtons(session,
+                       "x_axis",
+                       choices  = paste0("PC", 1:d),
+                       selected = "PC1")
+    updateRadioButtons(session,
+                       "y_axis",
+                       choices  = paste0("PC", 1:d),
+                       selected = "PC2")
   })
   
-  ### Next task button
+  ### Next task button -----
   observeEvent(input$next_task_button, {
     if (rv$task_num < length(s_header_text)){
       if (is.na(input$task_response)){
@@ -109,7 +77,24 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     }
   })
   
-  ### Save reponse table
+  ### Response table -----
+  ans_tbl <- reactive({
+    col_responses <- c(rv$task_responses,
+                       input$ans_ease,
+                       input$ans_confidence,
+                       input$ans_understand,
+                       input$ans_use,
+                       input$ans_high_dim,
+                       input$ans_data_vis,
+                       input$ans_previous_knowledge)
+    data.frame(blockrep  = col_blockrep,
+               question  = col_question,
+               sim_id    = col_sim_id,
+               #sim      = nest((col_sim)), # a list with uneven tibbles 
+               responses = col_responses)
+  })
+  
+  ### Save reponse table, data -----
   observeEvent(input$save_ans, {
     df <- ans_tbl()
     if (max(is.na(df)) == 1) { # Check that all tasks have answers.
@@ -139,7 +124,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                          and data saved as ", sim_save_file, "."))
   })
   
-  ### Timer
+  ### Timer -----
   observe({
     invalidateLater(1000, session)
     isolate({
@@ -155,6 +140,30 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   })
   
   
+  ### Outputs -----
+  output$timer_disp <- renderText({
+    if (nchar(s_header_text[rv$task_num]) == 10) { # 10 for "Task -- xn"
+      if (rv$timer < 1) {return("Time has expired, please enter your best guess and proceed.")
+      } else {paste0("Time left: ", lubridate::seconds_to_period(rv$timer))}
+    } else {return()}
+  })
+  output$header_text <- renderText(s_header_text[rv$task_num])
+  output$question_text <- renderText(s_question_text[rv$task_num])
+  output$top_text <- renderText(s_top_text[rv$task_num])
+  output$bottom_text <- renderText(s_bottom_text[rv$task_num])
+  output$task_plot <- renderPlot({task_plot()}) 
+  output$ans_tbl <- renderTable({
+    ans_tbl()[ , !(names(ans_tbl()) %in% "simulation")] # hide dataset from users
+  })
+  output$dev_msg <- renderPrint(cat("dev msg -- \n",
+                                    "rv$timer: ", rv$timer, "\n",
+                                    "rv$task_num: ", rv$task_num, "\n",
+                                    "s_header_text[rv$task_num]: ", s_header_text[rv$task_num], "\n",
+                                    "input$task_response: ", input$task_response, "\n",
+                                    "head(col): ", head(col), "\n",
+                                    "input$x_axis: ", input$x_axis, "\n",
+                                    "input$y_axis: ", input$y_axis, "\n",
+                                    sep = ""))
 }
 
 ### Combine as shiny app.
