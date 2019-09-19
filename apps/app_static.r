@@ -12,30 +12,29 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   rv$timer_active <- TRUE
   rv$task_responses <- rep(NA, each = n_blocks * n_reps)
   
-  pg_dat <- reactive({
-    
+  task_dat <- reactive({
+    dataset_num <- rv$task_num %% (n_reps + 1)
+    s_dat[[dataset_num]]
   })
   
   ### PCA Plot -----
   #TODO: turn this into a full reactive function
   task_plot <- reactive({
     if (rv$timer_active | nchar(s_header_text[rv$task_num]) != 10) {
-      dataset_num <- rv$task_num %% (n_reps + 1)
-      dat <- s_dat[[dataset_num]]
+      dat <- task_dat()
       pca <- data.frame(prcomp(dat)$x)
       col <- col_of(attributes(dat)$cluster)
       pch <- pch_of(attributes(dat)$cluster)
       
-      pca_plot <- 
-        ggplot(pca, mapping = aes(x = input$x_axis, y = input$y_axis)) +
+      ggplot(pca, mapping = aes(x = get(eval(input$x_axis)), 
+                                y = get(eval(input$y_axis))) ) +
         geom_point(color = col, shape = pch) +
         theme_minimal() + theme(aspect.ratio = 1) +
         scale_color_brewer(palette = "Dark2") +
         theme(axis.text.x = element_blank(),
               axis.text.y = element_blank(),
-              legend.position = 'none')
-      
-      return(pca_plot)
+              legend.position = 'none') +
+        labs(x = eval(input$x_axis), y = eval(input$y_axis))
     }
   })
   
@@ -90,7 +89,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     data.frame(blockrep  = col_blockrep,
                question  = col_question,
                sim_id    = col_sim_id,
-               #sim      = nest((col_sim)), # a list with uneven tibbles 
+               #sim       = nest((col_sim)), # a list with uneven tibbles 
                responses = col_responses)
   })
   

@@ -10,8 +10,7 @@ library("mvtnorm")
 
 ### Required inputs
 intro_dat <- tourr::rescale(tourr::flea[, 1:6])
-intro_col <- col_of(tourr::flea$species)
-intro_pch <- pch_of(tourr::flea$species)
+attr(intro_dat, "cluster") <- tourr::flea$species
 n_reps <- 3
 s_blocks <- c("n", "d", "s")
 s_block_names <- c("clusters, n", "important variable, r", "correlated variables, s")
@@ -39,13 +38,12 @@ simulate_clusters <- function(p = 10, pnoise = 4, cl = 4){
   vc <- NULL
   for (i in 1:cl) {
     n <- sample(30:150, 1)
-    # vc <- matrix(sample(seq(-0.1, 0.7, by = 0.1), 1), nrow = p, ncol = p) # Add some association
+    ### TODO: double check that vc is doing what we want.
+    # vc_original <- matrix(sample(seq(-0.1, 0.7, by = 0.1), 1), nrow = p, ncol = p) # Add some association
     #shouldn' we have random symetric matrix for vc?
     vc <- matrix(sample(seq(-.1, 0.7, by = 0.1), p * p, replace = T), nrow = p) 
     ind <- lower.tri(vc) 
     vc[ind] <- t(vc)[ind] 
-    #TODO: Err: sigma is numerically not positive semidefinite.
-    ## make.positive.definite works, but then the values are ulgy, try from 0:.7?
     vc <- lqmm::make.positive.definite(vc) # Variance-covariance matrix
     diag(vc) <- 1
     mn <- c(sample(seq(-3, 3, 1), p - pnoise, replace = T), rep(0, pnoise))
@@ -55,30 +53,26 @@ simulate_clusters <- function(p = 10, pnoise = 4, cl = 4){
   }
   x <- scale(x)
   x <- as.data.frame(x)
-  # ncl # Sizes of the clusters, and clusters are sequential row numbers
-  # mncl # cluster means
   
   # Show color on plots to check clustering
   cluster <- factor(rep(letters[1:cl], ncl))
   cluster_col <- col_of(cluster)
   
   # Scramble rows and columns
-  cluster
   x.indx <- sample(1:nrow(x))
   y.indx <- sample(1:ncol(x))
   x <- x[x.indx, y.indx]
   cluster <- cluster[x.indx]
   
-  #animate_xy(x, axes="bottomleft", guided_tour(holes()), sphere = TRUE, col=class_col)
-  attr(x, "ncl") <- ncl
-  attr(x, "mncl") <- mncl
-  attr(x, "vc") <- vc
-  attr(x, "cluster") <- cluster
-  attr(x, "x.indx") <- x.indx
+  attr(x, "ncl") <- ncl         # number of obs in each cluster
+  attr(x, "mncl") <- mncl       # mean of each cluster*variable
+  attr(x, "vc") <- vc           # variance-covariance matrix
+  attr(x, "cluster") <- cluster # culter factor
+  attr(x, "x.indx") <- x.indx   # order variables were scrambled in
   return(x)
 }
 
-s_dat <- list(intro_dat) # intro is 1,
+s_dat <- list(intro_dat) # intro data (flea) is first
 for (i in 1:n_reps){
   this_sim <- simulate_clusters(p = 10, pnoise = 4, cl = 4)
   colnames(this_sim) <- paste0("V", 1:10)
