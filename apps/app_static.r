@@ -52,7 +52,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
         # data points
         geom_point(pca_x, mapping = aes(x = get(pca_x_axis), 
                                         y = get(pca_y_axis)),
-                   color = col, shape = pch) +
+                   color = col, fill = col, shape = pch) +
         # axis segments
         geom_segment(pca_rotation, 
                      mapping = aes(x = get(rot_x_axis), xend = zero,
@@ -97,7 +97,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   ### Update axis selection -----
   observe({
-    d <- ncol(s_dat[[rv$task_num]])
+    d <- ncol(task_dat())
     updateRadioButtons(session,
                        "x_axis",
                        choices  = paste0("PC", 1:d),
@@ -162,6 +162,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     #   output$save_msg <- renderText("Please verify that the survey has been answered.")
     #   return()
     # }
+    browser()
     
     save_num <- 1
     save_name <- sprintf("simulation_data%03d", save_num)

@@ -66,11 +66,12 @@ simulate_clusters <- function(p = 10, pnoise = 4, cl = 4){
   x <- x[x.indx, y.indx]
   cluster <- cluster[x.indx]
   
+  
   attr(x, "ncl") <- ncl         # number of obs in each cluster
   attr(x, "mncl") <- mncl       # mean of each cluster*variable
   attr(x, "vc") <- vc           # variance-covariance matrix
   attr(x, "cluster") <- cluster # culter factor
-  attr(x, "x.indx") <- x.indx   # order variables were scrambled in
+  attr(x, "col_reorder") <- y.indx   # order variables were scrambled in
   return(x)
 }
 
@@ -82,7 +83,7 @@ for (i in 1:n_reps){
 }
 df_simulation <- NULL
 for (i in 2: length(s_dat)) {
-  this_df <- data.frame(s_dat[[i]], simulation_id = i-1)
+  this_df <- data.frame(s_dat[[i]], simulation_id = as.integer(i - 1))
   df_simulation <- rbind(df_simulation, this_df)
 }
 ndf_simulation <- tidyr::nest(df_simulation, -simulation_id)
@@ -135,7 +136,7 @@ panel_task <- tabPanel(
             # verbatimTextOutput("header_text"),
             # verbatimTextOutput("top_text"),
             plotOutput("task_pca"),
-            plotlyOutput("task_gtour")#,
+            plotlyOutput("task_gtour", height = 600)#,
             # verbatimTextOutput("question_text"),
             # checkboxGroupInput(inputId="test1", 
             #                    label=div(style='width:358px;',
