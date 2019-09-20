@@ -153,32 +153,33 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   ### Save reponse table, data -----
   observeEvent(input$save_ans, {
-    df <- ans_tbl()
-    if (max(is.na(df)) == 1) { # Check that all tasks have answers.
-      output$save_msg <- renderText("Please verify that all tasks have been answered.")
-      return()
-    }
-    if (min(df[(nrow(df) - 6):nrow(df), 3] == 5) == 1) { # Check that all survey questions not default.
-      output$save_msg <- renderText("Please verify that the survey has been answered.")
-      return()
-    }
+    # df <- ans_tbl()
+    # if (max(is.na(df)) == 1) { # Check that all tasks have answers.
+    #   output$save_msg <- renderText("Please verify that all tasks have been answered.")
+    #   return()
+    # }
+    # if (min(df[(nrow(df) - 6):nrow(df), 3] == 5) == 1) { # Check that all survey questions not default.
+    #   output$save_msg <- renderText("Please verify that the survey has been answered.")
+    #   return()
+    # }
     
     save_num <- 1
-    save_name <- sprintf("reponse_table%03d", save_num)
+    save_name <- sprintf("simulation_data%03d", save_num)
     save_file <- paste0(save_name, ".csv")
     while (file.exists(save_file)){
       save_num <- save_num + 1
-      save_name <- sprintf("reponse_table%03d", save_num)
+      save_name <- sprintf("simulation_data%03d", save_num)
       save_file <- paste0(save_name, ".csv")
     }
-    assign(save_name, ans_tbl())
-    write.csv(response_table, file = save_file, row.names = FALSE)
+    # assign(save_name, ans_tbl())
+    # write.csv(get(save_name), file = save_file, row.names = FALSE)
     sim_save_name <- sprintf("simulation_data%03d", save_num)
     sim_save_file <- paste0(sim_save_name, ".csv")
-    assign(sprintf("reponse_table%03d", save_num), s_dat)
-    write.csv(ndf_simulation, file = sim_save_file, row.names = FALSE)
-    output$save_msg <- renderPrint(paste0("Reponses saved as ", save_file, ", 
-                         and data saved as ", sim_save_file, "."))
+    assign(sim_save_name, task_dat()) #s_dat)
+    write.csv(get(sim_save_name), file = sim_save_file, row.names = FALSE)
+    output$save_msg <- renderPrint(cat(#"Reponses saved as ", save_file, ", 
+                         # and 
+                         "data saved as ", sim_save_file, ".", sep = ""))
   })
   
   ### Timer -----

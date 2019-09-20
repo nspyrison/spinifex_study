@@ -127,7 +127,9 @@ panel_task <- tabPanel(
     fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
              column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2"))),
     hr(), # horizontal line
-    actionButton("next_task_button", "Next task")
+    #actionButton("next_task_button", "Next task")
+    actionButton("save_ans", "save results"),
+    verbatimTextOutput("save_msg")
   ),
   mainPanel(textOutput('timer_disp'),
             # verbatimTextOutput("header_text"),
@@ -220,12 +222,12 @@ panel_finalize <- tabPanel("Review answers",
 )
 
 ##### UI, combine panels -----
-ui <- fluidPage(
-  navbarPage("Multivariate data visualization study",
-             #panel_study_intro,
-             panel_task,
-             panel_survey,
-             panel_finalize)
+ui <- fluidPage(navbarPage("Multivariate data visualization study",
+                           #panel_study_intro,
+                           panel_task
+                           #panel_survey,
+                           #panel_finalize
+                          )
   , verbatimTextOutput("dev_msg")
 )
 
