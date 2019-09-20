@@ -6,6 +6,7 @@ library("spinifex")
 library("shiny")
 library("tidyr")
 library("mvtnorm")
+library("plotly")
 
 
 ### Required inputs
@@ -40,7 +41,8 @@ simulate_clusters <- function(p = 10, pnoise = 4, cl = 4){
     n <- sample(30:150, 1)
     ### TODO: double check that vc is doing what we want.
     # vc_original <- matrix(sample(seq(-0.1, 0.7, by = 0.1), 1), nrow = p, ncol = p) # Add some association
-    #shouldn' we have random symetric matrix for vc?
+    # print(vc_original) # not as expected
+    ### making vc random, symetric, definite matrix:
     vc <- matrix(sample(seq(-.1, 0.7, by = 0.1), p * p, replace = T), nrow = p) 
     ind <- lower.tri(vc) 
     vc[ind] <- t(vc)[ind] 
@@ -109,7 +111,7 @@ s_top_text <- c(rbind(intro_top_row, m_blank), "")
 intro_bottom_row <- "You have 2 minutes to study the display before being prompted to submit your answer."
 s_bottom_text <- c(rbind(intro_bottom_row, m_blank), "")
 
-##### UI, tabPanels -----
+##### tabPanels (UI objs) -----
 ### Task panels
 l_choices <- list(NULL)
 for (i in 1:5){ 
@@ -119,32 +121,35 @@ names(l_choices) <- paste0("choice ", 1:5)
 panel_task <- tabPanel(
   "Tasks", 
   sidebarPanel(
-    ##TODO: add PC checkbox/radio buttons here.
+    numericInput("sim_p", label = "Number of variables, p", value = 10),
+    numericInput("sim_pnoise", label = "Number of noise variables, pnoise", value = 4),
+    numericInput("sim_cl", label = "Number of clusters, cl", value = 4),
     fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
              column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2"))),
     hr(), # horizontal line
     actionButton("next_task_button", "Next task")
   ),
   mainPanel(textOutput('timer_disp'),
-            verbatimTextOutput("header_text"),
-            verbatimTextOutput("top_text"),
-            plotOutput("task_plot"),
-            verbatimTextOutput("question_text"),
-            checkboxGroupInput(inputId="test1", 
-                               label=div(style='width:358px;',
-                                         div(style='float:left;', 'most important'),
-                                         div(style='float:right;', 'least important')), 
-                               choices=1:9, inline = TRUE),
-            checkboxGroupInput(inputId="test2", label="Variable 2", choices=1:9, inline = TRUE),
-            checkboxGroupInput(inputId="test3", label="Variable 3", choices=1:9, inline = TRUE),
-            checkboxGroupInput(inputId="test4", label="Variable 4", choices=1:9, inline = TRUE),
-            checkboxGroupInput(inputId="test5", label="Variable 5", choices=1:9, inline = TRUE),
-            checkboxGroupInput(inputId="test6", label="Variable 6", choices=1:9, inline = TRUE),
-            checkboxGroupInput(inputId="test7", label="Variable 7", choices=1:9, inline = TRUE),
-            checkboxGroupInput(inputId="test8", label="Variable 8", choices=1:9, inline = TRUE),
-            checkboxGroupInput(inputId="test9", label="Variable 9", choices=1:9, inline = TRUE),
-            verbatimTextOutput("response_msg"), 
-            verbatimTextOutput("bottom_text")
+            # verbatimTextOutput("header_text"),
+            # verbatimTextOutput("top_text"),
+            plotOutput("task_pca"),
+            plotlyOutput("task_gtour")#,
+            # verbatimTextOutput("question_text"),
+            # checkboxGroupInput(inputId="test1", 
+            #                    label=div(style='width:358px;',
+            #                              div(style='float:left;', 'most important'),
+            #                              div(style='float:right;', 'least important')), 
+            #                    choices=1:9, inline = TRUE),
+            # checkboxGroupInput(inputId="test2", label="Variable 2", choices=1:9, inline = TRUE),
+            # checkboxGroupInput(inputId="test3", label="Variable 3", choices=1:9, inline = TRUE),
+            # checkboxGroupInput(inputId="test4", label="Variable 4", choices=1:9, inline = TRUE),
+            # checkboxGroupInput(inputId="test5", label="Variable 5", choices=1:9, inline = TRUE),
+            # checkboxGroupInput(inputId="test6", label="Variable 6", choices=1:9, inline = TRUE),
+            # checkboxGroupInput(inputId="test7", label="Variable 7", choices=1:9, inline = TRUE),
+            # checkboxGroupInput(inputId="test8", label="Variable 8", choices=1:9, inline = TRUE),
+            # checkboxGroupInput(inputId="test9", label="Variable 9", choices=1:9, inline = TRUE),
+            # verbatimTextOutput("response_msg"), 
+            # verbatimTextOutput("bottom_text")
   )
 )
 
@@ -153,7 +158,7 @@ panel_study_intro <- tabPanel("Study introduction",
                               h3("Welcome to the study.")
 )
 
-### _Survey tabPanel 
+### Survey tabPanel 
 panel_survey <-
   tabPanel("Survey", ### INPUT
            h3("How much do you agree with the following statments?"),
@@ -217,7 +222,7 @@ panel_finalize <- tabPanel("Review answers",
 ##### UI, combine panels -----
 ui <- fluidPage(
   navbarPage("Multivariate data visualization study",
-             panel_study_intro,
+             #panel_study_intro,
              panel_task,
              panel_survey,
              panel_finalize)
