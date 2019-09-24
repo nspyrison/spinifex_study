@@ -30,68 +30,12 @@ n_blocks <- length(s_blocks)
 s_blockrep_id <- paste0(rep(s_blocks, each = n_reps), rep(1:n_reps, n_reps))
 n_task_pgs <- n_blocks * (n_reps + 1)
 
-###### Simulate clusters
-simulate_clusters <- function(p = 10, pnoise = 4, cl = 4){
-  #p = 10; pnoise = 4; cl = 4
-  x <- NULL
-  ncl <- NULL
-  mncl <- NULL
-  vc <- NULL
-  for (i in 1:cl) {
-    n <- sample(30:150, 1)
-    ### TODO: double check that vc is doing what we want.
-    # vc_original <- matrix(sample(seq(-0.1, 0.7, by = 0.1), 1), nrow = p, ncol = p) # Add some association
-    # print(vc_original) # not as expected
-    ### making vc random, symetric, definite matrix:
-    vc <- matrix(sample(seq(-.1, 0.7, by = 0.1), p * p, replace = T), nrow = p) 
-    ind <- lower.tri(vc) 
-    vc[ind] <- t(vc)[ind] 
-    vc <- lqmm::make.positive.definite(vc) # Variance-covariance matrix
-    diag(vc) <- 1
-    mn <- c(sample(seq(-3, 3, 1), p - pnoise, replace = T), rep(0, pnoise))
-    x <- rbind(x, rmvnorm(n = n, mean = mn, vc))
-    ncl <- c(ncl, n)
-    mncl <- rbind(mncl, mn)
-  }
-  x <- scale(x)
-  x <- as.data.frame(x)
-  
-  # Show color on plots to check clustering
-  cluster <- factor(rep(letters[1:cl], ncl))
-  cluster_col <- col_of(cluster)
-  
-  # Scramble rows and columns
-  x.indx <- sample(1:nrow(x))
-  y.indx <- sample(1:ncol(x))
-  x <- x[x.indx, y.indx]
-  cluster <- cluster[x.indx]
-  
-  
-  attr(x, "ncl") <- ncl            # number of obs in each cluster
-  attr(x, "mncl") <- mncl          # mean of each cluster*variable
-  attr(x, "vc") <- vc              # variance-covariance matrix
-  attr(x, "cluster") <- cluster    # culter factor
-  attr(x, "col_reorder") <- y.indx # order variables were scrambled in
-  return(x)
-}
+sim1 <- readRDS("../simulation/simulation_data001.rds") # "./apps/simulation/simulation_data001.rds"
+sim2 <- readRDS("../simulation/simulation_data002.rds")
+sim3 <- readRDS("../simulation/simulation_data003.rds")
+s_dat <- list(intro_dat, sim1, sim2, sim3) # intro data (flea) is first
 
-s_dat <- list(intro_dat) # intro data (flea) is first
-for (i in 1:n_reps){
-  this_sim <- simulate_clusters(p = 10, pnoise = 4, cl = 4)
-  colnames(this_sim) <- paste0("V", 1:10)
-  s_dat[[length(s_dat) + 1]] <- this_sim
-}
-df_simulation <- NULL
-for (i in 2: length(s_dat)) {
-  this_df <- data.frame(s_dat[[i]], simulation_id = as.integer(i - 1))
-  df_simulation <- rbind(df_simulation, this_df)
-}
-ndf_simulation <- tidyr::nest(df_simulation, -simulation_id)
-col_ndf_simulation <- rbind(ndf_simulation, ndf_simulation, ndf_simulation, ### INPUT
-                            NA, NA, NA, NA, NA, NA, NA)
-col_sim_id <- col_ndf_simulation$simulation_id
-col_sim    <- col_ndf_simulation$data # List of different dim df, doesn't stay nested.
-
+col_sim_id <- c("001", "002", "003")
 
 ###### Text sets -----
 intro_header_row <- paste0("Introduction -- ", s_block_names)
@@ -122,37 +66,30 @@ names(l_choices) <- paste0("choice ", 1:5)
 panel_task <- tabPanel(
   "Tasks", 
   sidebarPanel(
-    numericInput("sim_p", label = "Number of variables, p", value = 10),
-    numericInput("sim_pnoise", label = "Number of noise variables, pnoise", value = 4),
-    numericInput("sim_cl", label = "Number of clusters, cl", value = 4),
     fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
              column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2"))),
     hr(), # horizontal line
-    #actionButton("next_task_button", "Next task")
+    actionButton("next_task_button", "Next task"),
     actionButton("save_ans", "save results"),
     verbatimTextOutput("save_msg")
   ),
   mainPanel(textOutput('timer_disp'),
-            # verbatimTextOutput("header_text"),
-            # verbatimTextOutput("top_text"),
+            verbatimTextOutput("header_text"),
+            verbatimTextOutput("top_text"),
             plotOutput("task_pca"),
-            plotlyOutput("task_gtour", height = 600)#,
-            # verbatimTextOutput("question_text"),
-            # checkboxGroupInput(inputId="test1", 
-            #                    label=div(style='width:358px;',
-            #                              div(style='float:left;', 'most important'),
-            #                              div(style='float:right;', 'least important')), 
-            #                    choices=1:9, inline = TRUE),
-            # checkboxGroupInput(inputId="test2", label="Variable 2", choices=1:9, inline = TRUE),
-            # checkboxGroupInput(inputId="test3", label="Variable 3", choices=1:9, inline = TRUE),
-            # checkboxGroupInput(inputId="test4", label="Variable 4", choices=1:9, inline = TRUE),
-            # checkboxGroupInput(inputId="test5", label="Variable 5", choices=1:9, inline = TRUE),
-            # checkboxGroupInput(inputId="test6", label="Variable 6", choices=1:9, inline = TRUE),
-            # checkboxGroupInput(inputId="test7", label="Variable 7", choices=1:9, inline = TRUE),
-            # checkboxGroupInput(inputId="test8", label="Variable 8", choices=1:9, inline = TRUE),
-            # checkboxGroupInput(inputId="test9", label="Variable 9", choices=1:9, inline = TRUE),
-            # verbatimTextOutput("response_msg"), 
-            # verbatimTextOutput("bottom_text")
+            plotlyOutput("task_gtour", height = 600),
+            verbatimTextOutput("question_text"),
+            h4("Variable 1"),
+            checkboxGroupInput(inputId="test1",
+                               label=div(style='width:358px;',
+                                         div(style='float:left;', 'most important'),
+                                         div(style='float:right;', 'least important')),
+                               choices=1:9, inline = TRUE),
+            checkboxGroupInput(inputId="test2", label="Variable 2", choices=1:9, inline = TRUE),
+            checkboxGroupInput(inputId="test3", label="Variable 3", choices=1:9, inline = TRUE),
+            checkboxGroupInput(inputId="test4", label="Variable 4", choices=1:9, inline = TRUE),
+            verbatimTextOutput("response_msg"),
+            verbatimTextOutput("bottom_text")
   )
 )
 
@@ -224,10 +161,10 @@ panel_finalize <- tabPanel("Review answers",
 
 ##### UI, combine panels -----
 ui <- fluidPage(navbarPage("Multivariate data visualization study",
-                           #panel_study_intro,
-                           panel_task
-                           #panel_survey,
-                           #panel_finalize
+                           panel_study_intro,
+                           panel_task,
+                           panel_survey,
+                           panel_finalize
                           )
   , verbatimTextOutput("dev_msg")
 )

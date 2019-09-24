@@ -116,7 +116,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       #   output$response_msg <- renderText("Please enter a response before continuing.")
       #   return()
       # }
-      #rv$task_responses[rv$task_num] <- input$task_response
+      # rv$task_responses[rv$task_num] <- input$task_response
       rv$task_num <- rv$task_num + 1
       rv$timer <- 120
       rv$timer_active <- TRUE
@@ -223,7 +223,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                     "head(col): ", head(col), "\n",
                                     "input$x_axis: ", input$x_axis, "\n",
                                     "eval input$x_axis: ", eval(input$x_axis), "\n",
-                                    # "x", head(x), "\n",
                                     "eval input$y_axis: ", eval(input$y_axis), "\n",
                                     "rv$task_num %% (n_reps + 2):", rv$task_num %% (n_reps + 2), "\n",
                                     sep = ""))
