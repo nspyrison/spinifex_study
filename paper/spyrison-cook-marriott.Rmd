@@ -1,17 +1,20 @@
 ---
 output: pdf_document
 title: >
-  The effects of interaction on linear projections of multivariate data
+  The effect of interaction on understanding variable contributions on linear projections 
 author:
   Nick, Di, Kim
 abstract: >
-  abstract text here
+  Principle Component Analysis (PCA) and related eigenvalue techniques is the traditional standard for viewing prosections of multivariate spaces. However, the full story of the data is rarely portaied accurately in few prosections. More recently, `grand tours` offer animations of prosectional random walks offering many angles to view embedded spaces. A `manual tour` provide a means of controling the contribution of individual variables to a projected subspace. We have developed an appliation to facilitate the exploration of multivariate data though the use of various tour methods. To explore the efficacy of this tool we performed a comparative user study. Participants in our study performed a number of high-level analysis tasks across the three factors and provide subjective rankings. Accuracy, speed, and qualitative feedback is used to compare and rank analysts ability to understand the imporance of indivual variables contribution to dinguishing clustering with the data. User feedback suggests that...
 keywords: exploratory data analysis, projection pursuit, high dimensional data, data visualization, cluster analysis, dimension reduction,  statistical graphics, data science, user study, between users,
+bibliography: spyrison-cook-marriott.bib
 ---
+\bibliography{spyrison-cook-marriott}
 
 
 ```{r setup_paper, include=FALSE}
 # ---
+# author:
   # - name: Nicholas Spyrison
   #   # affiliation: Monash University
   #   # address:
@@ -57,14 +60,15 @@ library(dplyr)
 # does the availability of the manual tour improve the ability of the analyst 
 # to understand the importance of variables contributing to the structure?
 
-# Factors: manual tour vs not (grand tour, or static only)
-# Block/control: dimensionality p, n clusters, g, important vars d, var-covar s
+# Factors: manual tour vs grand tour vs static tech (PCA. SPLOM?)
+# Block/control: dimensionality: p, noise dimensions: pnoise, num clusters: g (or cl)
+#   originally: dimensionality p, n clusters, g, important vars d, var-covar s
 # replication: 24 within-subject of all 3 factors, 4 controls, sampled from 
 # datasets
 # Randomization: Latin square; 8 get each factor first.
 # of those 8, 4 get one factor second, 4 get the other factor second.
 # Response: Accuracy in determining important variables.
-# measure: accuracy, speed (capped at 2min) ease of use, ease of understanding, ease of preference 
+# Measures: objective; accuracy, speed (capped at 3min), subjective; likert scale, ease of use, ease of understanding, ease of preference 
 ```
 
 
@@ -74,19 +78,22 @@ library(dplyr)
 
 Does the finer control afforded by the manual tour improve the ability of the analyst to understand the importance of variables contributing to the structure?
 
-# Experimental design {#sec:results}
+# Experimental design {#sec:design}
 
-## Participant population
+## Participant population {#sec:population}
 
-A sample of convenience was taken from postgraduate students in the department of econometrics and business statistics at Monash University, based in Melbourne, Australia.
+A sample of convenience was taken from postgraduate students in the department of econometrics and business statistics at Monash University, based in Melbourne, Australia. Participants were required to have prior knowledge of Principal Component Analysis (PCA) and scatterplot matricies (SPLOM).
 
-## Factors {#sec:vis_methods}
+## Factors {#sec:factors}
 
-Each participant was randomly split into one of 3 even factor groups. The first group saw only a single static linear projection, that of the first two principal components of the data. The second group watched a 30-second loop of a Grand tour. 
-The remaining group was allowed to control an interactive manual tour for their duration. 
+We explored performance across three factors: eigenvalue decomposition from PCA, animated random walk between prosections via grand tour, and controling individual variable's contribution to the projection by manual tour. 
+
+Each participant was randomly split into one of three even factor groups. The first group was given a biplot, or scatterplot matrix coupled with a variable maping back to original variable space. Users were allowed to freely choise which two components to view initialized to PC1 and PC2. The second group was given the same animation of a __n__ basis random walk (about 30-second loop at 3 frames per second) of a grand tour with the ability to freely control the location and speed of the animation. The third group was provided with the ability to control the magnitude that an indivdual variable contributs to the projection with a manual tour. Doing so performs a constrained rotation on the data object resulting in a change of the other variables. Participants could freely change which dimension to manipulate.
+
 
 ## Block treatments
 
+__TODO: continue editing here__
 Each participant performed each of 4 block treatments in random order. The blocks consisted of determining the dimensionality of the dataset, `p`, the number of the clusters, `n`, the number of important variables, `d`, and identification of variable with significant covariance, `s`.
 
 ## Randomization & replication
@@ -100,7 +107,7 @@ Each block was introduced and demonstrated directly preceding each block. During
 
 After responses for each block were collected, participants were given a short survey of 7 subjective questions on a 9-point Likert scale. These questions covered familiarity and expertise with multivariate data, its visualization, as well as, ease of use, understandability, confidence, and likely hood to recommend their factors visualization.
 
-Eye-tracking devices were also used to follow the gaze of participants as the study, including the survey was conducted.
+
 
 ## Experimental results {#sec:results}
 
@@ -110,7 +117,7 @@ Eye-tracking devices were also used to follow the gaze of participants as the st
 
 # Acknowledgments
 
-<!-- This article was created in R [@r_core_team_r:_2019], using \_CRANpkg{knitr} [@stodden_knitr:_2014] and \_CRANpkg{rmarkdown} [@xie_r_2018], with code generating the examples inline. The source files for this article be found at [github.com/nspyrison/spinifex_study/](https://github.com/nspyrison/spinifex_paper/). The source code for the \_pkg{spinifex} package can be found at [github.com/nspyrison/spinifex/](https://github.com/nspyrison/spinifex/). -->
+This article was created in R [@r_core_team_r:_2019], using \_CRANpkg{knitr} [@stodden_knitr:_2014] and \_CRANpkg{rmarkdown} [@xie_r_2018], with code generating the examples inline. The source files for this article be found at [github.com/nspyrison/spinifex_study/](https://github.com/nspyrison/spinifex_paper/). The source code for the \_pkg{spinifex} package and accompanying shiny application can be found at [github.com/nspyrison/spinifex/](https://github.com/nspyrison/spinifex/).
 
 
 # Bibliography
