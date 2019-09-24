@@ -67,11 +67,11 @@ simulate_clusters <- function(p = 10, pnoise = 4, cl = 4){
   cluster <- cluster[x.indx]
   
   
-  attr(x, "ncl") <- ncl         # number of obs in each cluster
-  attr(x, "mncl") <- mncl       # mean of each cluster*variable
-  attr(x, "vc") <- vc           # variance-covariance matrix
-  attr(x, "cluster") <- cluster # culter factor
-  attr(x, "col_reorder") <- y.indx   # order variables were scrambled in
+  attr(x, "ncl") <- ncl            # number of obs in each cluster
+  attr(x, "mncl") <- mncl          # mean of each cluster*variable
+  attr(x, "vc") <- vc              # variance-covariance matrix
+  attr(x, "cluster") <- cluster    # culter factor
+  attr(x, "col_reorder") <- y.indx # order variables were scrambled in
   return(x)
 }
 

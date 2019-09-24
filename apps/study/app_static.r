@@ -162,22 +162,22 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     #   output$save_msg <- renderText("Please verify that the survey has been answered.")
     #   return()
     # }
-    browser()
+
     
     save_num <- 1
     save_name <- sprintf("simulation_data%03d", save_num)
-    save_file <- paste0(save_name, ".csv")
+    save_file <- paste0(save_name, ".rds")
     while (file.exists(save_file)){
       save_num <- save_num + 1
       save_name <- sprintf("simulation_data%03d", save_num)
-      save_file <- paste0(save_name, ".csv")
+      save_file <- paste0(save_name, ".rds")
     }
     # assign(save_name, ans_tbl())
     # write.csv(get(save_name), file = save_file, row.names = FALSE)
     sim_save_name <- sprintf("simulation_data%03d", save_num)
-    sim_save_file <- paste0(sim_save_name, ".csv")
-    assign(sim_save_name, task_dat()) #s_dat)
-    write.csv(get(sim_save_name), file = sim_save_file, row.names = FALSE)
+    sim_save_file <- paste0(sim_save_name, ".rds")
+    assign(sim_save_name, task_dat())
+    saveRDS(get(sim_save_name), file = sim_save_file) # csv doesn't keep attributes
     output$save_msg <- renderPrint(cat(#"Reponses saved as ", save_file, ", 
                          # and 
                          "data saved as ", sim_save_file, ".", sep = ""))
