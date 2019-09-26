@@ -9,6 +9,19 @@ library("mvtnorm")
 library("plotly")
 
 
+load_num <- 1
+load_name <- sprintf("simulation_data%03d", load_num)
+load_file <- paste0("./apps/simulation/", load_name, ".rds")
+#S_loaded_sim <- NULL
+while (file.exists(load_file)){
+  #S_loaded_sim[[length(S_loaded_sim) + 1]] <- 
+  assign(load_name, readRDS(load_file))
+  load_num <- load_num + 1
+  load_name <- sprintf("simulation_data%03d", load_num)
+  load_file <- paste0("./apps/simulation/", load_name, ".rds")
+}
+loaded_sim_names <- ls()[grepl("simulation_data", ls())]
+
 ###### Simulate clusters
 simulate_clusters <- function(p = 10, pnoise = 4, cl = 4){
   #p = 10; pnoise = 4; cl = 4
@@ -45,7 +58,6 @@ simulate_clusters <- function(p = 10, pnoise = 4, cl = 4){
   x <- x[x.indx, y.indx]
   cluster <- cluster[x.indx]
   
-  
   attr(x, "ncl") <- ncl            # number of obs in each cluster
   attr(x, "mncl") <- mncl          # mean of each cluster*variable
   attr(x, "vc") <- vc              # variance-covariance matrix
@@ -56,9 +68,9 @@ simulate_clusters <- function(p = 10, pnoise = 4, cl = 4){
 
 
 ##### tabPanels (UI objs) -----
-### Task panels
-panel_task <- tabPanel(
-  "Tasks", 
+### Task/generate panels
+panel_generate <- tabPanel(
+  "generate simulation", 
   sidebarPanel(
     numericInput("sim_p", label = "Number of variables, p", value = 10),
     numericInput("sim_pnoise", label = "Number of noise variables, pnoise", value = 4),
@@ -69,24 +81,36 @@ panel_task <- tabPanel(
     actionButton("save_sim", "save simulation"),
     verbatimTextOutput("save_msg")
   ),
-  mainPanel(textOutput('timer_disp'),
+  mainPanel(plotOutput("task_pca"),
+            plotlyOutput("task_gtour", height = 600)
+  )
+)
+
+### Review panel
+load_choices <- if (length(loaded_sim_names)>0) {loaded_sim_names
+  } else {"<no 'simulation_dataNNN.rds' loaded>"} 
+panel_review <- tabPanel(
+  "review simulation", 
+  sidebarPanel(
+    selectInput("review_sim", "Simulation to review", 
+                choices = load_choices),
+    verbatimTextOutput("file_name"),
+    verbatimTextOutput("file_name_str"),
+    hr(), # horizontal line
+    actionButton("save_sim", "save simulation"),
+    verbatimTextOutput("save_msg")
+  ),
+  mainPanel(verbatimTextOutput("dat_str"),
             plotOutput("task_pca"),
             plotlyOutput("task_gtour", height = 600)
   )
 )
 
-### Introduction tabPanels
-panel_study_intro <- tabPanel("Study introduction",
-                              h3("Welcome to the study.")
-)
-
-
-
-
 
 ##### UI, combine panels -----
 ui <- fluidPage(navbarPage("Multivariate data visualization study",
-                           panel_task
+                           panel_generate,
+                           panel_review
                           )
   , verbatimTextOutput("dev_msg")
 )
