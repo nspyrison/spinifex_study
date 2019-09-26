@@ -1,5 +1,7 @@
 ### Global init for each factor variant.
 
+
+##### App static global.r -----
 ##### Initialization -----
 library("ggplot2")
 library("spinifex")
