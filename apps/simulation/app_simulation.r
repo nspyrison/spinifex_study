@@ -98,10 +98,10 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     colnames(mncl) <- paste0("V", 1:p)
     cl_mn <- rowMeans(mncl)
     cl_mn
-    sum_sq <- apply(mncl, 2, function(x) {sum((x - cl_mn)^2)}) # sum of squares
-    rank <- order(sum_sq, decreasing = T)
+    sum_sq <- apply(mncl, 2, function(x) {sum((x - cl_mn)^2)}) # sum of squares distance from cluster means
+    order <- sum_sq[order(sum_sq, decreasing = T)]
     
-    rbind(sum_sq, rank) # double check rank, wasn't correct at one point.
+    rbind(sum_sq, order) 
   })
   load_vc_reord <- reactive({
     d <- load_dat()
