@@ -10,7 +10,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   rv$task_num <- 1
   rv$timer <- 120
   rv$timer_active <- TRUE
-  rv$task_responses <- rep(NA, each = n_blocks * n_reps)
+  rv$task_responses <- rep(NA, each = n_blocks * n_reps)# * 3) #number of responses/task
   
   task_dat <- reactive({
     dataset_num <- rv$task_num %% (n_reps + 2)
@@ -146,6 +146,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   ### Response table -----
   ans_tbl <- reactive({
+    length(rv$task_responses)
     col_responses <- c(rv$task_responses,
                        input$ans_ease,
                        input$ans_confidence,

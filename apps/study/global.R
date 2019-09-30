@@ -39,6 +39,7 @@ sim3 <- readRDS("../simulation/simulation_data003.rds")
 s_dat <- list(intro_dat, sim1, sim2, sim3) # intro data (flea) is first
 
 col_sim_id <- c("001", "002", "003")
+col_sim_id <- c(rep(col_sim_id,3), rep(NA, 7))
 
 ###### Text sets -----
 intro_header_row <- paste0("Introduction -- ", s_block_names)
