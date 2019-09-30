@@ -13,12 +13,13 @@ library("plotly")
 
 ### Required inputs
 intro_dat <- tourr::rescale(tourr::flea[, 1:6])
+colnames(intro_dat) <- paste0("V", 1:ncol(intro_dat))
 attr(intro_dat, "cluster") <- tourr::flea$species
 n_reps <- 3
 s_blocks <- c("n", "d", "s")
 s_block_names <- c("clusters, n", "important variable, r", "correlated variables, s")
 s_block_questions <- c("How many clusters exist?",
-                       "Rank the variables in order of importance for distinguishing groups.",
+                       "Which 3 varables are most important to distinguish groups?",
                        "dummy 3rd question")
 s_survey_questions <- c("This visualization was easy to use.", ### INPUT
                         "I am confident of my answers.",
@@ -71,25 +72,21 @@ panel_task <- tabPanel(
     fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
              column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2"))),
     hr(), # horizontal line
-    actionButton("next_task_button", "Next task"),
-    actionButton("save_ans", "save results"),
-    verbatimTextOutput("save_msg")
+    actionButton("next_task_button", "Next task")
   ),
   mainPanel(textOutput('timer_disp'),
             verbatimTextOutput("header_text"),
             verbatimTextOutput("top_text"),
             plotOutput("task_pca"),
-            plotlyOutput("task_gtour", height = 600),
+            #plotlyOutput("task_gtour", height = 600),
             verbatimTextOutput("question_text"),
             h4("Variable 1"),
-            checkboxGroupInput(inputId="test1",
-                               label=div(style='width:358px;',
-                                         div(style='float:left;', 'most important'),
-                                         div(style='float:right;', 'least important')),
-                               choices=1:9, inline = TRUE),
-            checkboxGroupInput(inputId="test2", label="Variable 2", choices=1:9, inline = TRUE),
-            checkboxGroupInput(inputId="test3", label="Variable 3", choices=1:9, inline = TRUE),
-            checkboxGroupInput(inputId="test4", label="Variable 4", choices=1:9, inline = TRUE),
+            selectInput(inputId = "ans_1", label = "1st most important",
+                        choices = "<Data not found>"),
+            selectInput(inputId = "ans_2", label = "2nd most important",
+                        choices = "<Data not found>"),
+            selectInput(inputId = "ans_3", label = "3rd most important",
+                        choices = "<Data not found>"),
             verbatimTextOutput("response_msg"),
             verbatimTextOutput("bottom_text")
   )

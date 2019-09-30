@@ -13,11 +13,8 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   rv$task_responses <- rep(NA, each = n_blocks * n_reps)
   
   task_dat <- reactive({
-    # dataset_num <- rv$task_num %% (n_reps + 2)
-    # s_dat[[dataset_num]]
-    simulate_clusters(p = input$sim_p,
-                      pnoise = input$sim_pnoise,
-                      cl = input$sim_cl)
+    dataset_num <- rv$task_num %% (n_reps + 2)
+    s_dat[[dataset_num]]
   })
   
   ### PCA Plot -----
@@ -33,6 +30,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       pca_x <- data.frame(pca$x)
       pca_rotation <- set_axes_position(data.frame(t(pca$rotation)), 
                                         "bottomleft")
+      
       pca_x_axis <- eval(input$x_axis)
       pca_y_axis <- eval(input$y_axis)
       rot_x_axis <- paste0("V", substr(pca_x_axis,3,3))
@@ -77,7 +75,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
               axis.text.y = element_blank(),
               legend.position = 'none') +
         labs(x = eval(input$x_axis), y = eval(input$y_axis))
-      
     }
   })
   
@@ -95,7 +92,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     }
   })
   
-  ### Update axis selection -----
+  ### Update axis choices -----
   observe({
     d <- ncol(task_dat())
     updateRadioButtons(session,
@@ -106,6 +103,19 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                        "y_axis",
                        choices  = paste0("PC", 1:d),
                        selected = "PC2")
+  })
+  ### Update response choices -----
+  observe({
+    d <- ncol(task_dat())
+    updateSelectInput(session,
+                      "ans_1",
+                      choices  = c("<select a variable>", paste0("V", 1:d)))
+    updateSelectInput(session,
+                      "ans_2",
+                      choices  = c("<select a variable>", paste0("V", 1:d)))
+    updateSelectInput(session,
+                      "ans_3",
+                      choices  = c("<select a variable>", paste0("V", 1:d)))
   })
   
   ### Next task button -----
