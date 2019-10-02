@@ -5,7 +5,7 @@ title: >
 author:
   Nick, Di, Kim
 abstract: >
-  Principle Component Analysis (PCA) and related eigenvalue techniques is the traditional standard for viewing prosections of multivariate spaces. However, the full story of the data is rarely portaied accurately in few prosections. More recently, `grand tours` offer animations of prosectional random walks offering many angles to view embedded spaces. A `manual tour` provide a means of controling the contribution of individual variables to a projected subspace. We have developed an appliation to facilitate the exploration of multivariate data though the use of various tour methods. To explore the efficacy of this tool we performed a comparative user study. Participants in our study performed a number of high-level analysis tasks across the three factors and provide subjective rankings. Accuracy, speed, and qualitative feedback is used to compare and rank analysts ability to understand the imporance of indivual variables contribution to dinguishing clustering with the data. User feedback suggests that...
+  Principle Component Analysis (PCA) and related eigenvalue techniques is the traditional standard for viewing prosections of multivariate spaces. However, the full story of the data is rarely portrayed accurately in few prosections. More recently, `grand tours` offer animations of prosectional random walks offering many angles to view embedded spaces. A `manual tour` provides a means of controlling the contribution of individual variables to a projected subspace. We have developed an appliation to facilitate the exploration of multivariate data though the use of various tour methods. To explore the efficacy of this tool we performed a comparative user study. Participants in our study performed several high-level analysis tasks across the three factors and provide subjective rankings. Accuracy, speed, and qualitative feedback is used to compare and rank analysts' ability to understand the importance of individual variables' contribution to distinguishing clustering with the data. User feedback suggests that...
 keywords: exploratory data analysis, projection pursuit, high dimensional data, data visualization, cluster analysis, dimension reduction,  statistical graphics, data science, user study, between users,
 bibliography: spyrison-cook-marriott.bib
 ---
@@ -60,15 +60,13 @@ library(dplyr)
 # does the availability of the manual tour improve the ability of the analyst 
 # to understand the importance of variables contributing to the structure?
 
-# Factors: manual tour vs grand tour vs static tech (PCA. SPLOM?)
-# Block/control: dimensionality: p, noise dimensions: pnoise, num clusters: g (or cl)
-#   originally: dimensionality p, n clusters, g, important vars d, var-covar s
-# replication: 24 within-subject of all 3 factors, 4 controls, sampled from 
-# datasets
-# Randomization: Latin square; 8 get each factor first.
-# of those 8, 4 get one factor second, 4 get the other factor second.
-# Response: Accuracy in determining important variables.
-# Measures: objective; accuracy, speed (capped at 3min), subjective; likert scale, ease of use, ease of understanding, ease of preference 
+# DH Jeong 2009
+# https://www.researchgate.net/profile/Brian_Fisher2/publication/220506453_IPCA_An_interactive_system_for_PCA-based_visual_analytics/links/59e395fa458515393d5b8f29/IPCA-An-interactive-system-for-PCA-based-visual-analytics.pdf 
+# 
+# a bit removed, for larger dimensions (100's):
+# 
+# J Yang 2007  
+# https://www.researchgate.net/profile/Matthew_Ward3/publication/6451414_Value_and_Relation_Display_Interactive_Visual_Exploration_of_Large_Data_Sets_with_Hundreds_of_Dimensions/links/00b495320b8f337d3a000000.pdf 
 ```
 
 
@@ -82,36 +80,50 @@ Does the finer control afforded by the manual tour improve the ability of the an
 
 ## Participant population {#sec:population}
 
-A sample of convenience was taken from postgraduate students in the department of econometrics and business statistics at Monash University, based in Melbourne, Australia. Participants were required to have prior knowledge of Principal Component Analysis (PCA) and scatterplot matricies (SPLOM).
+A sample of convenience was taken from postgraduate students in the department of econometrics and business statistics at Monash University, based in Melbourne, Australia. Participants were required to have prior knowledge of Principal Component Analysis (PCA) and scatterplot matrices (SPLOM).
+
 
 ## Factors {#sec:factors}
 
-We explored performance across three factors: eigenvalue decomposition from PCA, animated random walk between prosections via grand tour, and controling individual variable's contribution to the projection by manual tour. 
+We explored performance across three factors: eigenvalue decomposition from PCA, animated random walk between prosections via grand tour, and controlling individual variable's contribution to the projection by manual tour. 
 
-Each participant was randomly split into one of three even factor groups. The first group was given a biplot, or scatterplot matrix coupled with a variable maping back to original variable space. Users were allowed to freely choise which two components to view initialized to PC1 and PC2. The second group was given the same animation of a __n__ basis random walk (about 30-second loop at 3 frames per second) of a grand tour with the ability to freely control the location and speed of the animation. The third group was provided with the ability to control the magnitude that an indivdual variable contributs to the projection with a manual tour. Doing so performs a constrained rotation on the data object resulting in a change of the other variables. Participants could freely change which dimension to manipulate.
+Each participant was randomly split into one of three even factor groups. The first group was given a biplot -- a scatterplot matrix coupled with a variable mapping back to original variable space. Users were allowed to freely choise which two components to view initialized to PC1 and PC2. The second group was given the same animation, the first 60 seconds of random walk (typically __n__ basis as three frames per second) of a grand tour with the ability to freely control the location and speed of the animation. The third group was provided with the ability to control the magnitude of an individual variable contributes to the projection with a manual tour. Doing so performs a constrained rotation on the data object resulting in a change of the other variables to preserve orthogonality between dimensions. Participants could freely change which dimension to manipulate.
 
 
 ## Block treatments
 
-__TODO: continue editing here__
-Each participant performed each of 4 block treatments in random order. The blocks consisted of determining the dimensionality of the dataset, `p`, the number of the clusters, `n`, the number of important variables, `d`, and identification of variable with significant covariance, `s`.
+Each participant performed each of the __three__ block treatments in random order. One block asked participants to identify the number of clusters present in the data. In this block, clusters were unsupervised, where observations appeared as black circles. This block also served as a control for assessing the general aptitude for this sort of high dimensional analysis as it was simpler. A second block asked participants to identify the top three variables for distinguishing clusters in order of importance. A third block asked for highly correlated variables if any. In the latter two blocks, clusters were supervised; observations were colored (with a color-blind friendly palette) and assigned a shape based on their cluster. 
+
 
 ## Randomization & replication
 
-Participants were randomly assigned to one of 3 factors deciding which visual method they received. The blocks were performed in a random order for each participant. Within each block, participants performed 4 replications, answering the block question for each of the 4 datasets in a random order before proceeding to the next block.  
+Participants were randomly assigned to one of __three__ factors deciding which visual method they received. The blocks were performed in a random order for each participant. Within each block, participants performed __four__ replications, answering the block question for each of the __four__ datasets in a random order before proceeding to the next block.  
 
 
 ## Response & measures
 
-Each block was introduced and demonstrated directly preceding each block. During this introductory segment, each participant was shown the visual for their factor with a written description of the block and how to discern it with the same toy data set. Participants were free to ask questions and clarification from the proctor at this time.  Questions were not allowed outside of the introductory segments. Participants received exactly 2 minutes to study/explore each repetition's projection before answering a question regarding it. Answers came in the form of a numeric input for three blocks - namely, dimensionality, clusters, and important variables (`p`, `n`, and `d` respectively). For the remaining block, covariance `s`, a checkmark box was provided for each variable. Participants we instructed to mark all variables, if any, that were highly correlated. None of the data sets contained more than a single group of highly-correlated variables.
+Each block was introduced and demonstrated directly preceding each block. During this introductory segment, each participant was given a  written description of the block task and instructions on how the factor visualization informed the answer, as illustrated with the same toy data set. Participants were free to ask questions and clarification from the proctor at this time. Questions were not allowed outside of the introductory segments. Participants received exactly __two__ minutes to explore each repetition's projection before responding to the given task. Responses came in the form of single integer input for the block asking to identify the number of clusters. The second block collected the top 3 ordered variables that distinguish clusters. The remaining block collected `p` (number of variables in the data) inputs grouped into zero to four groups.
 
-After responses for each block were collected, participants were given a short survey of 7 subjective questions on a 9-point Likert scale. These questions covered familiarity and expertise with multivariate data, its visualization, as well as, ease of use, understandability, confidence, and likely hood to recommend their factors visualization.
+After responses for each block were collected, participants were given a short survey of 7 subjective questions on a 9-point Likert scale. These questions covered familiarity and expertise with multivariate data, its visualization, as well as, ease of use, understandability, confidence, and likelihood to recommend the participant's factor visualization.
+
+
+## Data simulations
+
+The data used for the demonstration of each block was L's flea data, containing __X__. The remaining __3__ data sets were selected from generated simulations with varing  parmeters. Each set has __8 to 14__ variables with __4 to 8__ noise variables. Noise variables were distributed $~ \mathcal{N}(0, \sigma^2)$, while non-noise variables were distributed $~ \mathcal{N}(\mu, \sigma^2)~|~\mu\in \{-3, -2, ... 3\}$. In the variance-covariance matrix, non-diagonal elements of the were near -.1 to .7. Each simulation contained between __three__ and __five__ clusters, where each cluster recieved __30__ to __150__ observations.
 
 
 
 ## Experimental results {#sec:results}
 
-# Accompanying tool: spinifex application 
+# Accompanying tool: spinifex application
+
+To accomany this study we have produced a more general use tool to perform such exploratory analysis of high dimensional data. The `spinifex`{@CITE} R package (version 1.5 and up) contains a free, open source version of a `shiny` {@CITE} application. The application features traditional static visualizations including PCA, with biplots and screeplots, and scatterplot matrices. the application also implements various tours, accomidating manual tours, projection persuit, and limited versions of grand, little, and local tours. Data can be imported in .csv and .rda format, and projections can be saved as .png, .gif, and .csv formats where applicable. Run the following R code for help getting started.
+```{r getting_started, eval = F}
+install.packages("spinifex")
+spinifex::run_app("intro")
+spinifex::run_app("primary")
+```
+
 
 # Discussion
 
