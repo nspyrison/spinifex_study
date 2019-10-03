@@ -12,13 +12,17 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   rv$timer_active <- TRUE
   rv$task_responses <- rep(NA, each = n_blocks * n_reps)# * 3) #number of responses/task
   
+  block_num <- reactive({
+    1 + rv$task_num %/% (n_reps + 2)
+  })
+  rep_num <- reactive({
+    rv$task_num - 4 * (block_num() - 1)
+  })
   task_dat <- reactive({
-    dataset_num <- rv$task_num %% (n_reps + 2)
-    s_dat[[dataset_num]]
+    s_dat[[rep_num()]]
   })
   
   ### PCA Plot -----
-  #TODO: will need to revert this to fixed simulations
   task_pca <- reactive({
     if (rv$timer_active | nchar(s_header_text[rv$task_num]) != 10) {
       dat <- task_dat()
@@ -27,24 +31,30 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       dat_std <- tourr::rescale(dat)
 
       pca <- prcomp(dat_std)
-      pca_x <- data.frame(pca$x)
+      pca_x <- data.frame(2 * (tourr::rescale(pca$x) - .5))
       pca_rotation <- set_axes_position(data.frame(t(pca$rotation)), 
                                         "bottomleft")
+      pca_var <- pca$sdev^2
       
-      pca_x_axis <- eval(input$x_axis)
-      pca_y_axis <- eval(input$y_axis)
+      pca_x_axis <- input$x_axis
+      pca_y_axis <- input$y_axis
       rot_x_axis <- paste0("V", substr(pca_x_axis,3,3))
       rot_y_axis <- paste0("V", substr(pca_y_axis,3,3))
+      x_lab <- paste0(input$x_axis, " - ", 
+                      round(100 * pca_var[as.integer(substr(pca_x_axis,3,3))], 2), "% Var")
+      y_lab <- paste0(input$y_axis, " - ", 
+                      round(100 * pca_var[as.integer(substr(pca_y_axis,3,3))], 2), "% Var")
       
-      #x <- pca_x[eval(input$x_axis)]
-      #y <- pca_x[eval(input$y_axis)]
+      x <- pca_x[input$x_axis]
+      y <- pca_x[input$y_axis]
+      x_range <- max(x) - min(x)
+      y_range <- max(y) - min(y)
+      a_ratio <- x_range / y_range
       angle <- seq(0, 2 * pi, length = 360)
-      circ <- set_axes_position(data.frame(x = cos(angle), y = sin(angle)), 
+      circ <- set_axes_position(data.frame(x = cos(angle),
+                                           y = sin(angle)),
                                 "bottomleft")
       zero  <- set_axes_position(0, "bottomleft")
-      #x_range <- max(x) - min(x)
-      #y_range <- max(y) - min(y)
-      #a_ratio <- x_range / y_range
         
       ggplot() + 
         # data points
@@ -69,12 +79,12 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                   color = "grey80", size = .3, inherit.aes = F) +
         # options
         theme_minimal() + 
-        theme(aspect.ratio = 1) +#a_ratio) +
+        theme(aspect.ratio = 1) +
         scale_color_brewer(palette = "Dark2") +
         theme(axis.text.x = element_blank(),
               axis.text.y = element_blank(),
               legend.position = 'none') +
-        labs(x = eval(input$x_axis), y = eval(input$y_axis))
+        labs(x = x_lab, y = y_lab)
     }
   })
   
@@ -216,6 +226,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       } else {paste0("Time left: ", lubridate::seconds_to_period(rv$timer))}
     } else {return()}
   })
+  output$block_num     <- renderText(block_num())
   output$header_text   <- renderText(s_header_text[rv$task_num])
   output$question_text <- renderText(s_question_text[rv$task_num])
   output$top_text      <- renderText(s_top_text[rv$task_num])
@@ -230,12 +241,13 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   output$dev_msg <- renderPrint(cat("dev msg -- \n",
                                     "rv$timer: ", rv$timer, "\n",
                                     "rv$task_num: ", rv$task_num, "\n",
+                                    "block_num(): ", block_num(), "\n",
+                                    "rep_num(): ", rep_num(), "\n",
+                                    "head(task_dat())", head(task_dat()), "\n",
                                     "s_header_text[rv$task_num]: ", s_header_text[rv$task_num], "\n",
-                                    "head(col): ", head(col), "\n",
                                     "input$x_axis: ", input$x_axis, "\n",
                                     "eval input$x_axis: ", eval(input$x_axis), "\n",
                                     "eval input$y_axis: ", eval(input$y_axis), "\n",
-                                    "rv$task_num %% (n_reps + 2):", rv$task_num %% (n_reps + 2), "\n",
                                     sep = ""))
 }
 

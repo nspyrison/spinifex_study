@@ -12,15 +12,13 @@ library("plotly")
 
 
 ### Required inputs
-intro_dat <- tourr::rescale(tourr::flea[, 1:6])
-colnames(intro_dat) <- paste0("V", 1:ncol(intro_dat))
-attr(intro_dat, "cluster") <- tourr::flea$species
+
 n_reps <- 3
 s_blocks <- c("n", "d", "s")
 s_block_names <- c("clusters, n", "important variable, r", "correlated variables, s")
 s_block_questions <- c("How many clusters exist?",
                        "Which 3 varables are most important to distinguish groups?",
-                       "dummy 3rd question")
+                       "Which variables are noise, least important to distinguishing groups?")
 s_survey_questions <- c("This visualization was easy to use.", ### INPUT
                         "I am confident of my answers.",
                         "This visualization is easily understandable.",
@@ -33,10 +31,15 @@ n_blocks <- length(s_blocks)
 s_blockrep_id <- paste0(rep(s_blocks, each = n_reps), rep(1:n_reps, n_reps))
 n_task_pgs <- n_blocks * (n_reps + 1)
 
+# intro_dat <- tourr::rescale(tourr::flea[, 1:6])
+# colnames(intro_dat) <- paste0("V", 1:ncol(intro_dat))
+# attr(intro_dat, "cluster") <- tourr::flea$species
+
+sim_intro <- readRDS("../simulation/simulation_data021.rds") # p = 6, pnoise = 2, cl = 3 
 sim1 <- readRDS("../simulation/simulation_data001.rds") # "./apps/simulation/simulation_data001.rds"
 sim2 <- readRDS("../simulation/simulation_data002.rds")
 sim3 <- readRDS("../simulation/simulation_data003.rds")
-s_dat <- list(intro_dat, sim1, sim2, sim3) # intro data (flea) is first
+s_dat <- list(sim_intro, sim1, sim2, sim3) # intro data (flea) is first
 
 col_sim_id <- c("001", "002", "003")
 col_sim_id <- c(rep(col_sim_id,3), rep(NA, 7))
@@ -167,5 +170,6 @@ ui <- fluidPage(navbarPage("Multivariate data visualization study",
                            panel_finalize
                           )
   , verbatimTextOutput("dev_msg")
+  , conditionalPanel(condition = "output.block_num == 1", p('Task_num is 1'))
 )
 
