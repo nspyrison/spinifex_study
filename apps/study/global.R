@@ -170,6 +170,7 @@ ui <- fluidPage(navbarPage("Multivariate data visualization study",
                            panel_finalize
                           )
   , verbatimTextOutput("dev_msg")
-  , conditionalPanel(condition = "output.block_num == 1", p('Task_num is 1'))
+  , conditionalPanel(condition = "output.block_num == '1'", p('Task_num is 1, text'))
+  , conditionalPanel(condition = "output.block_num == 1", p('Task_num is 1, number'))
 )
 

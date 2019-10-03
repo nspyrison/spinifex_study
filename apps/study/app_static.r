@@ -10,7 +10,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   rv$task_num <- 1
   rv$timer <- 120
   rv$timer_active <- TRUE
-  rv$task_responses <- rep(NA, each = n_blocks * n_reps)# * 3) #number of responses/task
+  rv$task_responses <- rep(NA, each = n_blocks * n_reps)
   
   block_num <- reactive({
     1 + rv$task_num %/% (n_reps + 2)
@@ -34,28 +34,23 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       pca_x <- data.frame(2 * (tourr::rescale(pca$x) - .5))
       pca_rotation <- set_axes_position(data.frame(t(pca$rotation)), 
                                         "bottomleft")
-      pca_var <- pca$sdev^2
+      pca_pct_var <- round(100 * pca$sdev^2 / sum(pca$sdev^2), 2)
       
       pca_x_axis <- input$x_axis
       pca_y_axis <- input$y_axis
       rot_x_axis <- paste0("V", substr(pca_x_axis,3,3))
       rot_y_axis <- paste0("V", substr(pca_y_axis,3,3))
       x_lab <- paste0(input$x_axis, " - ", 
-                      round(100 * pca_var[as.integer(substr(pca_x_axis,3,3))], 2), "% Var")
+                      pca_pct_var[as.integer(substr(pca_x_axis,3,3))], "% Var")
       y_lab <- paste0(input$y_axis, " - ", 
-                      round(100 * pca_var[as.integer(substr(pca_y_axis,3,3))], 2), "% Var")
+                      pca_pct_var[as.integer(substr(pca_y_axis,3,3))], "% Var")
       
-      x <- pca_x[input$x_axis]
-      y <- pca_x[input$y_axis]
-      x_range <- max(x) - min(x)
-      y_range <- max(y) - min(y)
-      a_ratio <- x_range / y_range
       angle <- seq(0, 2 * pi, length = 360)
       circ <- set_axes_position(data.frame(x = cos(angle),
                                            y = sin(angle)),
                                 "bottomleft")
       zero  <- set_axes_position(0, "bottomleft")
-        
+      
       ggplot() + 
         # data points
         geom_point(pca_x, mapping = aes(x = get(pca_x_axis), 
@@ -242,8 +237,9 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                     "rv$timer: ", rv$timer, "\n",
                                     "rv$task_num: ", rv$task_num, "\n",
                                     "block_num(): ", block_num(), "\n",
+                                    #"output$blocknum: ", output$block_num, "\n",
+                                    #"output$blocknum == '1': ", output$block_num == '1', "\n",
                                     "rep_num(): ", rep_num(), "\n",
-                                    "head(task_dat())", head(task_dat()), "\n",
                                     "s_header_text[rv$task_num]: ", s_header_text[rv$task_num], "\n",
                                     "input$x_axis: ", input$x_axis, "\n",
                                     "eval input$x_axis: ", eval(input$x_axis), "\n",
