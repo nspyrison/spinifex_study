@@ -36,7 +36,7 @@ for (i in 1:length(loaded_sim_names)) {
 df_mncl
 rownames(df_mncl) <- NULL
 sim_cl_means <- df_mncl
-write.csv2(sim_cl_means, "./apps/simulation/sim_cl_means.csv", row.names = FALSE)
+#write.csv2(sim_cl_means, "./apps/simulation/sim_cl_means.csv", row.names = FALSE)
 
 
 
@@ -58,6 +58,7 @@ for (i in 1:length(loaded_sim_names)) {
   # LDA
   this_supervied_sim <- data.frame(this_sim, cluster = attr(this_sim, "cluster"))
   this_lda <- MASS::lda(cluster~., data = this_supervied_sim)
+  this_lda
   this_lda$scaling #TODO: do i need to force to 3 LD col? check .csv file.
   this_covar_lda <- data.frame(this_covar, this_lda$scaling)
   df_covar_lda <- rbind(df_covar_lda, this_covar_lda)
@@ -65,8 +66,8 @@ for (i in 1:length(loaded_sim_names)) {
 df_covar_lda
 rownames(df_covar_lda) <- NULL
 sim_covar_lda <- df_covar_lda
-write.csv2(sim_covar_lda, "./apps/simulation/sim_covar_lda.csv", 
-           row.names = FALSE) # not rounded.
+# write.csv2(sim_covar_lda, "./apps/simulation/sim_covar_lda.csv", 
+#            row.names = FALSE) # not rounded.
 
 
 ### CREATE SIM_PARAMETERS.CSV -----
@@ -101,6 +102,19 @@ str(lda)
 lda$scaling
 cat <- tourr::flea$species
 spinifex::view_basis(basis = lda$scaling, data = dat[, 1:6], col = cat, pch = cat)
+# !! But the scaling is not a basis, it's p x (cl-1). compare with lda_pp?
+dat <- get(loaded_sim_names[2])
+colnames(dat) <- paste0("V", 1:ncol(dat))
+dat_reorder <- attr(dat, "col_reorder")
+supervied_dat <- data.frame(dat, cluster = attr(dat, "cluster"))
+lda <- MASS::lda(cluster~., data = supervied_dat)
+lda$scaling
+cat <- supervied_dat$cluster
+spinifex::view_basis(basis = lda$scaling, data = dat, col = cat, pch = cat)
+# LD3 seems to be ignored. let's look at lda_pp
+tpath    <- save_history(dat, tour_path = lda_pp(cl = attr(dat, "cluster")))
+save_history(flea[, 1:6], lda_pp(flea$species))
+animate_xy(flea[, 1:6], lda_pp(flea$species))
 
 ### MAHALANOBIS DIST -----
 # grain: observations, could sum to cluster
@@ -116,6 +130,9 @@ length(ex_ma) # vector of length n.
 # I don't think mahalanobis dist is the right approach to a variable rank,
 # it's really a measure of the distance of an obs away from the 
 # multivariate mean, rather than a varable wise ranking.
+# 
+# Looking at magnitude of LDA, gives us an idea of importance,
+# but again doesn't penalize for covariance. 
 
 # from help example:
 x <- matrix(rnorm(100*3), ncol = 3) # 100r x 3c
