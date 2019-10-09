@@ -2,7 +2,7 @@
 
 
 ##### App static global.r -----
-##### Initialization -----
+### Initialization 
 library("ggplot2")
 library("spinifex")
 library("shiny")
@@ -11,15 +11,14 @@ library("mvtnorm")
 library("plotly")
 
 
-### Required inputs
-
+### Required inputs -----
 n_reps <- 3
 s_blocks <- c("n", "d", "s")
 s_block_names <- c("clusters, n", "important variable, r", "correlated variables, s")
 s_block_questions <- c("How many clusters exist?",
                        "Which 3 varables are most important to distinguish groups?",
                        "Which variables are noise, least important to distinguishing groups?")
-s_survey_questions <- c("This visualization was easy to use.", ### INPUT
+s_survey_questions <- c("This visualization was easy to use.",
                         "I am confident of my answers.",
                         "This visualization is easily understandable.",
                         "I would recomend using this visualization.",
@@ -27,24 +26,21 @@ s_survey_questions <- c("This visualization was easy to use.", ### INPUT
                         "I have broad experience with data disualization.",
                         "I had previous knowledge of this visualization.")
 
+### Variable initialization ----
 n_blocks <- length(s_blocks)
 s_blockrep_id <- paste0(rep(s_blocks, each = n_reps), rep(1:n_reps, n_reps))
 n_task_pgs <- n_blocks * (n_reps + 1)
-
-# intro_dat <- tourr::rescale(tourr::flea[, 1:6])
-# colnames(intro_dat) <- paste0("V", 1:ncol(intro_dat))
-# attr(intro_dat, "cluster") <- tourr::flea$species
 
 sim_intro <- readRDS("../simulation/simulation_data021.rds") # p = 6, pnoise = 2, cl = 3 
 sim1 <- readRDS("../simulation/simulation_data001.rds") # "./apps/simulation/simulation_data001.rds"
 sim2 <- readRDS("../simulation/simulation_data002.rds")
 sim3 <- readRDS("../simulation/simulation_data003.rds")
-s_dat <- list(sim_intro, sim1, sim2, sim3) # intro data (flea) is first
+s_dat <- list(sim_intro, sim1, sim2, sim3)
 
 col_sim_id <- c("001", "002", "003")
 col_sim_id <- c(rep(col_sim_id,3), rep(NA, 7))
 
-###### Text sets -----
+###### Text initialization -----
 intro_header_row <- paste0("Introduction -- ", s_block_names)
 m_blockrep_id <- matrix(paste0("Task -- ", s_blockrep_id), ncol = n_reps)
 s_header_text <- c(rbind(intro_header_row , m_blockrep_id), "All tasks completed. Continue to the Survey tab.")
@@ -64,7 +60,7 @@ intro_bottom_row <- "You have 2 minutes to study the display before being prompt
 s_bottom_text <- c(rbind(intro_bottom_row, m_blank), "")
 
 ##### tabPanels (UI objs) -----
-### Task panels
+### Task panel -----
 l_choices <- list(NULL)
 for (i in 1:5){ 
   l_choices[[i]] <- i
@@ -84,24 +80,32 @@ panel_task <- tabPanel(
             plotOutput("task_pca"),
             #plotlyOutput("task_gtour", height = 600),
             verbatimTextOutput("question_text"),
-            h4("Variable 1"),
-            selectInput(inputId = "ans_1", label = "1st most important",
-                        choices = "<Data not found>"),
-            selectInput(inputId = "ans_2", label = "2nd most important",
-                        choices = "<Data not found>"),
-            selectInput(inputId = "ans_3", label = "3rd most important",
-                        choices = "<Data not found>"),
+            conditionalPanel(condition = "output.block_num == 1",
+                             numericInput("blk1_ans", "How many clusters exist within the data?",
+                                          value = 1, min = 1, max = 10)
+            ),
+            conditionalPanel(condition = "output.block_num == 2",
+                             div(style='width:400px;',
+                                 div(style = 'float:left;', strong('most important')),
+                                 div(style = 'float:right;', strong('least important'))
+                             ),
+                             tags$br(),
+                             uiOutput("blk2Inputs")
+            ),
+            conditionalPanel(condition = "output.block_num == 3",
+                             uiOutput("blk3Inputs")
+            ),
             verbatimTextOutput("response_msg"),
             verbatimTextOutput("bottom_text")
   )
 )
 
-### Introduction tabPanels
+### Introduction panel -----
 panel_study_intro <- tabPanel("Study introduction",
                               h3("Welcome to the study.")
 )
 
-### Survey tabPanel 
+### Survey panel  -----
 panel_survey <-
   tabPanel("Survey", ### INPUT
            h3("How much do you agree with the following statments?"),
@@ -154,7 +158,7 @@ col_blockrep <- c(s_blockrep_id, paste0("survey", 1:7))
 col_question <- c(rep(s_block_questions, each = n_reps),
                   s_survey_questions)
 
-### Finalize responses panel
+### Finalize panel -----
 panel_finalize <- tabPanel("Review answers",
                            tableOutput("ans_tbl"),
                            actionButton("save_ans", "save results"),
@@ -163,14 +167,15 @@ panel_finalize <- tabPanel("Review answers",
 )
 
 ##### UI, combine panels -----
-ui <- fluidPage(navbarPage("Multivariate data visualization study",
-                           panel_study_intro,
-                           panel_task,
-                           panel_survey,
-                           panel_finalize
-                          )
+ui <- fluidPage(
+  navbarPage("Multivariate data visualization study",
+             panel_study_intro,
+             panel_task,
+             panel_survey,
+             panel_finalize
+  )
   , verbatimTextOutput("dev_msg")
-  , conditionalPanel(condition = "output.block_num == '1'", p('Task_num is 1, text'))
-  , conditionalPanel(condition = "output.block_num == 1", p('Task_num is 1, number'))
+  # need to display "block_num" to use in conditionalPanel, otherwise not evaluated.
+  ,verbatimTextOutput("block_num") # AM I NEEDED FOR CONDITIONAL?
 )
 

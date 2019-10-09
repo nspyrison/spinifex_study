@@ -13,10 +13,10 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   rv$task_responses <- rep(NA, each = n_blocks * n_reps)
   
   block_num <- reactive({
-    1 + rv$task_num %/% (n_reps + 2)
+    1 + (rv$task_num - 1) %/% (n_reps + 1)
   })
   rep_num <- reactive({
-    rv$task_num - 4 * (block_num() - 1)
+    rv$task_num - (4 * (block_num() - 1))
   })
   task_dat <- reactive({
     s_dat[[rep_num()]]
@@ -109,19 +109,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                        choices  = paste0("PC", 1:d),
                        selected = "PC2")
   })
-  ### Update response choices -----
-  observe({
-    d <- ncol(task_dat())
-    updateSelectInput(session,
-                      "ans_1",
-                      choices  = c("<select a variable>", paste0("V", 1:d)))
-    updateSelectInput(session,
-                      "ans_2",
-                      choices  = c("<select a variable>", paste0("V", 1:d)))
-    updateSelectInput(session,
-                      "ans_3",
-                      choices  = c("<select a variable>", paste0("V", 1:d)))
-  })
   
   ### Next task button -----
   ## TODO: Fix writing response to response_table as task_response is not trivial anymore.
@@ -163,7 +150,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     data.frame(blockrep  = col_blockrep,
                question  = col_question,
                sim_id    = col_sim_id,
-               #sim       = nest((col_sim)), # a list with uneven tibbles 
                responses = col_responses)
   })
   
@@ -178,7 +164,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     #   output$save_msg <- renderText("Please verify that the survey has been answered.")
     #   return()
     # }
-
     
     save_num <- 1
     save_name <- sprintf("simulation_data%03d", save_num)
@@ -216,12 +201,12 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   ### Outputs -----
   output$timer_disp <- renderText({
-    if (nchar(s_header_text[rv$task_num]) == 10) { # 10 for "Task -- xn"
+    if (nchar(s_header_text[rv$task_num]) == 10) { # 10 char for "Task -- xn"
       if (rv$timer < 1) {return("Time has expired, please enter your best guess and proceed.")
       } else {paste0("Time left: ", lubridate::seconds_to_period(rv$timer))}
     } else {return()}
   })
-  output$block_num     <- renderText(block_num())
+  output$block_num     <- reactive(block_num())
   output$header_text   <- renderText(s_header_text[rv$task_num])
   output$question_text <- renderText(s_question_text[rv$task_num])
   output$top_text      <- renderText(s_top_text[rv$task_num])
@@ -232,13 +217,32 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     ans_tbl()[ , !(names(ans_tbl()) %in% "simulation")] # hide dataset from users
   })
   
+  ### Block 2 inputs, importance rank -----
+  output$blk2Inputs <- renderUI({
+    dat <- task_dat()
+    i <- j <- ncol(dat)
+    lapply(1:i, function(i) {
+      radioButtons(inputId = paste0("blk2_ans", i), label = paste("Variable ", i),
+                   choices = 1:j, inline = TRUE)
+    })
+  })
+  
+  ### Block 3 inputs, noise -----
+  output$blk3Inputs <- renderUI({
+    dat <- task_dat()
+    i <- ncol(dat)
+    lapply(1:i, function(i) {
+      radioButtons(inputId = paste0("blk3_ans", i), label = paste("Variable", i),
+                   choices = c("noise", "signal"), inline = TRUE)
+    })
+  })
+  
   ### Dev msg -----
+  # cannot print output$x in output$dev_msg.
   output$dev_msg <- renderPrint(cat("dev msg -- \n",
                                     "rv$timer: ", rv$timer, "\n",
                                     "rv$task_num: ", rv$task_num, "\n",
                                     "block_num(): ", block_num(), "\n",
-                                    #"output$blocknum: ", output$block_num, "\n",
-                                    #"output$blocknum == '1': ", output$block_num == '1', "\n",
                                     "rep_num(): ", rep_num(), "\n",
                                     "s_header_text[rv$task_num]: ", s_header_text[rv$task_num], "\n",
                                     "input$x_axis: ", input$x_axis, "\n",
