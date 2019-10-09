@@ -37,8 +37,6 @@ sim2 <- readRDS("../simulation/simulation_data002.rds")
 sim3 <- readRDS("../simulation/simulation_data003.rds")
 s_dat <- list(sim_intro, sim1, sim2, sim3)
 
-col_sim_id <- c("001", "002", "003")
-col_sim_id <- c(rep(col_sim_id,3), rep(NA, 7))
 
 ###### Text initialization -----
 intro_header_row <- paste0("Introduction -- ", s_block_names)
@@ -152,11 +150,6 @@ panel_survey <-
                                    div(style='float:right;', 'strongly agree')),
                        min = 1, max = 9, value = 5)
   )
-
-### Answer table columns
-col_blockrep <- c(s_blockrep_id, paste0("survey", 1:7))
-col_question <- c(rep(s_block_questions, each = n_reps),
-                  s_survey_questions)
 
 ### Finalize panel -----
 panel_finalize <- tabPanel("Review answers",

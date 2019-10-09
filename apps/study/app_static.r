@@ -10,8 +10,14 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   rv$task_num <- 1
   rv$timer <- 120
   rv$timer_active <- TRUE
-  rv$task_responses <- rep(NA, each = n_blocks * n_reps)
+  rv$task_responses <- NULL 
   
+  p2 <- reactive({ ncol(s_dat[[2]]) })
+  p3 <- reactive({ ncol(s_dat[[3]]) })
+  p4 <- reactive({ ncol(s_dat[[4]]) })
+  p_sims <- reactive({ p2() + p3() + p4() })
+  # rv$task_responses <- c(rep(NA, each = n_reps), # for block 1
+  #                        rep(NA, each = 2 * p_sims() )) # for blocks 2 & 3
   block_num <- reactive({
     1 + (rv$task_num - 1) %/% (n_reps + 1)
   })
@@ -138,7 +144,31 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   ### Response table -----
   ans_tbl <- reactive({
-    length(rv$task_responses)
+    col_blockrep <- c(s_blockrep_id[1:3], # block 1
+                      rep(s_blockrep_id[4], p2()), # block 2
+                      rep(s_blockrep_id[5], p3()),
+                      rep(s_blockrep_id[6], p4()),
+                      rep(s_blockrep_id[7], p2()), # block 3
+                      rep(s_blockrep_id[8], p3()),
+                      rep(s_blockrep_id[9], p4()),
+                      paste0("survey", 1:7) # survey
+    )
+    col_var <- c(rep(NA, 3),   # block 1
+                 rep(c(1:p2(), # block 2&3
+                       1:p3(),
+                       1:p4()), 2),
+                 rep(NA, 7)    # survey
+    )
+    s_sim_id <- c("001", "002", "003")
+    col_sim_id <- c(col_sim_id, # block 1
+                    rep(c(rep(col_sim_id[1], p2()), # block 2 & 3
+                          rep(col_sim_id[2], p3()),
+                          rep(col_sim_id[3], p4())), 2),
+                    rep(NA, 7)) # survey
+    col_question <- c(rep(s_block_questions[1], n_reps),   # block 1
+                      rep(s_block_questions[2], p_sims()), # block 2
+                      rep(s_block_questions[3], p_sims()), # block 3
+                      s_survey_questions)                  # survey
     col_responses <- c(rv$task_responses,
                        input$ans_ease,
                        input$ans_confidence,
@@ -147,9 +177,11 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                        input$ans_high_dim,
                        input$ans_data_vis,
                        input$ans_previous_knowledge)
+    
     data.frame(blockrep  = col_blockrep,
-               question  = col_question,
+               var       = col_var,
                sim_id    = col_sim_id,
+               question  = col_question,
                responses = col_responses)
   })
   
