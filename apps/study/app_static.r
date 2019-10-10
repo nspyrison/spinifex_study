@@ -11,6 +11,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   rv$timer <- 120
   rv$timer_active <- TRUE
   rv$task_responses <- NULL 
+  rv$save_file <- NULL
   
   p2 <- reactive({ ncol(s_dat[[2]]) })
   p3 <- reactive({ ncol(s_dat[[3]]) })
@@ -153,23 +154,23 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                       rep(s_blockrep_id[9], p4()),
                       paste0("survey", 1:7) # survey
     )
-    col_var <- c(rep(NA, 3),   # block 1
+    col_var <<- c(rep(NA, 3),  # block 1
                  rep(c(1:p2(), # block 2&3
                        1:p3(),
                        1:p4()), 2),
                  rep(NA, 7)    # survey
     )
     s_sim_id <- c("001", "002", "003")
-    col_sim_id <- c(col_sim_id, # block 1
-                    rep(c(rep(col_sim_id[1], p2()), # block 2 & 3
-                          rep(col_sim_id[2], p3()),
-                          rep(col_sim_id[3], p4())), 2),
+    col_sim_id <<- c(s_sim_id, # block 1
+                    rep(c(rep(s_sim_id[1], p2()), # block 2 & 3
+                          rep(s_sim_id[2], p3()),
+                          rep(s_sim_id[3], p4())), 2),
                     rep(NA, 7)) # survey
-    col_question <- c(rep(s_block_questions[1], n_reps),   # block 1
+    col_question <<- c(rep(s_block_questions[1], n_reps),   # block 1
                       rep(s_block_questions[2], p_sims()), # block 2
                       rep(s_block_questions[3], p_sims()), # block 3
                       s_survey_questions)                  # survey
-    col_responses <- c(rv$task_responses,
+    col_responses <<- c(rv$task_responses,
                        input$ans_ease,
                        input$ans_confidence,
                        input$ans_understand,
@@ -187,33 +188,51 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   ### Save reponse table, data -----
   observeEvent(input$save_ans, {
-    # df <- ans_tbl()
-    # if (max(is.na(df)) == 1) { # Check that all tasks have answers.
-    #   output$save_msg <- renderText("Please verify that all tasks have been answered.")
-    #   return()
-    # }
-    # if (min(df[(nrow(df) - 6):nrow(df), 3] == 5) == 1) { # Check that all survey questions not default.
-    #   output$save_msg <- renderText("Please verify that the survey has been answered.")
-    #   return()
-    # }
-    
-    save_num <- 1
-    save_name <- sprintf("simulation_data%03d", save_num)
-    save_file <- paste0(save_name, ".rds")
-    while (file.exists(save_file)){
-      save_num <- save_num + 1
-      save_name <- sprintf("simulation_data%03d", save_num)
-      save_file <- paste0(save_name, ".rds")
+    df <- ans_tbl()
+    save_base <- "response_table_static"
+    if (!is.null(rv$save_file)){
+      output$save_msg <- renderPrint(cat("Reponses already saved as ", rv$save_file, 
+                                         ". Thank you for participating!", sep = ""))
+      return()
     }
-    # assign(save_name, ans_tbl())
-    # write.csv(get(save_name), file = save_file, row.names = FALSE)
-    sim_save_name <- sprintf("simulation_data%03d", save_num)
-    sim_save_file <- paste0(sim_save_name, ".rds")
-    assign(sim_save_name, task_dat())
-    saveRDS(get(sim_save_name), file = sim_save_file) # csv doesn't keep attributes
-    output$save_msg <- renderPrint(cat(#"Reponses saved as ", save_file, ", 
-                         # and 
-                         "data saved as ", sim_save_file, ".", sep = ""))
+    if (input$save_ans > 5){
+      save_num  <- 1
+      save_name <- sprintf(paste0(save_base, "%03d"), save_num)
+      save_file <- paste0(save_name, ".csv")
+      while (file.exists(save_file)){ # set the correct file number to use
+        save_name <- sprintf(paste0(save_base, "%03d"), save_num)
+        save_file <- paste0(save_name, ".csv")
+        save_num  <- save_num + 1
+      }
+      assign(save_name, df)
+      write.csv(get(save_name), file = save_file, row.names = FALSE)
+      output$save_msg <- renderPrint(cat("Reponses saved as ", save_file, 
+                                         ", dispite warning flag.", sep = ""))
+      rv$save_file <- save_file
+      return()
+    }
+    if (max(is.na(df$responses)) == 1) { # Check that all tasks have answers.
+      output$save_msg <- renderText("Please verify that all tasks have been answered.")
+      return()
+    }
+    if (min(df[(nrow(df) - 6):nrow(df), 5] == 5) == 1) { # Check that all survey questions not default.
+      output$save_msg <- renderText("Please verify that the survey has been answered.")
+      return()
+    }
+    
+    save_num  <- 1
+    save_name <- sprintf(paste0(save_base, "%03d"), save_num)
+    save_file <- paste0(save_name, ".csv")
+    while (file.exists(save_file)){ # set the correct file number to use
+      save_name <- sprintf(paste0(save_base, "%03d"), save_num)
+      save_file <- paste0(save_name, ".csv")
+      save_num  <- save_num + 1
+    }
+    assign(save_name, df)
+    write.csv(get(save_name), file = save_file, row.names = FALSE)
+    rv$save_file <- save_file
+    output$save_msg <- renderPrint(cat("Reponses saved as ", save_file, 
+                                       ". Thank you for participating!", sep = ""))
   })
   
   ### Timer -----
@@ -280,6 +299,10 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                     "input$x_axis: ", input$x_axis, "\n",
                                     "eval input$x_axis: ", eval(input$x_axis), "\n",
                                     "eval input$y_axis: ", eval(input$y_axis), "\n",
+                                    "input$save_ans: ", input$save_ans, "\n",
+                                    "input$save_ans > 5", input$save_ans > 5, "\n",
+                                    "rv$save_file", rv$save_file, "\n",
+                                    "is.null(rv$save_file)", is.null(rv$save_file), "\n",
                                     sep = ""))
 }
 

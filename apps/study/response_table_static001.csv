@@ -1,0 +1,71 @@
+"blockrep","var","sim_id","question","responses"
+"n1",NA,"001","How many clusters exist?",5
+"n2",NA,"002","How many clusters exist?",5
+"n3",NA,"003","How many clusters exist?",5
+"d1",1,"001","Which 3 varables are most important to distinguish groups?",5
+"d1",2,"001","Which 3 varables are most important to distinguish groups?",5
+"d1",3,"001","Which 3 varables are most important to distinguish groups?",5
+"d1",4,"001","Which 3 varables are most important to distinguish groups?",5
+"d1",5,"001","Which 3 varables are most important to distinguish groups?",5
+"d1",6,"001","Which 3 varables are most important to distinguish groups?",5
+"d1",7,"001","Which 3 varables are most important to distinguish groups?",5
+"d1",8,"001","Which 3 varables are most important to distinguish groups?",5
+"d1",9,"001","Which 3 varables are most important to distinguish groups?",5
+"d1",10,"001","Which 3 varables are most important to distinguish groups?",5
+"d2",1,"002","Which 3 varables are most important to distinguish groups?",5
+"d2",2,"002","Which 3 varables are most important to distinguish groups?",5
+"d2",3,"002","Which 3 varables are most important to distinguish groups?",5
+"d2",4,"002","Which 3 varables are most important to distinguish groups?",5
+"d2",5,"002","Which 3 varables are most important to distinguish groups?",5
+"d2",6,"002","Which 3 varables are most important to distinguish groups?",5
+"d2",7,"002","Which 3 varables are most important to distinguish groups?",5
+"d2",8,"002","Which 3 varables are most important to distinguish groups?",5
+"d2",9,"002","Which 3 varables are most important to distinguish groups?",5
+"d2",10,"002","Which 3 varables are most important to distinguish groups?",5
+"d2",11,"002","Which 3 varables are most important to distinguish groups?",5
+"d2",12,"002","Which 3 varables are most important to distinguish groups?",5
+"d3",1,"003","Which 3 varables are most important to distinguish groups?",5
+"d3",2,"003","Which 3 varables are most important to distinguish groups?",5
+"d3",3,"003","Which 3 varables are most important to distinguish groups?",5
+"d3",4,"003","Which 3 varables are most important to distinguish groups?",5
+"d3",5,"003","Which 3 varables are most important to distinguish groups?",5
+"d3",6,"003","Which 3 varables are most important to distinguish groups?",5
+"d3",7,"003","Which 3 varables are most important to distinguish groups?",5
+"d3",8,"003","Which 3 varables are most important to distinguish groups?",5
+"s1",1,"001","Which variables are noise, least important to distinguishing groups?",5
+"s1",2,"001","Which variables are noise, least important to distinguishing groups?",5
+"s1",3,"001","Which variables are noise, least important to distinguishing groups?",5
+"s1",4,"001","Which variables are noise, least important to distinguishing groups?",5
+"s1",5,"001","Which variables are noise, least important to distinguishing groups?",5
+"s1",6,"001","Which variables are noise, least important to distinguishing groups?",5
+"s1",7,"001","Which variables are noise, least important to distinguishing groups?",5
+"s1",8,"001","Which variables are noise, least important to distinguishing groups?",5
+"s1",9,"001","Which variables are noise, least important to distinguishing groups?",5
+"s1",10,"001","Which variables are noise, least important to distinguishing groups?",5
+"s2",1,"002","Which variables are noise, least important to distinguishing groups?",5
+"s2",2,"002","Which variables are noise, least important to distinguishing groups?",5
+"s2",3,"002","Which variables are noise, least important to distinguishing groups?",5
+"s2",4,"002","Which variables are noise, least important to distinguishing groups?",5
+"s2",5,"002","Which variables are noise, least important to distinguishing groups?",5
+"s2",6,"002","Which variables are noise, least important to distinguishing groups?",5
+"s2",7,"002","Which variables are noise, least important to distinguishing groups?",5
+"s2",8,"002","Which variables are noise, least important to distinguishing groups?",5
+"s2",9,"002","Which variables are noise, least important to distinguishing groups?",5
+"s2",10,"002","Which variables are noise, least important to distinguishing groups?",5
+"s2",11,"002","Which variables are noise, least important to distinguishing groups?",5
+"s2",12,"002","Which variables are noise, least important to distinguishing groups?",5
+"s3",1,"003","Which variables are noise, least important to distinguishing groups?",5
+"s3",2,"003","Which variables are noise, least important to distinguishing groups?",5
+"s3",3,"003","Which variables are noise, least important to distinguishing groups?",5
+"s3",4,"003","Which variables are noise, least important to distinguishing groups?",5
+"s3",5,"003","Which variables are noise, least important to distinguishing groups?",5
+"s3",6,"003","Which variables are noise, least important to distinguishing groups?",5
+"s3",7,"003","Which variables are noise, least important to distinguishing groups?",5
+"s3",8,"003","Which variables are noise, least important to distinguishing groups?",5
+"survey1",NA,NA,"This visualization was easy to use.",5
+"survey2",NA,NA,"I am confident of my answers.",5
+"survey3",NA,NA,"This visualization is easily understandable.",5
+"survey4",NA,NA,"I would recomend using this visualization.",5
+"survey5",NA,NA,"I am an expert on multivarite data and related visualiztion.",5
+"survey6",NA,NA,"I have broad experience with data disualization.",5
+"survey7",NA,NA,"I had previous knowledge of this visualization.",5
