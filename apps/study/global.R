@@ -25,6 +25,7 @@ s_survey_questions <- c("This visualization was easy to use.",
                         "I am an expert on multivarite data and related visualiztion.",
                         "I have broad experience with data disualization.",
                         "I had previous knowledge of this visualization.")
+study_factor <- "static"
 
 ### Variable initialization ----
 n_blocks <- length(s_blocks)
@@ -169,6 +170,6 @@ ui <- fluidPage(
   )
   , verbatimTextOutput("dev_msg")
   # need to display "block_num" to use in conditionalPanel, otherwise not evaluated.
-  ,verbatimTextOutput("block_num") # AM I NEEDED FOR CONDITIONAL?
+  , verbatimTextOutput("block_num") # AM I NEEDED FOR CONDITIONAL?
 )
 

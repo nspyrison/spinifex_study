@@ -9,25 +9,30 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   rv <- reactiveValues()
   rv$task_num <- 1
   rv$timer <- 120
-  rv$timer_active <- TRUE
-  rv$task_responses <- NULL 
-  rv$save_file <- NULL
+  rv$timer_active   <- TRUE
+  rv$task_responses <- NULL
+  rv$task_durations <- NULL
+  rv$save_file      <- NULL
   
+  ##### Start reactives
   p2 <- reactive({ ncol(s_dat[[2]]) })
   p3 <- reactive({ ncol(s_dat[[3]]) })
   p4 <- reactive({ ncol(s_dat[[4]]) })
   p_sims <- reactive({ p2() + p3() + p4() })
-  # rv$task_responses <- c(rep(NA, each = n_reps), # for block 1
-  #                        rep(NA, each = 2 * p_sims() )) # for blocks 2 & 3
   block_num <- reactive({
     1 + (rv$task_num - 1) %/% (n_reps + 1)
   })
   rep_num <- reactive({
     rv$task_num - (4 * (block_num() - 1))
   })
+  blockrep <- reactive({
+    if (rep_num() == 1) {return(NULL)}
+    paste0(s_blocks[block_num()], rep_num() - 1)
+  })
   task_dat <- reactive({
     s_dat[[rep_num()]]
   })
+  
   
   ### PCA Plot -----
   task_pca <- reactive({
@@ -36,7 +41,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       col <- col_of(attributes(dat)$cluster)
       pch <- pch_of(attributes(dat)$cluster)
       dat_std <- tourr::rescale(dat)
-
+      
       pca <- prcomp(dat_std)
       pca_x <- data.frame(2 * (tourr::rescale(pca$x) - .5))
       pca_rotation <- set_axes_position(data.frame(t(pca$rotation)), 
@@ -90,58 +95,20 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     }
   })
   
+  ##TODO: not needed for static
   ### gtour Plot -----
-  task_gtour <- reactive({
-    if (rv$timer_active | nchar(s_header_text[rv$task_num]) != 10) {
-      dat <- task_dat()
-      col <- col_of(attributes(dat)$cluster)
-      pch <- pch_of(attributes(dat)$cluster)
-      dat_std <- tourr::rescale(dat)
-      
-      tpath <- save_history(dat_std, tour_path = grand_tour(), max = 6)
-      play_tour_path(tour_path = tpath, data = dat_std, col = col, pch = pch,
-                     axes = "bottomleft")
-    }
-  })
-  
-  ### Update axis choices -----
-  observe({
-    d <- ncol(task_dat())
-    updateRadioButtons(session,
-                       "x_axis",
-                       choices  = paste0("PC", 1:d),
-                       selected = "PC1")
-    updateRadioButtons(session,
-                       "y_axis",
-                       choices  = paste0("PC", 1:d),
-                       selected = "PC2")
-  })
-  
-  ### Next task button -----
-  ## TODO: Fix writing response to response_table as task_response is not trivial anymore.
-  observeEvent(input$next_task_button, {
-    if (rv$task_num < length(s_header_text)){
-      # if (is.na(input$task_response)){
-      #   output$response_msg <- renderText("Please enter a response before continuing.")
-      #   return()
-      # }
-      # rv$task_responses[rv$task_num] <- input$task_response
-      rv$task_num <- rv$task_num + 1
-      rv$timer <- 120
-      rv$timer_active <- TRUE
-      output$response_msg <- renderText("")
-      if (nchar(s_header_text[rv$task_num]) == 10){
-        updateNumericInput(session, "task_response", value = "")
-      } else {
-        if (grepl("cluster", s_header_text[rv$task_num])){
-          updateNumericInput(session, "task_response", value = 1)}
-        if (grepl("important", s_header_text[rv$task_num])){
-          updateNumericInput(session, "task_response", value = 2)}
-        if (grepl("correlated", s_header_text[rv$task_num])){
-          updateNumericInput(session, "task_response", value = 3)}
-      }
-    }
-  })
+  # task_gtour <- reactive({
+  #   if (rv$timer_active | nchar(s_header_text[rv$task_num]) != 10) {
+  #     dat <- task_dat()
+  #     col <- col_of(attributes(dat)$cluster)
+  #     pch <- pch_of(attributes(dat)$cluster)
+  #     dat_std <- tourr::rescale(dat)
+  #     
+  #     tpath <- save_history(dat_std, tour_path = grand_tour(), max = 6)
+  #     play_tour_path(tour_path = tpath, data = dat_std, col = col, pch = pch,
+  #                    axes = "bottomleft")
+  #   }
+  # })
   
   ### Response table -----
   ans_tbl <- reactive({
@@ -154,42 +121,154 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                       rep(s_blockrep_id[9], p4()),
                       paste0("survey", 1:7) # survey
     )
-    col_var <<- c(rep(NA, 3),  # block 1
-                 rep(c(1:p2(), # block 2&3
-                       1:p3(),
-                       1:p4()), 2),
-                 rep(NA, 7)    # survey
-    )
-    s_sim_id <- c("001", "002", "003")
-    col_sim_id <<- c(s_sim_id, # block 1
-                    rep(c(rep(s_sim_id[1], p2()), # block 2 & 3
-                          rep(s_sim_id[2], p3()),
-                          rep(s_sim_id[3], p4())), 2),
-                    rep(NA, 7)) # survey
-    col_question <<- c(rep(s_block_questions[1], n_reps),   # block 1
+    col_var      <- c(rep(NA, 3),   # block 1
+                      rep(c(1:p2(), # block 2&3
+                            1:p3(),
+                            1:p4()), 2),
+                      rep(NA, 7))   # survey
+    s_sim_id     <- c("001", "002", "003")
+    col_sim_id   <- c(s_sim_id,                     # block 1
+                      rep(c(rep(s_sim_id[1], p2()), # block 2 & 3
+                            rep(s_sim_id[2], p3()),
+                            rep(s_sim_id[3], p4())), 2),
+                      rep(NA, 7))                   # survey
+    col_question <- c(rep(s_block_questions[1], n_reps),   # block 1
                       rep(s_block_questions[2], p_sims()), # block 2
                       rep(s_block_questions[3], p_sims()), # block 3
                       s_survey_questions)                  # survey
-    col_responses <<- c(rv$task_responses,
-                       input$ans_ease,
-                       input$ans_confidence,
-                       input$ans_understand,
-                       input$ans_use,
-                       input$ans_high_dim,
-                       input$ans_data_vis,
-                       input$ans_previous_knowledge)
+    col_response <- c(rv$task_responses, # blocks
+                      input$ans_ease,    # survey
+                      input$ans_confidence,
+                      input$ans_understand,
+                      input$ans_use,
+                      input$ans_high_dim,
+                      input$ans_data_vis,
+                      input$ans_previous_knowledge)
+    col_duration <- c(rv$task_durations, # blocks
+                      rep(NA, 7))        # survey
     
-    data.frame(blockrep  = col_blockrep,
-               var       = col_var,
-               sim_id    = col_sim_id,
-               question  = col_question,
-               responses = col_responses)
+    data.frame(blockrep = col_blockrep,
+               var      = col_var,
+               sim_id   = col_sim_id,
+               question = col_question,
+               response = col_response,
+               duration = col_duration)
+  })
+  ##### End reactive
+  
+  ##### Start observes
+  ### Obs axis choices -----
+  observe({
+    d <- ncol(task_dat())
+    updateRadioButtons(session,
+                       "x_axis",
+                       choices  = paste0("PC", 1:d),
+                       selected = "PC1")
+    updateRadioButtons(session,
+                       "y_axis",
+                       choices  = paste0("PC", 1:d),
+                       selected = "PC2")
   })
   
-  ### Save reponse table, data -----
+  ##TODO: finish writing obs events for dynamic inputs.
+  ## CANNOT save in response order, needs structure
+  ### Obs responses and durations -----
+  observeEvent(input$blk2_ans1, {
+    rv$responses[1] <- input$blk2_ans1
+    rv$durations[1] <- 120 - rv$timer
+  })
+  observeEvent(input$blk2_ans2, {
+    rv$responses[2] <- input$blk2_ans2
+    rv$durations[2] <- 120 - rv$timer
+  })
+  observeEvent(input$blk2_ans3, { 
+    rv$responses[3] <- input$blk2_ans3
+    rv$durations[3] <- 120 - rv$timer
+  })
+  observeEvent(input$blk2_ans4, {
+    rv$responses[4] <- input$blk2_ans4
+    rv$durations[4] <- 120 - rv$timer
+  })
+  observeEvent(input$blk2_ans5, {
+    rv$responses[5] <- input$blk2_ans5
+    rv$durations[5] <- 120 - rv$timer
+  })
+  observeEvent(input$blk2_ans6, {
+    rv$responses[6] <- input$blk2_ans6
+    rv$durations[6] <- 120 - rv$timer
+  })
+  observeEvent(input$blk2_ans7, {
+    rv$responses[7] <- input$blk2_ans7
+    rv$durations[7] <- 120 - rv$timer
+  })
+  observeEvent(input$blk2_ans8, {
+    rv$responses[8] <- input$blk2_ans8
+    rv$durations[8] <- 120 - rv$timer
+  })
+  observeEvent(input$blk2_ans9, {
+    rv$responses[9] <- input$blk2_ans9
+    rv$durations[9] <- 120 - rv$timer
+  })
+  observeEvent(input$blk2_ans10, {
+    rv$responses[10] <- input$blk2_ans10
+    rv$durations[10] <- 120 - rv$timer
+  })
+  observeEvent(input$blk2_ans11, {
+    rv$responses[11] <- input$blk2_ans11
+    rv$durations[11] <- 120 - rv$timer
+  })
+  observeEvent(input$blk2_ans12, {
+    rv$responses[12] <- input$blk2_ans12
+    rv$durations[12] <- 120 - rv$timer
+  })
+  
+  ### Obs next task button -----
+  observeEvent(input$next_task_button, {
+    # if <on last task> {<do nothing>}
+    if (rv$task_num >= length(s_header_text)){ return() }
+    
+    #CHECK FOR DEFAULT RESPONSE??
+    # if (is.na(input$task_response)){
+    #   output$response_msg <- renderText("Please enter a response before continuing.")
+    #   return()
+    # }
+    
+    # Write this_ans_df to ans_tbl
+    # if (<not an intro task>) {<write repsonses and durations>}
+    if (rep_num() != 1) {
+      browser()
+      ins_row <- which(ans_tbl()$blockrep == blockrep())
+      ins_nrows <- length(rv$responses) - 1
+      ans_tbl()[ins_row:(ins_row + ins_nrows), 5] <- rv$task_responses
+      ans_tbl()[ins_row:(ins_row + ins_nrows), 6] <- rv$task_durations
+    }
+    
+    # Reset responses, duration, and timer for next task
+    rv$task_num <- rv$task_num + 1
+    output$response_msg <- renderText("")
+    rv$task_responses <- "default"
+    rv$task_durations <- "default"
+    rv$timer <- 120
+    rv$timer_active <- TRUE
+    
+    # Set structure for responses and durations
+    if(block_num() == 1) {this_n <- 1
+    } else {
+      if(rep_num() == 2) {this_n <- p2()}
+      if(rep_num() == 3) {this_n <- p3()}
+      if(rep_num() == 4) {this_n <- p4()}
+    }
+    rv$responses <- rep(NA, this_n)
+    rv$durations <- rep(NA, this_n)
+  })
+  
+
+  
+  ### Obs save reponses button -----
+  # If save button hit 5 times with warning, saves anyway. No double saving.
   observeEvent(input$save_ans, {
     df <- ans_tbl()
-    save_base <- "response_table_static"
+    save_base <- paste0("response_table_", study_factor)
     if (!is.null(rv$save_file)){
       output$save_msg <- renderPrint(cat("Reponses already saved as ", rv$save_file, 
                                          ". Thank you for participating!", sep = ""))
@@ -235,7 +314,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                        ". Thank you for participating!", sep = ""))
   })
   
-  ### Timer -----
+  ### Obs timer -----
   observe({
     invalidateLater(1000, session)
     isolate({
@@ -264,9 +343,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   output$bottom_text   <- renderText(s_bottom_text[rv$task_num])
   output$task_pca      <- renderPlot({task_pca()}) 
   output$task_gtour    <- renderPlotly({task_gtour()})
-  output$ans_tbl       <- renderTable({
-    ans_tbl()[ , !(names(ans_tbl()) %in% "simulation")] # hide dataset from users
-  })
+  output$ans_tbl       <- renderTable({ans_tbl()})
   
   ### Block 2 inputs, importance rank -----
   output$blk2Inputs <- renderUI({
@@ -290,13 +367,14 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   ### Dev msg -----
   # cannot print output$x in output$dev_msg.
-  output$dev_msg <- renderPrint(cat("dev msg -- \n",
+  output$dev_msg <- renderPrint(cat("dev msg -- ", "\n",
                                     "rv$timer: ", rv$timer, "\n",
                                     "rv$task_num: ", rv$task_num, "\n",
                                     "block_num(): ", block_num(), "\n",
                                     "rep_num(): ", rep_num(), "\n",
-                                    "s_header_text[rv$task_num]: ", s_header_text[rv$task_num], "\n",
                                     "input$x_axis: ", input$x_axis, "\n",
+                                    "rv$task_responses: ", rv$task_responses, "\n",
+                                    "rv$task_durations: ", rv$task_durations, "\n",
                                     "eval input$x_axis: ", eval(input$x_axis), "\n",
                                     "eval input$y_axis: ", eval(input$y_axis), "\n",
                                     "input$save_ans: ", input$save_ans, "\n",
