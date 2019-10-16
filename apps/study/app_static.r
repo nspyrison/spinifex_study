@@ -13,6 +13,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   rv$task_responses <- NULL
   rv$task_durations <- NULL
   rv$save_file      <- NULL
+  rv$ans_tbl        <- NULL
   
   ##### Start reactives
   p2 <- reactive({ ncol(s_dat[[2]]) })
@@ -38,8 +39,10 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   task_pca <- reactive({
     if (rv$timer_active | nchar(s_header_text[rv$task_num]) != 10) {
       dat <- task_dat()
-      col <- col_of(attributes(dat)$cluster)
-      pch <- pch_of(attributes(dat)$cluster)
+      if (block_num() == 1) {col = "black"
+      } else {col <- col_of(attributes(dat)$cluster)}
+      if (block_num() == 1) {pch = 16
+      } else {pch <- pch_of(attributes(dat)$cluster)}
       dat_std <- tourr::rescale(dat)
       
       pca <- prcomp(dat_std)
@@ -135,17 +138,21 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     col_question <- c(rep(s_block_questions[1], n_reps),   # block 1
                       rep(s_block_questions[2], p_sims()), # block 2
                       rep(s_block_questions[3], p_sims()), # block 3
-                      s_survey_questions)                  # survey
-    col_response <- c(rv$task_responses, # blocks
-                      input$ans_ease,    # survey
+                      s_survey_questions)                  # survey 
+    col_response <- c(rep(NA, n_reps),   # block 1
+                      rep(NA, p_sims()), # block 2
+                      rep(NA, p_sims()), # block 3
+                      input$ans_ease,    # survey 
                       input$ans_confidence,
                       input$ans_understand,
                       input$ans_use,
                       input$ans_high_dim,
                       input$ans_data_vis,
                       input$ans_previous_knowledge)
-    col_duration <- c(rv$task_durations, # blocks
-                      rep(NA, 7))        # survey
+    col_duration <- c(rep(NA, n_reps),   # block 1
+                      rep(NA, p_sims()), # block 2
+                      rep(NA, p_sims()), # block 3
+                      rep(NA, 7))        # survey 
     
     data.frame(blockrep = col_blockrep,
                var      = col_var,
@@ -170,8 +177,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                        selected = "PC2")
   })
   
-  ##TODO: finish writing obs events for dynamic inputs.
-  ## CANNOT save in response order, needs structure
   ### Obs responses and durations -----
   observeEvent(input$blk2_ans1, {
     rv$responses[1] <- input$blk2_ans1
@@ -226,6 +231,8 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   observeEvent(input$next_task_button, {
     # if <on last task> {<do nothing>}
     if (rv$task_num >= length(s_header_text)){ return() }
+    # Init rv$ans_tbl <- snd_tbl() on first press
+    if (rv$task_num == 1){ rv$ans_tbl <- ans_tbl() }
     
     #CHECK FOR DEFAULT RESPONSE??
     # if (is.na(input$task_response)){
@@ -236,11 +243,10 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     # Write this_ans_df to ans_tbl
     # if (<not an intro task>) {<write repsonses and durations>}
     if (rep_num() != 1) {
-      browser()
-      ins_row <- which(ans_tbl()$blockrep == blockrep())
+      ins_row <- which(rv$ans_tbl == blockrep())
       ins_nrows <- length(rv$responses) - 1
-      ans_tbl()[ins_row:(ins_row + ins_nrows), 5] <- rv$task_responses
-      ans_tbl()[ins_row:(ins_row + ins_nrows), 6] <- rv$task_durations
+      rv$ans_tbl[ins_row:(ins_row + ins_nrows), 5] <- rv$task_responses
+      rv$ans_tbl[ins_row:(ins_row + ins_nrows), 6] <- rv$task_durations
     }
     
     # Reset responses, duration, and timer for next task
@@ -254,9 +260,9 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     # Set structure for responses and durations
     if(block_num() == 1) {this_n <- 1
     } else {
-      if(rep_num() == 2) {this_n <- p2()}
-      if(rep_num() == 3) {this_n <- p3()}
-      if(rep_num() == 4) {this_n <- p4()}
+      if(block_num() == 2) {this_n <- p2()}
+      if(block_num() == 3) {this_n <- p3()}
+      if(block_num() == 4) {this_n <- p4()}
     }
     rv$responses <- rep(NA, this_n)
     rv$durations <- rep(NA, this_n)
@@ -267,7 +273,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ### Obs save reponses button -----
   # If save button hit 5 times with warning, saves anyway. No double saving.
   observeEvent(input$save_ans, {
-    df <- ans_tbl()
+    df <- rv$ans_tbl
     save_base <- paste0("response_table_", study_factor)
     if (!is.null(rv$save_file)){
       output$save_msg <- renderPrint(cat("Reponses already saved as ", rv$save_file, 
@@ -343,7 +349,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   output$bottom_text   <- renderText(s_bottom_text[rv$task_num])
   output$task_pca      <- renderPlot({task_pca()}) 
   output$task_gtour    <- renderPlotly({task_gtour()})
-  output$ans_tbl       <- renderTable({ans_tbl()})
+  output$ans_tbl       <- renderTable({rv$ans_tbl})
   
   ### Block 2 inputs, importance rank -----
   output$blk2Inputs <- renderUI({
