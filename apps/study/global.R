@@ -16,8 +16,8 @@ n_reps <- 3
 s_blocks <- c("n", "d", "s")
 s_block_names <- c("clusters, n", "important variable, r", "correlated variables, s")
 s_block_questions <- c("How many clusters exist?",
-                       "Which 3 varables are most important to distinguish groups?",
-                       "Which variables are noise, least important to distinguishing groups?")
+                       "Rank the variables in order of importance to distinguish groups?",
+                       "Group any/all correlated variables.")
 s_survey_questions <- c("This visualization was easy to use.",
                         "I am confident of my answers.",
                         "This visualization is easily understandable.",
