@@ -6,10 +6,9 @@ library("lubridate") # For timer
 ##### Server function, dynamic outputs ----
 server <- function(input, output, session) {  ### INPUT, need to size to number of reps
   ### Initialization -----
-  rv <- reactiveValues()
-
-  rv$task_num <- 1
-  rv$timer <- 120
+  rv                <- reactiveValues()
+  rv$task_num       <- 1
+  rv$timer          <- 120
   rv$timer_active   <- TRUE
   rv$task_responses <- NULL
   rv$task_durations <- NULL
@@ -48,21 +47,39 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   
   ### PCA Plot -----
+  ## I disagree with going to base biplot, 
+  ##  why not give the same feature map, col, and pch?
+  # pca <- princomp(tourr::flea[,1:6])
+  # biplot(pca)
   task_pca <- reactive({
-    if (rv$timer_active | nchar(s_header_text[rv$task_num]) != 10) {
+    if (rv$timer_active | rep_num() == 1) {
       dat <- task_dat()
-      if (block_num() == 1) {col = "black"
-      } else {col <- col_of(attributes(dat)$cluster)}
-      if (block_num() == 1) {pch = 16
-      } else {pch <- pch_of(attributes(dat)$cluster)}
       dat_std <- tourr::rescale(dat)
-
+      if (block_num() == 1) {
+        col = "black"
+        pch = 16
+      }
+      if (block_num() == 2){
+        col <- col_of(attributes(dat)$cluster)
+        pch <- pch_of(attributes(dat)$cluster)
+      }
+      if (block_num() == 3) {
+        col <- col_of(attributes(dat)$cluster, pallet_name = "Paired")
+        pch <- 3 + pch_of(attributes(dat)$cluster)
+      }
       
       pca <- prcomp(dat_std)
-      pca_x <- data.frame(2 * (tourr::rescale(pca$x) - .5))
-      pca_rotation <- set_axes_position(data.frame(t(pca$rotation)), 
-                                        "bottomleft")
-      pca_pct_var <- round(100 * pca$sdev^2 / sum(pca$sdev^2), 2)
+      if (block_num() != 2) { # not 2nd block.
+        pca_x <- data.frame(2 * (tourr::rescale(pca$x) - .5))
+        pca_rotation <- set_axes_position(data.frame(t(pca$rotation)), 
+                                          "bottomleft")
+      } else { # is 2nd block, change sign of var map.
+        pca_x <- as.matrix(dat) %*% (-1 * pca$rotation)
+        pca_x <- data.frame(2 * (tourr::rescale(pca_x) - .5))
+        pca_rotation <- set_axes_position(data.frame(t(-1 * pca$rotation)), 
+                                          "bottomleft")
+      }
+      pca_pct_var <- round(100 * pca$sdev^2 / sum(pca$sdev^2), 1)
       
       pca_x_axis <- input$x_axis
       pca_y_axis <- input$y_axis
@@ -114,7 +131,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ##TODO: not needed for static
   ### gtour Plot -----
   # task_gtour <- reactive({
-  #   if (rv$timer_active | nchar(s_header_text[rv$task_num]) != 10) {
+  #   if (rv$timer_active | rep_num() == 1) {
   #     dat <- task_dat()
   #     col <- col_of(attributes(dat)$cluster)
   #     pch <- pch_of(attributes(dat)$cluster)
@@ -258,7 +275,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     # Write this_ans_df to ans_tbl
     # if (<not an intro task>) {<write repsonses and durations>}
     if (rep_num() != 1) {
-      ins_row <- which(rv$ans_tbl == blockrep())
+      ins_row <- which(rv$ans_tbl$blockrep == blockrep())
       ins_nrows <- length(rv$responses) - 1
       rv$ans_tbl[ins_row:(ins_row + ins_nrows), 5] <- rv$task_responses
       rv$ans_tbl[ins_row:(ins_row + ins_nrows), 6] <- rv$task_durations
@@ -352,7 +369,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   ### Outputs -----
   output$timer_disp <- renderText({
-    if (nchar(s_header_text[rv$task_num]) == 10) { # 10 char for "Task -- xn"
+    if (rep_num() != 1) { # disp timer if not an intro page.
       if (rv$timer < 1) {return("Time has expired, please enter your best guess and proceed.")
       } else {paste0("Time left: ", lubridate::seconds_to_period(rv$timer))}
     } else {return()}

@@ -71,15 +71,16 @@ panel_task <- tabPanel(
     fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
              column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2"))),
     hr(), # horizontal line
-
     conditionalPanel(condition = "output.block_num == 1",
                      numericInput("blk1_ans", "How many clusters exist within the data?",
                                   value = 1, min = 1, max = 10)
     ),
     conditionalPanel(condition = "output.block_num == 2",
                      div(style='width:400px;',
-                         div(style = 'float:left;', strong('most important')),
-                         div(style = 'float:right;', strong('least important'))
+                         div(style = 'float:left; color:red; font-size:14px', 
+                             strong('most important')),
+                         div(style = 'float:right; color:red; font-size:14px', 
+                             strong('least important'))
                      ),
                      tags$br(),
                      uiOutput("blk2Inputs")
@@ -91,7 +92,7 @@ panel_task <- tabPanel(
     actionButton("next_task_button", "Next task")
   ),
   mainPanel(textOutput('timer_disp'),
-            verbatimTextOutput("header_text"),
+            #verbatimTextOutput("header_text"), # Kim asked to remove 18/10/2019
             verbatimTextOutput("top_text"),
             plotOutput("task_pca", height = "auto"),
             #plotlyOutput("task_gtour", height = 600),
