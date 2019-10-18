@@ -29,8 +29,9 @@ run_app("comparison")
 # should be about 5 pages of write up explaining:
 
 # Hypothesis: 
-# does the availability of the manual tour improve the ability of the analyst 
-# to understand the importance of variables contributing to the structure?
+# Does the availability of the interactive visualization improve the ability 
+# of the analyst to understand the importance of variables contributing to the 
+# structure of the data?
 
 # Factors: manual tour vs not (grand tour, or static only)
 # Block/control: dimensionality p, n clusters, g, important dimensions d, var-covar s
