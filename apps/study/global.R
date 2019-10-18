@@ -71,29 +71,31 @@ panel_task <- tabPanel(
     fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
              column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2"))),
     hr(), # horizontal line
+
+    conditionalPanel(condition = "output.block_num == 1",
+                     numericInput("blk1_ans", "How many clusters exist within the data?",
+                                  value = 1, min = 1, max = 10)
+    ),
+    conditionalPanel(condition = "output.block_num == 2",
+                     div(style='width:400px;',
+                         div(style = 'float:left;', strong('most important')),
+                         div(style = 'float:right;', strong('least important'))
+                     ),
+                     tags$br(),
+                     uiOutput("blk2Inputs")
+    ),
+    conditionalPanel(condition = "output.block_num == 3",
+                     uiOutput("blk3Inputs")
+    ),
+    hr(),
     actionButton("next_task_button", "Next task")
   ),
   mainPanel(textOutput('timer_disp'),
             verbatimTextOutput("header_text"),
             verbatimTextOutput("top_text"),
-            plotOutput("task_pca"),
+            plotOutput("task_pca", height = "auto"),
             #plotlyOutput("task_gtour", height = 600),
             verbatimTextOutput("question_text"),
-            conditionalPanel(condition = "output.block_num == 1",
-                             numericInput("blk1_ans", "How many clusters exist within the data?",
-                                          value = 1, min = 1, max = 10)
-            ),
-            conditionalPanel(condition = "output.block_num == 2",
-                             div(style='width:400px;',
-                                 div(style = 'float:left;', strong('most important')),
-                                 div(style = 'float:right;', strong('least important'))
-                             ),
-                             tags$br(),
-                             uiOutput("blk2Inputs")
-            ),
-            conditionalPanel(condition = "output.block_num == 3",
-                             uiOutput("blk3Inputs")
-            ),
             verbatimTextOutput("response_msg"),
             verbatimTextOutput("bottom_text")
   )
@@ -169,7 +171,6 @@ ui <- fluidPage(
              panel_finalize
   )
   , verbatimTextOutput("dev_msg")
-  # need to display "block_num" to use in conditionalPanel, otherwise not evaluated.
-  , verbatimTextOutput("block_num") # AM I NEEDED FOR CONDITIONAL?
+  , verbatimTextOutput("block_num") #!! Need to call block_num for condition panels to evaluate
 )
 

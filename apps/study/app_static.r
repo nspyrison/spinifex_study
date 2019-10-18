@@ -7,6 +7,7 @@ library("lubridate") # For timer
 server <- function(input, output, session) {  ### INPUT, need to size to number of reps
   ### Initialization -----
   rv <- reactiveValues()
+
   rv$task_num <- 1
   rv$timer <- 120
   rv$timer_active   <- TRUE
@@ -14,6 +15,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   rv$task_durations <- NULL
   rv$save_file      <- NULL
   rv$ans_tbl        <- NULL
+
   
   ##### Start reactives
   p2 <- reactive({ ncol(s_dat[[2]]) })
@@ -33,6 +35,16 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   task_dat <- reactive({
     s_dat[[rep_num()]]
   })
+  ## I don't think these are needed.
+  response_num <- reactive({
+    if ((rv$task_num + 2) %% n_reps == 0) {ret <- NULL}
+    else {ret <- rv$task_num - (1 + rv$task_num %/% n_reps)}
+    return(ret)
+  })
+  response <- reactive({
+    #TODO: make a reactive that returns the correct input.
+  })
+  
   
   
   ### PCA Plot -----
@@ -44,6 +56,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       if (block_num() == 1) {pch = 16
       } else {pch <- pch_of(attributes(dat)$cluster)}
       dat_std <- tourr::rescale(dat)
+
       
       pca <- prcomp(dat_std)
       pca_x <- data.frame(2 * (tourr::rescale(pca$x) - .5))
@@ -163,8 +176,10 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   })
   ##### End reactive
   
+
+  
   ##### Start observes
-  ### Obs axis choices -----
+  ### Update axis choices -----
   observe({
     d <- ncol(task_dat())
     updateRadioButtons(session,
@@ -347,14 +362,13 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   output$question_text <- renderText(s_question_text[rv$task_num])
   output$top_text      <- renderText(s_top_text[rv$task_num])
   output$bottom_text   <- renderText(s_bottom_text[rv$task_num])
-  output$task_pca      <- renderPlot({task_pca()}) 
+  output$task_pca      <- renderPlot({task_pca()}, height = 800) 
   output$task_gtour    <- renderPlotly({task_gtour()})
   output$ans_tbl       <- renderTable({rv$ans_tbl})
   
   ### Block 2 inputs, importance rank -----
   output$blk2Inputs <- renderUI({
-    dat <- task_dat()
-    i <- j <- ncol(dat)
+    i <- j <- ncol(task_dat())
     lapply(1:i, function(i) {
       radioButtons(inputId = paste0("blk2_ans", i), label = paste("Variable ", i),
                    choices = 1:j, inline = TRUE)
@@ -363,8 +377,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   ### Block 3 inputs, noise -----
   output$blk3Inputs <- renderUI({
-    dat <- task_dat()
-    i <- ncol(dat)
+    i <- ncol(task_dat())
     lapply(1:i, function(i) {
       radioButtons(inputId = paste0("blk3_ans", i), label = paste("Variable", i),
                    choices = c("noise", "signal"), inline = TRUE)
@@ -387,6 +400,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                     "input$save_ans > 5", input$save_ans > 5, "\n",
                                     "rv$save_file", rv$save_file, "\n",
                                     "is.null(rv$save_file)", is.null(rv$save_file), "\n",
+                                    "response_num()", response_num(), "\n",
                                     sep = ""))
 }
 
