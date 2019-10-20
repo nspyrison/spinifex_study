@@ -1,6 +1,4 @@
-source('global.r', local = TRUE)
-
-library("GGally")
+source('global_simulation.r', local = TRUE)
 
 
 ##### Server function, dynamic outputs ----

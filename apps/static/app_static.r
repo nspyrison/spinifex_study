@@ -1,7 +1,6 @@
-source('global.r', local = TRUE)
+source('global_static.r', local = TRUE)
 
-library("GGally")
-library("lubridate") # For timer
+
 
 ##### Server function, dynamic outputs ----
 server <- function(input, output, session) {  ### INPUT, need to size to number of reps
@@ -118,20 +117,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     }
   })
   
-  ##TODO: not needed for static
-  ### gtour Plot -----
-  # task_gtour <- reactive({
-  #   if (rv$timer_active | rep_num() == 1) {
-  #     dat <- task_dat()
-  #     col <- col_of(attributes(dat)$cluster)
-  #     pch <- pch_of(attributes(dat)$cluster)
-  #     dat_std <- tourr::rescale(dat)
-  #     
-  #     tpath <- save_history(dat_std, tour_path = grand_tour(), max = 6)
-  #     play_tour_path(tour_path = tpath, data = dat_std, col = col, pch = pch,
-  #                    axes = "bottomleft")
-  #   }
-  # })
   
   ### Response table -----
   ans_tbl <- reactive({
@@ -296,7 +281,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     rv$task_durations[12] <- as.integer(120 - rv$timer)
   })
   ##### Survey responses & duration
-  ## TODO: make sure that rv$task_responses gets set to length 7 after block 3
   observeEvent(input$ans_ease, {
     rv$task_responses[1] <- input$ans_ease
     rv$task_durations[1] <- as.integer(120 - rv$timer)
@@ -473,6 +457,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     })
   })
   
+  
   ### Dev msg -----
   # cannot print output$x in output$dev_msg.
   output$dev_msg <- renderPrint(cat("dev msg -- ", "\n",
@@ -491,6 +476,15 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                     "rv$save_file: ", rv$save_file, "\n",
                                     "is.null(rv$save_file): ", is.null(rv$save_file), "\n",
                                     sep = ""))
+  
+  ## TODO: uncomment when finalized. 
+  ## TODO: Copy to the other app_*.r files + rv$log_file at top
+  # ### Create log file.
+  # dput(shiny::reactlog(), 
+  #      file = paste0("reactlog_", study_factor, # + same save_num as rv$save_file
+  #                    substr(rv$save_file, nchar(rv$save_file) - 6, nchar(rv$save_file) - 4) 
+  #                    ".txt")
+  # )
 }
 
 ### Combine as shiny app.
