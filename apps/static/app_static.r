@@ -31,7 +31,9 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     paste0(s_blocks[block_num()], rep_num() - 1)
   })
   task_dat <- reactive({
-    s_dat[[rep_num()]]
+    ret <- s_dat[[rep_num()]]
+    colnames(ret) <- paste0("V", 1:ncol(ret))
+    return(ret) 
   })
   
   

@@ -28,7 +28,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   task_dat <- reactive({ 
     ret <- s_dat[[rep_num()]]
     colnames(ret) <- paste0("V", 1:ncol(ret))
-    #TODO: can comment this to toggle errors...
     return(ret) 
   })
   p2 <- reactive({ ncol(s_dat[[2]]) })
