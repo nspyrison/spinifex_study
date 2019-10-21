@@ -76,21 +76,17 @@ panel_task <- tabPanel(
     hr(), # horizontal line
     conditionalPanel(condition = "output.block_num == 1",
                      numericInput("blk1_ans", "How many clusters exist within the data?",
-                                  value = 1, min = 1, max = 10)
-    ),
+                                  value = 1, min = 1, max = 10)),
     conditionalPanel(condition = "output.block_num == 2",
                      div(style='width:400px;',
                          div(style = 'float:left; color:red; font-size:14px', 
                              strong('most important')),
                          div(style = 'float:right; color:red; font-size:14px', 
-                             strong('least important'))
-                     ),
+                             strong('least important'))),
                      tags$br(),
-                     uiOutput("blk2Inputs")
-    ),
+                     uiOutput("blk2Inputs")),
     conditionalPanel(condition = "output.block_num == 3",
-                     uiOutput("blk3Inputs")
-    ),
+                     uiOutput("blk3Inputs")),
     hr(),
     actionButton("next_task_button", "Next task")
   ),

@@ -4,11 +4,13 @@
   shinyApp(
     ui = fluidPage(
                tableOutput('table'),
-               tableOutput('TEST_tbl')
+               tableOutput('TEST_tbl'),
+               textOutput("TEST_text")
     ),
     server = function(input, output) {
-      output$TEST_tbl      <- renderTable(head(iris))
-      output$table         <- renderTable(iris)
+      output$TEST_tbl   <- renderTable(head(iris))
+      output$TEST_text  <- renderText("foo bar")
+      output$table      <- renderTable(iris)
     }
   )
 

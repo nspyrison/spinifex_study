@@ -23,9 +23,14 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   })
   blockrep <- reactive({
     if (rep_num() == 1) {return(NULL)}
-    paste0(s_blocks[block_num()], rep_num() - 1)
+    return(paste0(s_blocks[block_num()], rep_num() - 1))
   })
-  task_dat <- reactive({ s_dat[[rep_num()]] })
+  task_dat <- reactive({ 
+    ret <- s_dat[[rep_num()]]
+    colnames(ret) <- paste0("V", 1:ncol(ret))
+    #TODO: can comment this to toggle errors...
+    return(ret) 
+  })
   p2 <- reactive({ ncol(s_dat[[2]]) })
   p3 <- reactive({ ncol(s_dat[[3]]) })
   p4 <- reactive({ ncol(s_dat[[4]]) })
@@ -71,7 +76,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       
       # leg work
       m_var <-  if (input$manip_var == "<none>") {return(1)
-        } else {which(colnames(numericDat()) == input$manip_var)}
+      } else {which(colnames(dat) == input$manip_var)}
       
       ret <- oblique_frame(data      = dat_std, 
                            basis     = rv$curr_basis, 
@@ -97,8 +102,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                       rep(s_blockrep_id[7], p2()), # block 3
                       rep(s_blockrep_id[8], p3()), 
                       rep(s_blockrep_id[9], p4()), 
-                      paste0("survey", 1:7)        # survey
-    )
+                      paste0("survey", 1:7))       # survey
     col_var      <- c(rep(NA, 3),   # block 1
                       rep(c(1:p2(), # block 2 & 3
                             1:p3(), 
@@ -397,11 +401,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   output$bottom_text   <- renderText(s_bottom_text[rv$task_num])
   output$task_manual   <- renderPlot({task_manual()}, height = 800) 
   output$ans_tbl       <- renderTable({rv$ans_tbl})
-  output$sim_str       <- renderPrint({ str(task_dat()) })
-  output$basis_tbl     <- renderTable(as.data.frame(basis()) )#, rownames = TRUE)
-  ##TODO TABLES NOT RENDERING...
-  output$TEST_tbl      <- renderTable(head(iris))
-  
+  output$basis_tbl     <- renderTable(as.data.frame(basis()), rownames = TRUE)
   
   ### Block 2 inputs, importance rank -----
   output$blk2Inputs <- renderUI({
@@ -435,6 +435,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                     "rv$task_responses: ", rv$task_responses, "\n",
                                     "rv$task_durations: ", rv$task_durations, "\n",
                                     "basis(): ", basis(), "\n",
+                                    "colnames(task_dat()): ", colnames(task_dat()), "\n",
                                     sep = ""))
 }
 
