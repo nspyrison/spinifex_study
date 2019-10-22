@@ -34,7 +34,11 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   p3 <- reactive({ ncol(s_dat[[3]]) })
   p4 <- reactive({ ncol(s_dat[[4]]) })
   p_sims <- reactive({ p2() + p3() + p4() })
-
+  manip_var_num <- reactive({ 
+    if (input$manip_var == "<none>") {return(1)}
+    return(which(colnames(task_dat()) == input$manip_var))
+  }) 
+  
   # basis
   basis <- reactive({
     dat <- task_dat()
@@ -51,10 +55,42 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     }
     colnames(ret) <- c("x", "y")
     row.names(ret) <- colnames(dat)
+    
+    rv$curr_basis <- ret
     return(ret)
   })
   
-  ### Task manual tour plotly -----
+  ### Basis_obl() ----
+  # x, y, radius oblique motion -----
+  basis_obl <- reactive({
+    if (input$manip_var != "<none>") {
+      theta <- phi <- NULL
+      mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
+      if (input$manip_type == "Horizontal") {
+        theta <- 0
+        phi.x_zero <- atan(mv_sp[3] / mv_sp[1]) - (pi / 2 * sign(mv_sp[1]))
+        phi <- input$manip_slider * pi/2 + phi.x_zero
+      }
+      if (input$manip_type == "Vertical") {
+        theta <- pi/2
+        phi.y_zero <- atan(mv_sp[3] / mv_sp[2]) - (pi / 2 * sign(mv_sp[2]))
+        phi <- input$manip_slider * pi/2 + phi.y_zero
+      }
+      if (input$manip_type == "Radial") {
+        theta <- atan(mv_sp[2] / mv_sp[1])
+        phi_start <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
+        phi <- (acos(input$manip_slider) - phi_start) * - sign(mv_sp[1])
+      }
+      ret <- oblique_basis(basis = rv$curr_basis, manip_var = manip_var_num(),
+                           theta = theta, phi = phi)
+      row.names(ret) <- colnames(task_dat())
+      
+      rv$curr_basis <- ret
+      return(ret)
+    }
+  })
+  
+  ### Task manual oblique_frame()-----
   task_manual <- reactive({
     if (rv$timer_active | rep_num() == 1) {
       # Init
@@ -78,7 +114,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       } else {m_var <- which(colnames(dat) == input$manip_var)}
       
       ret <- oblique_frame(data      = dat_std, 
-                           basis     = basis(), #rv$curr_basis, 
+                           basis     = rv$curr_basis, 
                            manip_var = m_var, 
                            theta     = 0, # perform rotation when setting rv$curr_basis
                            phi       = 0, 
@@ -435,6 +471,9 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                     "rv$task_durations: ", rv$task_durations, "\n",
                                     "basis(): ", basis(), "\n",
                                     "colnames(task_dat()): ", colnames(task_dat()), "\n",
+                                    "input$manip_var: ", input$manip_var, "\n",
+                                    "manip_var_num(): ", manip_var_num(), "\n",
+                                    "basis_obl(): ", basis_obl(), "\n",
                                     sep = ""))
 }
 

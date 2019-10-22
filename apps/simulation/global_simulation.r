@@ -90,6 +90,10 @@ panel_review_manual <- tabPanel(
                        fileInput("basis_file", "Basis file (.csv or .rda, [p x 2] matrix)",
                                  accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")))
     , selectInput('manip_var', 'Manip var', "<none>")
+    , selectInput('manip_type', "Manipulation type",
+                c("Radial", "Horizontal", "Vertical"))
+    , sliderInput("manip_slider", "Contribution",
+                  min = 0, max = 1, value = 0, step = .1)
     , hr() # horizontal line
     , verbatimTextOutput("load2_dat_attr")
     , verbatimTextOutput("str_load2_dat")

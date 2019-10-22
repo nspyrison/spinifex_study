@@ -88,12 +88,16 @@ panel_task <- tabPanel(
                        fileInput("basis_file", "Basis file (.csv or .rda, [p x 2] matrix)",
                                  accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")))
     , selectInput('manip_var', 'Manip var', "<none>")
+    , selectInput('manip_type', "Manipulation type",
+                  c("Radial", "Horizontal", "Vertical"))
+    , sliderInput("manip_slider", "Contribution",
+                  min = 0, max = 1, value = 0, step = .1)
     , hr() # horizontal line
     , conditionalPanel(condition = "output.block_num == 1",
                      numericInput("blk1_ans", "How many clusters exist within the data?",
                                   value = 1, min = 1, max = 10))
     , conditionalPanel(condition = "output.block_num == 2",
-                       div(style='width:400px;',
+                       div(style = 'width:400px;',
                            div(style = 'float:left; color:red; font-size:14px', 
                                strong('most important')),
                            div(style = 'float:right; color:red; font-size:14px', 

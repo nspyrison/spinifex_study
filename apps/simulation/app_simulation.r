@@ -14,9 +14,11 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ### Generate simulation data -----
   ### _Reactives -----
   task_dat <- reactive({ # for generating simulations
-    simulate_clusters(p = input$sim_p,
-                      pnoise = input$sim_pnoise,
-                      cl = input$sim_cl)
+    ret <- simulate_clusters(p = input$sim_p,
+                             pnoise = input$sim_pnoise,
+                             cl = input$sim_cl)
+    colnames(ret) <- paste0("V", 1:ncol(ret))
+    return(ret)
   })
   
   # PCA Plot 
@@ -74,7 +76,9 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ### Load simulation data -----
   ### _Reactives -----
   load_dat <- reactive({ # for reviewing simulations
-    get(input$load_sim_name)
+    ret <- get(input$load_sim_name)
+    colnames(ret) <- paste0("V", 1:ncol(ret))
+    return(ret)
   })
   load_pnoise <- reactive({
     d <- load_dat()
@@ -156,7 +160,9 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ### Load2 simulation data -----
   ### _Reactives -----
   load2_dat <- reactive({ # for reviewing simulations
-    get(input$load2_sim_name)
+    ret <- get(input$load2_sim_name)
+    colnames(ret) <- paste0("V", 1:ncol(ret))
+    return(ret)
   })
   load2_pnoise <- reactive({
     d <- load2_dat()
