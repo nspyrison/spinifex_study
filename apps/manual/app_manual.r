@@ -90,9 +90,11 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     }
   })
   
-  ### Task manual oblique_frame()-----
+  ### Task manual plot -----
+  # oblique_frame()
   task_manual <- reactive({
     if (rv$timer_active | rep_num() == 1) {
+      if (is.null(rv$curr_basis)) {rv$curr_basis <- basis()} # init curr_basis
       # Init
       dat <- task_dat()
       dat_std <- tourr::rescale(dat)
@@ -178,6 +180,28 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                       selected = these_colnames[1])
   })
   
+  
+  # ### Update slider
+  # observe({
+  #   mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
+  #   if (input$manip_type == "Horizontal") {
+  #     phi.x_zero <- atan(mv_sp[3] / mv_sp[1]) - (pi / 2 * sign(mv_sp[1]))
+  #     x_val <- round(-phi.x_zero / (pi/2), 1)
+  #     updateSliderInput(session, "manip_slider", value = x_val)
+  #   }
+  #   if (input$manip_type == "Vertical") {
+  #     phi.y_zero <- atan(mv_sp[3] / mv_sp[2]) - (pi / 2 * sign(mv_sp[2]))
+  #     y_val <- round(-phi.y_zero / (pi/2), 1)
+  #     updateSliderInput(session, "manip_slider", value = y_val)
+  #   }
+  #   if (input$manip_type == "Radial") {
+  #     phi_i <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
+  #     rad_val <- round(cos(phi_i), 1)
+  #     updateSliderInput(session, "manip_slider", value = rad_val)
+  #   }
+  # })
+  
+  
   ### Obs responses and durations -----
   ##### Block 1 responses & duration
   observeEvent(input$blk1_ans, {
@@ -186,40 +210,40 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   })
   ##### Block 2 responses & duration
   observeEvent(input$blk2_ans1, {
-    rv$task_responses[1] <- input$blk2_ans1
-    rv$task_durations[1] <- as.integer(120 - rv$timer)
+    rv$task_responses[1]  <- input$blk2_ans1
+    rv$task_durations[1]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk2_ans2, {
-    rv$task_responses[2] <- input$blk2_ans2
-    rv$task_durations[2] <- as.integer(120 - rv$timer)
+    rv$task_responses[2]  <- input$blk2_ans2
+    rv$task_durations[2]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk2_ans3, { 
-    rv$task_responses[3] <- input$blk2_ans3
-    rv$task_durations[3] <- as.integer(120 - rv$timer)
+    rv$task_responses[3]  <- input$blk2_ans3
+    rv$task_durations[3]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk2_ans4, {
-    rv$task_responses[4] <- input$blk2_ans4
-    rv$task_durations[4] <- as.integer(120 - rv$timer)
+    rv$task_responses[4]  <- input$blk2_ans4
+    rv$task_durations[4]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk2_ans5, {
-    rv$task_responses[5] <- input$blk2_ans5
-    rv$task_durations[5] <- as.integer(120 - rv$timer)
+    rv$task_responses[5]  <- input$blk2_ans5
+    rv$task_durations[5]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk2_ans6, {
-    rv$task_responses[6] <- input$blk2_ans6
-    rv$task_durations[6] <- as.integer(120 - rv$timer)
+    rv$task_responses[6]  <- input$blk2_ans6
+    rv$task_durations[6]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk2_ans7, {
-    rv$task_responses[7] <- input$blk2_ans7
-    rv$task_durations[7] <- as.integer(120 - rv$timer)
+    rv$task_responses[7]  <- input$blk2_ans7
+    rv$task_durations[7]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk2_ans8, {
-    rv$task_responses[8] <- input$blk2_ans8
-    rv$task_durations[8] <- as.integer(120 - rv$timer)
+    rv$task_responses[8]  <- input$blk2_ans8
+    rv$task_durations[8]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk2_ans9, {
-    rv$task_responses[9] <- input$blk2_ans9
-    rv$task_durations[9] <- as.integer(120 - rv$timer)
+    rv$task_responses[9]  <- input$blk2_ans9
+    rv$task_durations[9]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk2_ans10, {
     rv$task_responses[10] <- input$blk2_ans10
@@ -235,40 +259,40 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   })
   ##### Block 3 responses & duration
   observeEvent(input$blk3_ans1, {
-    rv$task_responses[1] <- input$blk3_ans1
-    rv$task_durations[1] <- as.integer(120 - rv$timer)
+    rv$task_responses[1]  <- input$blk3_ans1
+    rv$task_durations[1]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk3_ans2, {
-    rv$task_responses[2] <- input$blk3_ans2
-    rv$task_durations[2] <- as.integer(120 - rv$timer)
+    rv$task_responses[2]  <- input$blk3_ans2
+    rv$task_durations[2]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk3_ans3, { 
-    rv$task_responses[3] <- input$blk3_ans3
-    rv$task_durations[3] <- as.integer(120 - rv$timer)
+    rv$task_responses[3]  <- input$blk3_ans3
+    rv$task_durations[3]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk3_ans4, {
-    rv$task_responses[4] <- input$blk3_ans4
-    rv$task_durations[4] <- as.integer(120 - rv$timer)
+    rv$task_responses[4]  <- input$blk3_ans4
+    rv$task_durations[4]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk3_ans5, {
-    rv$task_responses[5] <- input$blk3_ans5
-    rv$task_durations[5] <- as.integer(120 - rv$timer)
+    rv$task_responses[5]  <- input$blk3_ans5
+    rv$task_durations[5]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk3_ans6, {
-    rv$task_responses[6] <- input$blk3_ans6
-    rv$task_durations[6] <- as.integer(120 - rv$timer)
+    rv$task_responses[6]  <- input$blk3_ans6
+    rv$task_durations[6]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk3_ans7, {
-    rv$task_responses[7] <- input$blk3_ans7
-    rv$task_durations[7] <- as.integer(120 - rv$timer)
+    rv$task_responses[7]  <- input$blk3_ans7
+    rv$task_durations[7]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk3_ans8, {
-    rv$task_responses[8] <- input$blk3_ans8
-    rv$task_durations[8] <- as.integer(120 - rv$timer)
+    rv$task_responses[8]  <- input$blk3_ans8
+    rv$task_durations[8]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk3_ans9, {
-    rv$task_responses[9] <- input$blk3_ans9
-    rv$task_durations[9] <- as.integer(120 - rv$timer)
+    rv$task_responses[9]  <- input$blk3_ans9
+    rv$task_durations[9]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk3_ans10, {
     rv$task_responses[10] <- input$blk3_ans10
@@ -284,33 +308,34 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   })
   ##### Survey responses & duration
   observeEvent(input$ans_ease, {
-    rv$task_responses[1] <- input$ans_ease
-    rv$task_durations[1] <- as.integer(120 - rv$timer)
+    rv$task_responses[1]  <- input$ans_ease
+    rv$task_durations[1]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$ans_confidence, {
-    rv$task_responses[2] <- input$ans_confidence
-    rv$task_durations[2] <- as.integer(120 - rv$timer)
+    rv$task_responses[2]  <- input$ans_confidence
+    rv$task_durations[2]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$ans_understand, {
-    rv$task_responses[3] <- input$ans_understand
-    rv$task_durations[3] <- as.integer(120 - rv$timer)
+    rv$task_responses[3]  <- input$ans_understand
+    rv$task_durations[3]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$ans_use, {
-    rv$task_responses[4] <- input$ans_use
-    rv$task_durations[4] <- as.integer(120 - rv$timer)
+    rv$task_responses[4]  <- input$ans_use
+    rv$task_durations[4]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$ans_high_dim, {
-    rv$task_responses[5] <- input$ans_high_dim
-    rv$task_durations[5] <- as.integer(120 - rv$timer)
+    rv$task_responses[5]  <- input$ans_high_dim
+    rv$task_durations[5]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$ans_data_vis, {
-    rv$task_responses[6] <- input$ans_data_vis
-    rv$task_durations[6] <- as.integer(120 - rv$timer)
+    rv$task_responses[6]  <- input$ans_data_vis
+    rv$task_durations[6]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$ans_previous_knowledge, {
-    rv$task_responses[7] <- input$ans_previous_knowledge
-    rv$task_durations[7] <- as.integer(120 - rv$timer)
+    rv$task_responses[7]  <- input$ans_previous_knowledge
+    rv$task_durations[7]  <- as.integer(120 - rv$timer)
   })
+  ## TODO: Extend with demographic questions, all 3 apps.
   
   ### Obs next task button -----
   observeEvent(input$next_task_button, {

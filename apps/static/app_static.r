@@ -129,31 +129,31 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                       rep(s_blockrep_id[7], p2()), # block 3
                       rep(s_blockrep_id[8], p3()), 
                       rep(s_blockrep_id[9], p4()), 
-                      paste0("survey", 1:7)        # survey
+                      paste0("survey", 1:10)       # survey
     )
     col_var      <- c(rep(NA, 3),   # block 1
                       rep(c(1:p2(), # block 2 & 3
                             1:p3(), 
                             1:p4()), 2),
-                      rep(NA, 7))   # survey
+                      rep(NA, 10))  # survey
     s_sim_id     <- c("001", "002", "003")
     col_sim_id   <- c(s_sim_id,                     # block 1
                       rep(c(rep(s_sim_id[1], p2()), # block 2 & 3
                             rep(s_sim_id[2], p3()), 
                             rep(s_sim_id[3], p4())), 2),
-                      rep(NA, 7))                   # survey
+                      rep(NA, 10))                  # survey
     col_question <- c(rep(s_block_questions[1], n_reps),   # block 1
                       rep(s_block_questions[2], p_sims()), # block 2
                       rep(s_block_questions[3], p_sims()), # block 3
                       s_survey_questions)                  # survey 
-    col_response <- c(rep(NA, n_reps),       # block 1
-                      rep(NA, p_sims()),     # block 2
-                      rep(NA, p_sims()),     # block 3
-                      rep("5 (default)", 7)) # survey 
+    col_response <- c(rep(NA, n_reps),        # block 1
+                      rep(NA, p_sims()),      # block 2
+                      rep(NA, p_sims()),      # block 3
+                      rep("5 (default)", 10)) # survey 
     col_duration <- c(rep(NA, n_reps),   # block 1
                       rep(NA, p_sims()), # block 2
                       rep(NA, p_sims()), # block 3
-                      rep(NA, 7))        # survey 
+                      rep(NA, 10))       # survey 
     data.frame(blockrep = col_blockrep,
                var      = col_var,
                sim_id   = col_sim_id,
@@ -186,40 +186,40 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   })
   ##### Block 2 responses & duration
   observeEvent(input$blk2_ans1, {
-    rv$task_responses[1] <- input$blk2_ans1
-    rv$task_durations[1] <- as.integer(120 - rv$timer)
+    rv$task_responses[1]  <- input$blk2_ans1
+    rv$task_durations[1]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk2_ans2, {
-    rv$task_responses[2] <- input$blk2_ans2
-    rv$task_durations[2] <- as.integer(120 - rv$timer)
+    rv$task_responses[2]  <- input$blk2_ans2
+    rv$task_durations[2]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk2_ans3, { 
-    rv$task_responses[3] <- input$blk2_ans3
-    rv$task_durations[3] <- as.integer(120 - rv$timer)
+    rv$task_responses[3]  <- input$blk2_ans3
+    rv$task_durations[3]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk2_ans4, {
-    rv$task_responses[4] <- input$blk2_ans4
-    rv$task_durations[4] <- as.integer(120 - rv$timer)
+    rv$task_responses[4]  <- input$blk2_ans4
+    rv$task_durations[4]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk2_ans5, {
-    rv$task_responses[5] <- input$blk2_ans5
-    rv$task_durations[5] <- as.integer(120 - rv$timer)
+    rv$task_responses[5]  <- input$blk2_ans5
+    rv$task_durations[5]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk2_ans6, {
-    rv$task_responses[6] <- input$blk2_ans6
-    rv$task_durations[6] <- as.integer(120 - rv$timer)
+    rv$task_responses[6]  <- input$blk2_ans6
+    rv$task_durations[6]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk2_ans7, {
-    rv$task_responses[7] <- input$blk2_ans7
-    rv$task_durations[7] <- as.integer(120 - rv$timer)
+    rv$task_responses[7]  <- input$blk2_ans7
+    rv$task_durations[7]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk2_ans8, {
-    rv$task_responses[8] <- input$blk2_ans8
-    rv$task_durations[8] <- as.integer(120 - rv$timer)
+    rv$task_responses[8]  <- input$blk2_ans8
+    rv$task_durations[8]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk2_ans9, {
-    rv$task_responses[9] <- input$blk2_ans9
-    rv$task_durations[9] <- as.integer(120 - rv$timer)
+    rv$task_responses[9]  <- input$blk2_ans9
+    rv$task_durations[9]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk2_ans10, {
     rv$task_responses[10] <- input$blk2_ans10
@@ -235,40 +235,40 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   })
   ##### Block 3 responses & duration
   observeEvent(input$blk3_ans1, {
-    rv$task_responses[1] <- input$blk3_ans1
-    rv$task_durations[1] <- as.integer(120 - rv$timer)
+    rv$task_responses[1]  <- input$blk3_ans1
+    rv$task_durations[1]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk3_ans2, {
-    rv$task_responses[2] <- input$blk3_ans2
-    rv$task_durations[2] <- as.integer(120 - rv$timer)
+    rv$task_responses[2]  <- input$blk3_ans2
+    rv$task_durations[2]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk3_ans3, { 
-    rv$task_responses[3] <- input$blk3_ans3
-    rv$task_durations[3] <- as.integer(120 - rv$timer)
+    rv$task_responses[3]  <- input$blk3_ans3
+    rv$task_durations[3]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk3_ans4, {
-    rv$task_responses[4] <- input$blk3_ans4
-    rv$task_durations[4] <- as.integer(120 - rv$timer)
+    rv$task_responses[4]  <- input$blk3_ans4
+    rv$task_durations[4]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk3_ans5, {
-    rv$task_responses[5] <- input$blk3_ans5
-    rv$task_durations[5] <- as.integer(120 - rv$timer)
+    rv$task_responses[5]  <- input$blk3_ans5
+    rv$task_durations[5]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk3_ans6, {
-    rv$task_responses[6] <- input$blk3_ans6
-    rv$task_durations[6] <- as.integer(120 - rv$timer)
+    rv$task_responses[6]  <- input$blk3_ans6
+    rv$task_durations[6]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk3_ans7, {
-    rv$task_responses[7] <- input$blk3_ans7
-    rv$task_durations[7] <- as.integer(120 - rv$timer)
+    rv$task_responses[7]  <- input$blk3_ans7
+    rv$task_durations[7]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk3_ans8, {
-    rv$task_responses[8] <- input$blk3_ans8
-    rv$task_durations[8] <- as.integer(120 - rv$timer)
+    rv$task_responses[8]  <- input$blk3_ans8
+    rv$task_durations[8]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk3_ans9, {
-    rv$task_responses[9] <- input$blk3_ans9
-    rv$task_durations[9] <- as.integer(120 - rv$timer)
+    rv$task_responses[9]  <- input$blk3_ans9
+    rv$task_durations[9]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk3_ans10, {
     rv$task_responses[10] <- input$blk3_ans10
@@ -284,46 +284,42 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   })
   ##### Survey responses & duration
   observeEvent(input$ans_ease, {
-    rv$task_responses[1] <- input$ans_ease
-    rv$task_durations[1] <- as.integer(120 - rv$timer)
+    rv$task_responses[1]  <- input$ans_ease
+    rv$task_durations[1]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$ans_confidence, {
-    rv$task_responses[2] <- input$ans_confidence
-    rv$task_durations[2] <- as.integer(120 - rv$timer)
+    rv$task_responses[2]  <- input$ans_confidence
+    rv$task_durations[2]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$ans_understand, {
-    rv$task_responses[3] <- input$ans_understand
-    rv$task_durations[3] <- as.integer(120 - rv$timer)
+    rv$task_responses[3]  <- input$ans_understand
+    rv$task_durations[3]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$ans_use, {
-    rv$task_responses[4] <- input$ans_use
-    rv$task_durations[4] <- as.integer(120 - rv$timer)
+    rv$task_responses[4]  <- input$ans_use
+    rv$task_durations[4]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$ans_high_dim, {
-    rv$task_responses[5] <- input$ans_high_dim
-    rv$task_durations[5] <- as.integer(120 - rv$timer)
+    rv$task_responses[5]  <- input$ans_high_dim
+    rv$task_durations[5]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$ans_data_vis, {
-    rv$task_responses[6] <- input$ans_data_vis
-    rv$task_durations[6] <- as.integer(120 - rv$timer)
+    rv$task_responses[6]  <- input$ans_data_vis
+    rv$task_durations[6]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$ans_previous_knowledge, {
-    rv$task_responses[7] <- input$ans_previous_knowledge
-    rv$task_durations[7] <- as.integer(120 - rv$timer)
+    rv$task_responses[7]  <- input$ans_previous_knowledge
+    rv$task_durations[7]  <- as.integer(120 - rv$timer)
   })
+  ## TODO: Extend with demographic questions, all 3 apps.
+  
   
   ### Obs next task button -----
   observeEvent(input$next_task_button, {
     # if <on last task> {<do nothing>}
     if (rv$task_num >= length(s_header_text)){ return() }
-    # Init rv$ans_tbl <- snd_tbl() on first press
+    # Init rv$ans_tbl <- ans_tbl() on first press
     if (rv$task_num == 1){ rv$ans_tbl <- ans_tbl() }
-    
-    #CHECK FOR DEFAULT RESPONSE??
-    # if (is.na(input$task_response)){
-    #   output$response_msg <- renderText("Please enter a response before continuing.")
-    #   return()
-    # }
     
     # Write this_ans_df to ans_tbl
     # if (<not an intro task>) {<write repsonses and durations>}
@@ -361,9 +357,10 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ### Obs save reponses button -----
   # If save button hit 5 times with warning, saves anyway. No double saving.
   observeEvent(input$save_ans, {
+    if (rv$task_num == 1) {stop("Task number is 1, response table not started.")}
     df <- rv$ans_tbl
     save_base <- paste0("response_table_", study_factor)
-    if (!is.null(rv$save_file)){
+    if (!is.null(rv$save_file)){ # if save already exists 
       output$save_msg <- renderPrint(cat("Reponses already saved as ", rv$save_file, 
                                          ". Thank you for participating!", sep = ""))
       return()
