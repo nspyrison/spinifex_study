@@ -74,11 +74,11 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       }
       
       # leg work
-      m_var <-  if (input$manip_var == "<none>") {return(1)
-      } else {which(colnames(dat) == input$manip_var)}
+      if (input$manip_var == "<none>") {m_var <- 1
+      } else {m_var <- which(colnames(dat) == input$manip_var)}
       
       ret <- oblique_frame(data      = dat_std, 
-                           basis     = rv$curr_basis, 
+                           basis     = basis(), #rv$curr_basis, 
                            manip_var = m_var, 
                            theta     = 0, # perform rotation when setting rv$curr_basis
                            phi       = 0, 

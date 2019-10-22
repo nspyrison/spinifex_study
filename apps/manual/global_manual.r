@@ -19,7 +19,6 @@ library("reactlog")  # Logging
 library("GGally")
 
 
-
 ### Required inputs -----
 n_reps <- 3
 s_blocks <- c("n", "d", "s")

@@ -167,14 +167,14 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ##### Start observes
   ### Update axis choices -----
   observe({
-    d <- ncol(task_dat())
+    p <- ncol(task_dat())
     updateRadioButtons(session,
                        "x_axis",
-                       choices  = paste0("PC", 1:d),
+                       choices  = paste0("PC", 1:p),
                        selected = "PC1")
     updateRadioButtons(session,
                        "y_axis",
-                       choices  = paste0("PC", 1:d),
+                       choices  = paste0("PC", 1:p),
                        selected = "PC2")
   })
   
