@@ -1,7 +1,6 @@
 source('global_static.r', local = TRUE)
 
 
-
 ##### Server function, dynamic outputs ----
 server <- function(input, output, session) {  ### INPUT, need to size to number of reps
   ### Initialization -----

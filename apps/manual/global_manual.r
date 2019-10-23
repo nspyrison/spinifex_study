@@ -116,7 +116,7 @@ panel_task <- tabPanel(
             #, tableOutput('basis_tbl')
             ###, verbatimTextOutput("header_text") # Kim asked to remove 18/10/2019
             , verbatimTextOutput("top_text")
-            , plotOutput("task_manual", height = "auto")
+            # , plotOutput("task_manual", height = "auto")
             , verbatimTextOutput("question_text")
             , verbatimTextOutput("response_msg")
             , verbatimTextOutput("bottom_text")

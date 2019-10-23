@@ -92,13 +92,11 @@ panel_review_manual <- tabPanel(
     , selectInput('manip_var', 'Manip var', "<none>")
     , selectInput('manip_type', "Manipulation type",
                 c("Radial", "Horizontal", "Vertical"))
-    , sliderInput("manip_slider", "Contribution",
-                  min = 0, max = 1, value = 0, step = .1)
     , hr() # horizontal line
     , verbatimTextOutput("load2_dat_attr")
     , verbatimTextOutput("str_load2_dat")
   ),
-  mainPanel(plotOutput("load2_manual")
+  mainPanel(plotlyOutput("load2_manual")
             , h4("Cluter means, display order")
             , verbatimTextOutput("load2_mncl_reord")
             , h4("variance-covariance, display order")

@@ -95,22 +95,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     colnames(mncl) <- paste0("V", 1:p)
     mncl
   })
-  ### sum of squares is wrong approach.
-  # load_sum_squares <- reactive({
-  #   d <- load_dat()
-  #   p <- ncol(d)
-  #   n_cl <- length(attr(d, "ncl"))
-  #   reord <- attr(d, "col_reorder")
-  #   mncl <- attr(d, "mncl")[, reord]
-  #   rownames(mncl) <- paste0("cl ", letters[1:n_cl])
-  #   colnames(mncl) <- paste0("V", 1:p)
-  #   cl_mn <- rowMeans(mncl)
-  #   cl_mn
-  #   sum_sq <- apply(mncl, 2, function(x) {sum((x - cl_mn)^2)}) # sum of squares distance from cluster means
-  #   order <- sum_sq[order(sum_sq, decreasing = T)]
-  #   
-  #   rbind(sum_sq, order) 
-  # })
   load_vc_reord <- reactive({
     d <- load_dat()
     p <- ncol(d)
@@ -205,10 +189,13 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     }
     colnames(ret) <- c("x", "y")
     row.names(ret) <- colnames(dat)
+    
+    rv$curr_basis <- ret
     return(ret)
   })
   # Manual plot (obl_frame()), load2 sims.
   load2_manual <- reactive({
+    if (is.null(rv$curr_basis)) {rv$curr_basis <- load2_basis()}
     dat <- load2_dat()
     dat_std <- tourr::rescale(dat)
     col <- col_of(attributes(dat)$cluster)
@@ -217,31 +204,42 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     # leg work
     if (input$manip_var == "<none>") {m_var <- 1
     } else {m_var <- which(colnames(dat) == input$manip_var)}
+    if (input$manip_type == "Horizontal") {this_theta = 0}
+    if (input$manip_type == "Vertical") {this_theta = .5 / pi}
+    if (input$manip_type == "Radial") {this_theta = NULL} # Defaults to radial 
     
-    ret <- oblique_frame(data      = dat_std, 
-                         basis     = rv$curr_basis, 
-                         manip_var = m_var, 
-                         theta     = 0, # perform rotation when setting rv$curr_basis
-                         phi       = 0, 
-                         col       = col,
-                         pch       = pch,
-                         axes      = "bottomleft",
-                         alpha     = 1)
+    # ret <- oblique_frame(data      = dat_std, 
+    #                      basis     = rv$curr_basis, 
+    #                      manip_var = m_var, 
+    #                      theta     = 0, # perform rotation when setting rv$curr_basis
+    #                      phi       = 0, 
+    #                      col       = col,
+    #                      pch       = pch,
+    #                      axes      = "bottomleft",
+    #                      alpha     = 1)
+    browser()
+    play_manual_tour(basis = rv$curr_basis, 
+                     data = dat_std,
+                     manip_var = m_var, 
+                     theta = this_theta,
+                     col = col,
+                     pch = pch,
+                     axes = "bottomleft",
+                     fps = 6)
+    
+   ret <- play_manual_tour(basis = rv$curr_basis,
+                           data = dat_std,
+                           manip_var = m_var)
+    
     return(ret)
   })
   
   ### _Observes -----
   # Update axis selection
   observe({
-    p <- ncol(load2_dat())
-    updateRadioButtons(session,
-                       "load2_x_axis",
-                       choices  = paste0("PC", 1:p),
-                       selected = "PC1")
-    updateRadioButtons(session,
-                       "load2_y_axis",
-                       choices  = paste0("PC", 1:p),
-                       selected = "PC2")
+    these_colnames <- colnames(load2_dat())
+    updateSelectInput(session, "manip_var", choices = these_colnames, 
+                      selected = these_colnames[1])
   })
   
   ### Outputs -----
@@ -258,10 +256,9 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                           "cl: ", length(attr(load_dat(), "ncl")), "\n",
                                           sep = ""))
   output$load_mncl_reord <- renderPrint(load_mncl_reord())
-  output$load_sum_squares <- renderPrint(load_sum_squares())
   output$load_vc_reord <- renderPrint(load_vc_reord())
   # Review (manual):
-  output$load2_manual   <- renderPlot({load2_manual()}) 
+  output$load2_manual   <- renderPlotly({load2_manual()}) 
   output$str_load2_dat <- renderPrint({str(load2_dat())})
   output$load2_dat_attr <- renderPrint(cat("loaded sim parameter -- \n",
                                           "p: ", ncol(load2_dat()), "\n",
@@ -269,7 +266,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                           "cl: ", length(attr(load2_dat(), "ncl")), "\n",
                                           sep = ""))
   output$load2_mncl_reord <- renderPrint(load_mncl_reord())
-  output$load2_sum_squares <- renderPrint(load_sum_squares())
   output$load2_vc_reord <- renderPrint(load_vc_reord())
   
   

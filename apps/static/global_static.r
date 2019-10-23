@@ -122,7 +122,7 @@ panel_survey <-
                                    "between 20 and 30",
                                    "between 30 and 40",
                                    "40 or older")),
-           selectInput("ans_edu", label = s_survey_questions[2], 
+           selectInput("ans_edu", label = s_survey_questions[3], 
                        choices = c("decline to answer",
                                    "High school",
                                    "Undergraduate",

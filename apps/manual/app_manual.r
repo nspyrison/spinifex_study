@@ -179,26 +179,33 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     updateSelectInput(session, "manip_var", choices = these_colnames, 
                       selected = these_colnames[1])
   })
-  
+  ## TODO delete? either this or the rv$curr_basis assignment in basis() and basis_obl()
+  # observe({
+  #   rv$curr_basis <- basis()
+  #   rv$curr_basis <- basis_obl()
+  # })
+  # observe({
+  #   this_val 
+  #   updateSliderInput(session, "manip_slider", value = this_val)
+  # })
+
   
   # ### Update slider
   # observe({
   #   mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
   #   if (input$manip_type == "Horizontal") {
   #     phi.x_zero <- atan(mv_sp[3] / mv_sp[1]) - (pi / 2 * sign(mv_sp[1]))
-  #     x_val <- round(-phi.x_zero / (pi/2), 1)
-  #     updateSliderInput(session, "manip_slider", value = x_val)
+  #     this_val <- round(-phi.x_zero / (pi/2), 1) # X
   #   }
   #   if (input$manip_type == "Vertical") {
   #     phi.y_zero <- atan(mv_sp[3] / mv_sp[2]) - (pi / 2 * sign(mv_sp[2]))
-  #     y_val <- round(-phi.y_zero / (pi/2), 1)
-  #     updateSliderInput(session, "manip_slider", value = y_val)
+  #     this_val <- round(-phi.y_zero / (pi/2), 1) # Y
   #   }
   #   if (input$manip_type == "Radial") {
   #     phi_i <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
-  #     rad_val <- round(cos(phi_i), 1)
-  #     updateSliderInput(session, "manip_slider", value = rad_val)
+  #     this_val <- round(cos(phi_i), 1) # Rad
   #   }
+  #   updateSliderInput(session, "manip_slider", value = this_val)
   # })
   
   
