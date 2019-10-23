@@ -18,19 +18,23 @@ library("lubridate") # For timer
 library("reactlog")  # Logging
 
 ### Required inputs -----
+##################################
+##TODO: COPY CONTENT FROM _static
+## replace 7 with 10 in the app_gtour.r
 n_reps <- 3
 s_blocks <- c("n", "d", "s")
 s_block_names <- c("clusters, n", "important variable, r", "correlated variables, s")
-s_block_questions <- c("How many clusters exist?",
-                       "Rank the variables in order of importance to distinguish groups?",
-                       "Group any/all correlated variables.")
-s_survey_questions <- c("This visualization was easy to use.",
-                        "I am confident of my answers.",
-                        "This visualization is easily understandable.",
-                        "I would recomend using this visualization.",
-                        "I am an expert on multivarite data and related visualiztion.",
-                        "I have broad experience with data disualization.",
-                        "I had previous knowledge of this visualization.")
+s_block_questions <- c("TO BE REPLACED.",
+                       "TO BE REPLACED.",
+                       "TO BE REPLACED.")
+s_survey_questions <- c("TO BE REPLACED.",
+                        "TO BE REPLACED.",
+                        "TO BE REPLACED.",
+                        "TO BE REPLACED.",
+                        "TO BE REPLACED.",
+                        "TO BE REPLACED.",
+                        "TO BE REPLACED.")
+###############################
 study_factor <- "gtour"
 
 ### Variable initialization ----
@@ -46,6 +50,8 @@ s_dat <- list(sim_intro, sim1, sim2, sim3)
 
 
 ###### Text initialization -----
+##################
+## TODO: DOUBLE CHECK THIS IS SAME AS STATIC APP>
 intro_header_row <- paste0("Introduction -- ", s_block_names)
 m_blockrep_id <- matrix(paste0("Task -- ", s_blockrep_id), ncol = n_reps)
 s_header_text <- c(rbind(intro_header_row , m_blockrep_id), "All tasks completed. Continue to the Survey tab.")
@@ -63,6 +69,7 @@ s_top_text <- c(rbind(intro_top_row, m_blank), "")
 
 intro_bottom_row <- "You have 2 minutes to study the display before being prompted to submit your answer."
 s_bottom_text <- c(rbind(intro_bottom_row, m_blank), "")
+#####################
 
 ##### tabPanels (UI objs) -----
 ### Task panel -----

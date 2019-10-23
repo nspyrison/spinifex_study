@@ -27,8 +27,8 @@ s_survey_questions <- c("What gender are you?",
                         "This visualization was easy to use.",
                         "I am confident of my answers.",
                         "This visualization is easily understandable.",
-                        "I would recomend using this visualization.",
-                        "I am an expert on multivarite data and related visualiztion.",
+                        "I would recommend using this visualization",
+                        "I am an expert on multivariate  data and related visualization",
                         "I have broad experience with data disualization.",
                         "I had previous knowledge of this visualization.")
 study_factor <- "static"
