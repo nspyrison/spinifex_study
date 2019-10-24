@@ -116,27 +116,46 @@ tpath    <- save_history(dat, tour_path = lda_pp(cl = attr(dat, "cluster")))
 save_history(flea[, 1:6], lda_pp(flea$species))
 animate_xy(flea[, 1:6], lda_pp(flea$species))
 
-### MAHALANOBIS DIST -----
-# grain: observations, could sum to cluster
-# https://stat.ethz.ch/R-manual/R-devel/library/stats/html/mahalanobis.html
-?mahalanobis
-colnames(ex) <- paste0("V", 1:ncol(ex))
-rownames(ex) <- NULL
-dim(ex)
-mn <- apply(ex, 2, mean)
-cv <- var(ex)
-ex_ma <- mahalanobis(ex, mn, cv)
-length(ex_ma) # vector of length n.
-# I don't think mahalanobis dist is the right approach to a variable rank,
-# it's really a measure of the distance of an obs away from the 
-# multivariate mean, rather than a varable wise ranking.
+# ### MAHALANOBIS DIST -----
+# # grain: observations, could sum to cluster
+# # https://stat.ethz.ch/R-manual/R-devel/library/stats/html/mahalanobis.html
+# ?mahalanobis
+# colnames(ex) <- paste0("V", 1:ncol(ex))
+# rownames(ex) <- NULL
+# dim(ex)
+# mn <- apply(ex, 2, mean)
+# cv <- var(ex)
+# ex_ma <- mahalanobis(ex, mn, cv)
+# length(ex_ma) # vector of length n.
+# # I don't think mahalanobis dist is the right approach to a variable rank,
+# # it's really a measure of the distance of an obs away from the 
+# # multivariate mean, rather than a varable wise ranking.
+# # 
+# # Looking at magnitude of LDA, gives us an idea of importance,
+# # but again doesn't penalize for covariance. 
 # 
-# Looking at magnitude of LDA, gives us an idea of importance,
-# but again doesn't penalize for covariance. 
+# # from help example:
+# x <- matrix(rnorm(100*3), ncol = 3) # 100r x 3c
+# Sx <- cov(x)
+# D2 <- mahalanobis(x, colMeans(x), Sx) # 100 distances
+# length(D2) # obs; ~ std dev dist away from multivariate mean?
 
-# from help example:
-x <- matrix(rnorm(100*3), ncol = 3) # 100r x 3c
-Sx <- cov(x)
-D2 <- mahalanobis(x, colMeans(x), Sx) # 100 distances
-length(D2) # obs; ~ std dev dist away from multivariate mean?
 
+### SIMULATION RANKINGS
+# grain: vairable
+df_sim_rankings <- NULL
+for (i in 1:length(loaded_sim_names)) {
+  # init
+  this_sim <- get(loaded_sim_names[i])
+  colnames(this_sim) <- paste0("V", 1:ncol(this_sim))
+  
+  p <- ncol(this_sim)
+  n_cl <- length(attr(this_sim, "ncl"))
+  pnoise <- sum(colSums(attr(this_sim, "mncl") == 0) == n_cl)
+  
+  this_sim_rankings <- data.frame(id = i, var = paste0("V", 1:nrow(this_covar)), p, n_cl, pnoise, var_rank = NA, var_corr = NA)
+  df_sim_rankings <- rbind(df_sim_rankings, this_sim_rankings)
+}
+rownames(df_sim_rankings) <- NULL
+sim_rankings <- df_sim_rankings
+sim_rankings

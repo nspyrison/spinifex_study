@@ -69,52 +69,54 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
         pca_rotation <- set_axes_position(data.frame(t(-1 * pca$rotation)), 
                                           "bottomleft")
       }
-      pca_pct_var <- round(100 * pca$sdev^2 / sum(pca$sdev^2), 1)
-      
-      pca_x_axis <- input$x_axis
-      pca_y_axis <- input$y_axis
-      rot_x_axis <- paste0("V", substr(pca_x_axis,3,3))
-      rot_y_axis <- paste0("V", substr(pca_y_axis,3,3))
-      x_lab <- paste0(input$x_axis, " - ", 
-                      pca_pct_var[as.integer(substr(pca_x_axis,3,3))], "% Var")
-      y_lab <- paste0(input$y_axis, " - ", 
-                      pca_pct_var[as.integer(substr(pca_y_axis,3,3))], "% Var")
-      
-      angle <- seq(0, 2 * pi, length = 360)
-      circ <- set_axes_position(data.frame(x = cos(angle),
-                                           y = sin(angle)),
-                                "bottomleft")
-      zero  <- set_axes_position(0, "bottomleft")
-      
-      ggplot() + 
-        # data points
-        geom_point(pca_x, mapping = aes(x = get(pca_x_axis), 
-                                        y = get(pca_y_axis)),
-                   color = col, fill = col, shape = pch) +
-        # axis segments
-        geom_segment(pca_rotation, 
-                     mapping = aes(x = get(rot_x_axis), xend = zero,
-                                   y = get(rot_y_axis), yend = zero),
-                     size = .3, colour = "grey80") +
-        # axis label text
-        geom_text(pca_rotation, 
-                  mapping = aes(x = get(rot_x_axis), 
-                                y = get(rot_y_axis), 
-                                label = colnames(pca_rotation)), 
-                  size = 4, colour = "grey50", 
-                  vjust = "outward", hjust = "outward") +
-        # Cirle path
-        geom_path(circ, 
-                  mapping = aes(x = x, y = y),
-                  color = "grey80", size = .3, inherit.aes = F) +
-        # options
-        theme_minimal() + 
-        theme(aspect.ratio = 1) +
-        scale_color_brewer(palette = "Dark2") +
-        theme(axis.text.x = element_blank(),
-              axis.text.y = element_blank(),
-              legend.position = 'none') +
-        labs(x = x_lab, y = y_lab)
+      #browser()
+      biplot(pca) #, col = col)
+      # pca_pct_var <- round(100 * pca$sdev^2 / sum(pca$sdev^2), 1)
+      # 
+      # pca_x_axis <- input$x_axis
+      # pca_y_axis <- input$y_axis
+      # rot_x_axis <- paste0("V", substr(pca_x_axis,3,3))
+      # rot_y_axis <- paste0("V", substr(pca_y_axis,3,3))
+      # x_lab <- paste0(input$x_axis, " - ", 
+      #                 pca_pct_var[as.integer(substr(pca_x_axis,3,3))], "% Var")
+      # y_lab <- paste0(input$y_axis, " - ", 
+      #                 pca_pct_var[as.integer(substr(pca_y_axis,3,3))], "% Var")
+      # 
+      # angle <- seq(0, 2 * pi, length = 360)
+      # circ <- set_axes_position(data.frame(x = cos(angle),
+      #                                      y = sin(angle)),
+      #                           "bottomleft")
+      # zero  <- set_axes_position(0, "bottomleft")
+      # 
+      # ggplot() + 
+      #   # data points
+      #   geom_point(pca_x, mapping = aes(x = get(pca_x_axis), 
+      #                                   y = get(pca_y_axis)),
+      #              color = col, fill = col, shape = pch) +
+      #   # axis segments
+      #   geom_segment(pca_rotation, 
+      #                mapping = aes(x = get(rot_x_axis), xend = zero,
+      #                              y = get(rot_y_axis), yend = zero),
+      #                size = .3, colour = "grey80") +
+      #   # axis label text
+      #   geom_text(pca_rotation, 
+      #             mapping = aes(x = get(rot_x_axis), 
+      #                           y = get(rot_y_axis), 
+      #                           label = colnames(pca_rotation)), 
+      #             size = 4, colour = "grey50", 
+      #             vjust = "outward", hjust = "outward") +
+      #   # Cirle path
+      #   geom_path(circ, 
+      #             mapping = aes(x = x, y = y),
+      #             color = "grey80", size = .3, inherit.aes = F) +
+      #   # options
+      #   theme_minimal() + 
+      #   theme(aspect.ratio = 1) +
+      #   scale_color_brewer(palette = "Dark2") +
+      #   theme(axis.text.x = element_blank(),
+      #         axis.text.y = element_blank(),
+      #         legend.position = 'none') +
+      #   labs(x = x_lab, y = y_lab)
     }
   })
   
