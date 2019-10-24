@@ -39,7 +39,8 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     return(which(colnames(task_dat()) == input$manip_var))
   }) 
   
-  # basis
+  # basis 
+  #TODO: As a reactive or an observe!?
   basis <- reactive({
     dat <- task_dat()
     if (input$basis_init == "Random") ret <- tourr::basis_random(n = p(), d = 2)
@@ -60,35 +61,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     return(ret)
   })
   
-  ### Basis_obl() ----
-  # x, y, radius oblique motion -----
-  basis_obl <- reactive({
-    if (input$manip_var != "<none>") {
-      theta <- phi <- NULL
-      mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
-      if (input$manip_type == "Horizontal") {
-        theta <- 0
-        phi.x_zero <- atan(mv_sp[3] / mv_sp[1]) - (pi / 2 * sign(mv_sp[1]))
-        phi <- input$manip_slider * pi/2 + phi.x_zero
-      }
-      if (input$manip_type == "Vertical") {
-        theta <- pi/2
-        phi.y_zero <- atan(mv_sp[3] / mv_sp[2]) - (pi / 2 * sign(mv_sp[2]))
-        phi <- input$manip_slider * pi/2 + phi.y_zero
-      }
-      if (input$manip_type == "Radial") {
-        theta <- atan(mv_sp[2] / mv_sp[1])
-        phi_start <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
-        phi <- (acos(input$manip_slider) - phi_start) * - sign(mv_sp[1])
-      }
-      ret <- oblique_basis(basis = rv$curr_basis, manip_var = manip_var_num(),
-                           theta = theta, phi = phi)
-      row.names(ret) <- colnames(task_dat())
-      
-      rv$curr_basis <- ret
-      return(ret)
-    }
-  })
   
   ### Task manual plot -----
   # oblique_frame()
@@ -172,6 +144,36 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   })
   ##### End reactive
   
+  ### Obs slider ----
+  # x, y, radius oblique motion
+  observe({
+    if (input$manip_var != "<none>") {
+      theta <- phi <- NULL
+      mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
+      if (input$manip_type == "Horizontal") {
+        theta <- 0
+        phi.x_zero <- atan(mv_sp[3] / mv_sp[1]) - (pi / 2 * sign(mv_sp[1]))
+        phi <- input$manip_slider * pi/2 + phi.x_zero
+      }
+      if (input$manip_type == "Vertical") {
+        theta <- pi/2
+        phi.y_zero <- atan(mv_sp[3] / mv_sp[2]) - (pi / 2 * sign(mv_sp[2]))
+        phi <- input$manip_slider * pi/2 + phi.y_zero
+      }
+      if (input$manip_type == "Radial") {
+        theta <- atan(mv_sp[2] / mv_sp[1])
+        phi_start <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
+        phi <- (acos(input$manip_slider) - phi_start) * - sign(mv_sp[1])
+      }
+      ret <- oblique_basis(basis = rv$curr_basis, manip_var = manip_var_num(),
+                           theta = theta, phi = phi)
+      row.names(ret) <- colnames(task_dat())
+      
+      rv$curr_basis <- ret
+      return(ret)
+    }
+  })
+  
   ##### Start observes
   ### Obs update manip_var -----
   observe({
@@ -180,33 +182,32 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                       selected = these_colnames[1])
   })
   ## TODO delete? either this or the rv$curr_basis assignment in basis() and basis_obl()
+  # Does it freeze less without this?
   # observe({
   #   rv$curr_basis <- basis()
   #   rv$curr_basis <- basis_obl()
   # })
-  # observe({
-  #   this_val 
-  #   updateSliderInput(session, "manip_slider", value = this_val)
-  # })
+
 
   
-  # ### Update slider
-  # observe({
-  #   mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
-  #   if (input$manip_type == "Horizontal") {
-  #     phi.x_zero <- atan(mv_sp[3] / mv_sp[1]) - (pi / 2 * sign(mv_sp[1]))
-  #     this_val <- round(-phi.x_zero / (pi/2), 1) # X
-  #   }
-  #   if (input$manip_type == "Vertical") {
-  #     phi.y_zero <- atan(mv_sp[3] / mv_sp[2]) - (pi / 2 * sign(mv_sp[2]))
-  #     this_val <- round(-phi.y_zero / (pi/2), 1) # Y
-  #   }
-  #   if (input$manip_type == "Radial") {
-  #     phi_i <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
-  #     this_val <- round(cos(phi_i), 1) # Rad
-  #   }
-  #   updateSliderInput(session, "manip_slider", value = this_val)
-  # })
+  ### Update slider
+  observe({
+    if (is.null(rv$curr_basis)) {rv$curr_basis <- basis()} # init curr_basis
+    mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
+    if (input$manip_type == "Horizontal") {
+      phi.x_zero <- atan(mv_sp[3] / mv_sp[1]) - (pi / 2 * sign(mv_sp[1]))
+      this_val <- round(-phi.x_zero / (pi/2), 1) # X
+    }
+    if (input$manip_type == "Vertical") {
+      phi.y_zero <- atan(mv_sp[3] / mv_sp[2]) - (pi / 2 * sign(mv_sp[2]))
+      this_val <- round(-phi.y_zero / (pi/2), 1) # Y
+    }
+    if (input$manip_type == "Radial") {
+      phi_i <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
+      this_val <- round(cos(phi_i), 1) # Rad
+    }
+    isolate(updateSliderInput(session, "manip_slider", value = this_val))
+  })
   
   
   ### Obs responses and durations -----
@@ -466,9 +467,11 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   output$question_text <- renderText(s_question_text[rv$task_num])
   output$top_text      <- renderText(s_top_text[rv$task_num])
   output$bottom_text   <- renderText(s_bottom_text[rv$task_num])
-  output$task_manual   <- renderPlot({task_manual()}, height = 800) 
-  output$ans_tbl       <- renderTable({rv$ans_tbl})
+  output$task_manual   <- renderPlot(task_manual(), height = 800) 
+  output$ans_tbl       <- renderTable(rv$ans_tbl)
   output$basis_tbl     <- renderTable(as.data.frame(basis()), rownames = TRUE)
+  ##TODO: remove after trouble shooting
+  output$TEST_plot <- renderPlot(plot(1,1))
   
   ### Block 2 inputs, importance rank -----
   output$blk2Inputs <- renderUI({
@@ -505,7 +508,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                     "colnames(task_dat()): ", colnames(task_dat()), "\n",
                                     "input$manip_var: ", input$manip_var, "\n",
                                     "manip_var_num(): ", manip_var_num(), "\n",
-                                    "basis_obl(): ", basis_obl(), "\n",
                                     sep = ""))
 }
 

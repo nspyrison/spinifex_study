@@ -190,7 +190,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     colnames(ret) <- c("x", "y")
     row.names(ret) <- colnames(dat)
     
-    rv$curr_basis <- ret
+    #rv$curr_basis <- ret
     return(ret)
   })
   # Manual plot (obl_frame()), load2 sims.
@@ -217,20 +217,15 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     #                      pch       = pch,
     #                      axes      = "bottomleft",
     #                      alpha     = 1)
-    browser()
-    play_manual_tour(basis = rv$curr_basis, 
-                     data = dat_std,
-                     manip_var = m_var, 
-                     theta = this_theta,
-                     col = col,
-                     pch = pch,
-                     axes = "bottomleft",
-                     fps = 6)
-    
-   ret <- play_manual_tour(basis = rv$curr_basis,
-                           data = dat_std,
-                           manip_var = m_var)
-    
+
+    ret <- play_manual_tour(basis = rv$curr_basis, 
+                            data = dat_std,
+                            manip_var = m_var, 
+                            theta = this_theta,
+                            col = col,
+                            pch = pch,
+                            axes = "bottomleft",
+                            fps = 6)
     return(ret)
   })
   
@@ -241,32 +236,36 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     updateSelectInput(session, "manip_var", choices = these_colnames, 
                       selected = these_colnames[1])
   })
+  observe({
+    rv$curr_basis <- load2_basis()
+  })
   
   ### Outputs -----
   # Generate:
-  output$task_pca   <- renderPlot({task_pca()}) 
-  output$task_gtour <- renderPlotly({task_gtour()})
+  output$task_pca        <- renderPlot({task_pca()}) 
+  output$task_gtour      <- renderPlotly({task_gtour()})
   # Review (static + gtour):
-  output$load_pca   <- renderPlot({load_pca()}) 
-  output$load_gtour <- renderPlotly({load_gtour()})
-  output$str_load_dat <- renderPrint({str(load_dat())})
-  output$load_dat_attr <- renderPrint(cat("loaded sim parameter -- \n",
-                                          "p: ", ncol(load_dat()), "\n",
-                                          "pnoise: ", load_pnoise(), "\n",
-                                          "cl: ", length(attr(load_dat(), "ncl")), "\n",
-                                          sep = ""))
-  output$load_mncl_reord <- renderPrint(load_mncl_reord())
-  output$load_vc_reord <- renderPrint(load_vc_reord())
+  output$load_pca        <- renderPlot({load_pca()}) 
+  output$load_gtour      <- renderPlotly({load_gtour()})
+  output$str_load_dat    <- renderPrint({str(load_dat())})
+  output$load_dat_attr   <- renderPrint(cat("loaded sim parameter -- \n",
+                                            "p: ", ncol(load_dat()), "\n",
+                                            "pnoise: ", load_pnoise(), "\n",
+                                            "cl: ", length(attr(load_dat(), "ncl")), "\n",
+                                            sep = ""))
+  output$load_mncl_reord  <- renderPrint(load_mncl_reord())
+  output$load_vc_reord    <- renderPrint(load_vc_reord())
   # Review (manual):
-  output$load2_manual   <- renderPlotly({load2_manual()}) 
-  output$str_load2_dat <- renderPrint({str(load2_dat())})
-  output$load2_dat_attr <- renderPrint(cat("loaded sim parameter -- \n",
+  output$load2_manual     <- renderPlotly({load2_manual()}) 
+  output$str_load2_dat    <- renderPrint({str(load2_dat())})
+  output$load2_dat_attr   <- renderPrint(cat("loaded sim parameter -- \n",
                                           "p: ", ncol(load2_dat()), "\n",
                                           "pnoise: ", load2_pnoise(), "\n",
                                           "cl: ", length(attr(load2_dat(), "ncl")), "\n",
                                           sep = ""))
   output$load2_mncl_reord <- renderPrint(load_mncl_reord())
-  output$load2_vc_reord <- renderPrint(load_vc_reord())
+  output$load2_vc_reord   <- renderPrint(load_vc_reord())
+  output$load2_curr_basis <- renderTable(rv$curr_basis)
   
   
   ### Dev msg -----
@@ -278,6 +277,8 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                     "load_num:", load_num, "\n",
                                     "input$load_x_axis: ", input$load_x_axis, "\n",
                                     "input$load_y_axis: ", input$load_y_axis, "\n",
+                                    "load2_basis: ", load2_basis(), "\n",
+                                    "rv$curr_basis: ", rv$curr_basis, "\n",
                                     sep = ""))
 }
 

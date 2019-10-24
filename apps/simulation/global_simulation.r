@@ -11,7 +11,7 @@ library("mvtnorm") # for simulations.
 library("plotly")
 
 
-load_num <- 1
+load_num  <- 1
 load_name <- sprintf("simulation_data%03d", load_num)
 load_file <- paste0("./", load_name, ".rds") # "./apps/simulation/"
 #local_file <- paste0("./apps/simulation/", load_name, ".rds"); assign(load_name, readRDS(local_file))
@@ -93,6 +93,7 @@ panel_review_manual <- tabPanel(
     , selectInput('manip_type', "Manipulation type",
                 c("Radial", "Horizontal", "Vertical"))
     , hr() # horizontal line
+    , tableOutput("load2_curr_basis")
     , verbatimTextOutput("load2_dat_attr")
     , verbatimTextOutput("str_load2_dat")
   ),
