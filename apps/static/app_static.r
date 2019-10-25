@@ -37,8 +37,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   
   ### PCA Plot -----
-  ## I disagree with going to base biplot, 
-  ##  why not give the same feature map, col, and pch?
+  ## Base biplot example:
   # pca <- princomp(tourr::flea[,1:6])
   # biplot(pca)
   task_pca <- reactive({
@@ -57,66 +56,69 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
         col <- col_of(attributes(dat)$cluster, pallet_name = "Paired")
         pch <- 3 + pch_of(attributes(dat)$cluster)
       }
-      
+      axes_position <- "center"
       pca <- prcomp(dat_std)
+      
       if (block_num() != 2) { # not 2nd block.
         pca_x <- data.frame(2 * (tourr::rescale(pca$x) - .5))
         pca_rotation <- set_axes_position(data.frame(t(pca$rotation)), 
-                                          "bottomleft")
+                                          axes_position)
       } else { # is 2nd block, change sign of var map.
         pca_x <- as.matrix(dat) %*% (-1 * pca$rotation)
         pca_x <- data.frame(2 * (tourr::rescale(pca_x) - .5))
         pca_rotation <- set_axes_position(data.frame(t(-1 * pca$rotation)), 
-                                          "bottomleft")
+                                          axes_position)
       }
-      #browser()
-      biplot(pca) #, col = col)
-      # pca_pct_var <- round(100 * pca$sdev^2 / sum(pca$sdev^2), 1)
-      # 
-      # pca_x_axis <- input$x_axis
-      # pca_y_axis <- input$y_axis
-      # rot_x_axis <- paste0("V", substr(pca_x_axis,3,3))
-      # rot_y_axis <- paste0("V", substr(pca_y_axis,3,3))
-      # x_lab <- paste0(input$x_axis, " - ", 
-      #                 pca_pct_var[as.integer(substr(pca_x_axis,3,3))], "% Var")
-      # y_lab <- paste0(input$y_axis, " - ", 
-      #                 pca_pct_var[as.integer(substr(pca_y_axis,3,3))], "% Var")
-      # 
-      # angle <- seq(0, 2 * pi, length = 360)
-      # circ <- set_axes_position(data.frame(x = cos(angle),
-      #                                      y = sin(angle)),
-      #                           "bottomleft")
-      # zero  <- set_axes_position(0, "bottomleft")
-      # 
-      # ggplot() + 
-      #   # data points
-      #   geom_point(pca_x, mapping = aes(x = get(pca_x_axis), 
-      #                                   y = get(pca_y_axis)),
-      #              color = col, fill = col, shape = pch) +
-      #   # axis segments
-      #   geom_segment(pca_rotation, 
-      #                mapping = aes(x = get(rot_x_axis), xend = zero,
-      #                              y = get(rot_y_axis), yend = zero),
-      #                size = .3, colour = "grey80") +
-      #   # axis label text
-      #   geom_text(pca_rotation, 
-      #             mapping = aes(x = get(rot_x_axis), 
-      #                           y = get(rot_y_axis), 
-      #                           label = colnames(pca_rotation)), 
-      #             size = 4, colour = "grey50", 
-      #             vjust = "outward", hjust = "outward") +
-      #   # Cirle path
-      #   geom_path(circ, 
-      #             mapping = aes(x = x, y = y),
-      #             color = "grey80", size = .3, inherit.aes = F) +
-      #   # options
-      #   theme_minimal() + 
-      #   theme(aspect.ratio = 1) +
-      #   scale_color_brewer(palette = "Dark2") +
-      #   theme(axis.text.x = element_blank(),
-      #         axis.text.y = element_blank(),
-      #         legend.position = 'none') +
-      #   labs(x = x_lab, y = y_lab)
+      
+      pca_pct_var <- round(100 * pca$sdev^2 / sum(pca$sdev^2), 1)
+      
+      pca_x_axis <- input$x_axis
+      pca_y_axis <- input$y_axis
+      rot_x_axis <- paste0("V", substr(pca_x_axis,3,3))
+      rot_y_axis <- paste0("V", substr(pca_y_axis,3,3))
+      x_lab <- paste0(input$x_axis, " (",
+                      pca_pct_var[as.integer(substr(pca_x_axis,3,3))], "% Var)")
+      y_lab <- paste0(input$y_axis, " (",
+                      pca_pct_var[as.integer(substr(pca_y_axis,3,3))], "% Var)")
+      
+      angle <- seq(0, 2 * pi, length = 360)
+      circ <- set_axes_position(data.frame(x = cos(angle), y = sin(angle)),
+                                axes_position)
+      zero  <- set_axes_position(0, axes_position)
+      
+      ggplot() +
+        # data points
+        geom_point(pca_x, mapping = aes(x = get(pca_x_axis),
+                                        y = get(pca_y_axis)),
+                   color = col, fill = col, shape = pch) +
+        # axis segments
+        geom_segment(pca_rotation,
+                     mapping = aes(x = get(rot_x_axis), xend = zero,
+                                   y = get(rot_y_axis), yend = zero),
+                     size = .3, colour = "red") +
+        # axis label text
+        geom_text(pca_rotation,
+                  mapping = aes(x = get(rot_x_axis),
+                                y = get(rot_y_axis),
+                                label = colnames(pca_rotation)),
+                  size = 6, colour = "red", fontface = "bold",
+                  vjust = "outward", hjust = "outward") +
+        # Cirle path
+        geom_path(circ,
+                  mapping = aes(x = x, y = y),
+                  color = "grey80", size = .3, inherit.aes = F) +
+        # Options
+        theme_minimal() +
+        theme(aspect.ratio = 1) +
+        scale_color_brewer(palette = "Dark2") +
+        theme(panel.grid.major = element_blank(), 
+              panel.grid.minor = element_blank(), 
+              axis.text.x = element_blank(), # marks
+              axis.text.y = element_blank(), # marks
+              axis.title.x = element_text(size = 22, face = "bold"),
+              axis.title.y = element_text(size = 22, face = "bold"),
+              legend.position = 'none') +
+        labs(x = x_lab, y = y_lab) 
     }
   })
   
@@ -166,17 +168,28 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   
   ##### Start observes
-  ### Update axis choices -----
+  ### Obs axis choices -----
   observe({
     p <- ncol(task_dat())
-    updateRadioButtons(session,
-                       "x_axis",
-                       choices  = paste0("PC", 1:p),
-                       selected = "PC1")
-    updateRadioButtons(session,
-                       "y_axis",
-                       choices  = paste0("PC", 1:p),
-                       selected = "PC2")
+    choices <- paste0("PC", 1:p)
+    updateRadioButtons(session, "x_axis", choices = choices, selected = "PC1")
+    updateRadioButtons(session, "y_axis", choices = choices, selected = "PC2")
+  })
+  observeEvent(input$x_axis, { # But, not the same choices, x axis
+    if (input$x_axis == input$y_axis) {
+      p <- ncol(task_dat())
+      choices <- paste0("PC", 1:p)
+      opts <- choices[!choices %in% input$x_axis]
+      updateRadioButtons(session, "x_axis", choices = choices, selected = sample(opts, 1))
+    }
+  })
+  observeEvent(input$y_axis, { # But, not the same choices, y axis
+    if (input$x_axis == input$y_axis) {
+      p <- ncol(task_dat())
+      choices <- paste0("PC", 1:p)
+      opts <- choices[!choices %in% input$x_axis]
+      updateRadioButtons(session, "y_axis", choices = choices, selected = sample(opts, 1))
+    }
   })
   
   ### Obs responses and durations -----
@@ -382,11 +395,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       rv$save_file <- save_file
       return()
     }
-    if (max(is.na(df$responses)) == 1) { # Check that all tasks have answers.
-      output$save_msg <- renderText("Please verify that all tasks have been answered.")
-      return()
-    }
-    if (min(df[(nrow(df) - 6):nrow(df), 5] == 5) == 1) { # Check that all survey questions not default.
+    if (min(df[(nrow(df) - 6):nrow(df), 5] == 5) == 1) { # Check that last 7 survey questions not default.
       output$save_msg <- renderText("Please verify that the survey has been answered.")
       return()
     }
@@ -437,7 +446,9 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   output$task_gtour    <- renderPlotly({task_gtour()})
   output$ans_tbl       <- renderTable({rv$ans_tbl})
   
+  # output$blk1_ans defined in global
   ### Block 2 inputs, importance rank -----
+  # ie. output$blk2_ans1 is the value for block 2 question about var 1.
   output$blk2Inputs <- renderUI({
     i <- j <- ncol(task_dat())
     lapply(1:i, function(i) {
@@ -477,7 +488,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                     "is.null(rv$save_file): ", is.null(rv$save_file), "\n",
                                     sep = ""))
   
-  ## TODO: uncomment when finalized. 
+  ## TODO: uncomment when to start logging. 
   ## TODO: Copy to the other app_*.r files + rv$log_file at top
   # ### Create log file.
   # dput(shiny::reactlog(), 

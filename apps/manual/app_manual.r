@@ -39,28 +39,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     return(which(colnames(task_dat()) == input$manip_var))
   }) 
   
-  # basis 
-  #TODO: As a reactive or an observe!?
-  basis <- reactive({
-    dat <- task_dat()
-    if (input$basis_init == "Random") ret <- tourr::basis_random(n = p(), d = 2)
-    if (input$basis_init == "PCA")    ret <- prcomp(dat)[[2]][, 1:2]
-    if (input$basis_init == "Projection pursuit") {
-      if (input$pp_type == "lda_pp" | input$pp_type == "lda_pp") {
-        pp_cluster <- attributes(dat)$cluster
-      } else {pp_cluster <- NA}
-      tour_func <- APP_guided_tour(input$pp_type, pp_cluster)
-      tour_hist <- save_history(dat, tour_func)
-      tour_len  <- dim(tour_hist)[3]
-      ret <- matrix(as.numeric(tour_hist[,, tour_len]), ncol = 2)
-    }
-    colnames(ret) <- c("x", "y")
-    row.names(ret) <- colnames(dat)
-    
-    rv$curr_basis <- ret
-    return(ret)
-  })
-  
   
   ### Task manual plot -----
   # oblique_frame()
@@ -144,23 +122,31 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   })
   ##### End reactive
   
+  ##### Start observes
+  # basis 
+  #TODO: As a reactive or an observe!?
+  #basis <- reactive({
+  observe({
+    dat <- task_dat()
+    dat_std <- tourr::rescale(dat)
+    pca <- prcomp(dat_std)
+    x <- input$x_axis
+    y <- input$y_axis
+    x_num <- as.integer(substr(x, nchar(x), nchar(x)))
+    y_num <- as.integer(substr(y, nchar(y), nchar(y)))
+    ret <- pca$rotation[, c(x_num, y_num)]
+    
+    rv$curr_basis <- ret
+    #return(ret)
+  })
+  
   ### Obs slider ----
   # x, y, radius oblique motion
   observe({
     if (input$manip_var != "<none>") {
       theta <- phi <- NULL
       mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
-      if (input$manip_type == "Horizontal") {
-        theta <- 0
-        phi.x_zero <- atan(mv_sp[3] / mv_sp[1]) - (pi / 2 * sign(mv_sp[1]))
-        phi <- input$manip_slider * pi/2 + phi.x_zero
-      }
-      if (input$manip_type == "Vertical") {
-        theta <- pi/2
-        phi.y_zero <- atan(mv_sp[3] / mv_sp[2]) - (pi / 2 * sign(mv_sp[2]))
-        phi <- input$manip_slider * pi/2 + phi.y_zero
-      }
-      if (input$manip_type == "Radial") {
+      if ("Radial" == "Radial") { # Fixxed to "Radial" # input$manip_type == "Radial"
         theta <- atan(mv_sp[2] / mv_sp[1])
         phi_start <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
         phi <- (acos(input$manip_slider) - phi_start) * - sign(mv_sp[1])
@@ -170,11 +156,34 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       row.names(ret) <- colnames(task_dat())
       
       rv$curr_basis <- ret
-      return(ret)
     }
   })
   
-  ##### Start observes
+  ### Obs axis choices -----
+  observe({
+    p <- ncol(task_dat())
+    choices <- paste0("PC", 1:p)
+    updateRadioButtons(session, "x_axis", choices = choices, selected = "PC1")
+    updateRadioButtons(session, "y_axis", choices = choices, selected = "PC2")
+  })
+  observeEvent(input$x_axis, { # But, not the same choices, x axis
+    if (input$x_axis == input$y_axis) {
+      p <- ncol(task_dat())
+      choices <- paste0("PC", 1:p)
+      opts <- choices[!choices %in% input$x_axis]
+      updateRadioButtons(session, "x_axis", choices = choices, selected = sample(opts, 1))
+    }
+  })
+  observeEvent(input$y_axis, { # But, not the same choices, y axis
+    if (input$x_axis == input$y_axis) {
+      p <- ncol(task_dat())
+      choices <- paste0("PC", 1:p)
+      opts <- choices[!choices %in% input$x_axis]
+      updateRadioButtons(session, "y_axis", choices = choices, selected = sample(opts, 1))
+    }
+  })
+  
+  
   ### Obs update manip_var -----
   observe({
     these_colnames <- colnames(task_dat())
@@ -192,17 +201,9 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   ### Update slider
   observe({
-    if (is.null(rv$curr_basis)) {rv$curr_basis <- basis()} # init curr_basis
+    #if (is.null(rv$curr_basis)) {rv$curr_basis <- basis()} # init curr_basis
     mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
-    if (input$manip_type == "Horizontal") {
-      phi.x_zero <- atan(mv_sp[3] / mv_sp[1]) - (pi / 2 * sign(mv_sp[1]))
-      this_val <- round(-phi.x_zero / (pi/2), 1) # X
-    }
-    if (input$manip_type == "Vertical") {
-      phi.y_zero <- atan(mv_sp[3] / mv_sp[2]) - (pi / 2 * sign(mv_sp[2]))
-      this_val <- round(-phi.y_zero / (pi/2), 1) # Y
-    }
-    if (input$manip_type == "Radial") {
+    if ("Radial" == "Radial") { # Fixed to Radial # input$manip_type == "Radial"
       phi_i <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
       this_val <- round(cos(phi_i), 1) # Rad
     }
@@ -349,7 +350,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   observeEvent(input$next_task_button, {
     # if <on last task> {<do nothing>}
     if (rv$task_num >= length(s_header_text)){ return() }
-    # Init rv$ans_tbl <- snd_tbl() on first press
+    # Init rv$ans_tbl on first press
     if (rv$task_num == 1){ rv$ans_tbl <- ans_tbl() }
     
     #CHECK FOR DEFAULT RESPONSE??
@@ -469,11 +470,10 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   output$bottom_text   <- renderText(s_bottom_text[rv$task_num])
   output$task_manual   <- renderPlot(task_manual(), height = 800) 
   output$ans_tbl       <- renderTable(rv$ans_tbl)
-  output$basis_tbl     <- renderTable(as.data.frame(basis()), rownames = TRUE)
-  ##TODO: remove after trouble shooting
-  output$TEST_plot <- renderPlot(plot(1,1))
+  output$basis_tbl     <- renderTable(as.data.frame(rv$curr_basis), rownames = TRUE)
   
-  ### Block 2 inputs, importance rank -----
+  # output$blk1_ans defined in global
+  ### Block 2 inputs, rank importance -----
   output$blk2Inputs <- renderUI({
     i <- j <- ncol(task_dat())
     lapply(1:i, function(i) {

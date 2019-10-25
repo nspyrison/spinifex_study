@@ -15,6 +15,7 @@ library("reactlog")  # Logging
 
 
 ### Required inputs -----
+## TODO: make sure to duplicate this section in other apps
 n_reps <- 3
 s_blocks <- c("n", "d", "s")
 s_block_names <- c("clusters, n", "important variable, r", "correlated variables, s")
@@ -46,6 +47,7 @@ s_dat <- list(sim_intro, sim1, sim2, sim3)
 
 
 ###### Text initialization -----
+## TODO: make sure to duplicate this section in other apps
 intro_header_row <- paste0("Introduction -- ", s_block_names)
 m_blockrep_id <- matrix(paste0("Task -- ", s_blockrep_id), ncol = n_reps)
 s_header_text <- c(rbind(intro_header_row , m_blockrep_id), "All tasks completed. Continue to the Survey tab.")
@@ -79,7 +81,7 @@ panel_task <- tabPanel(
     hr(), # horizontal line
     conditionalPanel(condition = "output.block_num == 1",
                      numericInput("blk1_ans", "How many clusters exist within the data?",
-                                  value = 1, min = 1, max = 10)),
+                                  value = 0, min = 0, max = 10)),
     conditionalPanel(condition = "output.block_num == 2",
                      div(style = 'width:400px;',
                          div(style = 'float:left; color:red; font-size:14px', 
@@ -104,8 +106,40 @@ panel_task <- tabPanel(
 )
 
 ### Introduction panel -----
-panel_study_intro <- tabPanel("Study introduction",
-                              h3("Welcome to the study.")
+panel_study_intro <- tabPanel(
+  "Study introduction"
+  , h3("Thank you for participating!")
+  , br()
+  , p("This a completely voluntary study that will take approximately 25-30 
+      minutes to complete.")
+  , br()
+  , p("You are helping to compare the effectiveness of different visuals of 
+       linear projection for multi-variate data. Each participant will be 
+       assigned to one visual, they will then watch a short video demonstrating 
+       how to perform the 3 different tasks with their visuals. Participants 
+       are then able to interact with the visual, and ask any final clarifying 
+       questions before starting the evaluated section. During this section, 3 
+       repetitions 
+       of the 3 differing tasks will be recorded. Each repetition will be capped 
+       2 minutes before being asked to proceed to the next question. After the 
+       evaluation section there is a 10-question follow-up asking about 
+       demographic information, the assigned visual, and your familiarity with
+       multi-variate data. The outline of the study is as follows:")
+  , tags$ul(
+    tags$li("Video training")
+    , tags$li("Visual and ui familiarity -- questions allowed")
+    , tags$li("Task one (3 reps) -- How many clusters are contained within the data?")
+    , tags$li("Task two (3 reps) -- Rank the most important variables distinguishing groups")
+    , tags$li("Task three (3 reps) -- Group correlated variables (if any)")
+    , tags$li("Follow-up questionnaire")
+    , tags$li("Response submission")
+  )
+  , p("Make sure to provide your email address and computer to the proctor
+   if you wish to be entered in the prize pool for top three scoring 
+   participants will receive a $50 gift card to Coles. Also, mark if you want to
+   be emailed about the subsequent publication.")
+  , p("Thank you again for participating.")
+  
 )
 
 ### Survey panel  -----
@@ -169,15 +203,15 @@ panel_survey <-
                        label = div(style = 'width:300px;',
                                    div(style = 'float:left;', 'strongly disagree'),
                                    div(style = 'float:right;', 'strongly agree')),
-                       min = 1, max = 9, value = 5)
+                       min = 1, max = 9, value = 5),
+           actionButton("save_ans", "save responses"),
+           verbatimTextOutput("save_msg"),
+           h4("Thank you for participating.")
   )
 
 ### Finalize panel -----
 panel_finalize <- tabPanel("Review answers",
-                           tableOutput("ans_tbl"),
-                           actionButton("save_ans", "save results"),
-                           verbatimTextOutput("save_msg"),
-                           h4("Thank you for participating.")
+                           tableOutput("ans_tbl")
 )
 
 ##### UI, combine panels -----

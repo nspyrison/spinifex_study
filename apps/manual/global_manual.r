@@ -83,26 +83,15 @@ names(l_choices) <- paste0("choice ", 1:5)
 panel_task <- tabPanel(
   "Tasks", 
   sidebarPanel(
-    radioButtons("basis_init", "Start basis",
-                 choices = c("PCA", "Projection pursuit", "Random"),
-                 selected = "PCA")
-    , conditionalPanel("input.basis_init == 'Projection pursuit'",
-                       selectInput("pp_type", "Pursuit index", 
-                                   c("holes", "cmass", "lda_pp", "pda_pp") ) )
-    , conditionalPanel("input.basis_init == 'Projection pursuit' &&
-                     (input.pp_type == 'lda_pp' || input.pp_type == 'pda_pp')")
-    , conditionalPanel("input.basis_init == 'From file'",
-                       fileInput("basis_file", "Basis file (.csv or .rda, [p x 2] matrix)",
-                                 accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")))
+    fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
+             column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2")))
     , selectInput('manip_var', 'Manip var', "<none>")
-    , selectInput('manip_type', "Manipulation type",
-                  c("Radial", "Horizontal", "Vertical"))
     , sliderInput("manip_slider", "Contribution",
                   min = 0, max = 1, value = 0, step = .1)
     , hr() # horizontal line
     , conditionalPanel(condition = "output.block_num == 1",
                      numericInput("blk1_ans", "How many clusters exist within the data?",
-                                  value = 1, min = 1, max = 10))
+                                  value = 0, min = 0, max = 10))
     , conditionalPanel(condition = "output.block_num == 2",
                        div(style = 'width:400px;',
                            div(style = 'float:left; color:red; font-size:14px', 
@@ -115,12 +104,10 @@ panel_task <- tabPanel(
                        uiOutput("blk3Inputs"))
     , hr()
     , actionButton("next_task_button", "Next task")
-    , h3("Current basis")
-    , tableOutput("basis_tbl")
+    ### , h3("Current basis") # too noisy for app?
+    ### , tableOutput("basis_tbl") 
   ),
-  mainPanel(actionButton("browser", "browser()")
-            , textOutput('timer_disp')
-            #, tableOutput('basis_tbl')
+  mainPanel(textOutput('timer_disp')
             ###, verbatimTextOutput("header_text") # Kim asked to remove 18/10/2019
             , verbatimTextOutput("top_text")
             , plotOutput("task_manual", height = "auto")
@@ -130,8 +117,6 @@ panel_task <- tabPanel(
   )
 )
 
-
-
 ##### UI, combine panels -----
 ui <- fluidPage(
   navbarPage("Multivariate data visualization study",
@@ -139,14 +124,3 @@ ui <- fluidPage(
   , verbatimTextOutput("dev_msg")
   , verbatimTextOutput("block_num") #!! Need to call block_num for condition panels to evaluate
 )
-
-##### Pursuit guided tour path funtion -----
-APP_guided_tour <- function(index, cluster_id = NA){ # returns a tour function
-  if(index == "holes"){ return(guided_tour(holes()))}
-  if(index == "cmass"){ return(guided_tour(cmass()))}
-  if(index == "lda_pp"){return(guided_tour(lda_pp(cluster_id)))}
-  if(index == "pda_pp"){return(guided_tour(pda_pp(cluster_id)))}
-  else return(error("index not found"))
-} #ex # animate_xy(flea[, 1:6], guided_tour(pda_pp(flea$species)), sphere = TRUE)
-### END OF PROJECTION PURSUIT
-
