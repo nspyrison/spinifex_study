@@ -1,9 +1,35 @@
 ## scratchpad for making simulation csv files.
 
-### SCRATCH -----
+### zSim example -----
 #write.csv(mtcars, "mtcars.csv")
 ex<- readRDS("./apps/simulation/simulation_data001.rds") 
 str(ex)
+
+
+### zLDA example -----
+# grain: sim*variable, p ; join with var-covar
+# https://towardsdatascience.com/linear-discriminant-analysis-lda-101-using-r-6a97217a55a6
+?MASS::lda
+dat <- tourr::flea
+lda <- MASS::lda(species~., data = dat)
+str(lda)
+# return what? the coeffiecients of the var that make LD1, LD2?
+lda$scaling
+cat <- tourr::flea$species
+spinifex::view_basis(basis = lda$scaling, data = dat[, 1:6], col = cat, pch = cat)
+# !! But the scaling is not a basis, it's p x (cl-1). compare with lda_pp?
+dat <- get(loaded_sim_names[2])
+colnames(dat) <- paste0("V", 1:ncol(dat))
+dat_reorder <- attr(dat, "col_reorder")
+supervied_dat <- data.frame(dat, cluster = attr(dat, "cluster"))
+lda <- MASS::lda(cluster~., data = supervied_dat)
+lda$scaling
+cat <- supervied_dat$cluster
+spinifex::view_basis(basis = lda$scaling, data = dat, col = cat, pch = cat)
+# LD3 seems to be ignored. let's look at lda_pp
+tpath    <- save_history(dat, tour_path = lda_pp(cl = attr(dat, "cluster")))
+save_history(flea[, 1:6], lda_pp(flea$species))
+animate_xy(flea[, 1:6], lda_pp(flea$species))
 
 
 ### LOAD ALL SIM -----
@@ -20,7 +46,7 @@ loaded_sim_names <- ls()[grepl("simulation_data", ls())]
 
 
 ### CREATE SIM_CL_MEANS.CSV -----
-# grain: cluster, cl
+# grain: sim*cluster, cl
 df_mncl <- NULL
 for (i in 1:length(loaded_sim_names)) {
   this_sim <- get(loaded_sim_names[i])
@@ -39,9 +65,8 @@ sim_cl_means <- df_mncl
 #write.csv2(sim_cl_means, "./apps/simulation/sim_cl_means.csv", row.names = FALSE)
 
 
-
 ### CREATE SIM_COVAR_LDA.CSV -----
-# grain: variable, p
+# grain: sim*variable, p
 df_covar_lda <- NULL
 for (i in 1:length(loaded_sim_names)) {
   # init
@@ -77,11 +102,11 @@ for (i in 1:length(loaded_sim_names)) {
   this_sim <- get(loaded_sim_names[i])
   this_reorder <- attr(this_sim, "col_reorder")
   this_covar <- attr(this_sim, "vc")[this_reorder, this_reorder]
-  
+  # parameters
   p <- ncol(this_sim)
   n_cl <- length(attr(this_sim, "ncl"))
   pnoise <- sum(colSums(attr(this_sim, "mncl") == 0) == n_cl)
-  
+  # colate
   this_parameters <- data.frame(id = i, p, n_cl, pnoise)
   df_parameters <- rbind(df_parameters, this_parameters)
 }
@@ -91,33 +116,8 @@ sim_parameters <- df_parameters
 write.csv2(sim_parameters, "./apps/simulation/sim_parameters.csv", row.names = FALSE)
 
 
-### LDA -----
-# grain: variable, p ; join with var-covar
-# https://towardsdatascience.com/linear-discriminant-analysis-lda-101-using-r-6a97217a55a6
-?MASS::lda
-dat <- tourr::flea
-lda <- MASS::lda(species~., data = dat)
-str(lda)
-# return what? the coeffiecients of the var that make LD1, LD2?
-lda$scaling
-cat <- tourr::flea$species
-spinifex::view_basis(basis = lda$scaling, data = dat[, 1:6], col = cat, pch = cat)
-# !! But the scaling is not a basis, it's p x (cl-1). compare with lda_pp?
-dat <- get(loaded_sim_names[2])
-colnames(dat) <- paste0("V", 1:ncol(dat))
-dat_reorder <- attr(dat, "col_reorder")
-supervied_dat <- data.frame(dat, cluster = attr(dat, "cluster"))
-lda <- MASS::lda(cluster~., data = supervied_dat)
-lda$scaling
-cat <- supervied_dat$cluster
-spinifex::view_basis(basis = lda$scaling, data = dat, col = cat, pch = cat)
-# LD3 seems to be ignored. let's look at lda_pp
-tpath    <- save_history(dat, tour_path = lda_pp(cl = attr(dat, "cluster")))
-save_history(flea[, 1:6], lda_pp(flea$species))
-animate_xy(flea[, 1:6], lda_pp(flea$species))
-
 # ### MAHALANOBIS DIST -----
-# # grain: observations, could sum to cluster
+# # grain: sim*observations, could sum to cluster
 # # https://stat.ethz.ch/R-manual/R-devel/library/stats/html/mahalanobis.html
 # ?mahalanobis
 # colnames(ex) <- paste0("V", 1:ncol(ex))
@@ -141,19 +141,31 @@ animate_xy(flea[, 1:6], lda_pp(flea$species))
 # length(D2) # obs; ~ std dev dist away from multivariate mean?
 
 
-### SIMULATION RANKINGS
-# grain: vairable
+### SIMULATION RANKINGS -----
+# grain: sim*vairable
 df_sim_rankings <- NULL
 for (i in 1:length(loaded_sim_names)) {
   # init
   this_sim <- get(loaded_sim_names[i])
   colnames(this_sim) <- paste0("V", 1:ncol(this_sim))
-  
+  # parameters
   p <- ncol(this_sim)
   n_cl <- length(attr(this_sim, "ncl"))
   pnoise <- sum(colSums(attr(this_sim, "mncl") == 0) == n_cl)
-  
-  this_sim_rankings <- data.frame(id = i, var = paste0("V", 1:nrow(this_covar)), p, n_cl, pnoise, var_rank = NA, var_corr = NA)
+  # LDA
+  this_supervied_sim <- data.frame(this_sim, cluster = attr(this_sim, "cluster"))
+  this_lda <- MASS::lda(cluster~., data = this_supervied_sim)
+  this_lda_scaling <- this_lda$scaling
+  this_prop_var <- this_lda$svd^2 / sum(this_lda$svd^2) # geting to "Proportion of trace:", really propotion of variances
+  while (length(this_prop_var) < 3) { # force columns to 3, max(#LD) = max(n_cl) - 1
+    this_prop_var <- c(this_prop_var, NA)
+  }
+  this_prop_var <- data.frame(t(matrix(this_prop_var)))
+  colnames(this_prop_var) <- paste0("LD", 1:3, "_prop_var")
+  # colate
+  this_sim_rankings <- data.frame(id = i, var = paste0("V", 1:nrow(this_covar)), 
+                                  p, n_cl, pnoise, this_prop_var, this_lda_scaling,
+                                  var_rank = NA, var_corr = NA)
   df_sim_rankings <- rbind(df_sim_rankings, this_sim_rankings)
 }
 rownames(df_sim_rankings) <- NULL
