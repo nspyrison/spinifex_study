@@ -62,7 +62,7 @@ for (i in 1:length(loaded_sim_names)) {
 df_mncl
 rownames(df_mncl) <- NULL
 sim_cl_means <- df_mncl
-#write.csv2(sim_cl_means, "./apps/simulation/sim_cl_means.csv", row.names = FALSE)
+#write.csv(sim_cl_means, "./apps/simulation/sim_cl_means.csv", row.names = FALSE)
 
 
 ### CREATE SIM_COVAR_LDA.CSV -----
@@ -91,8 +91,7 @@ for (i in 1:length(loaded_sim_names)) {
 df_covar_lda
 rownames(df_covar_lda) <- NULL
 sim_covar_lda <- df_covar_lda
-# write.csv2(sim_covar_lda, "./apps/simulation/sim_covar_lda.csv", 
-#            row.names = FALSE) # not rounded.
+#write.csv(sim_covar_lda, "./apps/simulation/sim_covar_lda.csv", row.names = F) # not rounded.
 
 
 ### CREATE SIM_PARAMETERS.CSV -----
@@ -113,7 +112,7 @@ for (i in 1:length(loaded_sim_names)) {
 df_parameters
 rownames(df_parameters) <- NULL
 sim_parameters <- df_parameters
-write.csv2(sim_parameters, "./apps/simulation/sim_parameters.csv", row.names = FALSE)
+#write.csv(sim_parameters, "./apps/simulation/sim_parameters.csv", row.names = FALSE)
 
 
 # ### MAHALANOBIS DIST -----
@@ -155,7 +154,12 @@ for (i in 1:length(loaded_sim_names)) {
   # LDA
   this_supervied_sim <- data.frame(this_sim, cluster = attr(this_sim, "cluster"))
   this_lda <- MASS::lda(cluster~., data = this_supervied_sim)
+  ## LDA - Components
   this_lda_scaling <- this_lda$scaling
+  while (ncol(this_lda_scaling) < 3) { # force columns to 3, max(#LD) = max(n_cl) - 1
+    this_lda_scaling <- data.frame(this_lda_scaling, LD3 = NA)
+  }
+  ## LDA - % of variance 
   this_prop_var <- this_lda$svd^2 / sum(this_lda$svd^2) # geting to "Proportion of trace:", really propotion of variances
   while (length(this_prop_var) < 3) { # force columns to 3, max(#LD) = max(n_cl) - 1
     this_prop_var <- c(this_prop_var, NA)
@@ -163,11 +167,13 @@ for (i in 1:length(loaded_sim_names)) {
   this_prop_var <- data.frame(t(matrix(this_prop_var)))
   colnames(this_prop_var) <- paste0("LD", 1:3, "_prop_var")
   # colate
-  this_sim_rankings <- data.frame(id = i, var = paste0("V", 1:nrow(this_covar)), 
+  this_sim_rankings <- data.frame(id = i, var = paste0("V", 1:ncol(this_sim)), 
                                   p, n_cl, pnoise, this_prop_var, this_lda_scaling,
                                   var_rank = NA, var_corr = NA)
+  print(dim(this_sim_rankings))
   df_sim_rankings <- rbind(df_sim_rankings, this_sim_rankings)
 }
 rownames(df_sim_rankings) <- NULL
 sim_rankings <- df_sim_rankings
 sim_rankings
+#write.csv(sim_rankings, "./apps/simulation/sim_rankings.csv", row.names = FALSE)

@@ -107,7 +107,7 @@ panel_task <- tabPanel(
   mainPanel(textOutput('timer_disp'),
             #verbatimTextOutput("header_text"), # Kim asked to remove 18/10/2019
             verbatimTextOutput("top_text"),
-            plotlyOutput("task_gtour",  height = "auto"), # height = 600
+            plotlyOutput("task_gtour", height = "auto"),
             verbatimTextOutput("question_text"),
             verbatimTextOutput("response_msg"),
             verbatimTextOutput("bottom_text")
@@ -117,8 +117,7 @@ panel_task <- tabPanel(
 ##### UI, combine panels -----
 ui <- fluidPage(
   navbarPage("Multivariate data visualization study",
-             panel_task,
-  )
+             panel_task)
   , verbatimTextOutput("dev_msg")
   , verbatimTextOutput("block_num") #!! Need to call block_num for condition panels to evaluate
 )

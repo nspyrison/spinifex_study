@@ -42,10 +42,34 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       col <- col_of(attributes(dat)$cluster)
       pch <- pch_of(attributes(dat)$cluster)
       dat_std <- tourr::rescale(dat)
-
-      tpath <- save_history(dat_std, tour_path = grand_tour(), max = 6)
-      play_tour_path(tour_path = tpath, data = dat_std, col = col, pch = pch,
-                     axes = "bottomleft")
+      tpath <- save_history(dat_std, tour_path = grand_tour(), max = 8)
+      
+      this_play_tour_path <- function(tour_path,
+                                      data  = NULL,
+                                      angle = .15,
+                                      render_type = render_plotly,
+                                      rescale_data = FALSE,
+                                      max_frames = NULL, # new, for 30 sec loop
+                                      ...) {
+        tour_path <- tourr::interpolate(basis_set = tour_path, angle = angle)
+        attr(tour_path, "class") <- "array"
+        if (!is.null(max_frames) & max_frames < dim(tour_path)[3]) {
+          tour_path <- tour_path[, , 1:max_frames]
+        }
+        tour_df <- array2df(array = tour_path, data = data)
+        disp <- render_type(slides = tour_df, ...)
+        
+        disp
+      }
+      
+      tour_path <- tourr::interpolate(basis_set = tour_path, angle = angle)
+      attr(tour_path, "class") <- "array"
+      tour_df <- array2df(array = tour_path, data = data)
+      disp <- render_type(slides = tour_df, ...)
+      
+      disp
+      this_play_tour_path(tour_path = tpath, data = dat_std, col = col, pch = pch,
+                          axes = "bottomleft", max_frames = 90)
     }
   })
   
@@ -364,7 +388,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   output$question_text <- renderText(s_question_text[rv$task_num])
   output$top_text      <- renderText(s_top_text[rv$task_num])
   output$bottom_text   <- renderText(s_bottom_text[rv$task_num])
-  output$task_gtour    <- renderPlotly({task_gtour()}, height = 800)
+  output$task_gtour    <- renderPlotly({task_gtour()}) # , height = 800)
   output$ans_tbl       <- renderTable({rv$ans_tbl})
   
   ### Block 2 inputs, importance rank -----
