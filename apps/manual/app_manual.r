@@ -44,7 +44,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   # oblique_frame()
   task_manual <- reactive({
     if (rv$timer_active | rep_num() == 1) {
-      if (is.null(rv$curr_basis)) {rv$curr_basis <- basis()} # init curr_basis
+      if (is.null(rv$curr_basis)) {stop("rv$curr_basis not found while calling task_manual()")}
       # Init
       dat <- task_dat()
       dat_std <- tourr::rescale(dat)
@@ -196,8 +196,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   #   rv$curr_basis <- basis()
   #   rv$curr_basis <- basis_obl()
   # })
-
-
+  
   
   ### Update slider
   observe({
@@ -504,7 +503,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                     "dim(task_dat()): ", dim(task_dat()), "\n",
                                     "rv$task_responses: ", rv$task_responses, "\n",
                                     "rv$task_durations: ", rv$task_durations, "\n",
-                                    "basis(): ", basis(), "\n",
+                                    "rv$curr_basis: ", rv$curr_basis, "\n",
                                     "colnames(task_dat()): ", colnames(task_dat()), "\n",
                                     "input$manip_var: ", input$manip_var, "\n",
                                     "manip_var_num(): ", manip_var_num(), "\n",

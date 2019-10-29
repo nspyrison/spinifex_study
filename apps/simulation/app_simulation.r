@@ -109,7 +109,9 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   load_pca <- reactive({
     dat <- load_dat()
     dat_std <- tourr::rescale(dat)
-    class <- attributes(dat)$cluster
+    if (input$load_color_pts == "yes") {
+      class <- attributes(dat)$cluster
+    } else {class <- "black"}
     
     APP_pca_plot(dat = dat_std, class = class,
                  in_x = input$load_x_axis, in_y = input$load_y_axis)
@@ -118,8 +120,9 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   # gtour plot, loaded sims.
   load_gtour <- reactive({
     dat <- load_dat()
-    col <- col_of(attributes(dat)$cluster)
-    pch <- pch_of(attributes(dat)$cluster)
+    if (input$load_color_pts == "yes") {
+      col <- pch <- attributes(dat)$cluster
+    } else {col = "black"; pch = 20}
     dat_std <- tourr::rescale(dat)
     
     tpath <- save_history(dat_std, tour_path = grand_tour(), max = 6)
@@ -148,6 +151,10 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     colnames(ret) <- paste0("V", 1:ncol(ret))
     return(ret)
   })
+  manip_var_num <- reactive({ 
+    if (input$manip_var == "<none>") {return(1)}
+    return(which(colnames(load2_dat()) == input$manip_var))
+  }) 
   load2_pnoise <- reactive({
     d <- load2_dat()
     n_cl <- length(attr(d, "ncl"))
@@ -198,34 +205,35 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     if (is.null(rv$curr_basis)) {rv$curr_basis <- load2_basis()}
     dat <- load2_dat()
     dat_std <- tourr::rescale(dat)
-    col <- col_of(attributes(dat)$cluster)
-    pch <- pch_of(attributes(dat)$cluster)
+    if (input$load2_color_pts == "yes") {
+      col <- pch <- attributes(dat)$cluster
+    } else {col = "black"; pch = 20}
     
     # leg work
     if (input$manip_var == "<none>") {m_var <- 1
     } else {m_var <- which(colnames(dat) == input$manip_var)}
-    if (input$manip_type == "Horizontal") {this_theta = 0}
-    if (input$manip_type == "Vertical") {this_theta = .5 / pi}
-    if (input$manip_type == "Radial") {this_theta = NULL} # Defaults to radial 
+    # Manipulation type fixxed to radial, ie. input$manip_type == "Radial"
     
-    # ret <- oblique_frame(data      = dat_std, 
-    #                      basis     = rv$curr_basis, 
-    #                      manip_var = m_var, 
-    #                      theta     = 0, # perform rotation when setting rv$curr_basis
-    #                      phi       = 0, 
-    #                      col       = col,
-    #                      pch       = pch,
-    #                      axes      = "bottomleft",
-    #                      alpha     = 1)
-
-    ret <- play_manual_tour(basis = rv$curr_basis, 
-                            data = dat_std,
-                            manip_var = m_var, 
-                            theta = this_theta,
-                            col = col,
-                            pch = pch,
-                            axes = "bottomleft",
-                            fps = 6)
+    ## Returns ggplot obj, make sure output is rendered and displayed as plot, not plotly.
+    ret <- oblique_frame(data      = dat_std,
+                         basis     = rv$curr_basis,
+                         manip_var = m_var,
+                         theta     = 0, # perform rotation when setting rv$curr_basis
+                         phi       = 0,
+                         col       = col,
+                         pch       = pch,
+                         axes      = "bottomleft",
+                         alpha     = 1)
+    
+    ## Returns plotly obj, make sure output is rendered and displayed as plotly, not plot.
+    # ret <- play_manual_tour(basis = rv$curr_basis, 
+    #                         data = dat_std,
+    #                         manip_var = m_var, 
+    #                         #theta = this_theta, # manip_type fixxed to radial.
+    #                         col = col,
+    #                         pch = pch,
+    #                         axes = "bottomleft",
+    #                         fps = 6)
     return(ret)
   })
   
@@ -239,6 +247,35 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   observe({
     rv$curr_basis <- load2_basis()
   })
+  
+  ### Obs manip_slider motion
+  observe({
+    if (input$manip_var != "<none>") {
+      theta <- phi <- NULL
+      mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
+      if ("Radial" == "Radial") { # Fixxed to "Radial" # input$manip_type == "Radial"
+        theta <- atan(mv_sp[2] / mv_sp[1])
+        phi_start <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
+        phi <- (acos(input$manip_slider) - phi_start) * - sign(mv_sp[1])
+      }
+      ret <- oblique_basis(basis = rv$curr_basis, manip_var = manip_var_num(),
+                           theta = theta, phi = phi)
+      row.names(ret) <- colnames(load2_dat())
+      
+      rv$curr_basis <- ret
+    }
+  ### Obs update manip_slider
+  })
+  observe({
+    if (is.null(rv$curr_basis)) {rv$curr_basis <- load2_basis()} # init curr_basis
+    mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
+    if ("Radial" == "Radial") { # Fixed to Radial # input$manip_type == "Radial"
+      phi_i <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
+      this_val <- round(cos(phi_i), 1) # Rad
+    }
+    isolate(updateSliderInput(session, "manip_slider", value = this_val))
+  })
+  
   
   ### Outputs -----
   # Generate:
@@ -256,7 +293,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   output$load_mncl_reord  <- renderPrint(load_mncl_reord())
   output$load_vc_reord    <- renderPrint(load_vc_reord())
   # Review (manual):
-  output$load2_manual     <- renderPlotly({load2_manual()}) 
+  output$load2_manual     <- renderPlot({load2_manual()}) 
   output$str_load2_dat    <- renderPrint({str(load2_dat())})
   output$load2_dat_attr   <- renderPrint(cat("loaded sim parameter -- \n",
                                           "p: ", ncol(load2_dat()), "\n",

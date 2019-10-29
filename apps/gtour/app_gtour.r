@@ -13,7 +13,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   rv$task_durations <- NULL
   rv$save_file      <- NULL
   rv$ans_tbl        <- NULL
-
+  
   
   ##### Start reactives
   p2 <- reactive({ ncol(s_dat[[2]]) })

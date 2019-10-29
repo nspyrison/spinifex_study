@@ -49,10 +49,12 @@ panel_generate <- tabPanel(
 
 ### Review (static+gtour) panel -----
 panel_review <- tabPanel(
-  "review simulation, static and grnad tour",
+  "review simulation, static and grand tour",
   sidebarPanel(
     selectInput("load_sim_name", "Simulation to review",
                 choices = load_choices)
+    , radioButtons("load_color_pts", "Color points by cluster", 
+                 choices = c("yes", "no"), selected = "yes", inline = T)
     , fluidRow(column(6, radioButtons(inputId = "load_x_axis", 
                                       label = "x axis", choices = "PC1")),
                column(6, radioButtons(inputId = "load_y_axis", 
@@ -78,6 +80,8 @@ panel_review_manual <- tabPanel(
   sidebarPanel(
     selectInput("load2_sim_name", "Simulation to review",
                 choices = load_choices)
+    , radioButtons("load2_color_pts", "Color points by cluster", 
+                   choices = c("yes", "no"), selected = "yes", inline = T)
     , radioButtons("basis_init", "Start basis",
                    choices = c("PCA", "Projection pursuit", "Random"),
                    selected = "PCA")
@@ -90,14 +94,14 @@ panel_review_manual <- tabPanel(
                        fileInput("basis_file", "Basis file (.csv or .rda, [p x 2] matrix)",
                                  accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")))
     , selectInput('manip_var', 'Manip var', "<none>")
-    , selectInput('manip_type', "Manipulation type",
-                c("Radial", "Horizontal", "Vertical"))
+    , sliderInput("manip_slider", "Contribution",
+                  min = 0, max = 1, value = 0, step = .1)
     , hr() # horizontal line
     , tableOutput("load2_curr_basis")
     , verbatimTextOutput("load2_dat_attr")
     , verbatimTextOutput("str_load2_dat")
   ),
-  mainPanel(plotlyOutput("load2_manual")
+  mainPanel(plotOutput("load2_manual")
             , h4("Cluter means, display order")
             , verbatimTextOutput("load2_mncl_reord")
             , h4("variance-covariance, display order")
