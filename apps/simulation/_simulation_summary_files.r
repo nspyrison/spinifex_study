@@ -2,7 +2,7 @@
 
 ### zSim example -----
 #write.csv(mtcars, "mtcars.csv")
-ex<- readRDS("./apps/simulation/simulation_data001.rds") 
+ex <- readRDS("./apps/simulation/simulation_data001.rds") 
 str(ex)
 
 
@@ -177,3 +177,19 @@ rownames(df_sim_rankings) <- NULL
 sim_rankings <- df_sim_rankings
 sim_rankings
 #write.csv(sim_rankings, "./apps/simulation/sim_rankings.csv", row.names = FALSE)
+
+sim_rankings <- read_csv("./apps/simulation/sim_rankings.csv")
+sim_rankings %>% count(p)  
+sim_rankings %>% count(n_cl)  
+sim_rankings %>% count(pnoise)  
+sim_rankings %>% count(p, pnoise)  
+ggplot(sim_rankings, aes(x=LD1_prop_var)) + geom_histogram()
+ggplot(sim_rankings, aes(x=LD1_prop_var)) + geom_histogram() + facet_wrap(~n_cl, ncol=3)
+ggplot(sim_rankings, aes(x=LD1_prop_var, y=LD2_prop_var, colour=factor(n_cl))) + 
+  geom_point() + theme(aspect.ratio = 1)
+
+sim_rankings %>% filter(n_cl==3, LD1_prop_var<0.7) %>% print(n=15)
+
+ex <- readRDS("apps/simulation/simulation_data017.rds")
+library(spinifex)
+manual_tour()
