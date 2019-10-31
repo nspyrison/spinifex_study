@@ -34,6 +34,14 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     colnames(ret) <- paste0("V", 1:ncol(ret))
     return(ret) 
   })
+  ui_section <- reactive({
+    if (rv$task_num == 1) {return("intro")}
+    if (rv$task_num %in% training_start:(task_start - 1) ) {return("training")}
+    if (rv$task_num %in% task_start:(survey_start - 1) ) {return("task")}
+    if (rv$task_num == survey_start) {return("survey")} 
+    return("passed survey, need to cap task_num")
+  })
+  
   
   
   ### PCA Plot -----
@@ -72,6 +80,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       
       pca_pct_var <- round(100 * pca$sdev^2 / sum(pca$sdev^2), 1)
       
+      #browser() # error here, input$x_axis is NULL
       pca_x_axis <- input$x_axis
       pca_y_axis <- input$y_axis
       rot_x_axis <- paste0("V", substr(pca_x_axis,3,3))
@@ -331,7 +340,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ### Obs next task button -----
   observeEvent(input$next_task_button, {
     # if <on last task> {<do nothing>}
-    if (rv$task_num >= length(s_header_text)){ return() }
+    if (rv$task_num >= survey_start){ return() }
     # Init rv$ans_tbl <- ans_tbl() on first press
     if (rv$task_num == 1){ rv$ans_tbl <- ans_tbl() }
     
@@ -342,10 +351,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       ins_nrows <- length(rv$task_responses) - 1
       rv$ans_tbl[ins_row:(ins_row + ins_nrows), 5] <- rv$task_responses
       rv$ans_tbl[ins_row:(ins_row + ins_nrows), 6] <- rv$task_durations
-      print(ins_row)
-      print(ins_nrows)
-      print(length(rv$task_responses))
-      print(rv$task_responses)
     }
     
     # Reset responses, duration, and timer for next task
@@ -430,21 +435,28 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     })
   })
   
-  ### Outputs -----
+  ##### Outputs -----
   output$timer_disp <- renderText({
     if (rep_num() != 1) { # disp timer if not an intro page.
       if (rv$timer < 1) {return("Time has expired, please enter your best guess and proceed.")
       } else {paste0("Time left: ", lubridate::seconds_to_period(rv$timer))}
     } else {return()}
   })
-  output$block_num     <- reactive(block_num())
-  output$header_text   <- renderText(s_header_text[rv$task_num])
-  output$question_text <- renderText(s_question_text[rv$task_num])
-  output$top_text      <- renderText(s_top_text[rv$task_num])
-  output$bottom_text   <- renderText(s_bottom_text[rv$task_num])
-  output$task_pca      <- renderPlot({task_pca()}, height = 800) 
-  output$task_gtour    <- renderPlotly({task_gtour()})
-  output$ans_tbl       <- renderTable({rv$ans_tbl})
+  ### Controls ui coditionalPanels 
+  output$ui_section     <- reactive(ui_section())
+  outputOptions(output, "ui_section", suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
+  output$block_num      <- reactive(block_num())
+  outputOptions(output, "block_num", suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
+  ### training outputs
+  output$training_header_text <- renderText(training_header_text[block_num()])
+  output$training_top_text    <- renderText(training_top_text[block_num()])
+  ### general task outputs
+  output$question_text  <- renderText(s_block_questions[block_num()])
+  output$task_pca       <- renderPlot({task_pca()}, height = 800) 
+  output$task_gtour     <- renderPlotly({task_gtour()})
+  output$ans_tbl        <- renderTable({rv$ans_tbl})
+  
+
   
   # output$blk1_ans defined in global
   ### Block 2 inputs, importance rank -----
@@ -472,10 +484,10 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ### Dev msg -----
   # cannot print output$x in output$dev_msg.
   output$dev_msg <- renderPrint(cat("dev msg -- ", "\n",
-                                    "s_header_text[rv$task_num]: ", s_header_text[rv$task_num], "\n",
+                                    "ui_section()", ui_section(), "\n",
+                                    "block_num(): ", block_num(), "\n",
                                     "rv$timer: ", rv$timer, "\n",
                                     "rv$task_num: ", rv$task_num, "\n",
-                                    "block_num(): ", block_num(), "\n",
                                     "rep_num(): ", rep_num(), "\n",
                                     "input$x_axis: ", input$x_axis, "\n",
                                     "rv$task_responses: ", rv$task_responses, "\n",
