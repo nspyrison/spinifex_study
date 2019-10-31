@@ -127,6 +127,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   #TODO: As a reactive or an observe!?
   #basis <- reactive({
   observe({
+    cat("you changed PCs\n")
     dat <- task_dat()
     dat_std <- tourr::rescale(dat)
     pca <- prcomp(dat_std)
@@ -143,10 +144,11 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ### Obs slider ----
   # x, y, radius oblique motion
   observe({
+    cat("you changed angles\n")
     if (input$manip_var != "<none>") {
       theta <- phi <- NULL
       mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
-      if ("Radial" == "Radial") { # Fixxed to "Radial" # input$manip_type == "Radial"
+      if ("Radial" == "Radial") { # Fixed to "Radial" # input$manip_type == "Radial"
         theta <- atan(mv_sp[2] / mv_sp[1])
         phi_start <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
         phi <- (acos(input$manip_slider) - phi_start) * - sign(mv_sp[1])
@@ -161,6 +163,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   ### Obs axis choices -----
   observe({
+    cat("you changed number of PCs\n")
     p <- ncol(task_dat())
     choices <- paste0("PC", 1:p)
     updateRadioButtons(session, "x_axis", choices = choices, selected = "PC1")
@@ -186,6 +189,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   ### Obs update manip_var -----
   observe({
+    cat("you changed manip var\n")
     these_colnames <- colnames(task_dat())
     updateSelectInput(session, "manip_var", choices = these_colnames, 
                       selected = these_colnames[1])
@@ -200,6 +204,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   ### Update slider
   observe({
+    cat("you changed basis\n")
     #if (is.null(rv$curr_basis)) {rv$curr_basis <- basis()} # init curr_basis
     mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
     if ("Radial" == "Radial") { # Fixed to Radial # input$manip_type == "Radial"
@@ -439,6 +444,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   ### Obs timer -----
   observe({
+    cat("you changed timer\n")
     invalidateLater(1000, session)
     isolate({
       if(rv$timer_active)
