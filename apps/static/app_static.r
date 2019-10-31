@@ -5,29 +5,38 @@ source('global_static.r', local = TRUE)
 server <- function(input, output, session) {  ### INPUT, need to size to number of reps
   ### Initialization -----
   rv                <- reactiveValues()
-  rv$task_num       <- 1
+  rv$pg_num         <- 1
   rv$timer          <- 120
   rv$timer_active   <- TRUE
   rv$task_responses <- NULL
   rv$task_durations <- NULL
   rv$save_file      <- NULL
   rv$ans_tbl        <- NULL
-
+  
   
   ##### Start reactives
   p2 <- reactive({ ncol(s_dat[[2]]) })
   p3 <- reactive({ ncol(s_dat[[3]]) })
   p4 <- reactive({ ncol(s_dat[[4]]) })
   p_sims <- reactive({ p2() + p3() + p4() })
+  section_num <- reactive({
+    if (rv$pg_num >= training_start & rv$pg_num < task_start){ # in training section
+      return(rv$pg_num - (training_start - 1))
+    }
+    if (rv$pg_num >= task_start & rv$pg_num < survey_start){ # in task section
+      return(rv$pg_num - (task_start - 1))
+    }
+    return(1) # dummy 1, NA and 999 cause other issues.
+  })
   block_num <- reactive({
-    1 + (rv$task_num - 1) %/% (n_reps + 1)
+    1 + (section_num() - 1) %/% n_reps
   })
   rep_num <- reactive({
-    rv$task_num - (4 * (block_num() - 1))
+    if (section_num() - (n_reps * (block_num() - 1)) == 0) {browser()}
+    section_num() - (n_reps * (block_num() - 1))
   })
   blockrep <- reactive({
-    if (rep_num() == 1) {return(NULL)}
-    paste0(s_blocks[block_num()], rep_num() - 1)
+    paste0(s_blocks[block_num()], rep_num())
   })
   task_dat <- reactive({
     ret <- s_dat[[rep_num()]]
@@ -35,21 +44,17 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     return(ret) 
   })
   ui_section <- reactive({
-    if (rv$task_num == 1) {return("intro")}
-    if (rv$task_num %in% training_start:(task_start - 1) ) {return("training")}
-    if (rv$task_num %in% task_start:(survey_start - 1) ) {return("task")}
-    if (rv$task_num == survey_start) {return("survey")} 
-    return("passed survey, need to cap task_num")
+    if (rv$pg_num == 1) {return("intro")}
+    if (rv$pg_num %in% training_start:(task_start - 1) ) {return("training")}
+    if (rv$pg_num %in% task_start:(survey_start - 1) ) {return("task")}
+    if (rv$pg_num == survey_start) {return("survey")} 
+    return("passed survey, need to cap pg_num")
   })
   
   
-  
   ### PCA Plot -----
-  ## Base biplot example:
-  # pca <- princomp(tourr::flea[,1:6])
-  # biplot(pca)
   task_pca <- reactive({
-    if (rv$timer_active | rep_num() == 1) {
+    if (rv$timer_active | ui_section() == "training") {
       dat <- task_dat()
       dat_std <- tourr::rescale(dat)
       if (block_num() == 1) {
@@ -66,15 +71,15 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       }
       axes_position <- "center"
       pca <- prcomp(dat_std)
-      
+
       if (block_num() != 2) { # not 2nd block.
         pca_x <- data.frame(2 * (tourr::rescale(pca$x) - .5))
-        pca_rotation <- set_axes_position(data.frame(t(pca$rotation)), 
+        pca_rotation <- set_axes_position(data.frame(t(pca$rotation)),
                                           axes_position)
       } else { # is 2nd block, change sign of var map.
         pca_x <- as.matrix(dat) %*% (-1 * pca$rotation)
         pca_x <- data.frame(2 * (tourr::rescale(pca_x) - .5))
-        pca_rotation <- set_axes_position(data.frame(t(-1 * pca$rotation)), 
+        pca_rotation <- set_axes_position(data.frame(t(-1 * pca$rotation)),
                                           axes_position)
       }
       
@@ -91,7 +96,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                       pca_pct_var[as.integer(substr(pca_y_axis,3,3))], "% Var)")
       
       angle <- seq(0, 2 * pi, length = 360)
-      circ <- set_axes_position(data.frame(x = cos(angle), y = sin(angle)),
+      circ  <- set_axes_position(data.frame(x = cos(angle), y = sin(angle)),
                                 axes_position)
       zero  <- set_axes_position(0, axes_position)
       
@@ -120,14 +125,14 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
         theme_minimal() +
         theme(aspect.ratio = 1) +
         scale_color_brewer(palette = "Dark2") +
-        theme(panel.grid.major = element_blank(), 
-              panel.grid.minor = element_blank(), 
+        theme(panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank(),
               axis.text.x = element_blank(), # marks
               axis.text.y = element_blank(), # marks
               axis.title.x = element_text(size = 22, face = "bold"),
               axis.title.y = element_text(size = 22, face = "bold"),
               legend.position = 'none') +
-        labs(x = x_lab, y = y_lab) 
+        labs(x = x_lab, y = y_lab)
     }
   })
   
@@ -338,15 +343,15 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   
   ### Obs next task button -----
-  observeEvent(input$next_task_button, {
+  observeEvent(input$next_pg_button, {
     # if <on last task> {<do nothing>}
-    if (rv$task_num >= survey_start){ return() }
+    if (rv$pg_num >= survey_start){ return() }
     # Init rv$ans_tbl <- ans_tbl() on first press
-    if (rv$task_num == 1){ rv$ans_tbl <- ans_tbl() }
+    if (rv$pg_num == 1){ rv$ans_tbl <- ans_tbl() }
     
     # Write this_ans_df to ans_tbl
     # if (<not an intro task>) {<write repsonses and durations>}
-    if (rep_num() != 1) {
+    if (ui_section() == "task") {
       ins_row <- which(rv$ans_tbl$blockrep == blockrep())[1]
       ins_nrows <- length(rv$task_responses) - 1
       rv$ans_tbl[ins_row:(ins_row + ins_nrows), 5] <- rv$task_responses
@@ -354,7 +359,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     }
     
     # Reset responses, duration, and timer for next task
-    rv$task_num <- rv$task_num + 1
+    rv$pg_num <- rv$pg_num + 1
     output$response_msg <- renderText("")
     rv$task_responses <- NULL
     rv$task_durations <- NULL
@@ -364,10 +369,10 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     # Set structure for responses and durations
     if(block_num() == 1) {this_n <- 1
     } else {
-      if(block_num() == 2) {this_n <- p2()}
-      if(block_num() == 3) {this_n <- p3()}
-      if(block_num() == 4) {this_n <- p4()}
-      if(block_num() == 5) {this_n <- length(s_survey_questions)}
+      if(rep_num() == 1) {this_n <- p2()}
+      if(rep_num() == 2) {this_n <- p3()}
+      if(rep_num() == 3) {this_n <- p4()}
+      if(ui_section() == "survey") {this_n <- length(s_survey_questions)}
     }
     rv$task_responses <- rep("default", this_n)
     rv$task_durations <- rep("default", this_n)
@@ -376,7 +381,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ### Obs save reponses button -----
   # If save button hit 5 times with warning, saves anyway. No double saving.
   observeEvent(input$save_ans, {
-    if (rv$task_num == 1) {stop("Task number is 1, response table not started.")}
+    if (rv$pg_num == 1) {stop("Task number is 1, response table not started.")}
     df <- rv$ans_tbl
     save_base <- paste0("response_table_", study_factor)
     if (!is.null(rv$save_file)){ # if save already exists 
@@ -452,7 +457,8 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   output$training_top_text    <- renderText(training_top_text[block_num()])
   ### general task outputs
   output$question_text  <- renderText(s_block_questions[block_num()])
-  output$task_pca       <- renderPlot({task_pca()}, height = 800) 
+  output$TEST_plot      <- renderPlot(plot(1,1))
+  #output$task_pca       <- renderPlot({task_pca()}, height = 800) 
   output$task_gtour     <- renderPlotly({task_gtour()})
   output$ans_tbl        <- renderTable({rv$ans_tbl})
   
@@ -487,7 +493,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                     "ui_section()", ui_section(), "\n",
                                     "block_num(): ", block_num(), "\n",
                                     "rv$timer: ", rv$timer, "\n",
-                                    "rv$task_num: ", rv$task_num, "\n",
+                                    "rv$pg_num: ", rv$pg_num, "\n",
                                     "rep_num(): ", rep_num(), "\n",
                                     "input$x_axis: ", input$x_axis, "\n",
                                     "rv$task_responses: ", rv$task_responses, "\n",

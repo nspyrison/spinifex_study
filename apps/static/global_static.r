@@ -227,15 +227,38 @@ main_panel <- fluidPage(
 
 ### TEST_UI_SECTION -----
 TEST_ui_section <- fluidPage(
-  conditionalPanel(
-    condition = "output.ui_section == 'intro' ",
-    h1("intro"), # Working alone.
-    h3("Thank you for participating!")
-    , br()
-    , p("This a completely voluntary study that will take approximately 25-30 
+  sidebarPanel(
+    fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
+             column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2"))
+    ),
+    hr(), # horizontal line
+    conditionalPanel(condition = "output.block_num == 1",
+                     numericInput("blk1_ans", "How many clusters exist within the data?",
+                                  value = 0, min = 0, max = 10)
+    ),
+    conditionalPanel(condition = "output.block_num == 2",
+                     div(style = 'width:400px;',
+                         div(style = 'float:left; color:red; font-size:14px', 
+                             strong('most important')),
+                         div(style = 'float:right; color:red; font-size:14px', 
+                             strong('least important'))),
+                     tags$br(),
+                     uiOutput("blk2Inputs")
+    ),
+    conditionalPanel(condition = "output.block_num == 3",
+                     uiOutput("blk3Inputs")
+    ),
+  ),
+  mainPanel(
+    conditionalPanel(
+      condition = "output.ui_section == 'intro' ",
+      h1("intro"), # Working alone.
+      h3("Thank you for participating!")
+      , br()
+      , p("This a completely voluntary study that will take approximately 25-30 
       minutes to complete.")
-    , br()
-    , p("You are helping to compare the effectiveness of different visuals of 
+      , br()
+      , p("You are helping to compare the effectiveness of different visuals of 
        linear projection for multi-variate data. Each participant will be 
        assigned to one visual, they will then watch a short video demonstrating 
        how to perform the 3 different tasks with their visuals. Participants 
@@ -247,46 +270,51 @@ TEST_ui_section <- fluidPage(
        evaluation section there is a 10-question follow-up asking about 
        demographic information, the assigned visual, and your familiarity with
        multi-variate data. The outline of the study is as follows:")
-    , tags$ul(
-      tags$li("Video training")
-      , tags$li("Visual and ui familiarity -- questions allowed")
-      , tags$li("Task one (3 reps) -- How many clusters are contained within the data?")
-      , tags$li("Task two (3 reps) -- Rank the most important variables distinguishing groups")
-      , tags$li("Task three (3 reps) -- Group correlated variables (if any)")
-      , tags$li("Follow-up questionnaire")
-      , tags$li("Response submission")
-    )
-    , p("Make sure to provide your email address and computer to the proctor
+      , tags$ul(
+        tags$li("Video training")
+        , tags$li("Visual and ui familiarity -- questions allowed")
+        , tags$li("Task one (3 reps) -- How many clusters are contained within the data?")
+        , tags$li("Task two (3 reps) -- Rank the most important variables distinguishing groups")
+        , tags$li("Task three (3 reps) -- Group correlated variables (if any)")
+        , tags$li("Follow-up questionnaire")
+        , tags$li("Response submission")
+      )
+      , p("Make sure to provide your email address and computer to the proctor
    if you wish to be entered in the prize pool for top three scoring 
    participants will receive a $50 gift card to Coles. Also, mark if you want to
    be emailed about the subsequent publication.")
-    , p("Thank you again for participating.")
-  ),
-  conditionalPanel(
-    condition = "output.ui_section == 'training' ",
-    h1("training"), # working except for task_pca :/
-    h1("TRAINING CONTENT HERE.") ##TODO
-    , plotOutput("task_pca", height = "auto")
-    , verbatimTextOutput("question_text")
-    , verbatimTextOutput("response_msg")
-    , h4(training_bottom_timer_text)
-  ),
-  conditionalPanel(
-    condition = "output.ui_section == 'task' ",
-    h1("task")
-  ),
-  conditionalPanel(
-    condition = "output.ui_section == 'survey' ",
-    h1("survey")
-  )
-)
-  
+      , p("Thank you again for participating.")
+    ),
+    conditionalPanel(
+      condition = "output.ui_section == 'training' ",
+      h1("training"), # working except for task_pca :/
+      h1("TRAINING CONTENT HERE.") ##TODO
+      #, plotOutput("task_pca", height = "auto")
+      , plotOutput("TEST_plot")
+      , verbatimTextOutput("question_text")
+      , verbatimTextOutput("response_msg")
+      , h4(training_bottom_timer_text)
+    ),
+    conditionalPanel( 
+      condition = "output.ui_section == 'task' ",
+      h1("task") ##TODO: ISSUE INTRODUCED HERE!?! why?
+      # , textOutput('timer_disp')
+      # , plotOutput("task_pca", height = "auto")
+      # , verbatimTextOutput("question_text")
+      # , verbatimTextOutput("response_msg")
+    ),
+    conditionalPanel(
+      condition = "output.ui_section == 'survey' ",
+      h1("survey")
+    )
+  ) # close mainPanel()
+) # close TEST_ui_section assignment
 ##### UI, combine panels -----
 ui <- fluidPage(
   titlePanel("Multivariate data visualization study")
   , TEST_ui_section
   #, main_panel
-  , actionButton("next_task_button", "Next task")
+  , actionButton("next_pg_button", "Next page")
   , verbatimTextOutput("dev_msg")
   , tableOutput("ans_tbl")
 )
