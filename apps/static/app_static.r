@@ -210,7 +210,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ##### Block 1 responses & duration
   observeEvent(input$blk1_ans, {
     rv$task_responses[1] <- input$blk1_ans
-    rv$task_durations[1] <- as.integer(120 - rv$timer)
+    rv$task_durations[1] <- as.integer(120  - rv$timer)
   })
   ##### Block 2 responses & duration
   observeEvent(input$blk2_ans1, {

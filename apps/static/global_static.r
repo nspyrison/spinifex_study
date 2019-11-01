@@ -61,15 +61,9 @@ training_bottom_timer_text <- "You have 2 minutes to study the display before be
 # s_top_text replaced with training_top_text[block_num()]
 # s_bottom_text replaced with training_bottom_timer_text
 
-## REMOVE?
-# l_choices <- list(NULL)
-# for (i in 1:5){ 
-#   l_choices[[i]] <- i
-# }
-# names(l_choices) <- paste0("choice ", 1:5)
 
-##### Main tabPanel -----
-main_panel <- fluidPage(
+##### main_ui -----
+main_ui <- fluidPage(
   ### Side panel only on "training" and "task" sections
   conditionalPanel(
     condition = "output.ui_section == 'training' || output.ui_section == 'task'",
@@ -100,38 +94,39 @@ main_panel <- fluidPage(
     ### _Intro mainPanel -----
     conditionalPanel(
       condition = "output.ui_section == 'intro'",
-      h3("Thank you for participating!")
+      h3("Welcome do the study.")
       , br()
       , p("This a completely voluntary study that will take approximately 25-30 
-      minutes to complete.")
+      minutes to complete. If at any point you would like to stop, please let 
+          the proctor know.")
       , br()
       , p("You are helping to compare the effectiveness of different visuals of 
-       linear projection for multi-variate data. Each participant will be 
-       assigned to one visual, they will then watch a short video demonstrating 
-       how to perform the 3 different tasks with their visuals. Participants 
-       are then able to interact with the visual, and ask any final clarifying 
-       questions before starting the evaluated section. During this section, 3 
-       repetitions 
-       of the 3 differing tasks will be recorded. Each repetition will be capped 
-       2 minutes before being asked to proceed to the next question. After the 
-       evaluation section there is a 10-question follow-up asking about 
-       demographic information, the assigned visual, and your familiarity with
-       multi-variate data. The outline of the study is as follows:")
+          linear projection for multi-variate data. You will be assigned to one 
+          graphic, go through a training period, experiment through 3 diffent 
+          tasks and fill a short follow-up survey. 
+          The outline of the study is as follows:")
+      , tags$b("Training")
       , tags$ul(
         tags$li("Video training")
-        , tags$li("Visual and ui familiarity -- questions allowed")
-        , tags$li("Task one (3 reps) -- How many clusters are contained within the data?")
+        , tags$li("Graphic and ui familiarity -- questions encouraged")
+      )
+      , tags$b("Expiriment -- 2 minutes per task, no questions")
+      , tags$ul(
+        tags$li("Task one (3 reps) -- How many clusters are contained within the data?")
         , tags$li("Task two (3 reps) -- Rank the most important variables distinguishing groups")
         , tags$li("Task three (3 reps) -- Group correlated variables (if any)")
-        , tags$li("Follow-up questionnaire")
+      )
+      , tags$b("Follow-up")
+      , tags$ul(
+        tags$li("Short questionnaire")
         , tags$li("Response submission")
       )
       , p("Make sure to provide your email address and computer to the proctor
-   if you wish to be entered in the prize pool for top three scoring 
-   participants will receive a $50 gift card to Coles. Also, mark if you want to
-   be emailed about the subsequent publication.")
+          if you wish to be entered in the prize pool for top three scoring 
+          participants will receive a $50 gift card to Coles. Also, mark if you 
+          want to be emailed about the subsequent publication.")
       , p("Thank you again for participating.")
-    ),
+    ), # close conditionPanel -- intro
     ### _Training mainPanel -----
     conditionalPanel(
       condition = "output.ui_section == 'training'",
@@ -248,43 +243,44 @@ TEST_ui_section <- fluidPage(
     conditionalPanel(condition = "output.block_num == 3",
                      uiOutput("blk3Inputs")
     ),
-  ),
+  ), # close sidebarPanel
   mainPanel(
+    ### _Intro mainPanel -- TEST_UI
     conditionalPanel(
-      condition = "output.ui_section == 'intro' ",
-      h1("intro"), # Working alone.
-      h3("Thank you for participating!")
+      condition = "output.ui_section == 'intro'",
+      h3("Welcome do the study.")
       , br()
       , p("This a completely voluntary study that will take approximately 25-30 
-      minutes to complete.")
+      minutes to complete. If at any point you would like to stop, please let 
+          the proctor know.")
       , br()
       , p("You are helping to compare the effectiveness of different visuals of 
-       linear projection for multi-variate data. Each participant will be 
-       assigned to one visual, they will then watch a short video demonstrating 
-       how to perform the 3 different tasks with their visuals. Participants 
-       are then able to interact with the visual, and ask any final clarifying 
-       questions before starting the evaluated section. During this section, 3 
-       repetitions 
-       of the 3 differing tasks will be recorded. Each repetition will be capped 
-       2 minutes before being asked to proceed to the next question. After the 
-       evaluation section there is a 10-question follow-up asking about 
-       demographic information, the assigned visual, and your familiarity with
-       multi-variate data. The outline of the study is as follows:")
+          linear projection for multi-variate data. You will be assigned to one 
+          graphic, go through a training period, experiment through 3 diffent 
+          tasks and fill a short follow-up survey. 
+          The outline of the study is as follows:")
+      , tags$b("Training")
       , tags$ul(
         tags$li("Video training")
-        , tags$li("Visual and ui familiarity -- questions allowed")
-        , tags$li("Task one (3 reps) -- How many clusters are contained within the data?")
+        , tags$li("Graphic and ui familiarity -- questions encouraged")
+      )
+      , tags$b("Expiriment -- 2 minutes per task, no questions")
+      , tags$ul(
+        tags$li("Task one (3 reps) -- How many clusters are contained within the data?")
         , tags$li("Task two (3 reps) -- Rank the most important variables distinguishing groups")
         , tags$li("Task three (3 reps) -- Group correlated variables (if any)")
-        , tags$li("Follow-up questionnaire")
+      )
+      , tags$b("Follow-up")
+      , tags$ul(
+        tags$li("Short questionnaire")
         , tags$li("Response submission")
       )
       , p("Make sure to provide your email address and computer to the proctor
-   if you wish to be entered in the prize pool for top three scoring 
-   participants will receive a $50 gift card to Coles. Also, mark if you want to
-   be emailed about the subsequent publication.")
+          if you wish to be entered in the prize pool for top three scoring 
+          participants will receive a $50 gift card to Coles. Also, mark if you 
+          want to be emailed about the subsequent publication.")
       , p("Thank you again for participating.")
-    ),
+    ), # close conditionPanel -- intro
     conditionalPanel(
       condition = "output.ui_section == 'training' ",
       h1("training"), # working except for task_pca :/
