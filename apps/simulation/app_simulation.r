@@ -40,7 +40,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     
     tpath <- save_history(dat_std, tour_path = grand_tour(), max = 6)
     play_tour_path(tour_path = tpath, data = dat_std, col = col, pch = pch,
-                   axes = "bottomleft")
+                   axes = axes_position)
   })
   
   ### _Observes -----
@@ -127,7 +127,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     
     tpath <- save_history(dat_std, tour_path = grand_tour(), max = 6)
     play_tour_path(tour_path = tpath, data = dat_std, col = col, pch = pch,
-                   axes = "bottomleft")
+                   axes = axes_position)
   })
   
   ### _Observes -----
@@ -222,7 +222,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                          phi       = 0,
                          col       = col,
                          pch       = pch,
-                         axes      = "bottomleft",
+                         axes      = axes_position,
                          alpha     = 1)
     
     ## Returns plotly obj, make sure output is rendered and displayed as plotly, not plot.
@@ -232,7 +232,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     #                         #theta = this_theta, # manip_type fixxed to radial.
     #                         col = col,
     #                         pch = pch,
-    #                         axes = "bottomleft",
+    #                         axes = axes_position,
     #                         fps = 6)
     return(ret)
   })
@@ -249,7 +249,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   })
   
   ### Obs manip_slider motion
-  observe({
+  observeEvent(input$manip_slider, {
     if (input$manip_var != "<none>") {
       theta <- phi <- NULL
       mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
@@ -264,17 +264,23 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       
       rv$curr_basis <- ret
     }
+  })
   ### Obs update manip_slider
-  })
-  observe({
-    if (is.null(rv$curr_basis)) {rv$curr_basis <- load2_basis()} # init curr_basis
-    mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
-    if ("Radial" == "Radial") { # Fixed to Radial # input$manip_type == "Radial"
-      phi_i <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
-      this_val <- round(cos(phi_i), 1) # Rad
-    }
-    isolate(updateSliderInput(session, "manip_slider", value = this_val))
-  })
+  observeEvent(
+    {manip_var_num()
+      load2_dat()
+      input$load_x_axis
+      input$load_y_axis
+    },
+    {
+      if (is.null(rv$curr_basis)) {rv$curr_basis <- load2_basis()} # init curr_basis
+      mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
+      if ("Radial" == "Radial") { # Fixed to Radial # input$manip_type == "Radial"
+        phi_i <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
+        this_val <- round(cos(phi_i), 1) # Rad
+      }
+      isolate(updateSliderInput(session, "manip_slider", value = this_val))
+    })
   
   
   ### Outputs -----

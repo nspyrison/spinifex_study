@@ -177,3 +177,16 @@ rownames(df_sim_rankings) <- NULL
 sim_rankings <- df_sim_rankings
 sim_rankings
 #write.csv(sim_rankings, "./apps/simulation/sim_rankings.csv", row.names = FALSE)
+
+### ANALYSIS -----
+library("tidyverse")
+sim_rankings <- readRDS("./apps/simulation/sim_rankings.csv")
+str(sim_rankings)
+table(sim_rankings$p)
+table(sim_rankings$n_cl) # only 3, 4
+table(sim_rankings$pnoise)
+ggplot(sim_rankings, aes(x=LD1_prop_var)) + geom_histogram() # high end are out, too simple.
+ggplot(sim_rankings, aes(x = LD1_prop_var, y = LD2_prop_var, col = factor(n_cl))) + geom_point() # high end are out, too simple.
+filter(sim_rankings, n_cl==3 & LD1_prop_var < .7)
+
+ex<- readRDS("./apps/simulation/simulation_data017.rds") 

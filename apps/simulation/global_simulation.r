@@ -10,6 +10,7 @@ library("tidyr")
 library("mvtnorm") # for simulations.
 library("plotly")
 
+axes_position <- "center"
 
 load_num  <- 1
 load_name <- sprintf("simulation_data%03d", load_num)
@@ -49,7 +50,7 @@ panel_generate <- tabPanel(
 
 ### Review (static+gtour) panel -----
 panel_review <- tabPanel(
-  "review simulation, static and grand tour",
+  "review, static and grand tour",
   sidebarPanel(
     selectInput("load_sim_name", "Simulation to review",
                 choices = load_choices)
@@ -76,7 +77,7 @@ panel_review <- tabPanel(
 
 ### Review (manual) panel -----
 panel_review_manual <- tabPanel(
-  "review simulation, manual",
+  "review, manual",
   sidebarPanel(
     selectInput("load2_sim_name", "Simulation to review",
                 choices = load_choices)

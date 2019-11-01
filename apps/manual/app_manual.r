@@ -72,7 +72,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                            phi       = 0, 
                            col       = col,
                            pch       = pch,
-                           axes      = "bottomleft",
+                           axes      = "center",
                            alpha     = 1
       )
       return(ret)
@@ -142,8 +142,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   })
   
   ### Obs slider ----
-  # x, y, radius oblique motion
-  observe({
+  observeEvent(input$manip_slider, {
     cat("you changed angles\n")
     if (input$manip_var != "<none>") {
       theta <- phi <- NULL
@@ -202,16 +201,21 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   # })
   
   
-  ### Update slider
-  observe({
-    cat("you changed basis\n")
-    #if (is.null(rv$curr_basis)) {rv$curr_basis <- basis()} # init curr_basis
+  ### Obs update slider -----
+  observeEvent(
+    {manip_var_num()
+      task_dat()
+      input$x_axis
+      input$y_axis
+    },
+    {
+    cat("you changed basis \n")
     mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
     if ("Radial" == "Radial") { # Fixed to Radial # input$manip_type == "Radial"
       phi_i <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
       this_val <- round(cos(phi_i), 1) # Rad
     }
-    isolate(updateSliderInput(session, "manip_slider", value = this_val))
+    updateSliderInput(session, "manip_slider", value = this_val)
   })
   
   
