@@ -130,17 +130,18 @@ main_ui <- fluidPage(
     ### _Training mainPanel -----
     conditionalPanel(
       condition = "output.ui_section == 'training'",
-      h1("TRAINING CONTENT HERE.") ##TODO
-      , plotOutput("task_pca", height = "auto")
-      , verbatimTextOutput("question_text")
-      , verbatimTextOutput("response_msg")
+      h1("TRAINING CONTENT HERE.")
       , h4(training_bottom_timer_text)
     ),
     ### _Task mainPanel -----
     conditionalPanel(
       condition = "output.ui_section == 'task'",
-      h1("TASK CONTENT HERE.") ##TODO 
+      h1("TASK CONTENT HERE.")
       , textOutput('timer_disp')
+    ),
+    ### _bottom half of training and task mainPanels
+    conditionalPanel( 
+      condition = "output.ui_section == 'training' || output.ui_section == 'task'"
       , plotOutput("task_pca", height = "auto")
       , verbatimTextOutput("question_text")
       , verbatimTextOutput("response_msg")
@@ -281,23 +282,22 @@ TEST_ui_section <- fluidPage(
           want to be emailed about the subsequent publication.")
       , p("Thank you again for participating.")
     ), # close conditionPanel -- intro
-    conditionalPanel(
+    conditionalPanel( # NOTE: This could be done in top_text or similar, which ever is easyier atm.
       condition = "output.ui_section == 'training' ",
-      h1("training"), # working except for task_pca :/
-      h1("TRAINING CONTENT HERE.") ##TODO
-      #, plotOutput("task_pca", height = "auto")
-      , plotOutput("TEST_plot")
-      , verbatimTextOutput("question_text")
-      , verbatimTextOutput("response_msg")
+      h1("training"),
+      h1("TRAINING CONTENT HERE.")
       , h4(training_bottom_timer_text)
     ),
     conditionalPanel( 
       condition = "output.ui_section == 'task' ",
-      h1("task") ##TODO: ISSUE INTRODUCED HERE!?! why?
-      # , textOutput('timer_disp')
-      # , plotOutput("task_pca", height = "auto")
-      # , verbatimTextOutput("question_text")
-      # , verbatimTextOutput("response_msg")
+      h1("task")
+       , textOutput('timer_disp')
+    ),
+    conditionalPanel( # bottom half of training and task sections
+      condition = "output.ui_section == 'training' || output.ui_section == 'task'"
+      , plotOutput("task_pca", height = "auto")
+      , verbatimTextOutput("question_text")
+      , verbatimTextOutput("response_msg")
     ),
     conditionalPanel(
       condition = "output.ui_section == 'survey' ",
@@ -308,8 +308,8 @@ TEST_ui_section <- fluidPage(
 ##### UI, combine panels -----
 ui <- fluidPage(
   titlePanel("Multivariate data visualization study")
-  , TEST_ui_section
-  #, main_panel
+  #, TEST_ui_section
+  , main_ui
   , actionButton("next_pg_button", "Next page")
   , verbatimTextOutput("dev_msg")
   , tableOutput("ans_tbl")

@@ -311,35 +311,47 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     rv$task_durations[12] <- as.integer(120 - rv$timer)
   })
   ##### Survey responses & duration
-  observeEvent(input$ans_ease, {
-    rv$task_responses[1]  <- input$ans_ease
+  observeEvent(input$ans_gender, {
+    rv$task_responses[1]  <- input$ans_gender
     rv$task_durations[1]  <- as.integer(120 - rv$timer)
   })
-  observeEvent(input$ans_confidence, {
-    rv$task_responses[2]  <- input$ans_confidence
+  observeEvent(input$ans_age, {
+    rv$task_responses[2]  <- input$ans_age
     rv$task_durations[2]  <- as.integer(120 - rv$timer)
   })
-  observeEvent(input$ans_understand, {
-    rv$task_responses[3]  <- input$ans_understand
+  observeEvent(input$ans_edu, {
+    rv$task_responses[3]  <- input$ans_edu
     rv$task_durations[3]  <- as.integer(120 - rv$timer)
   })
-  observeEvent(input$ans_use, {
-    rv$task_responses[4]  <- input$ans_use
+  observeEvent(input$ans_ease, {
+    rv$task_responses[4]  <- input$ans_ease
     rv$task_durations[4]  <- as.integer(120 - rv$timer)
   })
-  observeEvent(input$ans_high_dim, {
-    rv$task_responses[5]  <- input$ans_high_dim
+  observeEvent(input$ans_confidence, {
+    rv$task_responses[5]  <- input$ans_confidence
     rv$task_durations[5]  <- as.integer(120 - rv$timer)
   })
-  observeEvent(input$ans_data_vis, {
-    rv$task_responses[6]  <- input$ans_data_vis
+  observeEvent(input$ans_understand, {
+    rv$task_responses[6]  <- input$ans_understand
     rv$task_durations[6]  <- as.integer(120 - rv$timer)
   })
-  observeEvent(input$ans_previous_knowledge, {
-    rv$task_responses[7]  <- input$ans_previous_knowledge
+  observeEvent(input$ans_use, {
+    rv$task_responses[7]  <- input$ans_use
     rv$task_durations[7]  <- as.integer(120 - rv$timer)
   })
-  ## TODO: Extend with demographic questions, all 3 apps.
+  observeEvent(input$ans_high_dim, {
+    rv$task_responses[8]  <- input$ans_high_dim
+    rv$task_durations[8]  <- as.integer(120 - rv$timer)
+  })
+  observeEvent(input$ans_data_vis, {
+    rv$task_responses[9]  <- input$ans_data_vis
+    rv$task_durations[9]  <- as.integer(120 - rv$timer)
+  })
+  observeEvent(input$ans_previous_knowledge, {
+    rv$task_responses[10]  <- input$ans_previous_knowledge
+    rv$task_durations[10]  <- as.integer(120 - rv$timer)
+  })
+  ## TODO: propagate to all 3 apps.
   
   
   ### Obs next task button -----
@@ -442,7 +454,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   ##### Outputs -----
   output$timer_disp <- renderText({
-    if (rep_num() != 1) { # disp timer if not an intro page.
+    if (ui_section() == "task") { # disp timer if not an intro page.
       if (rv$timer < 1) {return("Time has expired, please enter your best guess and proceed.")
       } else {paste0("Time left: ", lubridate::seconds_to_period(rv$timer))}
     } else {return()}
@@ -457,8 +469,8 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   output$training_top_text    <- renderText(training_top_text[block_num()])
   ### general task outputs
   output$question_text  <- renderText(s_block_questions[block_num()])
-  output$TEST_plot      <- renderPlot(plot(1,1))
-  #output$task_pca       <- renderPlot({task_pca()}, height = 800) 
+  #output$TEST_plot      <- renderPlot(plot(1,1))
+  output$task_pca       <- renderPlot({task_pca()}, height = 800) 
   output$task_gtour     <- renderPlotly({task_gtour()})
   output$ans_tbl        <- renderTable({rv$ans_tbl})
   
