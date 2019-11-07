@@ -13,12 +13,11 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   rv$save_file      <- NULL
   rv$ans_tbl        <- NULL
   
-  
   ##### Start reactives
+  p1 <- reactive({ ncol(s_dat[[1]]) })
   p2 <- reactive({ ncol(s_dat[[2]]) })
   p3 <- reactive({ ncol(s_dat[[3]]) })
-  p4 <- reactive({ ncol(s_dat[[4]]) })
-  p_sims <- reactive({ p2() + p3() + p4() })
+  p_sims <- reactive({ p1() + p2() + p3() })
   section_num <- reactive({
     if (rv$pg_num >= training_start & rv$pg_num < task_start){ # in training section
       return(rv$pg_num - (training_start - 1))
@@ -39,9 +38,12 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     paste0(s_blocks[block_num()], rep_num())
   })
   task_dat <- reactive({
-    ret <- s_dat[[rep_num()]]
-    colnames(ret) <- paste0("V", 1:ncol(ret))
-    return(ret) 
+    if (ui_section() == "training") {sim_intro
+    } else {
+      ret <- s_dat[[rep_num()]]
+      colnames(ret) <- paste0("V", 1:ncol(ret))
+      return(ret) 
+    }
   })
   ui_section <- reactive({
     if (rv$pg_num == 1) {return("intro")}
@@ -57,21 +59,23 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     if (rv$timer_active | ui_section() == "training") {
       dat <- task_dat()
       dat_std <- tourr::rescale(dat)
+      pca <- prcomp(dat_std)
+      
       if (block_num() == 1) {
         col = "black"
         pch = 16
+        axes_position <- "off"
       }
       if (block_num() == 2){
         col <- col_of(attributes(dat)$cluster)
         pch <- pch_of(attributes(dat)$cluster)
+        axes_position <- "center"
       }
       if (block_num() == 3) {
         col <- col_of(attributes(dat)$cluster, pallet_name = "Paired")
         pch <- 3 + pch_of(attributes(dat)$cluster)
+        axes_position <- "center"
       }
-      axes_position <- "center"
-      pca <- prcomp(dat_std)
-
       if (block_num() != 2) { # not 2nd block.
         pca_x <- data.frame(2 * (tourr::rescale(pca$x) - .5))
         pca_rotation <- set_axes_position(data.frame(t(pca$rotation)),
@@ -84,8 +88,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       }
       
       pca_pct_var <- round(100 * pca$sdev^2 / sum(pca$sdev^2), 1)
-      
-      #browser() # error here, input$x_axis is NULL
       pca_x_axis <- input$x_axis
       pca_y_axis <- input$y_axis
       rot_x_axis <- paste0("V", substr(pca_x_axis,3,3))
@@ -100,29 +102,34 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                 axes_position)
       zero  <- set_axes_position(0, axes_position)
       
-      ggplot() +
+      ret <- ggplot() +
         # data points
         geom_point(pca_x, mapping = aes(x = get(pca_x_axis),
                                         y = get(pca_y_axis)),
-                   color = col, fill = col, shape = pch) +
-        # axis segments
-        geom_segment(pca_rotation,
-                     mapping = aes(x = get(rot_x_axis), xend = zero,
-                                   y = get(rot_y_axis), yend = zero),
-                     size = .3, colour = "red") +
-        # axis label text
-        geom_text(pca_rotation,
-                  mapping = aes(x = get(rot_x_axis),
-                                y = get(rot_y_axis),
-                                label = colnames(pca_rotation)),
-                  size = 6, colour = "red", fontface = "bold",
-                  vjust = "outward", hjust = "outward") +
-        # Cirle path
-        geom_path(circ,
-                  mapping = aes(x = x, y = y),
-                  color = "grey80", size = .3, inherit.aes = F) +
-        # Options
-        theme_minimal() +
+                   color = col, fill = col, shape = pch)
+      
+        if (axes_position != "off") {
+          # axis segments
+          ret <- ret +
+            geom_segment(pca_rotation,
+                         mapping = aes(x = get(rot_x_axis), xend = zero,
+                                       y = get(rot_y_axis), yend = zero),
+                         size = .3, colour = "red") +
+            # axis label text
+            geom_text(pca_rotation,
+                      mapping = aes(x = get(rot_x_axis),
+                                    y = get(rot_y_axis),
+                                    label = colnames(pca_rotation)),
+                      size = 6, colour = "red", fontface = "bold",
+                      vjust = "outward", hjust = "outward") +
+            # Cirle path
+            geom_path(circ,
+                      mapping = aes(x = x, y = y),
+                      color = "grey80", size = .3, inherit.aes = F)
+        }
+      
+      # Options
+      ret <- ret + theme_minimal() +
         theme(aspect.ratio = 1) +
         scale_color_brewer(palette = "Dark2") +
         theme(panel.grid.major = element_blank(),
@@ -133,6 +140,8 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
               axis.title.y = element_text(size = 22, face = "bold"),
               legend.position = 'none') +
         labs(x = x_lab, y = y_lab)
+      
+      return(ret)
     }
   })
   
@@ -140,24 +149,24 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ### Response table -----
   ans_tbl <- reactive({
     col_blockrep <- c(s_blockrep_id[1:3],          # block 1
-                      rep(s_blockrep_id[4], p2()), # block 2
-                      rep(s_blockrep_id[5], p3()), 
-                      rep(s_blockrep_id[6], p4()), 
-                      rep(s_blockrep_id[7], p2()), # block 3
-                      rep(s_blockrep_id[8], p3()), 
-                      rep(s_blockrep_id[9], p4()), 
+                      rep(s_blockrep_id[4], p1()), # block 2
+                      rep(s_blockrep_id[5], p2()), 
+                      rep(s_blockrep_id[6], p3()), 
+                      rep(s_blockrep_id[7], p1()), # block 3
+                      rep(s_blockrep_id[8], p2()), 
+                      rep(s_blockrep_id[9], p3()), 
                       paste0("survey", 1:10)       # survey
     )
     col_var      <- c(rep(NA, 3),   # block 1
-                      rep(c(1:p2(), # block 2 & 3
-                            1:p3(), 
-                            1:p4()), 2),
+                      rep(c(1:p1(), # block 2 & 3
+                            1:p2(), 
+                            1:p3()), 2),
                       rep(NA, 10))  # survey
     s_sim_id     <- c("001", "002", "003")
     col_sim_id   <- c(s_sim_id,                     # block 1
-                      rep(c(rep(s_sim_id[1], p2()), # block 2 & 3
-                            rep(s_sim_id[2], p3()), 
-                            rep(s_sim_id[3], p4())), 2),
+                      rep(c(rep(s_sim_id[1], p1()), # block 2 & 3
+                            rep(s_sim_id[2], p2()), 
+                            rep(s_sim_id[3], p3())), 2),
                       rep(NA, 10))                  # survey
     col_question <- c(rep(s_block_questions[1], n_reps),   # block 1
                       rep(s_block_questions[2], p_sims()), # block 2
@@ -381,9 +390,9 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     # Set structure for responses and durations
     if(block_num() == 1) {this_n <- 1
     } else {
-      if(rep_num() == 1) {this_n <- p2()}
-      if(rep_num() == 2) {this_n <- p3()}
-      if(rep_num() == 3) {this_n <- p4()}
+      if(rep_num() == 1) {this_n <- p1()}
+      if(rep_num() == 2) {this_n <- p2()}
+      if(rep_num() == 3) {this_n <- p3()}
       if(ui_section() == "survey") {this_n <- length(s_survey_questions)}
     }
     rv$task_responses <- rep("default", this_n)
@@ -461,16 +470,17 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   })
   ### Controls ui coditionalPanels 
   output$ui_section     <- reactive(ui_section())
+  output$rep_num        <- reactive(rep_num())   # controls ui wording.
+  output$block_num      <- reactive(block_num()) # controls ui response layout
   outputOptions(output, "ui_section", suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
-  output$block_num      <- reactive(block_num())
-  outputOptions(output, "block_num", suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
+  outputOptions(output, "rep_num",    suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
+  outputOptions(output, "block_num",  suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
   ### training outputs
   output$training_header_text <- renderText(training_header_text[block_num()])
   output$training_top_text    <- renderText(training_top_text[block_num()])
   ### general task outputs
-  output$question_text  <- renderText(s_block_questions[block_num()])
   #output$TEST_plot      <- renderPlot(plot(1,1))
-  output$task_pca       <- renderPlot({task_pca()}, height = 800) 
+  output$task_pca       <- renderPlot({task_pca()}, height = 640) 
   output$task_gtour     <- renderPlotly({task_gtour()})
   output$ans_tbl        <- renderTable({rv$ans_tbl})
   

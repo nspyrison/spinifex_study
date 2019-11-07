@@ -30,7 +30,7 @@ s_survey_questions <- c("What gender are you?",
                         "This visualization is easily understandable.",
                         "I would recommend using this visualization",
                         "I am an expert on multivariate  data and related visualization",
-                        "I have broad experience with data disualization.",
+                        "I have broad experience with data visualization.",
                         "I had previous knowledge of this visualization.")
 study_factor <- "static"
 
@@ -45,21 +45,7 @@ sim_intro <- readRDS("../simulation/simulation_data021.rds") # p = 6, pnoise = 2
 sim1      <- readRDS("../simulation/simulation_data001.rds") # "./apps/simulation/simulation_data001.rds"
 sim2      <- readRDS("../simulation/simulation_data002.rds")
 sim3      <- readRDS("../simulation/simulation_data003.rds")
-s_dat <- list(sim_intro, sim1, sim2, sim3)
-
-
-###### Text initialization -----
-## TODO: make sure to duplicate this section in other apps
-training_header_text <- paste0("Training -- ", s_block_names)
-training_top_text <- c("In this section you will be asked to determine the number of clusters contained in the data. "
-                       , "In this section you will be asked to determine the number of how few variables accurately portray the variation in the data. "
-                       , "In this section you will be asked to determine which variables are highly correlated. ")
-training_bottom_timer_text <- "You have 2 minutes to study the display before being prompted to submit your answer."
-
-## DEV NOTE:
-# s_question_text replaced with s_block_questions[block_num()]
-# s_top_text replaced with training_top_text[block_num()]
-# s_bottom_text replaced with training_bottom_timer_text
+s_dat <- list(sim1, sim2, sim3)
 
 
 ##### main_ui -----
@@ -101,8 +87,8 @@ main_ui <- fluidPage(
           the proctor know.")
       , br()
       , p("You are helping to compare the effectiveness of different visuals of 
-          linear projection for multi-variate data. You will be assigned to one 
-          graphic, go through a training period, experiment through 3 diffent 
+          linear projections for multivariate data. You will be assigned to one 
+          graphic, go through a training period, experiment through 3 different 
           tasks and fill a short follow-up survey. 
           The outline of the study is as follows:")
       , tags$b("Training")
@@ -130,8 +116,38 @@ main_ui <- fluidPage(
     ### _Training mainPanel -----
     conditionalPanel(
       condition = "output.ui_section == 'training'",
-      h1("TRAINING CONTENT HERE.")
-      , h4(training_bottom_timer_text)
+      p("This data has 6 variables. Principle Componant Analysis (PCA) defines 
+        new axes components (as linear combinations of the original variable),
+        ordered by the amount of variation they explain. This display can view
+        combinations of any two different principal components by selecting the
+        the x- and y-axes on the sidebar to the left.")
+      , p("Take time to familiarize yourself with the controls and feel free to 
+          ask any questions. During the experiment section, you will have two 
+          minutes to explore the data, responding as accurately and quickly 
+          as possible.")
+      , conditionalPanel( # first block text
+        condition = "output.rep_num == 1",
+        tags$b("The first task is to guess the number clusters in the data. Explore 
+          more components to better inform your understanding of the clusters. 
+          When you are ready enter the number of clusters on the sidebar.")
+      )
+      , conditionalPanel( # second block text
+        condition = "output.rep_num == 2",
+        tags$b("The second task is to rank the top four variables in order of imporance 
+        for distinguishing clusters. The points have colored and shape assigned 
+        by cluster. The variable map in the middle of the display shows the direction
+        and magnitude that each variable contributes for the set of axes. Use 
+        the variable map to identitify the variables that contribute to 
+        distingishing clusters. Look at several componets to rank 
+        the top four variables that help distinguish clusters.")
+      )
+      , conditionalPanel( # Third block text
+        condition = "output.rep_num == 3",
+        tags$b("The third task is to identify groups of correllated variables. Variables
+        that point in the same direction on the variable map correllated. Looking 
+        at differnet components try to identify any and all groups of correllated 
+        variables.")
+      )
     ),
     ### _Task mainPanel -----
     conditionalPanel(
@@ -143,7 +159,6 @@ main_ui <- fluidPage(
     conditionalPanel( 
       condition = "output.ui_section == 'training' || output.ui_section == 'task'"
       , plotOutput("task_pca", height = "auto")
-      , verbatimTextOutput("question_text")
       , verbatimTextOutput("response_msg")
     ),
     ### _Survey mainPanel -----
@@ -221,94 +236,10 @@ main_ui <- fluidPage(
 ) # close main_panel assignment 
 
 
-### TEST_UI_SECTION -----
-TEST_ui_section <- fluidPage(
-  sidebarPanel(
-    fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
-             column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2"))
-    ),
-    hr(), # horizontal line
-    conditionalPanel(condition = "output.block_num == 1",
-                     numericInput("blk1_ans", "How many clusters exist within the data?",
-                                  value = 0, min = 0, max = 10)
-    ),
-    conditionalPanel(condition = "output.block_num == 2",
-                     div(style = 'width:400px;',
-                         div(style = 'float:left; color:red; font-size:14px', 
-                             strong('most important')),
-                         div(style = 'float:right; color:red; font-size:14px', 
-                             strong('least important'))),
-                     tags$br(),
-                     uiOutput("blk2Inputs")
-    ),
-    conditionalPanel(condition = "output.block_num == 3",
-                     uiOutput("blk3Inputs")
-    ),
-  ), # close sidebarPanel
-  mainPanel(
-    ### _Intro mainPanel -- TEST_UI
-    conditionalPanel(
-      condition = "output.ui_section == 'intro'",
-      h3("Welcome do the study.")
-      , br()
-      , p("This a completely voluntary study that will take approximately 25-30 
-      minutes to complete. If at any point you would like to stop, please let 
-          the proctor know.")
-      , br()
-      , p("You are helping to compare the effectiveness of different visuals of 
-          linear projection for multi-variate data. You will be assigned to one 
-          graphic, go through a training period, experiment through 3 diffent 
-          tasks and fill a short follow-up survey. 
-          The outline of the study is as follows:")
-      , tags$b("Training")
-      , tags$ul(
-        tags$li("Video training")
-        , tags$li("Graphic and ui familiarity -- questions encouraged")
-      )
-      , tags$b("Expiriment -- 2 minutes per task, no questions")
-      , tags$ul(
-        tags$li("Task one (3 reps) -- How many clusters are contained within the data?")
-        , tags$li("Task two (3 reps) -- Rank the most important variables distinguishing groups")
-        , tags$li("Task three (3 reps) -- Group correlated variables (if any)")
-      )
-      , tags$b("Follow-up")
-      , tags$ul(
-        tags$li("Short questionnaire")
-        , tags$li("Response submission")
-      )
-      , p("Make sure to provide your email address and computer to the proctor
-          if you wish to be entered in the prize pool for top three scoring 
-          participants will receive a $50 gift card to Coles. Also, mark if you 
-          want to be emailed about the subsequent publication.")
-      , p("Thank you again for participating.")
-    ), # close conditionPanel -- intro
-    conditionalPanel( # NOTE: This could be done in top_text or similar, which ever is easyier atm.
-      condition = "output.ui_section == 'training' ",
-      h1("training"),
-      h1("TRAINING CONTENT HERE.")
-      , h4(training_bottom_timer_text)
-    ),
-    conditionalPanel( 
-      condition = "output.ui_section == 'task' ",
-      h1("task")
-       , textOutput('timer_disp')
-    ),
-    conditionalPanel( # bottom half of training and task sections
-      condition = "output.ui_section == 'training' || output.ui_section == 'task'"
-      , plotOutput("task_pca", height = "auto")
-      , verbatimTextOutput("question_text")
-      , verbatimTextOutput("response_msg")
-    ),
-    conditionalPanel(
-      condition = "output.ui_section == 'survey' ",
-      h1("survey")
-    )
-  ) # close mainPanel()
-) # close TEST_ui_section assignment
+
 ##### UI, combine panels -----
 ui <- fluidPage(
   titlePanel("Multivariate data visualization study")
-  #, TEST_ui_section
   , main_ui
   , actionButton("next_pg_button", "Next page")
   , verbatimTextOutput("dev_msg")
