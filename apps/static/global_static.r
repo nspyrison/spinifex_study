@@ -119,6 +119,15 @@ main_ui <- fluidPage(
     ### _Training mainPanel -----
     conditionalPanel(
       condition = "output.ui_section == 'training'",
+      conditionalPanel(condition = "output.block_num == 1",
+                       h2("Training -- task 1")
+      ),
+      conditionalPanel(condition = "output.block_num == 2",
+                       h2("Training -- task 2")
+      ),
+      conditionalPanel(condition = "output.block_num == 3",
+                       h2("Training -- task 3")
+      ),
       p("This data has 6 variables. Principle Componant Analysis (PCA) defines 
         new axes components (as linear combinations of the original variable),
         ordered by the amount of variation they explain. This display can view
@@ -231,7 +240,11 @@ main_ui <- fluidPage(
                   min = 1, max = 9, value = 5),
       actionButton("save_ans", "save responses"),
       verbatimTextOutput("save_msg"),
-      h4("Thank you for participating.")
+      conditionalPanel(
+        condition = "output.is_saved == 1",
+        h3("Thank you for participating!"),
+        h4("Let the proctor know you have completed the study and have a good day.")
+      )
     ) # close survey mainPanel
     
   ) # close mainPanel()
@@ -247,7 +260,7 @@ ui <- fluidPage(
     condition = "output.pg_num < 14",
     actionButton("next_pg_button", "Next page")
   )
-  , verbatimTextOutput("dev_msg")
-  , tableOutput("ans_tbl")
+  # , verbatimTextOutput("dev_msg")
+  # , tableOutput("ans_tbl")
 )
 

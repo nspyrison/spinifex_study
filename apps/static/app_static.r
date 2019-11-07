@@ -414,7 +414,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     save_base <- paste0("response_table_", study_factor)
     if (!is.null(rv$save_file)){ # if save already exists 
       output$save_msg <- renderPrint(cat("Reponses already saved as ", rv$save_file, 
-                                         ". Thank you for participating!", sep = ""))
+                                         ".", sep = ""))
       return()
     }
     if (input$save_ans > 5){
@@ -480,10 +480,12 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   output$rep_num    <- reactive(rep_num())   # controls ui wording.
   output$block_num  <- reactive(block_num()) # controls ui response layout
   output$pg_num     <- reactive(rv$pg_num)   # controls ui next_task button
+  output$is_saved   <- reactive(if (is.null(rv$save_file)) {0} else {1}) # Control thank you.
   outputOptions(output, "ui_section", suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
   outputOptions(output, "rep_num",    suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
   outputOptions(output, "block_num",  suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
   outputOptions(output, "pg_num",     suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
+  outputOptions(output, "is_saved",     suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
   ### training outputs
   output$training_header_text <- renderText(training_header_text[block_num()])
   output$training_top_text    <- renderText(training_top_text[block_num()])
