@@ -28,11 +28,15 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     return(1) # dummy 1, NA and 999 cause other issues.
   })
   block_num <- reactive({
-    1 + (section_num() - 1) %/% n_reps
+    if (ui_section() == "training") {return(section_num())
+    } else {
+      return(1 + (section_num() - 1) %/% n_reps)
+    }
   })
   rep_num <- reactive({
-    if (section_num() - (n_reps * (block_num() - 1)) == 0) {browser()}
-    section_num() - (n_reps * (block_num() - 1))
+    if (ui_section() == "training") {return(section_num())}
+    if (section_num() - (n_reps * (block_num() - 1)) <= 0) {browser()}
+    return(section_num() - (n_reps * (block_num() - 1)))
   })
   blockrep <- reactive({
     paste0(s_blocks[block_num()], rep_num())
@@ -388,15 +392,18 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     rv$timer_active <- TRUE
     
     # Set structure for responses and durations
-    if(block_num() == 1) {this_n <- 1
+    if (block_num() == 1) {this_p <- 1
     } else {
-      if(rep_num() == 1) {this_n <- p1()}
-      if(rep_num() == 2) {this_n <- p2()}
-      if(rep_num() == 3) {this_n <- p3()}
-      if(ui_section() == "survey") {this_n <- length(s_survey_questions)}
+      if (ui_section() == "training") {this_p <- ncol(sim_intro)
+      } else {
+        if (rep_num() == 1) {this_p <- p1()}
+        if (rep_num() == 2) {this_p <- p2()}
+        if (rep_num() == 3) {this_p <- p3()}
+        if (ui_section() == "survey") {this_n <- length(s_survey_questions)}
+      }
     }
-    rv$task_responses <- rep("default", this_n)
-    rv$task_durations <- rep("default", this_n)
+    rv$task_responses <- rep("default", this_p)
+    rv$task_durations <- rep("default", this_p)
   })
   
   ### Obs save reponses button -----
@@ -469,20 +476,22 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     } else {return()}
   })
   ### Controls ui coditionalPanels 
-  output$ui_section     <- reactive(ui_section())
-  output$rep_num        <- reactive(rep_num())   # controls ui wording.
-  output$block_num      <- reactive(block_num()) # controls ui response layout
+  output$ui_section <- reactive(ui_section())
+  output$rep_num    <- reactive(rep_num())   # controls ui wording.
+  output$block_num  <- reactive(block_num()) # controls ui response layout
+  output$pg_num     <- reactive(rv$pg_num)   # controls ui next_task button
   outputOptions(output, "ui_section", suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
   outputOptions(output, "rep_num",    suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
   outputOptions(output, "block_num",  suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
+  outputOptions(output, "pg_num",     suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
   ### training outputs
   output$training_header_text <- renderText(training_header_text[block_num()])
   output$training_top_text    <- renderText(training_top_text[block_num()])
   ### general task outputs
-  #output$TEST_plot      <- renderPlot(plot(1,1))
-  output$task_pca       <- renderPlot({task_pca()}, height = 640) 
-  output$task_gtour     <- renderPlotly({task_gtour()})
-  output$ans_tbl        <- renderTable({rv$ans_tbl})
+  #output$TEST_plot  <- renderPlot(plot(1,1))
+  output$task_pca   <- renderPlot({task_pca()}, height = 640) 
+  output$task_gtour <- renderPlotly({task_gtour()})
+  output$ans_tbl    <- renderTable({rv$ans_tbl})
   
 
   
@@ -528,12 +537,12 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                     "is.null(rv$save_file): ", is.null(rv$save_file), "\n",
                                     sep = ""))
   
-  ## TODO: uncomment when to start logging. 
-  ## TODO: Copy to the other app_*.r files + rv$log_file at top
+  ## TODO: uncomment when to start logging.
+  ## TODO: Copy to the other app_*.r files.
   # ### Create log file.
-  # dput(shiny::reactlog(), 
+  # dput(shiny::reactlog(),
   #      file = paste0("reactlog_", study_factor, # + same save_num as rv$save_file
-  #                    substr(rv$save_file, nchar(rv$save_file) - 6, nchar(rv$save_file) - 4) 
+  #                    substr(rv$save_file, nchar(rv$save_file) - 6, nchar(rv$save_file) - 4),
   #                    ".txt")
   # )
 }

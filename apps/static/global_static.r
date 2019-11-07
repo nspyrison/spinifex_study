@@ -37,9 +37,9 @@ study_factor <- "static"
 ### Variable initialization ----
 n_blocks       <- length(s_blocks)
 s_blockrep_id  <- paste0(rep(s_blocks, each = n_reps), rep(1:n_reps, n_reps))
-training_start <- 2
-task_start     <- training_start + n_blocks
-survey_start   <- task_start + n_reps * n_blocks
+training_start <- 2 # pg 1 is intro, pg 2:4 is training
+task_start     <- training_start + n_blocks # ~ pg 5:13 is task  
+survey_start   <- task_start + n_reps * n_blocks # ~ pg 14 is survey 
 
 sim_intro <- readRDS("../simulation/simulation_data021.rds") # p = 6, pnoise = 2, cl = 3 
 sim1      <- readRDS("../simulation/simulation_data001.rds") # "./apps/simulation/simulation_data001.rds"
@@ -59,11 +59,13 @@ main_ui <- fluidPage(
       ),
       hr(), # horizontal line
       conditionalPanel(condition = "output.block_num == 1",
-                       numericInput("blk1_ans", "How many clusters exist within the data?",
+                       tags$b(s_block_questions[1]),
+                       numericInput("blk1_ans", "",
                                     value = 0, min = 0, max = 10)
       ),
       conditionalPanel(condition = "output.block_num == 2",
-                       div(style = 'width:400px;',
+                       tags$b(s_block_questions[2]),
+                       div(#style = 'width:400px;',
                            div(style = 'float:left; color:red; font-size:14px', 
                                strong('most important')),
                            div(style = 'float:right; color:red; font-size:14px', 
@@ -72,6 +74,7 @@ main_ui <- fluidPage(
                        uiOutput("blk2Inputs")
       ),
       conditionalPanel(condition = "output.block_num == 3",
+                       tags$b(s_block_questions[3]),
                        uiOutput("blk3Inputs")
       ),
     ) 
@@ -80,7 +83,7 @@ main_ui <- fluidPage(
     ### _Intro mainPanel -----
     conditionalPanel(
       condition = "output.ui_section == 'intro'",
-      h3("Welcome do the study.")
+      h3("Welcome to the study")
       , br()
       , p("This a completely voluntary study that will take approximately 25-30 
       minutes to complete. If at any point you would like to stop, please let 
@@ -152,8 +155,7 @@ main_ui <- fluidPage(
     ### _Task mainPanel -----
     conditionalPanel(
       condition = "output.ui_section == 'task'",
-      h1("TASK CONTENT HERE.")
-      , textOutput('timer_disp')
+      textOutput('timer_disp')
     ),
     ### _bottom half of training and task mainPanels
     conditionalPanel( 
@@ -241,7 +243,10 @@ main_ui <- fluidPage(
 ui <- fluidPage(
   titlePanel("Multivariate data visualization study")
   , main_ui
-  , actionButton("next_pg_button", "Next page")
+  , conditionalPanel(
+    condition = "output.pg_num < 14",
+    actionButton("next_pg_button", "Next page")
+  )
   , verbatimTextOutput("dev_msg")
   , tableOutput("ans_tbl")
 )
