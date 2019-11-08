@@ -90,9 +90,8 @@ main_ui <- fluidPage(
           the proctor know.")
       , br()
       , p("You are helping to compare the effectiveness of different visuals of 
-          linear projections for multivariate data. You will be assigned to one 
-          graphic, go through a training period, experiment through 3 different 
-          tasks and fill a short follow-up survey. 
+          linear projections for multivariate data. You will help evaluate 1 
+          graphic variation by participating. 
           The outline of the study is as follows:")
       , tags$b("Training")
       , tags$ul(
@@ -102,18 +101,16 @@ main_ui <- fluidPage(
       , tags$b("Expiriment -- 2 minutes per task, no questions")
       , tags$ul(
         tags$li("Task one (3 reps) -- How many clusters are contained within the data?")
-        , tags$li("Task two (3 reps) -- Rank the most important variables distinguishing groups")
-        , tags$li("Task three (3 reps) -- Group correlated variables (if any)")
+        , tags$li("Task 2 (3 reps) -- Rank the most important variables distinguishing groups")
+        , tags$li("Task 3 (3 reps) -- Group correlated variables (if any)")
       )
       , tags$b("Follow-up")
       , tags$ul(
         tags$li("Short questionnaire")
         , tags$li("Response submission")
       )
-      , p("Make sure to provide your email address and computer to the proctor
-          if you wish to be entered in the prize pool for top three scoring 
-          participants will receive a $50 gift card to Coles. Also, mark if you 
-          want to be emailed about the subsequent publication.")
+      , p("After completing the survey let the proctor know and collect a voucher
+          for a free hot berverage on campus.")
       , p("Thank you again for participating.")
     ), # close conditionPanel -- intro
     ### _Training mainPanel -----
@@ -131,10 +128,10 @@ main_ui <- fluidPage(
       p("This data has 6 variables. Principle Componant Analysis (PCA) defines 
         new axes components (as linear combinations of the original variable),
         ordered by the amount of variation they explain. This display can view
-        combinations of any two different principal components by selecting the
+        combinations of any 2 different principal components by selecting the
         the x- and y-axes on the sidebar to the left.")
       , p("Take time to familiarize yourself with the controls and feel free to 
-          ask any questions. During the experiment section, you will have two 
+          ask any questions. During the experiment section, you will have 2 
           minutes to explore the data, responding as accurately and quickly 
           as possible.")
       , conditionalPanel( # first block text
@@ -164,6 +161,15 @@ main_ui <- fluidPage(
     ### _Task mainPanel -----
     conditionalPanel(
       condition = "output.ui_section == 'task'",
+      conditionalPanel(condition = "output.block_num == 1",
+                       h2("Experiment -- task 1")
+      ),
+      conditionalPanel(condition = "output.block_num == 2",
+                       h2("Experiment -- task 2")
+      ),
+      conditionalPanel(condition = "output.block_num == 3",
+                       h2("Experiment -- task 3")
+      ),
       textOutput('timer_disp')
     ),
     ### _bottom half of training and task mainPanels
