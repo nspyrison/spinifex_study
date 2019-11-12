@@ -267,14 +267,16 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     rv$task_durations[10] <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk2_ans11, {
-    cat("block2; var 11 changed. \n")
-    rv$task_responses[11] <- input$blk2_ans11
-    rv$task_durations[11] <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[11] <- input$blk2_ans11
+      rv$task_durations[11] <- as.integer(120 - rv$timer)
+    }
   })
   observeEvent(input$blk2_ans12, {
-    cat("block2; var 12 changed. \n")
-    rv$task_responses[12] <- input$blk2_ans12
-    rv$task_durations[12] <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[12] <- input$blk2_ans12
+      rv$task_durations[12] <- as.integer(120 - rv$timer)
+    }
   })
   ##### Block 3 responses & duration
   observeEvent(input$blk3_ans1, {
@@ -318,14 +320,16 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     rv$task_durations[10] <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk3_ans11, {
-    cat("block3; var 11 changed. \n")
-    rv$task_responses[11] <- input$blk3_ans11
-    rv$task_durations[11] <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[11] <- input$blk3_ans11
+      rv$task_durations[11] <- as.integer(120 - rv$timer)
+    }
   })
   observeEvent(input$blk3_ans12, {
-    cat("block3; var 12 changed. \n")
-    rv$task_responses[12] <- input$blk3_ans12
-    rv$task_durations[12] <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[12] <- input$blk3_ans12
+      rv$task_durations[12] <- as.integer(120 - rv$timer)
+    }
   })
   ##### Survey responses & duration
   observeEvent(input$ans_gender, {
@@ -394,6 +398,22 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     rv$task_durations <- NULL
     rv$timer <- 120
     rv$timer_active <- TRUE
+    
+    # Reset default values
+    if (ui_section() == "task") {
+      if (block_num() == 1) { # reset to same settings.
+        updateNumericInput(session, "blk1_ans", "",
+                           value = 0, min = 0, max = 10)
+      }
+      if (block_num() == 2) { # reset to same settings.
+        updateNumericInput(session, "blk1_ans", "",
+                           value = 0, min = 0, max = 10)
+      }
+      if (block_num() == 3) { # reset to same settings.
+        updateNumericInput(session, "blk1_ans", "",
+                           value = 0, min = 0, max = 10)
+      }
+    }
     
     # Set structure for responses and durations
     this_p <- 0 
@@ -495,28 +515,26 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ### Block 2 inputs, importance rank -----
   # ie. output$blk2_ans1 is the value for block 2 question about var 1.
   output$blk2Inputs <- renderUI({
-    holder <- rv$task_responses 
+    #holder <- rv$task_responses 
     i <- j <- ncol(task_dat())
     lapply(1:i, function(i) {
-      isolate(
         radioButtons(inputId = paste0("blk2_ans", i), label = paste("Variable ", i),
                      choices = c(as.character(1:j), "unimportant"), 
                      selected = "unimportant", inline = TRUE)
-      )
     })
-    rv$task_responses <- holder
+    #rv$task_responses <- holder
   })
   
   ### Block 3 inputs, noise -----
   output$blk3Inputs <- renderUI({
-    holder <- rv$task_responses 
+    #holder <- rv$task_responses 
     i <- ncol(task_dat())
     lapply(1:i, function(i) {
         radioButtons(inputId = paste0("blk3_ans", i), label = paste("Variable", i),
                            choices = c("group1", "group2", "group3", "group4", "not correlated"), 
                            selected = "not correlated", inline = TRUE)
     })
-    rv$task_responses <- holder
+    #rv$task_responses <- holder
   })
   
   
