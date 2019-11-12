@@ -249,6 +249,7 @@ main_ui <- fluidPage(
       conditionalPanel(
         condition = "output.is_saved == 1",
         h3("Thank you for participating!"),
+        br(),
         h4("Let the proctor know you have completed the study and have a good day.")
       )
     ) # close survey mainPanel
@@ -266,7 +267,7 @@ ui <- fluidPage(
     condition = "output.pg_num < 14",
     actionButton("next_pg_button", "Next page")
   )
-  # , verbatimTextOutput("dev_msg")
-  # , tableOutput("ans_tbl")
+  , verbatimTextOutput("dev_msg")
+  , tableOutput("ans_tbl")
 )
 

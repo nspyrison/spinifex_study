@@ -179,7 +179,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     col_response <- c(rep(NA, n_reps),        # block 1
                       rep(NA, p_sims()),      # block 2
                       rep(NA, p_sims()),      # block 3
-                      rep("5 (default)", 10)) # survey 
+                      rep(NA, 10)) # survey
     col_duration <- c(rep(NA, n_reps),   # block 1
                       rep(NA, p_sims()), # block 2
                       rep(NA, p_sims()), # block 3
@@ -267,10 +267,12 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     rv$task_durations[10] <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk2_ans11, {
+    cat("block2; var 11 changed. \n")
     rv$task_responses[11] <- input$blk2_ans11
     rv$task_durations[11] <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk2_ans12, {
+    cat("block2; var 12 changed. \n")
     rv$task_responses[12] <- input$blk2_ans12
     rv$task_durations[12] <- as.integer(120 - rv$timer)
   })
@@ -316,10 +318,12 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     rv$task_durations[10] <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk3_ans11, {
+    cat("block3; var 11 changed. \n")
     rv$task_responses[11] <- input$blk3_ans11
     rv$task_durations[11] <- as.integer(120 - rv$timer)
   })
   observeEvent(input$blk3_ans12, {
+    cat("block3; var 12 changed. \n")
     rv$task_responses[12] <- input$blk3_ans12
     rv$task_durations[12] <- as.integer(120 - rv$timer)
   })
@@ -361,30 +365,30 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     rv$task_durations[9]  <- as.integer(120 - rv$timer)
   })
   observeEvent(input$ans_previous_knowledge, {
-    rv$task_responses[10]  <- input$ans_previous_knowledge
-    rv$task_durations[10]  <- as.integer(120 - rv$timer)
+    rv$task_responses[10] <- input$ans_previous_knowledge
+    rv$task_durations[10] <- as.integer(120 - rv$timer)
   })
   ## TODO: propagate to all 3 apps.
   
   
-  ### Obs next task button -----
+  ### Obs next page button -----
   observeEvent(input$next_pg_button, {
     # if <on last task> {<do nothing>}
     if (rv$pg_num >= survey_start){ return() }
     # Init rv$ans_tbl <- ans_tbl() on first press
     if (rv$pg_num == 1){ rv$ans_tbl <- ans_tbl() }
     
-    # Write this_ans_df to ans_tbl
+    # Write this task's reponses and duration to ans_tbl
     # if (<not an intro task>) {<write repsonses and durations>}
     if (ui_section() == "task") {
-      ins_row <- which(rv$ans_tbl$blockrep == blockrep())[1]
+      ins_row <- which(rv$ans_tbl$blockrep == blockrep())[1] # first row of this blockrep.
       ins_nrows <- length(rv$task_responses) - 1
       rv$ans_tbl[ins_row:(ins_row + ins_nrows), 5] <- rv$task_responses
       rv$ans_tbl[ins_row:(ins_row + ins_nrows), 6] <- rv$task_durations
     }
     
     # Reset responses, duration, and timer for next task
-    rv$pg_num <- rv$pg_num + 1
+    rv$pg_num <- rv$pg_num + 1 # NOW LOOKING AT NEW PAGE
     output$response_msg <- renderText("")
     rv$task_responses <- NULL
     rv$task_durations <- NULL
@@ -392,52 +396,38 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     rv$timer_active <- TRUE
     
     # Set structure for responses and durations
-    if (block_num() == 1) {this_p <- 1
-    } else {
-      if (ui_section() == "training") {this_p <- ncol(sim_intro)
-      } else {
-        if (rep_num() == 1) {this_p <- p1()}
-        if (rep_num() == 2) {this_p <- p2()}
-        if (rep_num() == 3) {this_p <- p3()}
-        if (ui_section() == "survey") {this_n <- length(s_survey_questions)}
-      }
+    this_p <- 0 
+    if (ui_section() == "task") {
+      if (block_num() == 1){this_p <- 1
+      } else { this_p <- ncol(task_dat()) }
     }
+    if (ui_section() == "survey") {this_p <- length(s_survey_questions)}
+    
     rv$task_responses <- rep("default", this_p)
     rv$task_durations <- rep("default", this_p)
+    cat("page: ",rv$pg_num,". length of task_respones: ",length(rv$task_responses), ". this_p: ",this_p, " \n")
+    print(rv$task_responses)
   })
   
   ### Obs save reponses button -----
-  # If save button hit 5 times with warning, saves anyway. No double saving.
   observeEvent(input$save_ans, {
-    if (rv$pg_num == 1) {stop("Task number is 1, response table not started.")}
+    if (length(rv$task_responses) != 10) {browser()}
+    # Write survey responses to rv$ans_tbl
+    ins_nrows <- length(s_survey_questions) - 1
+    ins_row <- nrow(rv$ans_tbl) - ins_nrows
+    rv$ans_tbl[ins_row:(ins_row + ins_nrows), 5] <- rv$task_responses
+    rv$ans_tbl[ins_row:(ins_row + ins_nrows), 6] <- rv$task_durations
+    
+    # Write rv$ans_tbl to .csv file.
     df <- rv$ans_tbl
-    save_base <- paste0("response_table_", study_factor)
     if (!is.null(rv$save_file)){ # if save already exists 
       output$save_msg <- renderPrint(cat("Reponses already saved as ", rv$save_file, 
                                          ".", sep = ""))
       return()
     }
-    if (input$save_ans > 5){
-      save_num  <- 1
-      save_name <- sprintf(paste0(save_base, "%03d"), save_num)
-      save_file <- paste0(save_name, ".csv")
-      while (file.exists(save_file)){ # set the correct file number to use
-        save_name <- sprintf(paste0(save_base, "%03d"), save_num)
-        save_file <- paste0(save_name, ".csv")
-        save_num  <- save_num + 1
-      }
-      assign(save_name, df)
-      write.csv(get(save_name), file = save_file, row.names = FALSE)
-      output$save_msg <- renderPrint(cat("Reponses saved as ", save_file, 
-                                         ", dispite warning flag.", sep = ""))
-      rv$save_file <- save_file
-      return()
-    }
-    if (min(df[(nrow(df) - 6):nrow(df), 5] == 5) == 1) { # Check that last 7 survey questions not default.
-      output$save_msg <- renderText("Please verify that the survey has been answered.")
-      return()
-    }
     
+    # Do the actual saving
+    save_base <- paste0("response_table_", study_factor)
     save_num  <- 1
     save_name <- sprintf(paste0(save_base, "%03d"), save_num)
     save_file <- paste0(save_name, ".csv")
@@ -449,8 +439,12 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     assign(save_name, df)
     write.csv(get(save_name), file = save_file, row.names = FALSE)
     rv$save_file <- save_file
-    output$save_msg <- renderPrint(cat("Reponses saved as ", save_file, 
-                                       ". Thank you for participating!", sep = ""))
+    
+    output$save_msg <- renderPrint(
+      cat("Reponses saved as ", save_file, 
+          ". Thank you for participating!", sep = ""))
+    
+    return()
   })
   
   ### Obs timer -----
@@ -501,22 +495,28 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ### Block 2 inputs, importance rank -----
   # ie. output$blk2_ans1 is the value for block 2 question about var 1.
   output$blk2Inputs <- renderUI({
+    holder <- rv$task_responses 
     i <- j <- ncol(task_dat())
     lapply(1:i, function(i) {
-      radioButtons(inputId = paste0("blk2_ans", i), label = paste("Variable ", i),
-                   choices = c(as.character(1:j), "unimportant"), 
-                   selected = "unimportant", inline = TRUE)
+      isolate(
+        radioButtons(inputId = paste0("blk2_ans", i), label = paste("Variable ", i),
+                     choices = c(as.character(1:j), "unimportant"), 
+                     selected = "unimportant", inline = TRUE)
+      )
     })
+    rv$task_responses <- holder
   })
   
   ### Block 3 inputs, noise -----
   output$blk3Inputs <- renderUI({
+    holder <- rv$task_responses 
     i <- ncol(task_dat())
     lapply(1:i, function(i) {
-      radioButtons(inputId = paste0("blk3_ans", i), label = paste("Variable", i),
-                   choices = c("1", "2", "3", "4", "not correlated"), 
-                   selected = "not correlated", inline = TRUE)
+        radioButtons(inputId = paste0("blk3_ans", i), label = paste("Variable", i),
+                           choices = c("group1", "group2", "group3", "group4", "not correlated"), 
+                           selected = "not correlated", inline = TRUE)
     })
+    rv$task_responses <- holder
   })
   
   
