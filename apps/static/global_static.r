@@ -11,7 +11,8 @@ library("mvtnorm")
 library("plotly")
 library("GGally")
 library("lubridate") # For timer
-library("reactlog")  # Logging
+library("shinyEventLogger") # For logging
+## TODO: propagate library changes. 
 
 
 ### Required inputs -----
