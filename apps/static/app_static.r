@@ -222,49 +222,71 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ### Obs responses and durations -----
   ##### Block 1 responses & duration
   observeEvent(input$blk1_ans, {
-    rv$task_responses[1] <- input$blk1_ans
-    rv$task_durations[1] <- as.integer(120  - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[1] <- input$blk1_ans
+      rv$task_durations[1] <- as.integer(120  - rv$timer)
+    }
   })
   ##### Block 2 responses & duration
   observeEvent(input$blk2_ans1, {
-    rv$task_responses[1]  <- input$blk2_ans1
-    rv$task_durations[1]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[1]  <- input$blk2_ans1
+      rv$task_durations[1]  <- as.integer(120 - rv$timer)
+    }
   })
   observeEvent(input$blk2_ans2, {
-    rv$task_responses[2]  <- input$blk2_ans2
-    rv$task_durations[2]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[2]  <- input$blk2_ans2
+      rv$task_durations[2]  <- as.integer(120 - rv$timer)
+    }
   })
-  observeEvent(input$blk2_ans3, { 
-    rv$task_responses[3]  <- input$blk2_ans3
-    rv$task_durations[3]  <- as.integer(120 - rv$timer)
+  observeEvent(input$blk2_ans3, {
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[3]  <- input$blk2_ans3
+      rv$task_durations[3]  <- as.integer(120 - rv$timer)
+    }
   })
   observeEvent(input$blk2_ans4, {
-    rv$task_responses[4]  <- input$blk2_ans4
-    rv$task_durations[4]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[4]  <- input$blk2_ans4
+      rv$task_durations[4]  <- as.integer(120 - rv$timer)
+    }
   })
   observeEvent(input$blk2_ans5, {
-    rv$task_responses[5]  <- input$blk2_ans5
-    rv$task_durations[5]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[5]  <- input$blk2_ans5
+      rv$task_durations[5]  <- as.integer(120 - rv$timer)
+    }
   })
   observeEvent(input$blk2_ans6, {
-    rv$task_responses[6]  <- input$blk2_ans6
-    rv$task_durations[6]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[6]  <- input$blk2_ans6
+      rv$task_durations[6]  <- as.integer(120 - rv$timer)
+    }
   })
   observeEvent(input$blk2_ans7, {
-    rv$task_responses[7]  <- input$blk2_ans7
-    rv$task_durations[7]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[7]  <- input$blk2_ans7
+      rv$task_durations[7]  <- as.integer(120 - rv$timer)
+    }
   })
   observeEvent(input$blk2_ans8, {
-    rv$task_responses[8]  <- input$blk2_ans8
-    rv$task_durations[8]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[8]  <- input$blk2_ans8
+      rv$task_durations[8]  <- as.integer(120 - rv$timer)
+    }
   })
   observeEvent(input$blk2_ans9, {
-    rv$task_responses[9]  <- input$blk2_ans9
-    rv$task_durations[9]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[9]  <- input$blk2_ans9
+      rv$task_durations[9]  <- as.integer(120 - rv$timer)
+    }
   })
   observeEvent(input$blk2_ans10, {
-    rv$task_responses[10] <- input$blk2_ans10
-    rv$task_durations[10] <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[10] <- input$blk2_ans10
+      rv$task_durations[10] <- as.integer(120 - rv$timer)
+    }
   })
   observeEvent(input$blk2_ans11, {
     if((120 - rv$timer) > 1) {
@@ -280,44 +302,64 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   })
   ##### Block 3 responses & duration
   observeEvent(input$blk3_ans1, {
-    rv$task_responses[1]  <- input$blk3_ans1
-    rv$task_durations[1]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[1]  <- input$blk3_ans1
+      rv$task_durations[1]  <- as.integer(120 - rv$timer)
+    }
   })
   observeEvent(input$blk3_ans2, {
-    rv$task_responses[2]  <- input$blk3_ans2
-    rv$task_durations[2]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[2]  <- input$blk3_ans2
+      rv$task_durations[2]  <- as.integer(120 - rv$timer)
+    }
   })
-  observeEvent(input$blk3_ans3, { 
-    rv$task_responses[3]  <- input$blk3_ans3
-    rv$task_durations[3]  <- as.integer(120 - rv$timer)
+  observeEvent(input$blk3_ans3, {
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[3]  <- input$blk3_ans3
+      rv$task_durations[3]  <- as.integer(120 - rv$timer)
+    }
   })
   observeEvent(input$blk3_ans4, {
-    rv$task_responses[4]  <- input$blk3_ans4
-    rv$task_durations[4]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[4]  <- input$blk3_ans4
+      rv$task_durations[4]  <- as.integer(120 - rv$timer)
+    }
   })
   observeEvent(input$blk3_ans5, {
-    rv$task_responses[5]  <- input$blk3_ans5
-    rv$task_durations[5]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[5]  <- input$blk3_ans5
+      rv$task_durations[5]  <- as.integer(120 - rv$timer)
+    }
   })
   observeEvent(input$blk3_ans6, {
-    rv$task_responses[6]  <- input$blk3_ans6
-    rv$task_durations[6]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[6]  <- input$blk3_ans6
+      rv$task_durations[6]  <- as.integer(120 - rv$timer)
+    }
   })
   observeEvent(input$blk3_ans7, {
-    rv$task_responses[7]  <- input$blk3_ans7
-    rv$task_durations[7]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[7]  <- input$blk3_ans7
+      rv$task_durations[7]  <- as.integer(120 - rv$timer)
+    }
   })
   observeEvent(input$blk3_ans8, {
-    rv$task_responses[8]  <- input$blk3_ans8
-    rv$task_durations[8]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[8]  <- input$blk3_ans8
+      rv$task_durations[8]  <- as.integer(120 - rv$timer)
+    }
   })
   observeEvent(input$blk3_ans9, {
-    rv$task_responses[9]  <- input$blk3_ans9
-    rv$task_durations[9]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[9]  <- input$blk3_ans9
+      rv$task_durations[9]  <- as.integer(120 - rv$timer)
+    }
   })
   observeEvent(input$blk3_ans10, {
-    rv$task_responses[10] <- input$blk3_ans10
-    rv$task_durations[10] <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[10] <- input$blk3_ans10
+      rv$task_durations[10] <- as.integer(120 - rv$timer)
+    }
   })
   observeEvent(input$blk3_ans11, {
     if((120 - rv$timer) > 1) {
@@ -402,14 +444,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     # Reset default values
     if (ui_section() == "task") {
       if (block_num() == 1) { # reset to same settings.
-        updateNumericInput(session, "blk1_ans", "",
-                           value = 0, min = 0, max = 10)
-      }
-      if (block_num() == 2) { # reset to same settings.
-        updateNumericInput(session, "blk1_ans", "",
-                           value = 0, min = 0, max = 10)
-      }
-      if (block_num() == 3) { # reset to same settings.
         updateNumericInput(session, "blk1_ans", "",
                            value = 0, min = 0, max = 10)
       }
@@ -515,26 +549,25 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ### Block 2 inputs, importance rank -----
   # ie. output$blk2_ans1 is the value for block 2 question about var 1.
   output$blk2Inputs <- renderUI({
-    #holder <- rv$task_responses 
     i <- j <- ncol(task_dat())
-    lapply(1:i, function(i) {
-        radioButtons(inputId = paste0("blk2_ans", i), label = paste("Variable ", i),
-                     choices = c(as.character(1:j), "unimportant"), 
-                     selected = "unimportant", inline = TRUE)
-    })
-    #rv$task_responses <- holder
+    #cnt <- rv$pg_num
+    #div(id = letters[(cnt %% length(letters)) + 1],
+        lapply(1:i, function(i) {
+          radioButtons(inputId = paste0("blk2_ans", i), label = paste("Variable ", i),
+                       choices = c(as.character(1:j), "unimportant"), 
+                       selected = "unimportant", inline = TRUE)
+        })
+    #)
   })
   
   ### Block 3 inputs, noise -----
   output$blk3Inputs <- renderUI({
-    #holder <- rv$task_responses 
     i <- ncol(task_dat())
     lapply(1:i, function(i) {
         radioButtons(inputId = paste0("blk3_ans", i), label = paste("Variable", i),
                            choices = c("group1", "group2", "group3", "group4", "not correlated"), 
                            selected = "not correlated", inline = TRUE)
     })
-    #rv$task_responses <- holder
   })
   
   
