@@ -391,7 +391,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   output$task_gtour    <- renderPlotly({task_gtour()}) # , height = 800)
   output$ans_tbl       <- renderTable({rv$ans_tbl})
   
-  ### Block 2 inputs, importance rank -----
+  ### Block 2 inputs, rate importance -----
   output$blk2Inputs <- renderUI({
     i <- j <- ncol(task_dat())
     lapply(1:i, function(i) {

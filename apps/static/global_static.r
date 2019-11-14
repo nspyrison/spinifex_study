@@ -21,7 +21,7 @@ n_reps <- 3
 s_blocks <- c("n", "d", "s")
 s_block_names <- c("clusters, n", "important variable, r", "correlated variables, s")
 s_block_questions <- c("How many clusters exist?",
-                       "Rank the variables in order of importance to distinguish groups?",
+                       "Rate the variables in order of importance to distinguish groups.",
                        "Group any/all correlated variables.")
 s_survey_questions <- c("What gender are you?",
                         "What age are you?",
@@ -102,7 +102,7 @@ main_ui <- fluidPage(
       , tags$b("Expiriment -- 2 minutes per task, no questions")
       , tags$ul(
         tags$li("Task one (3 reps) -- How many clusters are contained within the data?")
-        , tags$li("Task 2 (3 reps) -- Rank the most important variables distinguishing groups")
+        , tags$li("Task 2 (3 reps) -- Rate the variables importance for distinguishing groups")
         , tags$li("Task 3 (3 reps) -- Group correlated variables (if any)")
       )
       , tags$b("Follow-up")
@@ -143,12 +143,12 @@ main_ui <- fluidPage(
       )
       , conditionalPanel( # second block text
         condition = "output.rep_num == 2",
-        tags$b("The second task is to rank the top four variables in order of imporance 
+        tags$b("The second task is to rate the variables in order of imporance 
         for distinguishing clusters. The points have colored and shape assigned 
         by cluster. The variable map in the middle of the display shows the direction
         and magnitude that each variable contributes for the set of axes. Use 
         the variable map to identitify the variables that contribute to 
-        distingishing clusters. Look at several componets to rank 
+        distingishing clusters. Look at several componets to rate
         the top four variables that help distinguish clusters.")
       )
       , conditionalPanel( # Third block text
@@ -177,7 +177,7 @@ main_ui <- fluidPage(
     conditionalPanel( 
       condition = "output.ui_section == 'training' || output.ui_section == 'task'"
       , plotOutput("task_pca", height = "auto")
-      , verbatimTextOutput("response_msg")
+      , htmlOutput("plot_msg")
     ),
     ### _Survey mainPanel -----
     conditionalPanel(

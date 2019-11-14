@@ -1,8 +1,9 @@
-load_name <- "simulation_data001"
+load_name <- "simulation_data021"
 local_file <- paste0("./apps/simulation/", load_name, ".rds")
 assign(load_name, readRDS(local_file))
 
-d <- simulation_data001
+d <- get(load_name)
+colnames(d) <- paste0("V", 1:ncol(d))
 p <- ncol(d)
 n_cl <- length(attr(d, "ncl"))
 reord <- attr(d, "col_reorder")
@@ -14,7 +15,8 @@ colnames(mncl) <- paste0("V", 1:p)
 cl_mn <- rowMeans(mncl)
 cl_mn
 sum_sq <- apply(mncl, 2, function(x) {sum((x - cl_mn)^2)}) # sum of squares
-rank <- order(sum_sq, decreasing = T)
+ord <- order(as.numeric(sum_sq), decreasing = T)
+sum_sq <- sum_sq[ord]
 
-df <- rbind(sum_sq, rank) # double check rank, wasn't correct at one point.
+df <- rbind(sum_sq, rank = as.integer(1:length(sum_sq))) # double check rate wasn't correct at one point.
 df

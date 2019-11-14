@@ -475,7 +475,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   output$basis_tbl     <- renderTable(as.data.frame(rv$curr_basis), rownames = TRUE)
   
   # output$blk1_ans defined in global
-  ### Block 2 inputs, rank importance -----
+  ### Block 2 inputs, rate importance -----
   output$blk2Inputs <- renderUI({
     i <- j <- ncol(task_dat())
     lapply(1:i, function(i) {

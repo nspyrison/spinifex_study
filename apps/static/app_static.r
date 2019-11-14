@@ -12,6 +12,8 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   rv$task_durations <- NULL
   rv$save_file      <- NULL
   rv$ans_tbl        <- NULL
+  rv$training_passes   <- FALSE
+  rv$training_attempts <- 1
   
   ##### Start reactives
   p1 <- reactive({ ncol(s_dat[[1]]) })
@@ -35,7 +37,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   })
   rep_num <- reactive({
     if (ui_section() == "training") {return(section_num())}
-    if (section_num() - (n_reps * (block_num() - 1)) <= 0) {browser()}
+    if (section_num() - (n_reps * (block_num() - 1)) <= 0) {stop("check rep_num() it's <= 0.")}
     return(section_num() - (n_reps * (block_num() - 1)))
   })
   blockrep <- reactive({
@@ -66,8 +68,13 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       pca <- prcomp(dat_std)
       
       if (block_num() == 1) {
-        col = "black"
-        pch = 16
+        if(rv$training_passes == FALSE) { # During training
+          col = "black"
+          pch = 16
+        } else { # Training already passed
+          col <- col_of(attributes(dat)$cluster)
+          pch <- pch_of(attributes(dat)$cluster)
+        }
         axes_position <- "off"
       }
       if (block_num() == 2){
@@ -77,7 +84,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       }
       if (block_num() == 3) {
         col <- col_of(attributes(dat)$cluster, pallet_name = "Paired")
-        pch <- 3 + pch_of(attributes(dat)$cluster)
+        pch <- pch_of(attributes(dat)$cluster)
         axes_position <- "center"
       }
       if (block_num() != 2) { # not 2nd block.
@@ -110,7 +117,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
         # data points
         geom_point(pca_x, mapping = aes(x = get(pca_x_axis),
                                         y = get(pca_y_axis)),
-                   color = col, fill = col, shape = pch)
+                   color = col, fill = col, shape = pch, size = 3)
       
         if (axes_position != "off") {
           # axis segments
@@ -195,14 +202,15 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   
   ##### Start observes
-  ### Obs axis choices -----
-  observe({
+  ### Obs update axis choices -----
+  observeEvent(task_dat(), { # Init axis choices when data changes
     p <- ncol(task_dat())
     choices <- paste0("PC", 1:p)
     updateRadioButtons(session, "x_axis", choices = choices, selected = "PC1")
     updateRadioButtons(session, "y_axis", choices = choices, selected = "PC2")
   })
-  observeEvent(input$x_axis, { # But, not the same choices, x axis
+  # Bump x_axis when set to the same as y_axis
+  observeEvent(input$x_axis, { 
     if (input$x_axis == input$y_axis) {
       p <- ncol(task_dat())
       choices <- paste0("PC", 1:p)
@@ -210,7 +218,8 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       updateRadioButtons(session, "x_axis", choices = choices, selected = sample(opts, 1))
     }
   })
-  observeEvent(input$y_axis, { # But, not the same choices, y axis
+  # Bump y_axis when set to the same as x_axis
+  observeEvent(input$y_axis, {
     if (input$x_axis == input$y_axis) {
       p <- ncol(task_dat())
       choices <- paste0("PC", 1:p)
@@ -419,13 +428,63 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   ### Obs next page button -----
   observeEvent(input$next_pg_button, {
+    ### ON LAST PAGE:
     # if <on last task> {<do nothing>}
     if (rv$pg_num >= survey_start){ return() }
     # Init rv$ans_tbl <- ans_tbl() on first press
     if (rv$pg_num == 1){ rv$ans_tbl <- ans_tbl() }
     
-    # Write this task's reponses and duration to ans_tbl
-    # if (<not an intro task>) {<write repsonses and durations>}
+    # If training section, evaluate response 
+    if (ui_section() == "training" & rv$training_passes == FALSE) {
+      # Evaluate training block 1
+      if (block_num() == 1) {
+        if (rv$training_attempts >= 3) {
+          output$plot_msg <- renderText("<b>Please see the proctor for additional instruction.</b>") 
+          rv$training_attempts <- rv$training_attempts + 1
+          return()
+        }
+        response <- input$blk1_ans
+        ans <- length(attr(sim_intro, "ncl"))
+        
+        if (response - ans >= 2){ # >= 2 high, retry
+          output$plot_msg <- renderText("<b>That seems a little high, make sure to check from multiple perspectives and give it another shot.</b>") 
+          rv$training_attempts <- rv$training_attempts + 1
+          return()
+        }
+        if (response - ans <= -2){ # <= 2 low, retry
+          output$plot_msg <- renderText("<b>That seems a little low, make sure to check from multiple perspectives and give it another shot.</b>") 
+          rv$training_attempts <- rv$training_attempts + 1
+          return()
+        }
+        if (abs(response - ans) == 1){ # within 1, pass
+          output$plot_msg <- renderText(
+            paste0("<b>Close, there are actually ", ans, " clusters in the data, but you have the right idea.</b>") 
+          )
+          rv$training_passes <- TRUE
+          ##TODO: display supersived graphic.
+            return()
+        }
+        
+        if (response == ans){ # exact, pass
+          output$plot_msg <- renderText("<b>That's correct, great job!</b>") 
+          rv$training_passes <- TRUE
+          ##TODO: display supersived graphic.
+          return()
+        }
+      }
+      if (block_num() == 2) {
+        output$plot_msg <- renderText("<b>Training block 2 answer TBD.</b>") 
+        rv$training_passes <- TRUE
+        return()
+      }
+      if (block_num() == 3) {
+        output$plot_msg <- renderText("<b>Training block 3 answer TBD.</b>") 
+        rv$training_passes <- TRUE
+        return()
+      }
+    }
+    
+    # If task section, write reponses and duration to ans_tbl
     if (ui_section() == "task") {
       ins_row <- which(rv$ans_tbl$blockrep == blockrep())[1] # first row of this blockrep.
       ins_nrows <- length(rv$task_responses) - 1
@@ -433,15 +492,18 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       rv$ans_tbl[ins_row:(ins_row + ins_nrows), 6] <- rv$task_durations
     }
     
+    ### NEW PAGE:
+    rv$pg_num <- rv$pg_num + 1 
     # Reset responses, duration, and timer for next task
-    rv$pg_num <- rv$pg_num + 1 # NOW LOOKING AT NEW PAGE
-    output$response_msg <- renderText("")
+    output$plot_msg <- renderText("")
     rv$task_responses <- NULL
     rv$task_durations <- NULL
     rv$timer <- 120
     rv$timer_active <- TRUE
+    rv$training_passes <- FALSE
+    rv$training_attempts <- 1
     
-    # Reset default values
+    # Clear task response
     if (ui_section() == "task") {
       if (block_num() == 1) { # reset to same settings.
         updateNumericInput(session, "blk1_ans", "",
@@ -465,7 +527,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   ### Obs save reponses button -----
   observeEvent(input$save_ans, {
-    if (length(rv$task_responses) != 10) {browser()}
     # Write survey responses to rv$ans_tbl
     ins_nrows <- length(s_survey_questions) - 1
     ins_row <- nrow(rv$ans_tbl) - ins_nrows
@@ -475,8 +536,8 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     # Write rv$ans_tbl to .csv file.
     df <- rv$ans_tbl
     if (!is.null(rv$save_file)){ # if save already exists 
-      output$save_msg <- renderPrint(cat("Reponses already saved as ", rv$save_file, 
-                                         ".", sep = ""))
+      output$save_msg <- renderText(paste0("<b>Reponses already saved as ", 
+                                           rv$save_file, ".</b>"))
       return()
     }
     
@@ -494,10 +555,9 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     write.csv(get(save_name), file = save_file, row.names = FALSE)
     rv$save_file <- save_file
     
-    output$save_msg <- renderPrint(
-      cat("Reponses saved as ", save_file, 
-          ". Thank you for participating!", sep = ""))
-    
+    output$save_msg <- renderText(
+      paste0("<b>Reponses saved as ", save_file, 
+             ". Thank you for participating!</b>"))
     return()
   })
   
@@ -546,18 +606,15 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
 
   
   # output$blk1_ans defined in global
-  ### Block 2 inputs, importance rank -----
+  ### Block 2 inputs, rate importance -----
   # ie. output$blk2_ans1 is the value for block 2 question about var 1.
   output$blk2Inputs <- renderUI({
     i <- j <- ncol(task_dat())
-    #cnt <- rv$pg_num
-    #div(id = letters[(cnt %% length(letters)) + 1],
-        lapply(1:i, function(i) {
-          radioButtons(inputId = paste0("blk2_ans", i), label = paste("Variable ", i),
-                       choices = c(as.character(1:j), "unimportant"), 
-                       selected = "unimportant", inline = TRUE)
-        })
-    #)
+    lapply(1:i, function(i) {
+      radioButtons(inputId = paste0("blk2_ans", i), label = paste("Variable ", i),
+                   choices = c(as.character(1:j), "unimportant"), 
+                   selected = "unimportant", inline = TRUE)
+    })
   })
   
   ### Block 3 inputs, noise -----
@@ -572,7 +629,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   
   ### Dev msg -----
-  # cannot print output$x in output$dev_msg.
   output$dev_msg <- renderPrint(cat("dev msg -- ", "\n",
                                     "ui_section()", ui_section(), "\n",
                                     "block_num(): ", block_num(), "\n",

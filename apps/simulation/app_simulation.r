@@ -189,7 +189,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     # leg work
     if (input$manip_var == "<none>") {m_var <- 1
     } else {m_var <- which(colnames(dat) == input$manip_var)}
-    # Manipulation type fixxed to radial, ie. input$manip_type == "Radial"
+    # Manipulation type fixed to radial, ie. input$manip_type == "Radial"
     
     ## Returns ggplot obj, make sure output is rendered and displayed as plot, not plotly.
     ret <- oblique_frame(data      = dat_std,
@@ -206,21 +206,22 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   })
   
   ### _Observes -----
-  # Obs Update axis choices
-  observeEvent(load2_dat() ,{ # Init axis choices when data changes
+  ### Obs update axis choices when data changes
+  observeEvent(load2_dat() ,{
     p <- ncol(load_dat())
     updateRadioButtons(session,"load2_x_axis", choices  = paste0("PC", 1:p), 
                        selected = "PC1")
     updateRadioButtons(session, "load2_y_axis", choices  = paste0("PC", 1:p),
                        selected = "PC2")
   })
-  # Obs Update manip_var choices
-  observeEvent(load2_dat(), { # Init manip_var choices when data changes
+  ### Obs update manip_var choices when data changes
+  observeEvent(load2_dat(), {
     these_colnames <- colnames(load2_dat())
     updateSelectInput(session, "manip_var", choices = these_colnames, 
                       selected = these_colnames[1])
   })
-  observeEvent({ # Obs Basis
+  ### Obs update basis when data or axes change
+  observeEvent({ 
     load2_dat()
     input$load2_x_axis
     input$load2_y_axis
