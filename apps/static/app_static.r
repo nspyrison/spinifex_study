@@ -590,16 +590,12 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                     "is.null(rv$save_file): ", is.null(rv$save_file), "\n",
                                     sep = ""))
   
-  ## TODO: uncomment when to start logging.
-  ## TODO: Copy to the other app_*.r files.
-  # ### Create log file.
-  dput(shiny::reactlog(),
-       file = paste0("reactlog_", study_factor, # + same save_num as rv$save_file
-                     isolate(substr(rv$save_file, nchar(rv$save_file) - 6, nchar(rv$save_file) - 4)),
-                     ".txt")
-  )
+  ## TODO: Change to different logging
+  ## reactlog::
   ## 41k events, 60k lines, 5.3MB, larger than opening in Rstudio, 
   ## for a mostly idle 23 min session, need to find a better way.
+  ## Maybe go to shinyEventLogger? 
+  ## https://cran.r-project.org/web/packages/shinyEventLogger/vignettes/shinyEventLogger.html
 }
 
 ### Combine as shiny app.

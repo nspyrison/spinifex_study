@@ -180,13 +180,39 @@ sim_rankings
 
 ### ANALYSIS -----
 library("tidyverse")
-sim_rankings <- readRDS("./apps/simulation/sim_rankings.csv")
+sim_rankings <- read.csv("./apps/simulation/sim_rankings.csv")
 str(sim_rankings)
 table(sim_rankings$p)
 table(sim_rankings$n_cl) # only 3, 4
 table(sim_rankings$pnoise)
 ggplot(sim_rankings, aes(x=LD1_prop_var)) + geom_histogram() # high end are out, too simple.
-ggplot(sim_rankings, aes(x = LD1_prop_var, y = LD2_prop_var, col = factor(n_cl))) + geom_point() # high end are out, too simple.
-filter(sim_rankings, n_cl==3 & LD1_prop_var < .7)
+ggplot(sim_rankings, aes(x = LD1_prop_var, y = LD2_prop_var, col = factor(n_cl))) + 
+  #geom_point() + # 3 sims at bottom right are out, too simple to see in 2d.
+  #would they be better example than sim 21?
+  geom_text(mapping = aes(label = id))
+  # note that this may help pick candidates, but doesn't give ground truth for
+  # blocks 2 and 3.
+sim_rankings
 
-ex<- readRDS("./apps/simulation/simulation_data017.rds") 
+
+filter(sim_rankings, id == 17)
+# sim 17 is a canidate for the hardest 3 cluster data set 
+# as it has the lowest LD1_prop_var.
+
+
+
+ex <- readRDS("./apps/simulation/simulation_data017.rds") 
+
+# 17, might make a good first rep, check if sim 4, 20 are too hard. 
+# thinking training: 21, 
+
+sim_parameters <- read.csv("./apps/simulation/sim_parameters.csv")
+#sim_parameters
+sim_parameters[c(21, 17, 4, 20), ]
+
+### Ground truth ----
+# block 1:
+(blk1 <- sim_parameters[c(21, 17, 4, 20), c(1, 3)])
+# block 2:
+
+

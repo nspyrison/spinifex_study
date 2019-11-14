@@ -55,7 +55,7 @@ panel_review <- tabPanel(
     selectInput("load_sim_name", "Simulation to review",
                 choices = load_choices)
     , radioButtons("load_color_pts", "Color points by cluster", 
-                 choices = c("yes", "no"), selected = "yes", inline = T)
+                 choices = c("yes", "no"), selected = "no", inline = T)
     , fluidRow(column(6, radioButtons(inputId = "load_x_axis", 
                                       label = "x axis", choices = "PC1")),
                column(6, radioButtons(inputId = "load_y_axis", 
@@ -82,18 +82,9 @@ panel_review_manual <- tabPanel(
     selectInput("load2_sim_name", "Simulation to review",
                 choices = load_choices)
     , radioButtons("load2_color_pts", "Color points by cluster", 
-                   choices = c("yes", "no"), selected = "yes", inline = T)
-    , radioButtons("basis_init", "Start basis",
-                   choices = c("PCA", "Projection pursuit", "Random"),
-                   selected = "PCA")
-    , conditionalPanel("input.basis_init == 'Projection pursuit'",
-                       selectInput("pp_type", "Pursuit index", 
-                                   c("holes", "cmass", "lda_pp", "pda_pp") ) )
-    , conditionalPanel("input.basis_init == 'Projection pursuit' &&
-                     (input.pp_type == 'lda_pp' || input.pp_type == 'pda_pp')")
-    , conditionalPanel("input.basis_init == 'From file'",
-                       fileInput("basis_file", "Basis file (.csv or .rda, [p x 2] matrix)",
-                                 accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")))
+                   choices = c("yes", "no"), selected = "no", inline = T)
+    , fluidRow(column(6, radioButtons(inputId = "load2_x_axis", label = "x axis", choices = "PC1")),
+               column(6, radioButtons(inputId = "load2_y_axis", label = "y axis", choices = "PC2")))
     , selectInput('manip_var', 'Manip var', "<none>")
     , sliderInput("manip_slider", "Contribution",
                   min = 0, max = 1, value = 0, step = .1)

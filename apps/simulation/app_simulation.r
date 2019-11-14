@@ -132,17 +132,14 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   ### _Observes -----
   # Update axis selection
-  observe({
+  observeEvent(load_dat() ,{ # Init axis choices when data changes
     p <- ncol(load_dat())
-    updateRadioButtons(session,
-                       "load_x_axis",
-                       choices  = paste0("PC", 1:p),
+    updateRadioButtons(session,"load_x_axis", choices  = paste0("PC", 1:p), 
                        selected = "PC1")
-    updateRadioButtons(session,
-                       "load_y_axis",
-                       choices  = paste0("PC", 1:p),
+    updateRadioButtons(session, "load_y_axis", choices  = paste0("PC", 1:p),
                        selected = "PC2")
   })
+  
   
   ### Load2 simulation data -----
   ### _Reactives -----
@@ -179,30 +176,10 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     rownames(vc) <- paste0("V", 1:p)
     vc
   })
-  #load2_basis
-  load2_basis <- reactive({
-    dat <- load2_dat()
-    p <- ncol(dat)
-    if (input$basis_init == "Random") ret <- tourr::basis_random(n = p, d = 2)
-    if (input$basis_init == "PCA")    ret <- prcomp(dat)[[2]][, 1:2]
-    if (input$basis_init == "Projection pursuit") {
-      if (input$pp_type == "lda_pp" | input$pp_type == "lda_pp") {
-        pp_cluster <- attributes(dat)$cluster
-      } else {pp_cluster <- NA}
-      tour_func <- APP_guided_tour(input$pp_type, pp_cluster)
-      tour_hist <- save_history(dat, tour_func)
-      tour_len  <- dim(tour_hist)[3]
-      ret <- matrix(as.numeric(tour_hist[,, tour_len]), ncol = 2)
-    }
-    colnames(ret) <- c("x", "y")
-    row.names(ret) <- colnames(dat)
-    
-    #rv$curr_basis <- ret
-    return(ret)
-  })
+
   # Manual plot (obl_frame()), load2 sims.
   load2_manual <- reactive({
-    if (is.null(rv$curr_basis)) {rv$curr_basis <- load2_basis()}
+    if (is.null(rv$curr_basis)) {stop("rv$curr_basis is null")}
     dat <- load2_dat()
     dat_std <- tourr::rescale(dat)
     if (input$load2_color_pts == "yes") {
@@ -225,27 +202,38 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                          axes      = axes_position,
                          alpha     = 1)
     
-    ## Returns plotly obj, make sure output is rendered and displayed as plotly, not plot.
-    # ret <- play_manual_tour(basis = rv$curr_basis, 
-    #                         data = dat_std,
-    #                         manip_var = m_var, 
-    #                         #theta = this_theta, # manip_type fixxed to radial.
-    #                         col = col,
-    #                         pch = pch,
-    #                         axes = axes_position,
-    #                         fps = 6)
     return(ret)
   })
   
   ### _Observes -----
-  # Update axis selection
-  observe({
+  # Obs Update axis choices
+  observeEvent(load2_dat() ,{ # Init axis choices when data changes
+    p <- ncol(load_dat())
+    updateRadioButtons(session,"load2_x_axis", choices  = paste0("PC", 1:p), 
+                       selected = "PC1")
+    updateRadioButtons(session, "load2_y_axis", choices  = paste0("PC", 1:p),
+                       selected = "PC2")
+  })
+  # Obs Update manip_var choices
+  observeEvent(load2_dat(), { # Init manip_var choices when data changes
     these_colnames <- colnames(load2_dat())
     updateSelectInput(session, "manip_var", choices = these_colnames, 
                       selected = these_colnames[1])
   })
-  observe({
-    rv$curr_basis <- load2_basis()
+  observeEvent({ # Obs Basis
+    load2_dat()
+    input$load2_x_axis
+    input$load2_y_axis
+  },
+  {
+    dat <- load2_dat()
+    dat_std <- tourr::rescale(dat)
+    pca <- prcomp(dat_std)
+    x <- input$load2_x_axis
+    y <- input$load2_y_axis
+    x_num <- as.integer(substr(x, nchar(x), nchar(x)))
+    y_num <- as.integer(substr(y, nchar(y), nchar(y)))
+    rv$curr_basis <- pca$rotation[, c(x_num, y_num)]
   })
   
   ### Obs manip_slider motion
@@ -253,7 +241,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     if (input$manip_var != "<none>") {
       theta <- phi <- NULL
       mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
-      if ("Radial" == "Radial") { # Fixxed to "Radial" # input$manip_type == "Radial"
+      if ("Radial" == "Radial") { # Fixed to "Radial" # input$manip_type == "Radial"
         theta <- atan(mv_sp[2] / mv_sp[1])
         phi_start <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
         phi <- (acos(input$manip_slider) - phi_start) * - sign(mv_sp[1])
@@ -266,20 +254,20 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     }
   })
   ### Obs update manip_slider
-  observeEvent(
+  observeEvent( # Update slider value if other parameters change
     {manip_var_num()
       load2_dat()
       input$load_x_axis
       input$load_y_axis
     },
     {
-      if (is.null(rv$curr_basis)) {rv$curr_basis <- load2_basis()} # init curr_basis
+      if (is.null(rv$curr_basis)) {stop("curr basis null")} # init curr_basis
       mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
       if ("Radial" == "Radial") { # Fixed to Radial # input$manip_type == "Radial"
         phi_i <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
         this_val <- round(cos(phi_i), 1) # Rad
       }
-      isolate(updateSliderInput(session, "manip_slider", value = this_val))
+      updateSliderInput(session, "manip_slider", value = this_val)
     })
   
   
@@ -320,7 +308,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                     "load_num:", load_num, "\n",
                                     "input$load_x_axis: ", input$load_x_axis, "\n",
                                     "input$load_y_axis: ", input$load_y_axis, "\n",
-                                    "load2_basis: ", load2_basis(), "\n",
                                     "rv$curr_basis: ", rv$curr_basis, "\n",
                                     sep = ""))
 }
