@@ -209,11 +209,9 @@ sim_parameters[c(21, 17, 4, 20), ]
 ### _GROUND TRUTH ----
 # block 1:
 (blk1 <- sim_parameters[c(21, 17, 4, 20), c(1, 3)])
+
 # block 2:
-
 ex <- readRDS("./apps/simulation/simulation_data021.rds") 
-
-df_covar_lda <- NULL
 
 this_sim <- ex #get(loaded_sim_names[i])
 colnames(this_sim) <- paste0("V", 1:ncol(this_sim))
@@ -230,8 +228,22 @@ this_supervied_sim <- data.frame(this_sim, cluster = attr(this_sim, "cluster"))
 this_lda <- MASS::lda(cluster~., data = this_supervied_sim)
 this_lda$scaling
 this_lda$means
-print("scaling (var grain) is on a different grainularity from means (cluster grain), cannot combine.")
+#print("scaling (var grain) is on a different grainularity from means (cluster grain), cannot combine.")
 print("manually looking at sim 021, it looks like V4 is important for distinguishing 
       1 group(harder to see). and V2, V6, V3 distinguish the easier group to split from the other 2.")
 
-m <- this_lda$means
+(m <- this_lda$means)
+print("This is the actuallized means, as compared with the parameter means as seen in zSumSquares.r. Not sure where this leaves us.")
+
+# block 3:
+ex <- readRDS("./apps/simulation/simulation_data021.rds") 
+
+this_sim <- ex #get(loaded_sim_names[i])
+colnames(this_sim) <- paste0("V", 1:ncol(this_sim))
+this_reorder <- attr(this_sim, "col_reorder")
+# covar
+this_covar <- attr(this_sim, "vc")[this_reorder, this_reorder]
+colnames(this_covar) <- paste0("V", 1:ncol(this_sim))
+this_covar
+
+print("don't line up with what I expected from looking at it manually. Varify that the variables are on the same page.")
