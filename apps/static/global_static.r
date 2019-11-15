@@ -12,7 +12,9 @@ library("plotly")
 library("GGally")
 library("lubridate") # For timer
 library("shinyEventLogger") # For logging
+shinyEventLogger::set_logging()
 ## TODO: propagate library changes. 
+
 
 
 ### Required inputs -----
@@ -51,6 +53,7 @@ s_dat <- list(sim1, sim2, sim3)
 
 ##### main_ui -----
 main_ui <- fluidPage(
+  shinyEventLogger::log_init() 
   ### Side panel only on "training" and "task" sections
   conditionalPanel(
     condition = "output.ui_section == 'training' || output.ui_section == 'task'",
@@ -77,7 +80,7 @@ main_ui <- fluidPage(
       conditionalPanel(condition = "output.block_num == 3",
                        tags$b(s_block_questions[3]),
                        uiOutput("blk3Inputs")
-      ),
+      )
     ) 
   ), ### end conditionalPanel sidebarPanel for training and task
   mainPanel(
@@ -113,35 +116,31 @@ main_ui <- fluidPage(
       , p("After completing the survey let the proctor know and collect a voucher
           for a free hot berverage on campus.")
       , p("Thank you again for participating.")
-    ), # close conditionPanel -- intro
+    ), # close conditionPanel -- intro section text
     ### _Training mainPanel -----
     conditionalPanel(
       condition = "output.ui_section == 'training'",
       conditionalPanel(condition = "output.block_num == 1",
-                       h2("Training -- task 1")
-      ),
+                       h2("Training -- task 1")),
       conditionalPanel(condition = "output.block_num == 2",
-                       h2("Training -- task 2")
-      ),
+                       h2("Training -- task 2")),
       conditionalPanel(condition = "output.block_num == 3",
-                       h2("Training -- task 3")
-      ),
+                       h2("Training -- task 3")),
       p("This data has 6 variables. Principle Componant Analysis (PCA) defines 
         new axes components (as linear combinations of the original variable),
         ordered by the amount of variation they explain. This display can view
         combinations of any 2 different principal components by selecting the
-        the x- and y-axes on the sidebar to the left.")
-      , p("Take time to familiarize yourself with the controls and feel free to 
+        the x- and y-axes on the sidebar to the left."),
+      p("Take time to familiarize yourself with the controls and feel free to 
           ask any questions. During the experiment section, you will have 2 
           minutes to explore the data, responding as accurately and quickly 
-          as possible.")
-      , conditionalPanel( # first block text
+          as possible."),
+      conditionalPanel( # first block text
         condition = "output.rep_num == 1",
         tags$b("The first task is to guess the number clusters in the data. Explore 
           more components to better inform your understanding of the clusters. 
-          When you are ready enter the number of clusters on the sidebar.")
-      )
-      , conditionalPanel( # second block text
+          When you are ready enter the number of clusters on the sidebar.")),
+      conditionalPanel( # second block text
         condition = "output.rep_num == 2",
         tags$b("The second task is to rate the variables in order of imporance 
         for distinguishing clusters. The points have colored and shape assigned 
@@ -149,16 +148,14 @@ main_ui <- fluidPage(
         and magnitude that each variable contributes for the set of axes. Use 
         the variable map to identitify the variables that contribute to 
         distingishing clusters. Look at several componets to rate
-        the top four variables that help distinguish clusters.")
-      )
-      , conditionalPanel( # Third block text
+        the top four variables that help distinguish clusters.")),
+      conditionalPanel( # Third block text
         condition = "output.rep_num == 3",
         tags$b("The third task is to identify groups of correllated variables. Variables
         that point in the same direction on the variable map correllated. Looking 
         at differnet components try to identify any and all groups of correllated 
-        variables.")
-      )
-    ),
+        variables."))
+    ), # close training section main panel text
     ### _Task mainPanel -----
     conditionalPanel(
       condition = "output.ui_section == 'task'",
@@ -172,13 +169,13 @@ main_ui <- fluidPage(
                        h2("Experiment -- task 3")
       ),
       textOutput('timer_disp')
-    ),
-    ### _bottom half of training and task mainPanels
+    ), # close task section conditional panel title text
+    ### _Plot mainPanel
     conditionalPanel( 
       condition = "output.ui_section == 'training' || output.ui_section == 'task'"
       , plotOutput("task_pca", height = "auto")
       , htmlOutput("plot_msg")
-    ),
+    ), # close plot conditional panel
     ### _Survey mainPanel -----
     conditionalPanel(
       condition = "output.ui_section == 'survey'",
@@ -253,18 +250,18 @@ main_ui <- fluidPage(
         br(),
         h4("Let the proctor know you have completed the study and have a good day.")
       )
-    ) # close survey mainPanel
+    ) # close survey condition panel 
     
   ) # close mainPanel()
-) # close main_panel assignment 
+) # close fluid page wrapper 
 
 
 
 ##### UI, combine panels -----
 ui <- fluidPage(
-  titlePanel("Multivariate data visualization study")
-  , main_ui
-  , conditionalPanel(
+  titlePanel("Multivariate data visualization study"),
+  main_ui,
+  conditionalPanel(
     condition = "output.pg_num < 14",
     actionButton("next_pg_button", "Next page")
   )
