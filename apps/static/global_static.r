@@ -7,15 +7,28 @@ library("ggplot2")
 library("spinifex")
 library("shiny")
 library("tidyr")
-library("mvtnorm")
+#library("mvtnorm")
 library("plotly")
 library("GGally")
 library("lubridate") # For timer
-library("shinyEventLogger") # For logging
-shinyEventLogger::set_logging()
-## TODO: propagate library changes. 
+library("loggit")    # For logging
+## TODO: propagate library changes.
 
+study_factor <- "static"
 
+log_base <- paste0("log_", study_factor)
+log_num  <- 1
+log_name <- sprintf(paste0(log_base, "%03d"), log_num)
+log_file <- paste0(log_name, ".json")
+while (file.exists(log_file)){ # Find an unused log number
+  log_name <- sprintf(paste0(log_base, "%03d"), log_num)
+  log_file <- paste0(log_name, ".json")
+  log_num  <- log_num + 1
+}
+
+### Uncomment to caoture log file:
+#setLogFile(log_file)
+loggit("INFO", "app has started", "spinifex_study")
 
 ### Required inputs -----
 ## TODO: make sure to duplicate this section in other apps
@@ -53,7 +66,6 @@ s_dat <- list(sim1, sim2, sim3)
 
 ##### main_ui -----
 main_ui <- fluidPage(
-  shinyEventLogger::log_init() 
   ### Side panel only on "training" and "task" sections
   conditionalPanel(
     condition = "output.ui_section == 'training' || output.ui_section == 'task'",

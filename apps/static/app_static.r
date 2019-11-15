@@ -3,6 +3,8 @@ source('global_static.r', local = TRUE)
 
 ##### Server function, dynamic outputs ----
 server <- function(input, output, session) {  ### INPUT, need to size to number of reps
+  loggit("INFO", "Hello world", "top of session")
+  
   ### Initialization -----
   rv                <- reactiveValues()
   rv$pg_num         <- 1
@@ -651,7 +653,17 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ## 41k events, 60k lines, 5.3MB, larger than opening in Rstudio, 
   ## for a mostly idle 23 min session, need to find a better way.
   ## Maybe go to shinyEventLogger? 
-  ## https://cran.r-project.org/web/packages/shinyEventLogger/vignettes/shinyEventLogger.html
+  ## NO! o way to save!
+  ## Use a manual approach?
+  ## NO! capturing expressions and dealing with differing length is hard.
+  ## go with loggit !!!
+  ## https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/
+  ## use: loggit("INFO", "<main msg>", "<detail>")
+  
+  session$onSessionEnded(function(){
+    cat("onSessionEnded ran")
+    loggit("INFO", "app has stopped", "spinifex_study")
+  })
 }
 
 ### Combine as shiny app.
