@@ -16,7 +16,7 @@ library("loggit")    # For logging
 
 study_factor <- "static"
 
-log_base <- paste0("log_", study_factor)
+log_base <- paste0("./files/log_", study_factor)
 log_num  <- 1
 log_name <- sprintf(paste0(log_base, "%03d"), log_num)
 log_file <- paste0(log_name, ".json")
@@ -26,8 +26,11 @@ while (file.exists(log_file)){ # Find an unused log number
   log_num  <- log_num + 1
 }
 
-### Uncomment to caoture log file:
-#setLogFile(log_file)
+### Logging
+## https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/
+## use: loggit("INFO", "<main msg>", "<detail>")
+## Uncomment to capture log file:
+setLogFile(log_file); try_autosave <- TRUE
 loggit("INFO", "app has started", "spinifex_study")
 
 ### Required inputs -----

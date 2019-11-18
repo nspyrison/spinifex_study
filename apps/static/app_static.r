@@ -3,7 +3,7 @@ source('global_static.r', local = TRUE)
 
 ##### Server function, dynamic outputs ----
 server <- function(input, output, session) {  ### INPUT, need to size to number of reps
-  loggit("INFO", "Hello world", "top of session")
+  loggit("INFO", "app has started", "spinifex_study")
   
   ### Initialization -----
   rv                <- reactiveValues()
@@ -210,6 +210,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     choices <- paste0("PC", 1:p)
     updateRadioButtons(session, "x_axis", choices = choices, selected = "PC1")
     updateRadioButtons(session, "y_axis", choices = choices, selected = "PC2")
+    loggit("INFO", "task_dat() changed.", "updated axes choices.")
   })
   # Bump x_axis when set to the same as y_axis
   observeEvent(input$x_axis, { 
@@ -217,7 +218,11 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       p <- ncol(task_dat())
       choices <- paste0("PC", 1:p)
       opts <- choices[!choices %in% input$x_axis]
-      updateRadioButtons(session, "x_axis", choices = choices, selected = sample(opts, 1))
+      x_axis_out <- sample(opts, 1)
+      updateRadioButtons(session, "x_axis", choices = choices, selected = x_axis_out)
+      loggit("INFO", 
+             paste0("x_axis set to ", input$x_axis , ", same as y_axis."), 
+             paste0("x_axis bumped to ", x_axis_out, "."))
     }
   })
   # Bump y_axis when set to the same as x_axis
@@ -226,7 +231,11 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       p <- ncol(task_dat())
       choices <- paste0("PC", 1:p)
       opts <- choices[!choices %in% input$x_axis]
+      y_axis_out <- sample(opts, 1)
       updateRadioButtons(session, "y_axis", choices = choices, selected = sample(opts, 1))
+      loggit("INFO", 
+             paste0("y_axis set to ", input$y_axis , "same as x_axis."), 
+             paste0("y_axis bumped to ", y_axis_out, "."))
     }
   })
   
@@ -235,80 +244,119 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   observeEvent(input$blk1_ans, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[1] <- input$blk1_ans
-      rv$task_durations[1] <- as.integer(120  - rv$timer)
+      rv$task_durations[1] <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 1 entered.", 
+             paste0("Response: ", rv$task_responses[1], 
+                    ". Duration: ", rv$task_durations[1], "."))
     }
   })
   ##### Block 2 responses & duration
   observeEvent(input$blk2_ans1, {
     if((120 - rv$timer) > 1) {
-      rv$task_responses[1]  <- input$blk2_ans1
-      rv$task_durations[1]  <- as.integer(120 - rv$timer)
+      rv$task_responses[1] <- input$blk2_ans1
+      rv$task_durations[1] <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 2, input 1 entered.", 
+             paste0("Response: ", rv$task_responses[1], 
+                    ". Duration: ", rv$task_durations[1], "."))
     }
   })
   observeEvent(input$blk2_ans2, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[2]  <- input$blk2_ans2
       rv$task_durations[2]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 2, input 2 entered.", 
+             paste0("Response: ", rv$task_responses[2], 
+                    ". Duration: ", rv$task_durations[2], "."))
     }
   })
   observeEvent(input$blk2_ans3, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[3]  <- input$blk2_ans3
       rv$task_durations[3]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 2, input 3 entered.", 
+             paste0("Response: ", rv$task_responses[3], 
+                    ". Duration: ", rv$task_durations[3], "."))
     }
   })
   observeEvent(input$blk2_ans4, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[4]  <- input$blk2_ans4
       rv$task_durations[4]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 2, input 4 entered.", 
+             paste0("Response: ", rv$task_responses[4], 
+                    ". Duration: ", rv$task_durations[4], "."))
     }
   })
   observeEvent(input$blk2_ans5, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[5]  <- input$blk2_ans5
       rv$task_durations[5]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 2, input 5 entered.", 
+             paste0("Response: ", rv$task_responses[5], 
+                    ". Duration: ", rv$task_durations[5], "."))
     }
   })
   observeEvent(input$blk2_ans6, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[6]  <- input$blk2_ans6
       rv$task_durations[6]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 2, input 6 entered.", 
+             paste0("Response: ", rv$task_responses[6], 
+                    ". Duration: ", rv$task_durations[6], "."))
     }
   })
   observeEvent(input$blk2_ans7, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[7]  <- input$blk2_ans7
       rv$task_durations[7]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 2, input 7 entered.", 
+             paste0("Response: ", rv$task_responses[7], 
+                    ". Duration: ", rv$task_durations[7], "."))
     }
   })
   observeEvent(input$blk2_ans8, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[8]  <- input$blk2_ans8
       rv$task_durations[8]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 2, input 8 entered.", 
+             paste0("Response: ", rv$task_responses[8], 
+                    ". Duration: ", rv$task_durations[8], "."))
     }
   })
   observeEvent(input$blk2_ans9, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[9]  <- input$blk2_ans9
       rv$task_durations[9]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 2, input 9 entered.", 
+             paste0("Response: ", rv$task_responses[9], 
+                    ". Duration: ", rv$task_durations[9], "."))
     }
   })
   observeEvent(input$blk2_ans10, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[10] <- input$blk2_ans10
       rv$task_durations[10] <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 2, input 10 entered.", 
+             paste0("Response: ", rv$task_responses[10], 
+                    ". Duration: ", rv$task_durations[10], "."))
     }
   })
   observeEvent(input$blk2_ans11, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[11] <- input$blk2_ans11
       rv$task_durations[11] <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 2, input 11 entered.", 
+             paste0("Response: ", rv$task_responses[11], 
+                    ". Duration: ", rv$task_durations[11], "."))
     }
   })
   observeEvent(input$blk2_ans12, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[12] <- input$blk2_ans12
       rv$task_durations[12] <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 2, input 12 entered.", 
+             paste0("Response: ", rv$task_responses[12], 
+                    ". Duration: ", rv$task_durations[12], "."))
     }
   })
   ##### Block 3 responses & duration
@@ -316,116 +364,201 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     if((120 - rv$timer) > 1) {
       rv$task_responses[1]  <- input$blk3_ans1
       rv$task_durations[1]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 3, input 1 entered.", 
+             paste0("Response: ",   rv$task_responses[1], 
+                    ". Duration: ", rv$task_durations[1], "."))
     }
   })
   observeEvent(input$blk3_ans2, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[2]  <- input$blk3_ans2
       rv$task_durations[2]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 3, input 2 entered.", 
+             paste0("Response: ",   rv$task_responses[2], 
+                    ". Duration: ", rv$task_durations[2], "."))
     }
   })
   observeEvent(input$blk3_ans3, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[3]  <- input$blk3_ans3
       rv$task_durations[3]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 3, input 3 entered.", 
+             paste0("Response: ",   rv$task_responses[3], 
+                    ". Duration: ", rv$task_durations[3], "."))
     }
   })
   observeEvent(input$blk3_ans4, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[4]  <- input$blk3_ans4
       rv$task_durations[4]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 3, input 4 entered.", 
+             paste0("Response: ",   rv$task_responses[4], 
+                    ". Duration: ", rv$task_durations[4], "."))
     }
   })
   observeEvent(input$blk3_ans5, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[5]  <- input$blk3_ans5
       rv$task_durations[5]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 3, input 5 entered.", 
+             paste0("Response: ",   rv$task_responses[5], 
+                    ". Duration: ", rv$task_durations[5], "."))
     }
   })
   observeEvent(input$blk3_ans6, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[6]  <- input$blk3_ans6
       rv$task_durations[6]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 3, input 6 entered.", 
+             paste0("Response: ",   rv$task_responses[6], 
+                    ". Duration: ", rv$task_durations[6], "."))
     }
   })
   observeEvent(input$blk3_ans7, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[7]  <- input$blk3_ans7
       rv$task_durations[7]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 3, input 7 entered.", 
+             paste0("Response: ",   rv$task_responses[7], 
+                    ". Duration: ", rv$task_durations[7], "."))
     }
   })
   observeEvent(input$blk3_ans8, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[8]  <- input$blk3_ans8
       rv$task_durations[8]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 3, input 8 entered.", 
+             paste0("Response: ",   rv$task_responses[8], 
+                    ". Duration: ", rv$task_durations[8], "."))
     }
   })
   observeEvent(input$blk3_ans9, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[9]  <- input$blk3_ans9
       rv$task_durations[9]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 3, input 9 entered.", 
+             paste0("Response: ",   rv$task_responses[9], 
+                    ". Duration: ", rv$task_durations[9], "."))
     }
   })
   observeEvent(input$blk3_ans10, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[10] <- input$blk3_ans10
       rv$task_durations[10] <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 3, input 10 entered.", 
+             paste0("Response: ",   rv$task_responses[10], 
+                    ". Duration: ", rv$task_durations[10], "."))
     }
   })
   observeEvent(input$blk3_ans11, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[11] <- input$blk3_ans11
       rv$task_durations[11] <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 3, input 11 entered.", 
+             paste0("Response: ",   rv$task_responses[11], 
+                    ". Duration: ", rv$task_durations[11], "."))
     }
   })
   observeEvent(input$blk3_ans12, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[12] <- input$blk3_ans12
       rv$task_durations[12] <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 3, input 12 entered.", 
+             paste0("Response: ",   rv$task_responses[12], 
+                    ". Duration: ", rv$task_durations[12], "."))
     }
   })
   ##### Survey responses & duration
   observeEvent(input$ans_gender, {
-    rv$task_responses[1]  <- input$ans_gender
-    rv$task_durations[1]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[1]  <- input$ans_gender
+      rv$task_durations[1]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Survey, input 1 entered.", 
+             paste0("Response: ",   rv$task_responses[1], 
+                    ". Duration: ", rv$task_durations[1], "."))
+    }
   })
   observeEvent(input$ans_age, {
-    rv$task_responses[2]  <- input$ans_age
-    rv$task_durations[2]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[2]  <- input$ans_age
+      rv$task_durations[2]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Survey, input 2 entered.", 
+             paste0("Response: ",   rv$task_responses[2], 
+                    ". Duration: ", rv$task_durations[2], "."))
+    }
   })
   observeEvent(input$ans_edu, {
-    rv$task_responses[3]  <- input$ans_edu
-    rv$task_durations[3]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[3]  <- input$ans_edu
+      rv$task_durations[3]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Survey, input 3 entered.", 
+             paste0("Response: ",   rv$task_responses[3], 
+                    ". Duration: ", rv$task_durations[3], "."))
+    }
   })
   observeEvent(input$ans_ease, {
-    rv$task_responses[4]  <- input$ans_ease
-    rv$task_durations[4]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[4]  <- input$ans_ease
+      rv$task_durations[4]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Survey, input 4 entered.", 
+             paste0("Response: ",   rv$task_responses[4], 
+                    ". Duration: ", rv$task_durations[4], "."))
+    }
   })
   observeEvent(input$ans_confidence, {
-    rv$task_responses[5]  <- input$ans_confidence
-    rv$task_durations[5]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[5]  <- input$ans_confidence
+      rv$task_durations[5]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Survey, input 5 entered.", 
+             paste0("Response: ",   rv$task_responses[5], 
+                    ". Duration: ", rv$task_durations[5], "."))
+    }
   })
   observeEvent(input$ans_understand, {
-    rv$task_responses[6]  <- input$ans_understand
-    rv$task_durations[6]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[6]  <- input$ans_understand
+      rv$task_durations[6]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Survey, input 6 entered.", 
+             paste0("Response: ",   rv$task_responses[6], 
+                    ". Duration: ", rv$task_durations[6], "."))
+    }
   })
   observeEvent(input$ans_use, {
-    rv$task_responses[7]  <- input$ans_use
-    rv$task_durations[7]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[7]  <- input$ans_use
+      rv$task_durations[7]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Survey, input 7 entered.", 
+             paste0("Response: ",   rv$task_responses[7], 
+                    ". Duration: ", rv$task_durations[7], "."))
+    }
   })
   observeEvent(input$ans_high_dim, {
-    rv$task_responses[8]  <- input$ans_high_dim
-    rv$task_durations[8]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[8]  <- input$ans_high_dim
+      rv$task_durations[8]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Survey, input 8 entered.", 
+             paste0("Response: ",   rv$task_responses[8], 
+                    ". Duration: ", rv$task_durations[8], "."))
+    }
   })
   observeEvent(input$ans_data_vis, {
-    rv$task_responses[9]  <- input$ans_data_vis
-    rv$task_durations[9]  <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[9]  <- input$ans_data_vis
+      rv$task_durations[9]  <- as.integer(120 - rv$timer)
+      loggit("INFO", "Survey, input 9 entered.", 
+             paste0("Response: ",   rv$task_responses[9], 
+                    ". Duration: ", rv$task_durations[9], "."))
+    }
   })
   observeEvent(input$ans_previous_knowledge, {
-    rv$task_responses[10] <- input$ans_previous_knowledge
-    rv$task_durations[10] <- as.integer(120 - rv$timer)
+    if((120 - rv$timer) > 1) {
+      rv$task_responses[10] <- input$ans_previous_knowledge
+      rv$task_durations[10] <- as.integer(120 - rv$timer)
+      loggit("INFO", "Survey, input 10 entered.", 
+             paste0("Response: ",   rv$task_responses[10], 
+                    ". Duration: ", rv$task_durations[10], "."))
+    }
   })
-  ## TODO: propagate to all 3 apps.
   
   
   ### Obs next page button -----
@@ -523,8 +656,11 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     
     rv$task_responses <- rep("default", this_p)
     rv$task_durations <- rep("default", this_p)
-    cat("page: ",rv$pg_num,". length of task_respones: ",length(rv$task_responses), ". this_p: ",this_p, " \n")
-    print(rv$task_responses)
+    loggit("INFO", "Next page: ", 
+           paste0("rv$pg_num: ", rv$pg_num, 
+                  ". ui_section(): ", ui_section(),
+                  ". blockrep(): ", blockrep(), 
+                  "."))
   })
   
   ### Obs save reponses button -----
@@ -538,13 +674,16 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     # Write rv$ans_tbl to .csv file.
     df <- rv$ans_tbl
     if (!is.null(rv$save_file)){ # if save already exists 
-      output$save_msg <- renderText(paste0("<b>Reponses already saved as ", 
-                                           rv$save_file, ".</b>"))
+      save_msg <- paste0("<b>Reponses already saved as ", 
+                         rv$save_file, ".</b>")
+      output$save_msg <- renderText(save_msg)
+      loggit("INFO", "Save button (Previously saved): ", 
+             paste0("save_msg: ", save_msg,  "."))
       return()
     }
     
     # Do the actual saving
-    save_base <- paste0("response_table_", study_factor)
+    save_base <- paste0(".files/response_table_", study_factor)
     save_num  <- 1
     save_name <- sprintf(paste0(save_base, "%03d"), save_num)
     save_file <- paste0(save_name, ".csv")
@@ -557,9 +696,14 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     write.csv(get(save_name), file = save_file, row.names = FALSE)
     rv$save_file <- save_file
     
-    output$save_msg <- renderText(
-      paste0("<b>Reponses saved as ", save_file, 
-             ". Thank you for participating!</b>"))
+    save_msg <- paste0("<b>Reponses saved as ", save_file, 
+                       ". Thank you for participating!</b>")
+    output$save_msg <- renderText(save_msg)
+    
+    loggit("INFO", "Save button: ", 
+           paste0("rv$save_file: ", rv$save_file, 
+                  ". save_msg: ", save_msg,
+                  "."))
     return()
   })
   
@@ -570,9 +714,9 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       if(rv$timer_active)
       {
         rv$timer <- rv$timer - 1
-        if(rv$timer < 1)
-        {
+        if(rv$timer < 1 & rv$timer_active == TRUE){
           rv$timer_active <- FALSE
+          loggit("INFO", "timer elapsed.", "")
         }
       }
     })
@@ -648,21 +792,14 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                     "is.null(rv$save_file): ", is.null(rv$save_file), "\n",
                                     sep = ""))
   
-  ## TODO: Change to different logging
-  ## reactlog::
-  ## 41k events, 60k lines, 5.3MB, larger than opening in Rstudio, 
-  ## for a mostly idle 23 min session, need to find a better way.
-  ## Maybe go to shinyEventLogger? 
-  ## NO! o way to save!
-  ## Use a manual approach?
-  ## NO! capturing expressions and dealing with differing length is hard.
-  ## go with loggit !!!
-  ## https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/
-  ## use: loggit("INFO", "<main msg>", "<detail>")
   
   session$onSessionEnded(function(){
-    cat("onSessionEnded ran")
+    cat("(onSessionEnded ran) \n")
     loggit("INFO", "app has stopped", "spinifex_study")
+    if (try_autosave == TRUE & is.null(rv$save_file)) {
+      ## try to trip save Observe.
+      input$save_ans <- input$save_ans + 1
+    }
   })
 }
 
