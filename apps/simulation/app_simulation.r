@@ -208,7 +208,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ### _Observes -----
   ### Obs update axis choices when data changes
   observeEvent(load2_dat() ,{
-    p <- ncol(load_dat())
+    p <- ncol(load2_dat())
     updateRadioButtons(session,"load2_x_axis", choices  = paste0("PC", 1:p), 
                        selected = "PC1")
     updateRadioButtons(session, "load2_y_axis", choices  = paste0("PC", 1:p),
@@ -295,8 +295,8 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                           "pnoise: ", load2_pnoise(), "\n",
                                           "cl: ", length(attr(load2_dat(), "ncl")), "\n",
                                           sep = ""))
-  output$load2_mncl_reord <- renderPrint(load_mncl_reord())
-  output$load2_vc_reord   <- renderPrint(load_vc_reord())
+  output$load2_mncl_reord <- renderPrint(load2_mncl_reord())
+  output$load2_vc_reord   <- renderPrint(load2_vc_reord())
   output$load2_curr_basis <- renderTable(rv$curr_basis)
   
   

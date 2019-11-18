@@ -11,6 +11,7 @@ library("mvtnorm") # for simulations.
 library("plotly")
 
 axes_position <- "center"
+options(max.print = 500)
 
 load_num  <- 1
 load_name <- sprintf("simulation_data%03d", load_num)
