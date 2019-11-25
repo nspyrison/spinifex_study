@@ -19,7 +19,7 @@ load_file <- paste0("./", load_name, ".rds") # "./apps/simulation/"
 #local_file <- paste0("./apps/simulation/", load_name, ".rds"); assign(load_name, readRDS(local_file))
 while (file.exists(load_file)){
   assign(load_name, readRDS(load_file))
-  load_num <- load_num + 1
+  load_num  <- load_num + 1
   load_name <- sprintf("simulation_data%03d", load_num)
   load_file <- paste0("./", load_name, ".rds")
 }

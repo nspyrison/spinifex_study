@@ -323,3 +323,4 @@ cat("On the biplot I cannot tell why tars1&aede2 or aede3&aede1 would be so high
 Sys.sleep(3)
 this_pca_plot(std_dat, class, 1, 3)
 vc
+# cos(angle) and magnitude

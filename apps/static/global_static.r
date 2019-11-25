@@ -86,9 +86,9 @@ main_ui <- fluidPage(
                        tags$b(s_block_questions[2]),
                        div(#style = 'width:400px;',
                            div(style = 'float:left; color:red; font-size:14px', 
-                               strong('most important')),
+                               strong('least important')),
                            div(style = 'float:right; color:red; font-size:14px', 
-                               strong('least important'))),
+                               strong('most important'))),
                        tags$br(),
                        uiOutput("blk2Inputs")
       ),
