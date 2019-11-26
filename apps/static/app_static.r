@@ -69,42 +69,35 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       dat_std <- tourr::rescale(dat)
       pca <- prcomp(dat_std)
       
+      cluster <- attributes(dat)$cluster
+      pal <- "Dark2"
+      axes_position <- "center"
+      USE_AXES <- TRUE
+      USE_AES  <- TRUE
       if (block_num() == 1) {
+        USE_AXES <- FALSE
         if(rv$training_passes == FALSE) { # During training
-          col = "black"
-          pch = 16
-        } else { # Training already passed
-          col <- col_of(attributes(dat)$cluster)
-          pch <- pch_of(attributes(dat)$cluster)
-        }
-        axes_position <- "off"
+          USE_AES  <- FALSE
+        } 
       }
-      if (block_num() == 2){
-        col <- col_of(attributes(dat)$cluster)
-        pch <- pch_of(attributes(dat)$cluster)
-        axes_position <- "center"
-      }
-      if (block_num() == 3) {
-        col <- col_of(attributes(dat)$cluster, pallet_name = "Paired")
-        pch <- pch_of(attributes(dat)$cluster)
-        axes_position <- "center"
-      }
-      if (block_num() != 2) { # not 2nd block.
-        pca_x <- data.frame(2 * (tourr::rescale(pca$x) - .5))
-        pca_rotation <- set_axes_position(data.frame(t(pca$rotation)),
-                                          axes_position)
-      } else { # is 2nd block, change sign of var map.
+      if (block_num() == 3) {pal <- "Paired"}
+      
+      if (block_num() == 2) { # 2nd block, change sign of the basis.
         pca_x <- as.matrix(dat) %*% (-1 * pca$rotation)
         pca_x <- data.frame(2 * (tourr::rescale(pca_x) - .5))
         pca_rotation <- set_axes_position(data.frame(t(-1 * pca$rotation)),
+                                          axes_position)
+      } else { # not 2nd block, leave the signs of the basis
+        pca_x <- data.frame(2 * (tourr::rescale(pca$x) - .5))
+        pca_rotation <- set_axes_position(data.frame(t(pca$rotation)),
                                           axes_position)
       }
       
       pca_pct_var <- round(100 * pca$sdev^2 / sum(pca$sdev^2), 1)
       pca_x_axis <- input$x_axis
       pca_y_axis <- input$y_axis
-      rot_x_axis <- paste0("V", substr(pca_x_axis,3,3))
-      rot_y_axis <- paste0("V", substr(pca_y_axis,3,3))
+      v_x_axis <- paste0("V", substr(pca_x_axis,3,3))
+      v_y_axis <- paste0("V", substr(pca_y_axis,3,3))
       x_lab <- paste0(input$x_axis, " (",
                       pca_pct_var[as.integer(substr(pca_x_axis,3,3))], "% Var)")
       y_lab <- paste0(input$y_axis, " (",
@@ -114,24 +107,30 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       circ  <- set_axes_position(data.frame(x = cos(angle), y = sin(angle)),
                                 axes_position)
       zero  <- set_axes_position(0, axes_position)
+
       
       ret <- ggplot() +
         # data points
-        geom_point(pca_x, mapping = aes(x = get(pca_x_axis),
-                                        y = get(pca_y_axis)),
-                   color = col, fill = col, shape = pch, size = 3)
+        geom_point(pca_x, 
+                   mapping = aes(x = get(pca_x_axis), 
+                                 y = get(pca_y_axis),
+                                 if (USE_AES) {color = cluster},
+                                 if (USE_AES) {fill = cluster}, 
+                                 if (USE_AES) {shape = cluster}
+                   ), 
+                   size = 3)
       
-        if (axes_position != "off") {
-          # axis segments
-          ret <- ret +
-            geom_segment(pca_rotation,
-                         mapping = aes(x = get(rot_x_axis), xend = zero,
-                                       y = get(rot_y_axis), yend = zero),
-                         size = .3, colour = "red") +
-            # axis label text
+      if (USE_AXES == TRUE) {
+        # axis segments
+        ret <- ret +
+          geom_segment(pca_rotation,
+                       mapping = aes(x = get(v_x_axis), xend = zero,
+                                     y = get(v_y_axis), yend = zero),
+                       size = .3, colour = "red") +
+          # axis label text
             geom_text(pca_rotation,
-                      mapping = aes(x = get(rot_x_axis),
-                                    y = get(rot_y_axis),
+                      mapping = aes(x = get(v_x_axis),
+                                    y = get(v_y_axis),
                                     label = colnames(pca_rotation)),
                       size = 6, colour = "red", fontface = "bold",
                       vjust = "outward", hjust = "outward") +
@@ -144,14 +143,14 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       # Options
       ret <- ret + theme_minimal() +
         theme(aspect.ratio = 1) +
-        scale_color_brewer(palette = "Dark2") +
+        scale_color_brewer(palette = pal) +
         theme(panel.grid.major = element_blank(),
               panel.grid.minor = element_blank(),
               axis.text.x = element_blank(), # marks
               axis.text.y = element_blank(), # marks
               axis.title.x = element_text(size = 22, face = "bold"),
               axis.title.y = element_text(size = 22, face = "bold"),
-              legend.position = 'none') +
+              legend.position = 'right') +
         labs(x = x_lab, y = y_lab)
       
       return(ret)
@@ -707,6 +706,9 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     return()
   })
   
+  ### Obs browser -----
+  observeEvent(input$browser, {browser()})
+  
   ### Obs timer -----
   observe({
     invalidateLater(1000, session)
@@ -721,6 +723,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       }
     })
   })
+
   
   ##### Outputs -----
   output$timer_disp <- renderText({
@@ -755,10 +758,11 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ### Block 2 inputs, rate importance -----
   # ie. output$blk2_ans1 is the value for block 2 question about var 1.
   output$blk2Inputs <- renderUI({
-    i <- j <- ncol(task_dat())
+    i <- ncol(task_dat())
+    j <- 5
     lapply(1:i, function(i) {
       radioButtons(inputId = paste0("blk2_ans", i), label = paste("Variable ", i),
-                   choices = c(as.character(1:j), "unimportant"), 
+                   choices = c("unimportant", as.character(1:j)), 
                    selected = "unimportant", inline = TRUE)
     })
   })
@@ -797,7 +801,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     cat("(onSessionEnded ran) \n")
     loggit("INFO", "app has stopped", "spinifex_study")
     if (try_autosave == TRUE & is.null(rv$save_file)) {
-      ## try to trip save Observe.
+      ## try to trip the save file observeEvent.
       input$save_ans <- input$save_ans + 1
     }
   })

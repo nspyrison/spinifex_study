@@ -84,7 +84,7 @@ main_ui <- fluidPage(
       ),
       conditionalPanel(condition = "output.block_num == 2",
                        tags$b(s_block_questions[2]),
-                       div(#style = 'width:400px;',
+                       div(style = 'width:300px;',
                            div(style = 'float:left; color:red; font-size:14px', 
                                strong('least important')),
                            div(style = 'float:right; color:red; font-size:14px', 
@@ -281,6 +281,7 @@ ui <- fluidPage(
     actionButton("next_pg_button", "Next page")
   )
   , verbatimTextOutput("dev_msg")
+  , actionButton("browser", "browser()")
   , tableOutput("ans_tbl")
 )
 
