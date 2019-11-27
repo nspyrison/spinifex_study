@@ -38,3 +38,27 @@ ggplot(data=d, aes(x=cyl, y=mpg, col=as.factor(gear))) +
 # https://stackoverflow.com/questions/13992367/conditional-inclusion-of-arguments-in-a-function-call
 do.call(FUN, c(list(arg1 = x1, arg2 = x2),   # unconditional args
                list(arg3 = x3)[use.arg3]))   # conditional arg
+
+
+# default
+ggplot(data=d, 
+       aes(x=cyl, y=mpg, col=as.factor(gear), pch =as.factor(gear))
+) + 
+  geom_point() + theme_minimal() 
+
+# conditional use of args. Stange things happen with the legend
+## need to go to a piecemeal approach?
+USE_COL <- T
+USE_PCH <- T
+ggplot(data=d,
+       do.call(aes, c(list(x=d$cyl, y=d$mpg),
+                      list(col=as.factor(d$gear))[USE_COL],
+                      list(pch=as.factor(d$gear))[USE_PCH])
+       )
+) + 
+  geom_point() + theme_minimal() 
+
+(a <- ggplot(data=d) + 
+    geom_point(aes(x=cyl, y=mpg)) + theme_minimal() 
+)
+(a <- a + geom_point(aes(x=cyl, y=mpg, col=as.factor(gear), pch =as.factor(gear))) )

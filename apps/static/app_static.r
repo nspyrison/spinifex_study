@@ -109,16 +109,23 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       zero  <- set_axes_position(0, axes_position)
 
       
-      ret <- ggplot() +
+      ret <- ggplot()
+      
+      if (USE_AES == FALSE){
         # data points
-        geom_point(pca_x, 
-                   mapping = aes(x = get(pca_x_axis), 
-                                 y = get(pca_y_axis),
-                                 if (USE_AES) {color = cluster},
-                                 if (USE_AES) {fill = cluster}, 
-                                 if (USE_AES) {shape = cluster}
-                   ), 
-                   size = 3)
+        ret <- ret + 
+          geom_point(pca_x, 
+                     mapping = aes(x = get(pca_x_axis), y = get(pca_y_axis)), 
+                     size = 3)
+      } else { # if USE_AES == TRUE then apple more aes.
+        ret <- ret +
+          geom_point(pca_x, 
+                     mapping = aes(x = get(pca_x_axis), y = get(pca_y_axis),
+                                   color = cluster, 
+                                   fill = cluster, 
+                                   shape = cluster), 
+                     size = 3)
+      }
       
       if (USE_AXES == TRUE) {
         # axis segments
@@ -144,13 +151,16 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       ret <- ret + theme_minimal() +
         theme(aspect.ratio = 1) +
         scale_color_brewer(palette = pal) +
-        theme(panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank(),
-              axis.text.x = element_blank(), # marks
-              axis.text.y = element_blank(), # marks
+        theme(panel.grid.major = element_blank(), # no grid lines
+              panel.grid.minor = element_blank(), # no grid lines
+              axis.text.x = element_blank(),      # no axis marks
+              axis.text.y = element_blank(),      # no axis marks
               axis.title.x = element_text(size = 22, face = "bold"),
               axis.title.y = element_text(size = 22, face = "bold"),
-              legend.position = 'right') +
+              legend.box.background = element_rect(),
+              legend.title = element_text(size = 18, face = "bold"),
+              legend.text  = element_text(size = 18, face = "bold")
+        ) +
         labs(x = x_lab, y = y_lab)
       
       return(ret)
@@ -573,7 +583,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       # Evaluate training block 1
       if (block_num() == 1) {
         if (rv$training_attempts >= 3) {
-          output$plot_msg <- renderText("<b>Please see the proctor for additional instruction.</b>") 
+          output$plot_msg <- renderText("<h3><span style='color:red'>Please see the proctor for additional instruction.</span></h3>") 
           rv$training_attempts <- rv$training_attempts + 1
           return()
         }
@@ -581,18 +591,18 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
         ans <- length(attr(sim_intro, "ncl"))
         
         if (response - ans >= 2){ # >= 2 high, retry
-          output$plot_msg <- renderText("<b>That seems a little high, make sure to check from multiple perspectives and give it another shot.</b>") 
+          output$plot_msg <- renderText("<h3><span style='color:red'>That seems a little high, make sure to check from multiple perspectives and give it another shot.</span></h3>") 
           rv$training_attempts <- rv$training_attempts + 1
           return()
         }
         if (response - ans <= -2){ # <= 2 low, retry
-          output$plot_msg <- renderText("<b>That seems a little low, make sure to check from multiple perspectives and give it another shot.</b>") 
+          output$plot_msg <- renderText("<h3><span style='color:red'>That seems a little low, make sure to check from multiple perspectives and give it another shot.</span></h3>") 
           rv$training_attempts <- rv$training_attempts + 1
           return()
         }
         if (abs(response - ans) == 1){ # within 1, pass
           output$plot_msg <- renderText(
-            paste0("<b>Close, there are actually ", ans, " clusters in the data, but you have the right idea.</b>") 
+            paste0("<h3><span style='color:red'>Close, there are actually ", ans, " clusters in the data, but you have the right idea.</span></h3>") 
           )
           rv$training_passes <- TRUE
           ##TODO: display supersived graphic.
@@ -600,19 +610,19 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
         }
         
         if (response == ans){ # exact, pass
-          output$plot_msg <- renderText("<b>That's correct, great job!</b>") 
+          output$plot_msg <- renderText("<h3><span style='color:red'>That's correct, great job!</span></h3>") 
           rv$training_passes <- TRUE
           ##TODO: display supersived graphic.
           return()
         }
       }
       if (block_num() == 2) {
-        output$plot_msg <- renderText("<b>Training block 2 answer TBD.</b>") 
+        output$plot_msg <- renderText("<h3><span style='color:red'>Training block 2 answer TBD.</span></h3>") 
         rv$training_passes <- TRUE
         return()
       }
       if (block_num() == 3) {
-        output$plot_msg <- renderText("<b>Training block 3 answer TBD.</b>") 
+        output$plot_msg <- renderText("<h3><span style='color:red'>Training block 3 answer TBD.</span></h3>") 
         rv$training_passes <- TRUE
         return()
       }
@@ -673,8 +683,8 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     # Write rv$ans_tbl to .csv file.
     df <- rv$ans_tbl
     if (!is.null(rv$save_file)){ # if save already exists 
-      save_msg <- paste0("<b>Reponses already saved as ", 
-                         rv$save_file, ".</b>")
+      save_msg <- paste0("<h3><span style='color:red'>Reponses already saved as ", 
+                         rv$save_file, ".</span></h3>")
       output$save_msg <- renderText(save_msg)
       loggit("INFO", "Save button (Previously saved): ", 
              paste0("save_msg: ", save_msg,  "."))
@@ -695,8 +705,8 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     write.csv(get(save_name), file = save_file, row.names = FALSE)
     rv$save_file <- save_file
     
-    save_msg <- paste0("<b>Reponses saved as ", save_file, 
-                       ". Thank you for participating!</b>")
+    save_msg <- paste0("<h3><span style='color:red'>Reponses saved as ", save_file, 
+                       ". Thank you for participating!</span></h3>")
     output$save_msg <- renderText(save_msg)
     
     loggit("INFO", "Save button: ", 
@@ -711,17 +721,17 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   ### Obs timer -----
   observe({
-    invalidateLater(1000, session)
-    isolate({
-      if(rv$timer_active)
-      {
+    if (ui_section() == "task") {
+      invalidateLater(1000, session)
+      isolate({
         rv$timer <- rv$timer - 1
         if(rv$timer < 1 & rv$timer_active == TRUE){
           rv$timer_active <- FALSE
-          loggit("INFO", "timer elapsed.", "")
+          loggit("INFO", "timer elapsed.", 
+                 paste0("On rv$pg_num: ", rv$pg_num, "."))
         }
-      }
-    })
+      })
+    }
   })
 
   
@@ -754,26 +764,35 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
 
   
-  # output$blk1_ans defined in global
+  # output$blk1_ans defined in global_*.r
   ### Block 2 inputs, rate importance -----
-  # ie. output$blk2_ans1 is the value for block 2 question about var 1.
   output$blk2Inputs <- renderUI({
-    i <- ncol(task_dat())
-    j <- 5
-    lapply(1:i, function(i) {
-      radioButtons(inputId = paste0("blk2_ans", i), label = paste("Variable ", i),
-                   choices = c("unimportant", as.character(1:j)), 
-                   selected = "unimportant", inline = TRUE)
+    dat <- task_dat()
+    p <- ncol(dat)                               # num var
+    k <- length(unique(attributes(dat)$cluster)) # num of clusters
+    q <- (2 * (k - 1))                           # num total questions
+    
+    lapply(1:q, function(this_q){
+      this_k_letter <- letters[rep(1:(k - 1),each=2)][this_q]
+      this_q_txt    <- c("Very", "Somewhat")[rep(1:(k - 1),2)[this_q]]
+      this_q_id     <- tolower(substr(this_q_txt, 1, 4))
+      
+      checkboxGroupInput(inputId = paste0("blk2_ans_cl", this_k_letter, this_q_id),
+                         label   = paste0(this_q_txt, " important for distinguishing cluster ", this_k_letter),
+                         choices = paste0("V", 1:p),
+                         inline  = TRUE)
     })
-  })
-  
+  }) # close renderUI for blk2inputs
+
   ### Block 3 inputs, noise -----
   output$blk3Inputs <- renderUI({
-    i <- ncol(task_dat())
-    lapply(1:i, function(i) {
-        radioButtons(inputId = paste0("blk3_ans", i), label = paste("Variable", i),
-                           choices = c("group1", "group2", "group3", "group4", "not correlated"), 
-                           selected = "not correlated", inline = TRUE)
+    p <- ncol(task_dat())
+    n_gps <- 4 
+    lapply(1:n_gps, function(this_gp) {
+      checkboxGroupInput(inputId = paste0("blk3_ans_gp", this_gp), 
+                         label = paste0("Gorup ", this_gp),
+                         choices = paste0("V", 1:p), 
+                         inline = TRUE)
     })
   })
   

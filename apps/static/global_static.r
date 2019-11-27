@@ -39,7 +39,7 @@ n_reps <- 3
 s_blocks <- c("n", "d", "s")
 s_block_names <- c("clusters, n", "important variable, r", "correlated variables, s")
 s_block_questions <- c("How many clusters exist?",
-                       "Rate the variables in order of importance to distinguish groups.",
+                       "Rate the importance of each variable in terms of distinugishing the given cluster.",
                        "Group any/all correlated variables.")
 s_survey_questions <- c("What gender are you?",
                         "What age are you?",
@@ -119,9 +119,9 @@ main_ui <- fluidPage(
       )
       , tags$b("Expiriment -- 2 minutes per task, no questions")
       , tags$ul(
-        tags$li("Task one (3 reps) -- How many clusters are contained within the data?")
-        , tags$li("Task 2 (3 reps) -- Rate the variables importance for distinguishing groups")
-        , tags$li("Task 3 (3 reps) -- Group correlated variables (if any)")
+        tags$li(paste0("Task one (3 reps) -- ",     s_block_questions[1]))
+        , tags$li(paste0("Task two (3 reps) -- ",   s_block_questions[2]))
+        , tags$li(paste0("Task three (3 reps) -- ", s_block_questions[3]))
       )
       , tags$b("Follow-up")
       , tags$ul(
