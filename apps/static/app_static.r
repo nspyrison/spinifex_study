@@ -1,19 +1,19 @@
 source('global_static.r', local = TRUE)
 
 
-##### Server function, dynamic outputs ----
+##### Server function, for shiny app
 server <- function(input, output, session) {  ### INPUT, need to size to number of reps
   loggit("INFO", "app has started", "spinifex_study")
   
   ### Initialization -----
-  rv                <- reactiveValues()
-  rv$pg_num         <- 1
-  rv$timer          <- 120
-  rv$timer_active   <- TRUE
-  rv$task_responses <- NULL
-  rv$task_durations <- NULL
-  rv$save_file      <- NULL
-  rv$ans_tbl        <- NULL
+  rv                   <- reactiveValues()
+  rv$pg_num            <- 1
+  rv$timer             <- 120
+  rv$timer_active      <- TRUE
+  rv$task_responses    <- NULL
+  rv$task_durations    <- NULL
+  rv$save_file         <- NULL
+  rv$ans_tbl           <- NULL
   rv$training_passes   <- FALSE
   rv$training_attempts <- 1
   
@@ -21,7 +21,12 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   p1 <- reactive({ ncol(s_dat[[1]]) })
   p2 <- reactive({ ncol(s_dat[[2]]) })
   p3 <- reactive({ ncol(s_dat[[3]]) })
-  p_sims <- reactive({ p1() + p2() + p3() })
+  k1 <- reactive({ length(unique(attributes(s_dat[[1]])$cluster)) })
+  k2 <- reactive({ length(unique(attributes(s_dat[[2]])$cluster)) })
+  k3 <- reactive({ length(unique(attributes(s_dat[[3]])$cluster)) })
+  k_sims <- reactive ({ k1() + k2() + k3() })
+  this_p <- reactive({ ncol(task_dat()) })
+  this_k <- reactive({ length(unique(attributes(task_dat())$cluster)) })
   section_num <- reactive({
     if (rv$pg_num >= training_start & rv$pg_num < task_start){ # in training section
       return(rv$pg_num - (training_start - 1))
@@ -170,46 +175,46 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   ### Response table -----
   ans_tbl <- reactive({
-    col_blockrep <- c(s_blockrep_id[1:3],          # block 1
-                      rep(s_blockrep_id[4], p1()), # block 2
-                      rep(s_blockrep_id[5], p2()), 
-                      rep(s_blockrep_id[6], p3()), 
-                      rep(s_blockrep_id[7], p1()), # block 3
-                      rep(s_blockrep_id[8], p2()), 
-                      rep(s_blockrep_id[9], p3()), 
-                      paste0("survey", 1:10)       # survey
-    )
-    col_var      <- c(rep(NA, 3),   # block 1
-                      rep(c(1:p1(), # block 2 & 3
-                            1:p2(), 
-                            1:p3()), 2),
-                      rep(NA, 10))  # survey
-    s_sim_id     <- c("001", "002", "003")
-    col_sim_id   <- c(s_sim_id,                     # block 1
-                      rep(c(rep(s_sim_id[1], p1()), # block 2 & 3
-                            rep(s_sim_id[2], p2()), 
-                            rep(s_sim_id[3], p3())), 2),
-                      rep(NA, 10))                  # survey
-    col_question <- c(rep(s_block_questions[1], n_reps),   # block 1
-                      rep(s_block_questions[2], p_sims()), # block 2
-                      rep(s_block_questions[3], p_sims()), # block 3
-                      s_survey_questions)                  # survey 
-    col_response <- c(rep(NA, n_reps),        # block 1
-                      rep(NA, p_sims()),      # block 2
-                      rep(NA, p_sims()),      # block 3
-                      rep(NA, 10)) # survey
-    col_duration <- c(rep(NA, n_reps),   # block 1
-                      rep(NA, p_sims()), # block 2
-                      rep(NA, p_sims()), # block 3
-                      rep(NA, 10))       # survey 
+    col_blockrep <- c(s_blockrep_id[1:3],                    # block 1
+                      rep(s_blockrep_id[4], 2 * (k1() - 1)), # block 2
+                      rep(s_blockrep_id[5], 2 * (k2() - 1)),
+                      rep(s_blockrep_id[6], 2 * (k3() - 1)),
+                      rep(s_blockrep_id[7], 4),              # block 3
+                      rep(s_blockrep_id[8], 4),
+                      rep(s_blockrep_id[9], 4),
+                      paste0("survey", 1:10))                # survey
+    q_id1 <- paste0("cl", letters[rep(1:(k1() - 1), each = 2)], "_", c("very", "some"))
+    q_id2 <- paste0("cl", letters[rep(1:(k2() - 1), each = 2)], "_", c("very", "some"))
+    q_id3 <- paste0("cl", letters[rep(1:(k3() - 1), each = 2)], "_", c("very", "some"))
+    col_q_id      <- c(rep(NA, 3),                     # block 1
+                       q_id1, q_id2, q_id3,            # block 2
+                       rep(paste0("gp", 1:4), n_reps), # block 3
+                       rep(NA, 10))                    # survey
+    col_sim_id   <- c(sim1_num, sim2_num, sim3_num,  # block 1
+                      rep(sim1_num, 2 * (k1() - 1)), # block 2
+                      rep(sim2_num, 2 * (k2() - 1)),
+                      rep(sim3_num, 2 * (k3() - 1)),
+                      rep(sim1_num, 4),              # block 3
+                      rep(sim2_num, 4),
+                      rep(sim3_num, 4),
+                      rep(NA, 10))                   # survey
+    col_question <- c(rep(s_block_questions[1], n_reps),                  # block 1
+                      rep(s_block_questions[2], 2 * (k_sims() - n_reps)), # block 2
+                      rep(s_block_questions[3], 4 * n_reps),              # block 3
+                      s_survey_questions)                                 # survey 
+    col_response <- col_duration <- c(rep(NA, n_reps),                  # block 1
+                                      rep(NA, 2 * (k_sims() - n_reps)), # block 2
+                                      rep(NA, 4 * n_reps),              # block 3
+                                      rep(NA, 10))                      # survey
+    
     data.frame(blockrep = col_blockrep,
-               var      = col_var,
+               q_id     = col_q_id,
                sim_id   = col_sim_id,
                question = col_question,
                response = col_response,
                duration = col_duration)
   })
-  ##### End reactive
+  ##### End of reactives
   
   
   ##### Start observes
@@ -248,8 +253,8 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     }
   })
   
-  ### Obs responses and durations -----
-  ##### Block 1 responses & duration
+  ### Obs response and duration -----
+  ##### Block 1 response & duration
   observeEvent(input$blk1_ans, {
     if((120 - rv$timer) > 1) {
       rv$task_responses[1] <- input$blk1_ans
@@ -575,8 +580,8 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     ### ON LAST PAGE:
     # if <on last task> {<do nothing>}
     if (rv$pg_num >= survey_start){ return() }
-    # Init rv$ans_tbl <- ans_tbl() on first press
-    if (rv$pg_num == 1){ rv$ans_tbl <- ans_tbl() }
+    # Init rv$ans_tbl <- ans_tbl() on at the task section
+    if (rv$pg_num + 1 >= task_start){ rv$ans_tbl <- ans_tbl() }
     
     # If training section, evaluate response 
     if (ui_section() == "training" & rv$training_passes == FALSE) {
@@ -656,15 +661,16 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     }
     
     # Set structure for responses and durations
-    this_p <- 0 
+    n_rows <- 0 
     if (ui_section() == "task") {
-      if (block_num() == 1){this_p <- 1
-      } else { this_p <- ncol(task_dat()) }
+      if (block_num() == 1){n_rows <- 1} 
+      if (block_num() == 2){n_rows <- 2 * (this_k() - 1)}
+      if (block_num() == 3){n_rows <- 4}
     }
-    if (ui_section() == "survey") {this_p <- length(s_survey_questions)}
+    if (ui_section() == "survey") {n_rows <- length(s_survey_questions)}
     
-    rv$task_responses <- rep("default", this_p)
-    rv$task_durations <- rep("default", this_p)
+    rv$task_responses <- rep("default", n_rows)
+    rv$task_durations <- rep("default", n_rows)
     loggit("INFO", "Next page: ", 
            paste0("rv$pg_num: ", rv$pg_num, 
                   ". ui_section(): ", ui_section(),
@@ -773,11 +779,11 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     q <- (2 * (k - 1))                           # num total questions
     
     lapply(1:q, function(this_q){
-      this_k_letter <- letters[rep(1:(k - 1),each=2)][this_q]
+      this_k_letter <- letters[rep(1:(k - 1), each = 2)][this_q]
       this_q_txt    <- c("Very", "Somewhat")[rep(1:(k - 1),2)[this_q]]
       this_q_id     <- tolower(substr(this_q_txt, 1, 4))
       
-      checkboxGroupInput(inputId = paste0("blk2_ans_cl", this_k_letter, this_q_id),
+      checkboxGroupInput(inputId = paste0("blk2_ans_cl", this_k_letter, "_", this_q_id),
                          label   = paste0(this_q_txt, " important for distinguishing cluster ", this_k_letter),
                          choices = paste0("V", 1:p),
                          inline  = TRUE)

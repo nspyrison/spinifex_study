@@ -60,10 +60,13 @@ training_start <- 2 # pg 1 is intro, pg 2:4 is training
 task_start     <- training_start + n_blocks # ~ pg 5:13 is task  
 survey_start   <- task_start + n_reps * n_blocks # ~ pg 14 is survey 
 
+sim1_num  <- "017"
+sim2_num  <- "004"
+sim3_num  <- "020"
 sim_intro <- readRDS("../simulation/simulation_data021.rds") # p = 6, pnoise = 2, cl = 3 
-sim1      <- readRDS("../simulation/simulation_data017.rds") # "./apps/simulation/simulation_data001.rds"
-sim2      <- readRDS("../simulation/simulation_data004.rds")
-sim3      <- readRDS("../simulation/simulation_data003.rds")
+sim1      <- readRDS(paste0("../simulation/simulation_data", sim1_num, ".rds")) # "./apps/simulation/simulation_data001.rds"
+sim2      <- readRDS(paste0("../simulation/simulation_data", sim2_num, ".rds"))
+sim3      <- readRDS(paste0("../simulation/simulation_data", sim3_num, ".rds"))
 s_dat <- list(sim1, sim2, sim3)
 
 
