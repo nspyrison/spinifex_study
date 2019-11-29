@@ -152,7 +152,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                       color = "grey80", size = .3, inherit.aes = F)
         }
       
-      # Options
+      # Options 
       ret <- ret + theme_minimal() +
         theme(aspect.ratio = 1) +
         scale_color_brewer(palette = pal) +
@@ -171,6 +171,8 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       return(ret)
     }
   })
+  
+  
   
   
   ### Response table -----

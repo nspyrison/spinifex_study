@@ -82,21 +82,18 @@ main_ui <- fluidPage(
       hr(), # horizontal line
       conditionalPanel(condition = "output.block_num == 1",
                        tags$b(s_block_questions[1]),
+                       tags$br(), ## TODO breaks don't seem to work... 
                        numericInput("blk1_ans", "",
                                     value = 0, min = 0, max = 10)
       ),
       conditionalPanel(condition = "output.block_num == 2",
                        tags$b(s_block_questions[2]),
-                       div(style = 'width:300px;',
-                           div(style = 'float:left; color:red; font-size:14px', 
-                               strong('least important')),
-                           div(style = 'float:right; color:red; font-size:14px', 
-                               strong('most important'))),
-                       tags$br(),
+                       tags$br(), br(),
                        uiOutput("blk2Inputs")
       ),
       conditionalPanel(condition = "output.block_num == 3",
                        tags$b(s_block_questions[3]),
+                       tags$br(), br(),
                        uiOutput("blk3Inputs")
       )
     ) 
@@ -108,8 +105,8 @@ main_ui <- fluidPage(
       h3("Welcome to the study")
       , br()
       , p("This a completely voluntary study that will take approximately 25-30 
-      minutes to complete. If at any point you would like to stop, please let 
-          the proctor know.")
+          minutes to complete. If at any point you would like to stop, 
+          please let the proctor know.")
       , br()
       , p("You are helping to compare the effectiveness of different visuals of 
           linear projections for multivariate data. You will help evaluate 1 
@@ -131,8 +128,8 @@ main_ui <- fluidPage(
         tags$li("Short questionnaire")
         , tags$li("Response submission")
       )
-      , p("After completing the survey let the proctor know and collect a voucher
-          for a free hot berverage on campus.")
+      , p("After completing the survey let the proctor know and collect a 
+          voucher for a free hot berverage on campus.")
       , p("Thank you again for participating.")
     ), # close conditionPanel -- intro section text
     ### _Training mainPanel -----
