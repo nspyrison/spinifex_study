@@ -324,3 +324,5 @@ Sys.sleep(3)
 this_pca_plot(std_dat, class, 1, 3)
 vc
 # cos(angle) and magnitude
+grid(std_dat) # 2 vars at 90degrees, neg/pos have an intercept of any angle.
+

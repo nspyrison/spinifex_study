@@ -583,7 +583,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     # if <on last task> {<do nothing>}
     if (rv$pg_num >= survey_start){ return() }
     # Init rv$ans_tbl <- ans_tbl() on at the task section
-    if (rv$pg_num + 1 >= task_start){ rv$ans_tbl <- ans_tbl() }
+    if (rv$pg_num + 1 == task_start){ rv$ans_tbl <- ans_tbl() }
     
     # If training section, evaluate response 
     if (ui_section() == "training" & rv$training_passes == FALSE) {
@@ -623,16 +623,17 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
           return()
         }
       }
-      if (block_num() == 2) {
-        output$plot_msg <- renderText("<h3><span style='color:red'>Training block 2 answer TBD.</span></h3>") 
-        rv$training_passes <- TRUE
-        return()
-      }
-      if (block_num() == 3) {
-        output$plot_msg <- renderText("<h3><span style='color:red'>Training block 3 answer TBD.</span></h3>") 
-        rv$training_passes <- TRUE
-        return()
-      }
+      ## TODO: This removed evaluation of the training for blocks 2 and 3.
+      # if (block_num() == 2) {
+      #   output$plot_msg <- renderText("<h3><span style='color:red'>Training block 2 answer TBD.</span></h3>") 
+      #   rv$training_passes <- TRUE
+      #   return()
+      # }
+      # if (block_num() == 3) {
+      #   output$plot_msg <- renderText("<h3><span style='color:red'>Training block 3 answer TBD.</span></h3>") 
+      #   rv$training_passes <- TRUE
+      #   return()
+      # }
     }
     
     # If task section, write reponses and duration to ans_tbl
@@ -786,7 +787,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       this_q_id     <- tolower(substr(this_q_txt, 1, 4))
       
       checkboxGroupInput(inputId = paste0("blk2_ans_cl", this_k_letter, "_", this_q_id),
-                         label   = paste0(this_q_txt, " important for distinguishing cluster ", this_k_letter),
+                         label   = paste0(this_q_txt, " important for distinguishing cluster '", this_k_letter, "'"),
                          choices = paste0("V", 1:p),
                          inline  = TRUE)
     })

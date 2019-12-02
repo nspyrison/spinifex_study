@@ -119,9 +119,9 @@ main_ui <- fluidPage(
       )
       , tags$b("Expiriment -- 2 minutes per task, no questions")
       , tags$ul(
-        tags$li(paste0("Task one (3 reps) -- ",     s_block_questions[1]))
-        , tags$li(paste0("Task two (3 reps) -- ",   s_block_questions[2]))
-        , tags$li(paste0("Task three (3 reps) -- ", s_block_questions[3]))
+        tags$li(paste0("Task 1 (x3 reps) -- ",     s_block_questions[1]))
+        , tags$li(paste0("Task 2 (x3 reps) -- ",   s_block_questions[2]))
+        , tags$li(paste0("Task 3 (x3 reps) -- ", s_block_questions[3]))
       )
       , tags$b("Follow-up")
       , tags$ul(
@@ -143,45 +143,59 @@ main_ui <- fluidPage(
                        h2("Training -- task 3")),
       p("This data has 6 variables. Principle Componant Analysis (PCA) defines 
         new axes components (as linear combinations of the original variable),
-        ordered by the amount of variation they explain. This display can view
-        combinations of any 2 different principal components by selecting the
-        the x- and y-axes on the sidebar to the left."),
+        ordered by the amount of variation they explain. The plot below displays
+        the data for the components selected on the sidebar to the left."),
       p("Take time to familiarize yourself with the controls and feel free to 
-          ask any questions. During the experiment section, you will have 2 
+          ask any questions. During the evaluation section, you will have 2 
           minutes to explore the data, responding as accurately and quickly 
           as possible."),
       conditionalPanel( # first block text
         condition = "output.rep_num == 1",
-        tags$b("The first task is to guess the number clusters in the data. Explore 
-          more components to better inform your understanding of the clusters. 
-          When you are ready enter the number of clusters on the sidebar.")),
+        tags$b("The first task is to estimate the number clusters in the data. 
+          Click on the radio buttons on the side bar to select different PC 
+          combinations to better understand the clustertering of the data. 
+          When you are ready enter the number of clusters on the sidebar then
+          click the 'Next page' button below.")
+      ),
       conditionalPanel( # second block text
         condition = "output.rep_num == 2",
-        tags$b("The second task is to rate the variables in order of imporance 
-        for distinguishing clusters. The points have colored and shape assigned 
-        by cluster. The variable map in the middle of the display shows the direction
-        and magnitude that each variable contributes for the set of axes. Use 
-        the variable map to identitify the variables that contribute to 
-        distingishing clusters. Look at several componets to rate
-        the top four variables that help distinguish clusters.")),
+        tags$b("The second task is to rate each variables importance for 
+        distinguishing the listed cluster. The points have colored and shape 
+        assigned by cluster. The variable map (grey circle) on the display 
+        shows the direction and magnitude that each variable contributes to the 
+        current axes. Use the variable map to identitify the variables that 
+        distingish between clusters. Look at several componets to rate
+        the top four variables that help distinguish clusters.
+               \n \n
+        Consider cluster 'a' (green circles). Variables 2, 4, and 6 have 
+        relatively large magnitudes and are in directions that help distinguish
+        the purple squares (V4) and the orange triangles (V2 and V6). 
+        List V2, V4, and V6 as very important for distinguishing cluster 'a'.
+        Remember the axes can be changed to look at the data from another 
+        perspective;Look at the other 3 variable and see if they 
+        contribute in separating dimensions. Continue to the next page 
+        when you content.")
+      ),
       conditionalPanel( # Third block text
         condition = "output.rep_num == 3",
-        tags$b("The third task is to identify groups of correllated variables. Variables
-        that point in the same direction on the variable map correllated. Looking 
-        at differnet components try to identify any and all groups of correllated 
-        variables."))
+        tags$b("The third task is to identify groups of correllated variables. 
+        Variables that point in the same direction and both have large 
+        contributions on the variable map correllated. Looking at differnet 
+        components try to identify any and all groups of correllated 
+        variables.")
+      )
     ), # close training section main panel text
     ### _Task mainPanel -----
     conditionalPanel(
       condition = "output.ui_section == 'task'",
       conditionalPanel(condition = "output.block_num == 1",
-                       h2("Experiment -- task 1")
+                       h2("Evaluation -- task 1")
       ),
       conditionalPanel(condition = "output.block_num == 2",
-                       h2("Experiment -- task 2")
+                       h2("Evaluation -- task 2")
       ),
       conditionalPanel(condition = "output.block_num == 3",
-                       h2("Experiment -- task 3")
+                       h2("Evaluation -- task 3")
       ),
       textOutput('timer_disp')
     ), # close task section conditional panel title text
@@ -280,8 +294,8 @@ ui <- fluidPage(
     condition = "output.pg_num < 14",
     actionButton("next_pg_button", "Next page")
   )
-  , verbatimTextOutput("dev_msg")
-  , actionButton("browser", "browser()")
-  , tableOutput("ans_tbl")
+  # , verbatimTextOutput("dev_msg")
+  # , actionButton("browser", "browser()")
+  # , tableOutput("ans_tbl")
 )
 
