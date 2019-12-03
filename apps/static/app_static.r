@@ -701,7 +701,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     }
     
     # Do the actual saving
-    save_base <- paste0(".files/response_table_", study_factor)
+    save_base <- paste0("response_table_", study_factor)
     save_num  <- 1
     save_name <- sprintf(paste0(save_base, "%03d"), save_num)
     save_file <- paste0(save_name, ".csv")

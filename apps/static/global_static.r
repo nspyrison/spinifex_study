@@ -16,7 +16,7 @@ library("loggit")    # For logging
 
 study_factor <- "static"
 
-log_base <- paste0("./files/log_", study_factor)
+log_base <- paste0("log_", study_factor)
 log_num  <- 1
 log_name <- sprintf(paste0(log_base, "%03d"), log_num)
 log_file <- paste0(log_name, ".json")
@@ -272,7 +272,7 @@ main_ui <- fluidPage(
                               div(style = 'float:right;', 'strongly agree')),
                   min = 1, max = 9, value = 5),
       actionButton("save_ans", "save responses"),
-      verbatimTextOutput("save_msg"),
+      htmlOutput("save_msg"),
       conditionalPanel(
         condition = "output.is_saved == 1",
         h3("Thank you for participating!"),
