@@ -2,7 +2,7 @@ source('global_static.r', local = TRUE)
 
 
 ##### Server function, for shiny app
-server <- function(input, output, session) {  ### INPUT, need to size to number of reps
+server <- function(input, output, session) {
   loggit("INFO", "app has started", "spinifex_study")
   
   ### Initialization and reactives -----
@@ -16,6 +16,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   rv$ans_tbl           <- NULL
   rv$training_passes   <- FALSE
   rv$training_attempts <- 1
+  rv$factor_num        <- 1
   
   ##### Start reactives
   p1 <- reactive({ ncol(s_dat[[1]]) })
@@ -24,25 +25,30 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   k1 <- reactive({ length(unique(attributes(s_dat[[1]])$cluster)) })
   k2 <- reactive({ length(unique(attributes(s_dat[[2]])$cluster)) })
   k3 <- reactive({ length(unique(attributes(s_dat[[3]])$cluster)) })
-  k_sims <- reactive ({ k1() + k2() + k3() })
+  k_sims <- reactive({ k1() + k2() + k3() })
   this_p <- reactive({ ncol(task_dat()) })
   this_k <- reactive({ length(unique(attributes(task_dat())$cluster)) })
-  ui_section <- reactive({ # text_id of section
+  ui_section <- reactive({ # text name of section
     if (rv$pg_num == 1) {return("intro")}
     if (rv$pg_num %in% training_start:(task_start - 1) ) {return("training")}
     if (rv$pg_num %in% task_start:(survey_start - 1) ) {return("task")}
     if (rv$pg_num == survey_start) {return("survey")} 
     return("passed survey, need to cap pg_num")
   })
-  section_num <- reactive({ # ~page_num() of this section()
-    if (rv$pg_num >= training_start & rv$pg_num < task_start){ # in training section
+  section_num <- reactive({ # ~section_page_num(), page num of this section.
+    if (ui_section() == "training"){
       return(rv$pg_num - (training_start - 1))
     }
-    if (rv$pg_num >= task_start & rv$pg_num < survey_start){ # in task section
+    if (ui_section() == "task"){
       return(rv$pg_num - (task_start - 1))
     }
     return(1) # dummy 1, NA and 999 cause other issues.
   })
+  #factor_num <- reactive({  }) #~ 1:3  
+  ##TODO: Attempting rv$factor_num first
+    
+    
+
   block_num <- reactive({ # 1:2
     if (ui_section() == "training") {return(section_num())
     } else {
@@ -60,7 +66,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   task_dat <- reactive({ # simulation df with attachments.
     if (ui_section() == "training") {sim_intro
     } else {
-      ret <- s_dat[[rep_num()]]
+      ret <- tourr::rescale(s_dat[[rep_num()]])
       colnames(ret) <- paste0("V", 1:ncol(ret))
       return(ret) 
     }
@@ -68,14 +74,14 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
 
   
   
-  ### PCA Plot reactive -----
-  task_pca <- reactive({
+  ### PCA plot reactive -----
+  pca_plot <- reactive({
     if (rv$timer_active | ui_section() == "training") {
-      dat <- task_dat()
-      dat_std <- tourr::rescale(dat)
-      pca <- prcomp(dat_std)
+      # data init
+      dat_std <- task_dat()
+      cluster <- attributes(dat_std)$cluster
       
-      cluster <- attributes(dat)$cluster
+      # render init
       pal <- "Dark2"
       axes_position <- "center"
       USE_AXES <- TRUE
@@ -86,8 +92,9 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
           USE_AES  <- FALSE
         } 
       }
+      pca <- prcomp(dat_std)
       if (block_num() == 2) { # 2nd block, change sign of the basis.
-        pca_x <- as.matrix(dat) %*% (-1 * pca$rotation)
+        pca_x <- as.matrix(dat_std) %*% (-1 * pca$rotation)
         pca_x <- data.frame(2 * (tourr::rescale(pca_x) - .5))
         pca_rotation <- set_axes_position(data.frame(t(-1 * pca$rotation)),
                                           axes_position)
@@ -111,17 +118,17 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       circ  <- set_axes_position(data.frame(x = cos(angle), y = sin(angle)),
                                 axes_position)
       zero  <- set_axes_position(0, axes_position)
-
       
+      
+      ### ggplot2
       ret <- ggplot()
-      
       if (USE_AES == FALSE){
         # data points
         ret <- ret + 
           geom_point(pca_x, 
                      mapping = aes(x = get(pca_x_axis), y = get(pca_y_axis)), 
                      size = 3)
-      } else { # if USE_AES == TRUE then apple more aes.
+      } else { # if USE_AES == TRUE then apply more aes.
         ret <- ret +
           geom_point(pca_x, 
                      mapping = aes(x = get(pca_x_axis), y = get(pca_y_axis),
@@ -130,8 +137,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                    shape = cluster), 
                      size = 3)
       }
-      
-      if (USE_AXES == TRUE) {
+      if (USE_AXES == TRUE) { # if USE_AXES == TRUE then draw axes
         # axis segments
         ret <- ret +
           geom_segment(pca_rotation,
@@ -168,8 +174,156 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
         labs(x = x_lab, y = y_lab)
       
       return(ret)
-    }
+    } else {return()}
   })
+  
+  ### Grand tour plot reactive -----
+  gtour_plot <- reactive({ 
+    if (rv$timer_active | ui_section() == "training") {
+      # data init
+      dat_std <- task_dat()
+      cluster <- attributes(dat_std)$cluster
+      
+      # tour init
+      angle <- .1
+      fps   <- 3
+      max_frames <- 30 * fps # 90 frame at 30 sec @ fps = 3
+      set.seed(123) # if tourr starts using seeds
+      # # start basis is pca[, 1:2]
+      # basis <- prcomp(dat_std)$rotation[, 1:2]
+      # tpath <- save_history(dat_std, tour_path = grand_tour(), max = 8)
+      # str(tpath)
+      # # prepend the basis matrix, pc1:2, reformat for tourr
+      # tpath <- abind::abind(basis, tpath, along = 3)
+      # attr(tpath, "data") <- dat_std
+      # structure(tpath, class = "history_array")
+      # str(tpath)
+      ##TODO: pca basis not working (above). grand tour without PCA init below      
+      
+      tpath <- save_history(dat_std, tour_path = grand_tour(), max = 8)
+      
+      full_path <- tourr::interpolate(basis_set = tpath, angle = angle)
+      attr(full_path, "class") <- "array"
+      max_frames <- min(c(max_frames, dim(full_path)[3]))
+      full_path <- full_path[, , 1:max_frames]
+      
+      tour_df <- array2df(array = full_path, data = dat_std)
+      # tour_df is tour in long form 
+      
+      # render init
+      pal <- "Dark2"
+      axes_position <- "center"
+      USE_AXES <- TRUE
+      USE_AES  <- TRUE
+      if (block_num() == 1) {
+        USE_AXES <- FALSE
+        if(rv$training_passes == FALSE) { # During training
+          USE_AES  <- FALSE
+        } 
+      }
+      if (USE_AXES == FALSE) {axes_position = "off"}
+      angle <- seq(0, 2 * pi, length = 360)
+      circ  <- set_axes_position(data.frame(x = cos(angle), y = sin(angle)),
+                                 axes_position)
+      zero  <- set_axes_position(0, axes_position)
+      
+      ### ggplot2
+      basis_df <- tour_df$basis_slides
+      basis_df <- set_axes_position(tour_df$basis_slides, axes_position)
+      data_df  <- tour_df$data_slides
+      cluster  <- rep(cluster, max_frames)
+      
+      gg <- ggplot()
+      if (USE_AES == FALSE){
+        # data points
+        gg <- gg + 
+          geom_point(data_df, 
+                     mapping = aes(x = x, y = y, frame = slide), 
+                     size = 3)
+      } else { # if USE_AES == TRUE then apply more aes.
+        gg <- gg +
+          geom_point(data_df, 
+                     mapping = aes(x = x, y = y, frame = slide, 
+                                   color = cluster, 
+                                   fill  = cluster, 
+                                   shape = cluster), 
+                     size = 3)
+      }
+      if (USE_AXES == TRUE) { # iF USE_AXES == TRUE then draw axes.
+        # axis segments
+        gg <- gg +
+          geom_segment(basis_df,
+                       mapping = aes(x = x, xend = zero,
+                                     y = y, yend = zero,
+                                     frame = slide),
+                       size = .3, colour = "red") +
+          # axis label text
+          geom_text(basis_df,
+                    mapping = aes(x = x,
+                                  y = y,
+                                  frame = slide,
+                                  label = lab),
+                    size = 6, colour = "red", fontface = "bold",
+                    vjust = "outward", hjust = "outward") +
+          # Cirle path
+          geom_path(circ,
+                    mapping = aes(x = x, y = y),
+                    color = "grey80", size = .3, inherit.aes = F)
+      }
+      
+      # Options 
+      gg <- gg + theme_minimal() +
+        theme(aspect.ratio = 1) +
+        scale_color_brewer(palette = pal) +
+        scale_fill_brewer(palette = pal) +
+        theme(panel.grid.major = element_blank(), # no grid lines
+              panel.grid.minor = element_blank(), # no grid lines
+              axis.text.x = element_blank(),      # no axis marks
+              axis.text.y = element_blank(),      # no axis marks
+              axis.title.x = element_blank(),     # no axis titles for gtour
+              axis.title.y = element_blank(),     # no axis titles for gtour
+              legend.box.background = element_rect(),
+              legend.title = element_text(size = 18, face = "bold"),
+              legend.text  = element_text(size = 18, face = "bold")
+        ) # end of ggplot2 work 
+      
+      ### plotly
+      ggp <- plotly::ggplotly(p = gg, tooltip = "none") 
+      ggp <- plotly::animation_opts(p = ggp, frame = 1 / fps * 1000, 
+                                    transition = 0, redraw = FALSE)
+      ggp <- plotly::layout(
+        ggp, showlegend = T, yaxis = list(showgrid = F, showline = F),
+        xaxis = list(scaleanchor = "y", scaleratio = 1, showgrid = F, showline = F))
+      
+      return(ggp)
+    } else {return()}
+  })
+  
+  
+  ### Manual tour plot reactive -----
+  # mtour_plot <- reactive({} 
+  #   if (rv$timer_active | ui_section() == "training") {
+  #     if (is.null(rv$curr_basis)) {stop("rv$curr_basis not found while calling mtour_plot()")}
+  #     # data init
+  #     dat_std <- task_dat()
+  #     cluster <- attributes(dat_std)$cluster
+  #     if (input$manip_var == "<none>") {m_var <- 1
+  #     } else {m_var <- which(colnames(dat) == input$manip_var)}
+  #   
+  #     
+  #     
+  #     ret <- oblique_frame(data      = dat_std, 
+  #                          basis     = rv$curr_basis, 
+  #                          manip_var = m_var, 
+  #                          theta     = 0, # perform rotation when setting rv$curr_basis
+  #                          phi       = 0, 
+  #                          col       = cluster,
+  #                          pch       = cluster,
+  #                          axes      = "center",
+  #                          alpha     = 1
+  #     )
+  #     return(ret)
+  #   })
   
   
   ### Response table reactive -----
@@ -536,30 +690,30 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   output$rep_num    <- reactive(rep_num())   # controls ui wording.
   output$block_num  <- reactive(block_num()) # controls ui response layout
   output$pg_num     <- reactive(rv$pg_num)   # controls ui next_task button
-  output$is_saved   <- reactive(if (is.null(rv$save_file)) {0} else {1}) # Control thank you.
+  output$is_saved   <- reactive(if (is.null(rv$save_file)) {0} else {1}) # control save_msg.
   outputOptions(output, "ui_section", suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
   outputOptions(output, "rep_num",    suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
   outputOptions(output, "block_num",  suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
   outputOptions(output, "pg_num",     suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
-  outputOptions(output, "is_saved",     suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
+  outputOptions(output, "is_saved",   suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
   ### training outputs
   output$training_header_text <- renderText(training_header_text[block_num()])
   output$training_top_text    <- renderText(training_top_text[block_num()])
   ### general task outputs
   #output$TEST_plot  <- renderPlot(plot(1,1))
-  output$task_pca   <- renderPlot({task_pca()}, height = 640) 
-  output$task_gtour <- renderPlotly({task_gtour()})
+  output$pca_plot   <- renderPlot({pca_plot()}, height = 640) 
+  output$gtour_plot <- renderPlotly({gtour_plot()})
+  output$mtour_plot <- renderPlotly({mtour_plot()})
   output$ans_tbl    <- renderTable({rv$ans_tbl})
   
-
   
   # output$blk1_ans defined in global_*.r
   ### Block 2 inputs, rate importance -----
   output$blk2Inputs <- renderUI({
-    dat <- task_dat()
-    p <- ncol(dat)                               # num var
-    k <- length(unique(attributes(dat)$cluster)) # num of clusters
-    q <- (2 * (k - 1))                           # num total questions
+    dat_std <- task_dat()
+    p <- ncol(dat_std)                               # num var
+    k <- length(unique(attributes(dat_std)$cluster)) # num of clusters
+    q <- (2 * (k - 1))                               # num total questions
     
     lapply(1:q, function(this_q){
       this_k_letter <- letters[rep(1:(k - 1), each = 2)][this_q]
@@ -596,10 +750,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   session$onSessionEnded(function(){
     cat("(onSessionEnded ran) \n")
     loggit("INFO", "app has stopped", "spinifex_study")
-    if (try_autosave == TRUE & is.null(rv$save_file)) {
-      ## try to trip the save file observeEvent.
-      input$save_ans <- input$save_ans + 1
-    }
   })
 }
 

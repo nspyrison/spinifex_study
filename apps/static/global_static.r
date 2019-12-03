@@ -39,7 +39,7 @@ while (file.exists(log_file)){ # Find an unused log number
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## Uncomment to capture log file: 
 # TODO: uncomment for logs
-#setLogFile(log_file); try_autosave <- TRUE
+# setLogFile(log_file); try_autosave <- TRUE
 loggit("INFO", "app has started", "spinifex_study")
 
 ### Required inputs -----
@@ -189,7 +189,8 @@ main_ui <- fluidPage(
     ### _Plot mainPanel
     conditionalPanel( 
       condition = "output.ui_section == 'training' || output.ui_section == 'task'"
-      , plotOutput("task_pca", height = "auto")
+      , plotOutput("pca_plot", height = "auto")
+      , plotlyOutput("gtour_plot", height = "640px")
       , htmlOutput("plot_msg")
     ), # close plot conditional panel
     ### _Survey mainPanel -----

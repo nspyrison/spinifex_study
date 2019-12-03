@@ -210,7 +210,7 @@ sim_parameters[c(21, 17, 4, 20), ]
 ### block 1:
 (blk1 <- sim_parameters[c(21, 17, 4, 20), c(1, 3)])
 
-### block 2:
+### __block 2: -----
 ex <- readRDS("./apps/simulation/simulation_data021.rds") 
 
 this_sim <- ex #get(loaded_sim_names[i])
@@ -228,101 +228,107 @@ this_supervied_sim <- data.frame(this_sim, cluster = attr(this_sim, "cluster"))
 this_lda <- MASS::lda(cluster~., data = this_supervied_sim)
 this_lda$scaling
 this_lda$means
+attr(this_sim, "mncl")[,this_reorder]
 #print("scaling (var grain) is on a different grainularity from means (cluster grain), cannot combine.")
 print("manually looking at sim 021, it looks like V4 is important for distinguishing 
       1 group(harder to see). and V2, V6, V3 distinguish the easier group to split from the other 2.")
 
-(m <- this_lda$means)
-print("This is the actuallized means, as compared with the parameter means as seen in zSumSquares.r. Not sure where this leaves us.")
+#(m <- this_lda$means)
+#print("This is the actuallized means, as compared with the parameter means as seen in zSumSquares.r. Not sure where this leaves us.")
 
-#### block 3:
-# ex <- readRDS("./apps/simulation/simulation_data021.rds") 
+print("subjective ratings are good enough here,
+Ground ~ |mean(var)_thisCL - mean(var)_!thisCL|, (atleast safe for these simulations).
+      see meeting notes 20191114_Di.txt")
+
+##TODO: removed block 3, going to within participant study.
+# #### __block 3: ----
+# # ex <- readRDS("./apps/simulation/simulation_data021.rds") 
+# # 
+# # this_sim <- ex #get(loaded_sim_names[i])
+# # colnames(this_sim) <- paste0("V", 1:ncol(this_sim))
+# # this_reorder <- attr(this_sim, "col_reorder")
+# # # covar
+# # this_covar <- attr(this_sim, "vc")[this_reorder, this_reorder]
+# # colnames(this_covar) <- paste0("V", 1:ncol(this_sim))
+# # this_covar
 # 
-# this_sim <- ex #get(loaded_sim_names[i])
-# colnames(this_sim) <- paste0("V", 1:ncol(this_sim))
-# this_reorder <- attr(this_sim, "col_reorder")
-# # covar
-# this_covar <- attr(this_sim, "vc")[this_reorder, this_reorder]
-# colnames(this_covar) <- paste0("V", 1:ncol(this_sim))
-# this_covar
-
-print("don't line up with what I expected from looking at it manually. Varify that the variables are on the same page.")
-###going back to flea as a sanity check.
-library(tourr)
-dat <- tourr::flea[,1:6]
-std_dat <- tourr::rescale(dat)
-class <- tourr::flea[,7]
-
-(vc <- round(cor(std_dat),2))
-cat("so lets look at tars1(v1) and aede2(v5)")
+# print("don't line up with what I expected from looking at it manually. Varify that the variables are on the same page.")
+# ###going back to flea as a sanity check.
+# library(tourr)
+# dat <- tourr::flea[,1:6]
+# std_dat <- tourr::rescale(dat)
+# class <- tourr::flea[,7]
 # 
-# pca <- prcomp(std_dat)
-# (pca_vc <- round(cor(pca$x),2))
-# cat("make sense, each new PC must be orthagonal to the rest.")
-# # diag(6), sure, part of the constraints for making prin comp
-
-this_pca_plot <- function(dat, class, x_num, y_num){
-  col <- col_of(class)
-  pch <- pch_of(class)
-  
-  axes_pos <- "center"
-  
-  x_pc <- paste0("PC", x_num)
-  y_pc <- paste0("PC", y_num)
-  
-  pca <- prcomp(std_dat)
-  std_pca_x <- data.frame((tourr::rescale(pca$x[, c(x_num, y_num)]) - .5) *2)
-  pca_rotation <- set_axes_position(data.frame(t(pca$rotation)), 
-                                    axes_pos)
-  
-  
-  angle <- seq(0, 2 * pi, length = 360)
-  circ <- set_axes_position(data.frame(x = cos(angle), y = sin(angle)), 
-                            axes_pos)
-  zero <- set_axes_position(0, axes_pos)
-  
-  
-  ggplot() + 
-    # data points
-    geom_point(std_pca_x, mapping = aes(x = get(x_pc), 
-                                        y = get(y_pc)),
-               color = col, fill = col, shape = pch) +
-    # axis segments
-    geom_segment(pca_rotation, 
-                 mapping = aes(x = pca_rotation[, x_num], xend = zero,
-                               y = pca_rotation[, y_num], yend = zero),
-                 size = .3, colour = "grey80") +
-    # axis label text
-    geom_text(pca_rotation, 
-              mapping = aes(x = pca_rotation[, x_num], 
-                            y = pca_rotation[, y_num], 
-                            label = colnames(pca_rotation)), 
-              size = 4, colour = "grey50", 
-              vjust = "outward", hjust = "outward") +
-    # Cirle path
-    geom_path(circ, 
-              mapping = aes(x = x, y = y),
-              color = "grey80", size = .3, inherit.aes = F) +
-    # options
-    theme_minimal() + 
-    theme(aspect.ratio = 1) +
-    scale_color_brewer(palette = "Dark2") +
-    theme(axis.text.x = element_blank(),
-          axis.text.y = element_blank(),
-          legend.position = 'none') +
-    labs(x = x_pc, y = y_pc)
-}
-
-# this_pca_plot(std_dat, class, 1, 5)
-# cat("this wont' work because we want to compare tars1(v1) and aede2(v5) not pc1, pc5. look at pc1 and pc2.")
-
-this_pca_plot(std_dat, class, 1, 2)
-vc
-cat("On the biplot I cannot tell why tars1&aede2 or aede3&aede1 would be so high. 
-    I would also expect the cor for tars1 and aede3 to be higher. I expect a similarly muddy view from pc1, pc3")
-Sys.sleep(3)
-this_pca_plot(std_dat, class, 1, 3)
-vc
-# cos(angle) and magnitude
-grid(std_dat) # 2 vars at 90degrees, neg/pos have an intercept of any angle.
-
+# (vc <- round(cor(std_dat),2))
+# cat("so lets look at tars1(v1) and aede2(v5)")
+# # 
+# # pca <- prcomp(std_dat)
+# # (pca_vc <- round(cor(pca$x),2))
+# # cat("make sense, each new PC must be orthagonal to the rest.")
+# # # diag(6), sure, part of the constraints for making prin comp
+# 
+# this_pca_plot <- function(dat, class, x_num, y_num){
+#   col <- col_of(class)
+#   pch <- pch_of(class)
+#   
+#   axes_pos <- "center"
+#   
+#   x_pc <- paste0("PC", x_num)
+#   y_pc <- paste0("PC", y_num)
+#   
+#   pca <- prcomp(std_dat)
+#   std_pca_x <- data.frame((tourr::rescale(pca$x[, c(x_num, y_num)]) - .5) *2)
+#   pca_rotation <- set_axes_position(data.frame(t(pca$rotation)), 
+#                                     axes_pos)
+#   
+#   
+#   angle <- seq(0, 2 * pi, length = 360)
+#   circ <- set_axes_position(data.frame(x = cos(angle), y = sin(angle)), 
+#                             axes_pos)
+#   zero <- set_axes_position(0, axes_pos)
+#   
+#   
+#   ggplot() + 
+#     # data points
+#     geom_point(std_pca_x, mapping = aes(x = get(x_pc), 
+#                                         y = get(y_pc)),
+#                color = col, fill = col, shape = pch) +
+#     # axis segments
+#     geom_segment(pca_rotation, 
+#                  mapping = aes(x = pca_rotation[, x_num], xend = zero,
+#                                y = pca_rotation[, y_num], yend = zero),
+#                  size = .3, colour = "grey80") +
+#     # axis label text
+#     geom_text(pca_rotation, 
+#               mapping = aes(x = pca_rotation[, x_num], 
+#                             y = pca_rotation[, y_num], 
+#                             label = colnames(pca_rotation)), 
+#               size = 4, colour = "grey50", 
+#               vjust = "outward", hjust = "outward") +
+#     # Cirle path
+#     geom_path(circ, 
+#               mapping = aes(x = x, y = y),
+#               color = "grey80", size = .3, inherit.aes = F) +
+#     # options
+#     theme_minimal() + 
+#     theme(aspect.ratio = 1) +
+#     scale_color_brewer(palette = "Dark2") +
+#     theme(axis.text.x = element_blank(),
+#           axis.text.y = element_blank(),
+#           legend.position = 'none') +
+#     labs(x = x_pc, y = y_pc)
+# }
+# 
+# # this_pca_plot(std_dat, class, 1, 5)
+# # cat("this wont' work because we want to compare tars1(v1) and aede2(v5) not pc1, pc5. look at pc1 and pc2.")
+# 
+# this_pca_plot(std_dat, class, 1, 2)
+# vc
+# cat("On the biplot I cannot tell why tars1&aede2 or aede3&aede1 would be so high. 
+#     I would also expect the cor for tars1 and aede3 to be higher. I expect a similarly muddy view from pc1, pc3")
+# Sys.sleep(3)
+# this_pca_plot(std_dat, class, 1, 3)
+# vc
+# # cos(angle) and magnitude
+# grid(std_dat) # 2 vars at 90degrees, neg/pos have an intercept of any angle.
+# 

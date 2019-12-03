@@ -62,12 +62,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
         disp
       }
       
-      tour_path <- tourr::interpolate(basis_set = tour_path, angle = angle)
-      attr(tour_path, "class") <- "array"
-      tour_df <- array2df(array = tour_path, data = data)
-      disp <- render_type(slides = tour_df, ...)
-      
-      disp
       this_play_tour_path(tour_path = tpath, data = dat_std, col = col, pch = pch,
                           axes = "bottomleft", max_frames = 90)
     }
