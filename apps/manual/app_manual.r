@@ -124,7 +124,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ##### End reactive
   
   ##### Start observes
-  ### Obs basis ----- 
+  ### Obs mtour basis ----- 
   observeEvent({ 
     task_dat()
     input$x_axis
@@ -142,7 +142,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     rv$curr_basis <- pca$rotation[, c(x_num, y_num)]
   })
   
-  ### Obs slider ----
+  ### Obs mtour slider ----
   observeEvent(input$manip_slider, {
     cat("you changed angles\n")
     if (input$manip_var != "<none>") {
@@ -161,7 +161,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     }
   })
   
-  ### Obs update manip_var choices -----
+  ### Obs mtour update manip_var choices -----
   observeEvent(task_dat(), { # Init manip_var choices on data change.
     cat("you changed manip var\n")
     these_colnames <- colnames(task_dat())
@@ -169,7 +169,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                       selected = these_colnames[1])
   })
   
-  ### Obs update axis choices -----
+  ### Obs mtour update axis choices -----
   observeEvent(task_dat(), { # Init axis choices when data changes
     cat("you changed number of PCs\n")
     p <- ncol(task_dat())
@@ -194,7 +194,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     }
   })
   
-  ### Obs update slider value -----
+  ### Obs mtour update slider value -----
   observeEvent(
     {manip_var_num()
       task_dat()

@@ -22,9 +22,18 @@ server <- function(input, output, session) {
   p1 <- reactive({ ncol(s_dat[[1]]) })
   p2 <- reactive({ ncol(s_dat[[2]]) })
   p3 <- reactive({ ncol(s_dat[[3]]) })
-  k1 <- reactive({ length(unique(attributes(s_dat[[1]])$cluster)) })
-  k2 <- reactive({ length(unique(attributes(s_dat[[2]])$cluster)) })
-  k3 <- reactive({ length(unique(attributes(s_dat[[3]])$cluster)) })
+  k1 <- reactive({
+    n_cls <- length(unique(attributes(s_dat[[1]])$cluster)) 
+    2 * (n_cls - 1)
+  })
+  k2 <- reactive({
+    n_cls <- length(unique(attributes(s_dat[[2]])$cluster))
+    2 * (n_cls - 1)
+  })
+  k3 <- reactive({
+    n_cls <- length(unique(attributes(s_dat[[3]])$cluster))
+    2 * (n_cls - 1)
+  })
   k_sims <- reactive({ k1() + k2() + k3() })
   this_p <- reactive({ ncol(task_dat()) })
   this_k <- reactive({ length(unique(attributes(task_dat())$cluster)) })
@@ -35,7 +44,7 @@ server <- function(input, output, session) {
     if (rv$pg_num == survey_start) {return("survey")} 
     return("passed survey, need to cap pg_num")
   })
-  section_num <- reactive({ # ~section_page_num(), page num of this section.
+  section_pg_num <- reactive({ # ~page num of this section.
     if (ui_section() == "training"){
       return(rv$pg_num - (training_start - 1))
     }
@@ -44,21 +53,23 @@ server <- function(input, output, session) {
     }
     return(1) # dummy 1, NA and 999 cause other issues.
   })
-  #factor_num <- reactive({  }) #~ 1:3  
-  ##TODO: Attempting rv$factor_num first
-    
-    
-
+  factor <- reactive({ # ~ PCA, gtour, mtour
+    if (ui_section() != "task") {return(NA)
+      } else {# is task
+        factor_num <- 1 + (section_pg_num() %/% (n_blocks * n_reps))
+        return(this_factor_order[factor_num])
+      }
+  })
   block_num <- reactive({ # 1:2
-    if (ui_section() == "training") {return(section_num())
+    if (ui_section() == "training") {return(section_pg_num())
     } else {
-      return(1 + (section_num() - 1) %/% n_reps)
+      return(1 + (section_pg_num() - 1) %/% n_reps)
     }
   })
   rep_num <- reactive({ # 1:3
-    if (ui_section() == "training") {return(section_num())}
-    if (section_num() - (n_reps * (block_num() - 1)) <= 0) {stop("check rep_num() it's <= 0.")}
-    return(section_num() - (n_reps * (block_num() - 1)))
+    if (ui_section() == "training") {return(section_pg_num())}
+    if (section_pg_num() - (n_reps * (block_num() - 1)) <= 0) {stop("check rep_num() it's <= 0.")}
+    return(section_pg_num() - (n_reps * (block_num() - 1)))
   })
   blockrep <- reactive({ # n1, n2, d1, d2
     paste0(s_block_id[block_num()], rep_num())
@@ -301,57 +312,102 @@ server <- function(input, output, session) {
   
   
   ### Manual tour plot reactive -----
-  # mtour_plot <- reactive({} 
-  #   if (rv$timer_active | ui_section() == "training") {
-  #     if (is.null(rv$curr_basis)) {stop("rv$curr_basis not found while calling mtour_plot()")}
-  #     # data init
-  #     dat_std <- task_dat()
-  #     cluster <- attributes(dat_std)$cluster
-  #     if (input$manip_var == "<none>") {m_var <- 1
-  #     } else {m_var <- which(colnames(dat) == input$manip_var)}
-  #   
-  #     
-  #     
-  #     ret <- oblique_frame(data      = dat_std, 
-  #                          basis     = rv$curr_basis, 
-  #                          manip_var = m_var, 
-  #                          theta     = 0, # perform rotation when setting rv$curr_basis
-  #                          phi       = 0, 
-  #                          col       = cluster,
-  #                          pch       = cluster,
-  #                          axes      = "center",
-  #                          alpha     = 1
-  #     )
-  #     return(ret)
-  #   })
+  mtour_plot <- reactive({
+    if (rv$timer_active | ui_section() == "training") {
+      if (is.null(rv$curr_basis)) {stop("rv$curr_basis not found while calling mtour_plot()")}
+      # data init
+      dat_std <- task_dat()
+      cluster <- attributes(dat_std)$cluster
+      if (input$manip_var == "<none>") {m_var <- 1
+      } else {m_var <- which(colnames(dat) == input$manip_var)}
+      
+      
+      ## TODO: expand oblique frame for like aes.
+      ret <- oblique_frame(data      = dat_std,
+                           basis     = rv$curr_basis,
+                           manip_var = m_var,
+                           theta     = 0, # perform rotation when setting rv$curr_basis
+                           phi       = 0,
+                           col       = cluster,
+                           pch       = cluster,
+                           axes      = "center",
+                           alpha     = 1
+      )
+      
+      return(ret)
+    } else {return()}
+  })
   
   
   ### Response table reactive -----
   ans_tbl <- reactive({
-    col_blockrep <- c(s_blockrep_id[1:3],                    # block 1
-                      rep(s_blockrep_id[4], 2 * (k1() - 1)), # block 2
-                      rep(s_blockrep_id[5], 2 * (k2() - 1)),
-                      rep(s_blockrep_id[6], 2 * (k3() - 1)),
-                      paste0("survey", 1:10))                # survey
-    q_id1 <- paste0("cl", letters[rep(1:(k1() - 1), each = 2)], "_", c("very", "some"))
-    q_id2 <- paste0("cl", letters[rep(1:(k2() - 1), each = 2)], "_", c("very", "some"))
-    q_id3 <- paste0("cl", letters[rep(1:(k3() - 1), each = 2)], "_", c("very", "some"))
-    col_q_id      <- c(rep(NA, 3),                     # block 1
-                       q_id1, q_id2, q_id3,            # block 2
-                       rep(NA, 10))                    # survey
-    col_sim_id   <- c(sim1_num, sim2_num, sim3_num,  # block 1
-                      rep(sim1_num, 2 * (k1() - 1)), # block 2
-                      rep(sim2_num, 2 * (k2() - 1)),
-                      rep(sim3_num, 2 * (k3() - 1)),
-                      rep(NA, 10))                   # survey
-    col_question <- c(rep(s_block_questions[1], n_reps),                  # block 1
-                      rep(s_block_questions[2], 2 * (k_sims() - n_reps)), # block 2
-                      s_survey_questions)                                 # survey 
-    col_response <- col_duration <- c(rep(NA, n_reps),                  # block 1
-                                      rep(NA, 2 * (k_sims() - n_reps)), # block 2
-                                      rep(NA, 10))                      # survey
+    col_factor <- 
+      c(
+        rep(this_factor_order[1], n_blocks * n_reps), # across factors
+        rep(this_factor_order[2], n_blocks * n_reps),
+        rep(this_factor_order[3], n_blocks * n_reps),
+        rep(NA, n_survey_questions)                   # survey
+      )
+    col_blockrep <- 
+      c(
+        rep(
+          c(s_blockrep_id[1:3],          # block 1
+            rep(s_blockrep_id[4], k1()), # block 2
+            rep(s_blockrep_id[5], k2()),
+            rep(s_blockrep_id[6], k3())
+          ), 
+          n_factors                      # across factors
+        ), 
+        paste0("survey", 1:10)           # survey
+      )                
+    q_id1 <- paste0("cl", letters[rep(1:((k1() / 2) + 1), each = 2)], "_", c("very", "some"))
+    q_id2 <- paste0("cl", letters[rep(1:((k2() / 2) + 1), each = 2)], "_", c("very", "some"))
+    q_id3 <- paste0("cl", letters[rep(1:((k3() / 2) + 1), each = 2)], "_", c("very", "some"))
+    col_q_id <- 
+      c(
+        rep(
+          c(rep(NA, 3),         # block 1
+            q_id1, q_id2, q_id3 # block 2
+          ), 
+          n_factors             # across factors
+        ), 
+        rep(NA, 10)             # survey
+      )
+    col_sim_id   <- 
+      c(
+        rep(
+          c(sim1_num, sim2_num, sim3_num, # block 1
+            rep(sim1_num, k1()),          # block 2
+            rep(sim2_num, k2()),
+            rep(sim3_num, k3())
+          ),
+          n_factors                       # across factors
+        ),
+        rep(NA, 10)                       # survey
+      )
+    col_question <- 
+      c(
+        rep(
+          c(rep(s_block_questions[1], n_reps),   # block 1
+            rep(s_block_questions[2], k_sims()), # block 2
+          ),
+          n_factors                              # across factors
+        ),
+        s_survey_questions                       # survey
+      ) 
+    col_response <- col_duration <- 
+      c(
+        rep(
+          c(rep(NA, n_reps),  # block 1
+            rep(NA, k_sims()) # block 2
+          ),
+          n_factors           # across factors
+        ),
+        rep(NA, 10)           # survey
+      )
     
-    data.frame(blockrep = col_blockrep,
+    data.frame(factor   = col_factor,
+               blockrep = col_blockrep,
                q_id     = col_q_id,
                sim_id   = col_sim_id,
                question = col_question,
@@ -364,11 +420,13 @@ server <- function(input, output, session) {
   ##### Start observes
   ### Obs update axis choices -----
   observeEvent(task_dat(), { # Init axis choices when data changes
-    p <- ncol(task_dat())
-    choices <- paste0("PC", 1:p)
-    updateRadioButtons(session, "x_axis", choices = choices, selected = "PC1")
-    updateRadioButtons(session, "y_axis", choices = choices, selected = "PC2")
-    loggit("INFO", "task_dat() changed.", "updated axes choices.")
+    if (rv$timer_active | ui_section() == "training") {
+      p <- ncol(task_dat())
+      choices <- paste0("PC", 1:p)
+      updateRadioButtons(session, "x_axis", choices = choices, selected = "PC1")
+      updateRadioButtons(session, "y_axis", choices = choices, selected = "PC2")
+      loggit("INFO", "task_dat() changed.", "updated axes choices.")
+    }
   })
   # Bump x_axis when set to the same as y_axis
   observeEvent(input$x_axis, { 
@@ -394,6 +452,56 @@ server <- function(input, output, session) {
       loggit("INFO", 
              paste0("y_axis set to ", input$y_axis , "same as x_axis."), 
              paste0("y_axis bumped to ", y_axis_out, "."))
+    }
+  })
+  
+  ### Obs mtour basis ----- 
+  observeEvent({ 
+    task_dat()
+    input$x_axis
+    input$y_axis
+  },
+  {
+    dat_std <- task_dat()
+    pca <- prcomp(dat_std)
+    x <- input$x_axis
+    y <- input$y_axis
+    x_num <- as.integer(substr(x, nchar(x), nchar(x)))
+    y_num <- as.integer(substr(y, nchar(y), nchar(y)))
+    rv$curr_basis <- pca$rotation[, c(x_num, y_num)]
+    loggit("INFO", 
+           paste0("New basis set (from task_dat/axes) "), 
+           paste0(print(rv$curr_basis), "x_axis: ", x, ", y_axis: ", y))
+  })
+  
+  ### Obs mtour slider ----
+  observeEvent(input$manip_slider, {
+    if (input$manip_var != "<none>") {
+      theta <- phi <- NULL
+      mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
+      if ("Radial" == "Radial") { # Fixed to "Radial" # input$manip_type == "Radial"
+        theta <- atan(mv_sp[2] / mv_sp[1])
+        phi_start <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
+        phi <- (acos(input$manip_slider) - phi_start) * - sign(mv_sp[1])
+      }
+      ret <- oblique_basis(basis = rv$curr_basis, manip_var = manip_var_num(),
+                           theta = theta, phi = phi)
+      row.names(ret) <- colnames(task_dat())
+      
+      rv$curr_basis <- ret
+      loggit("INFO", paste0("Slider value changed: ", input$manip_slider),
+             paste0("rv$curr_basis updated: ", rv$curr_basis))
+    }
+  })
+  
+  ### Obs mtour update manip_var choices -----
+  observeEvent(task_dat(), { # Init manip_var choices on data change.
+    if (rv$timer_active | ui_section() == "training") {
+      these_colnames <- colnames(task_dat())
+      updateSelectInput(session, "manip_var", choices = these_colnames, 
+                        selected = these_colnames[1])
+      loggit("INFO", paste0("task_dat() changed., input$manip_var updated."),
+             paste0("input$manip_var updated."))
     }
   })
   
@@ -575,8 +683,8 @@ server <- function(input, output, session) {
     if (ui_section() == "task") {
       ins_row <- which(rv$ans_tbl$blockrep == blockrep())[1] # first row of this blockrep.
       ins_nrows <- length(rv$task_responses) - 1
-      rv$ans_tbl[ins_row:(ins_row + ins_nrows), 5] <- rv$task_responses
-      rv$ans_tbl[ins_row:(ins_row + ins_nrows), 6] <- rv$task_durations
+      rv$ans_tbl[ins_row:(ins_row + ins_nrows), 6] <- rv$task_responses
+      rv$ans_tbl[ins_row:(ins_row + ins_nrows), 7] <- rv$task_durations
     }
     
     ### NEW PAGE:
@@ -589,6 +697,10 @@ server <- function(input, output, session) {
     rv$timer_active <- TRUE
     rv$training_passes <- FALSE
     rv$training_attempts <- 1
+    
+    cat("new page:", "pg_num:", rv$pg_num, "ui_section:", ui_section(), 
+        "section_pg_num:", section_pg_num(), "factor:", factor(), 
+        "block_num:", block_num(), "rep_num:", rep_num(), "\n")
     
     # Clear task response
     if (ui_section() == "task") {
@@ -604,7 +716,7 @@ server <- function(input, output, session) {
       if (block_num() == 1){n_rows <- 1} 
       if (block_num() == 2){n_rows <- 2 * (this_k() - 1)}
     }
-    if (ui_section() == "survey") {n_rows <- length(s_survey_questions)}
+    if (ui_section() == "survey") {n_rows <- n_survey_questions}
     
     rv$task_responses <- rep("default", n_rows)
     rv$task_durations <- rep("default", n_rows)
@@ -618,7 +730,7 @@ server <- function(input, output, session) {
   ### Obs save reponses button -----
   observeEvent(input$save_ans, {
     # Write survey responses to rv$ans_tbl
-    ins_nrows <- length(s_survey_questions) - 1
+    ins_nrows <- n_survey_questions - 1
     ins_row <- nrow(rv$ans_tbl) - ins_nrows
     rv$ans_tbl[ins_row:(ins_row + ins_nrows), 5] <- rv$task_responses
     rv$ans_tbl[ins_row:(ins_row + ins_nrows), 6] <- rv$task_durations
@@ -685,30 +797,31 @@ server <- function(input, output, session) {
       } else {paste0("Time left: ", lubridate::seconds_to_period(rv$timer))}
     } else {return()}
   })
+  
   ### Controls ui coditionalPanels 
-  output$ui_section <- reactive(ui_section())
-  output$rep_num    <- reactive(rep_num())   # controls ui wording.
-  output$block_num  <- reactive(block_num()) # controls ui response layout
-  output$pg_num     <- reactive(rv$pg_num)   # controls ui next_task button
   output$is_saved   <- reactive(if (is.null(rv$save_file)) {0} else {1}) # control save_msg.
-  outputOptions(output, "ui_section", suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
-  outputOptions(output, "rep_num",    suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
-  outputOptions(output, "block_num",  suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
-  outputOptions(output, "pg_num",     suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
+  output$pg_num     <- reactive(rv$pg_num)    # for hiding ui next_task button
+  output$ui_section <- reactive(ui_section()) # for ui between sections
+  output$factor     <- reactive(factor())     # for sidebar inputs
+  output$block_num  <- reactive(block_num())  # for  titles, and response inputs
+  output$rep_num    <- reactive(rep_num())    # for  training ui
   outputOptions(output, "is_saved",   suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
+  outputOptions(output, "pg_num",     suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
+  outputOptions(output, "ui_section", suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
+  outputOptions(output, "factor",     suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
+  outputOptions(output, "block_num",  suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
+  outputOptions(output, "rep_num",    suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
   ### training outputs
   output$training_header_text <- renderText(training_header_text[block_num()])
   output$training_top_text    <- renderText(training_top_text[block_num()])
   ### general task outputs
-  #output$TEST_plot  <- renderPlot(plot(1,1))
   output$pca_plot   <- renderPlot({pca_plot()}, height = 640) 
   output$gtour_plot <- renderPlotly({gtour_plot()})
   output$mtour_plot <- renderPlotly({mtour_plot()})
   output$ans_tbl    <- renderTable({rv$ans_tbl})
   
-  
   # output$blk1_ans defined in global_*.r
-  ### Block 2 inputs, rate importance -----
+  ### Block 2 inputs, importance of var on cl seperation -----
   output$blk2Inputs <- renderUI({
     dat_std <- task_dat()
     p <- ncol(dat_std)                               # num var

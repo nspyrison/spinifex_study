@@ -13,7 +13,7 @@ library("lubridate") # For timer
 library("loggit")    # For logging
 
 this_factor_id <- 1 #between 1 and 6
-f_ls <- c("PCA", "grand", "manual")
+f_ls <- c("pca", "grand", "manual") # factor list
 latin_sq <- data.frame(rbind(c(f_ls[1], f_ls[2], f_ls[3]),
                              c(f_ls[1], f_ls[3], f_ls[2]),
                              c(f_ls[2], f_ls[1], f_ls[3]),
@@ -21,7 +21,7 @@ latin_sq <- data.frame(rbind(c(f_ls[1], f_ls[2], f_ls[3]),
                              c(f_ls[3], f_ls[1], f_ls[2]),
                              c(f_ls[3], f_ls[2], f_ls[1])
 ))
-colnames(latin_sq) <- paste0("period", 1:3)
+colnames(latin_sq) <- paste0("factor", 1:3)
 this_factor_order <- latin_sq[this_factor_id,]
 
 log_base <- paste0("log_factorid", this_factor_id, "_")
@@ -43,11 +43,20 @@ while (file.exists(log_file)){ # Find an unused log number
 loggit("INFO", "app has started", "spinifex_study")
 
 ### Required inputs -----
-## TODO: make sure to duplicate this section in other apps
-n_reps <- 3
+# blocks
 s_block_id <- c("n", "d")
 s_block_questions <- c("How many clusters exist?",
                        "Rate the importance of each variable in terms of distinugishing the given cluster.")
+# reps (simulations)
+sim1_num  <- "017"
+sim2_num  <- "004"
+sim3_num  <- "020"
+sim_intro <- readRDS("../simulation/simulation_data021.rds") # p = 6, pnoise = 2, cl = 3 
+sim1      <- readRDS(paste0("../simulation/simulation_data", sim1_num, ".rds")) # "./apps/simulation/simulation_data001.rds"
+sim2      <- readRDS(paste0("../simulation/simulation_data", sim2_num, ".rds"))
+sim3      <- readRDS(paste0("../simulation/simulation_data", sim3_num, ".rds"))
+s_dat <- list(sim1, sim2, sim3)
+# survey
 s_survey_questions <- c("What gender are you?",
                         "What age are you?",
                         "What is your highest level of completed education?",
@@ -60,30 +69,31 @@ s_survey_questions <- c("What gender are you?",
                         "I had previous knowledge of this visualization.")
 
 ### Variable initialization ----
-n_blocks       <- length(s_block_id)
+n_reps             <- length(s_dat)      # ~3
+n_blocks           <- length(s_block_id) # ~2
+n_factors          <- length(f_ls)       # ~3
+n_survey_questions <- length(s_survey_questions) # ~10
+
 s_blockrep_id  <- paste0(rep(s_block_id, each = n_reps), rep(1:n_reps, n_reps))
-training_start <- 2 # pg 1 is intro, pg 2:4 is training
-task_start     <- training_start + n_blocks # ~ pg 5:13 is task  
-survey_start   <- task_start + n_reps * n_blocks # ~ pg 14 is survey 
+training_start <- 2 # pg 1 is intro, pg 2:4 is training, 1 for ui, 2, for blocks
+task_start     <- training_start + n_blocks # ~ 5, pgs 5:22 are task  
+survey_start   <- task_start + n_reps * n_blocks # ~ 23 pg 14 is survey 
 
-sim1_num  <- "017"
-sim2_num  <- "004"
-sim3_num  <- "020"
-sim_intro <- readRDS("../simulation/simulation_data021.rds") # p = 6, pnoise = 2, cl = 3 
-sim1      <- readRDS(paste0("../simulation/simulation_data", sim1_num, ".rds")) # "./apps/simulation/simulation_data001.rds"
-sim2      <- readRDS(paste0("../simulation/simulation_data", sim2_num, ".rds"))
-sim3      <- readRDS(paste0("../simulation/simulation_data", sim3_num, ".rds"))
-s_dat <- list(sim1, sim2, sim3)
-
-
-##### main_ui -----
+##### main_ui
 main_ui <- fluidPage(
-  ### Side panel only on "training" and "task" sections
+  ### _Side panel ----
   conditionalPanel(
     condition = "output.ui_section == 'training' || output.ui_section == 'task'",
     sidebarPanel(
-      fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
-               column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2"))
+      conditionalPanel(condition = "output.factor != 'pca'",
+                       fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
+                                column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2"))
+                       )
+      ),
+      conditionalPanel(condition = "output.factor == 'mtour'",
+                       selectInput('manip_var', 'Manip var', "<none>"),
+                       sliderInput("manip_slider", "Contribution",
+                                   min = 0, max = 1, value = 0, step = .1)
       ),
       hr(), # horizontal line
       conditionalPanel(condition = "output.block_num == 1",
