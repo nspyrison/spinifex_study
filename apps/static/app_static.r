@@ -5,7 +5,7 @@ source('global_static.r', local = TRUE)
 server <- function(input, output, session) {  ### INPUT, need to size to number of reps
   loggit("INFO", "app has started", "spinifex_study")
   
-  ### Initialization -----
+  ### Initialization and reactives -----
   rv                   <- reactiveValues()
   rv$pg_num            <- 1
   rv$timer             <- 120
@@ -27,7 +27,14 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   k_sims <- reactive ({ k1() + k2() + k3() })
   this_p <- reactive({ ncol(task_dat()) })
   this_k <- reactive({ length(unique(attributes(task_dat())$cluster)) })
-  section_num <- reactive({
+  ui_section <- reactive({ # text_id of section
+    if (rv$pg_num == 1) {return("intro")}
+    if (rv$pg_num %in% training_start:(task_start - 1) ) {return("training")}
+    if (rv$pg_num %in% task_start:(survey_start - 1) ) {return("task")}
+    if (rv$pg_num == survey_start) {return("survey")} 
+    return("passed survey, need to cap pg_num")
+  })
+  section_num <- reactive({ # ~page_num() of this section()
     if (rv$pg_num >= training_start & rv$pg_num < task_start){ # in training section
       return(rv$pg_num - (training_start - 1))
     }
@@ -36,21 +43,21 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     }
     return(1) # dummy 1, NA and 999 cause other issues.
   })
-  block_num <- reactive({
+  block_num <- reactive({ # 1:2
     if (ui_section() == "training") {return(section_num())
     } else {
       return(1 + (section_num() - 1) %/% n_reps)
     }
   })
-  rep_num <- reactive({
+  rep_num <- reactive({ # 1:3
     if (ui_section() == "training") {return(section_num())}
     if (section_num() - (n_reps * (block_num() - 1)) <= 0) {stop("check rep_num() it's <= 0.")}
     return(section_num() - (n_reps * (block_num() - 1)))
   })
-  blockrep <- reactive({
-    paste0(s_blocks[block_num()], rep_num())
+  blockrep <- reactive({ # n1, n2, d1, d2
+    paste0(s_block_id[block_num()], rep_num())
   })
-  task_dat <- reactive({
+  task_dat <- reactive({ # simulation df with attachments.
     if (ui_section() == "training") {sim_intro
     } else {
       ret <- s_dat[[rep_num()]]
@@ -58,16 +65,10 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
       return(ret) 
     }
   })
-  ui_section <- reactive({
-    if (rv$pg_num == 1) {return("intro")}
-    if (rv$pg_num %in% training_start:(task_start - 1) ) {return("training")}
-    if (rv$pg_num %in% task_start:(survey_start - 1) ) {return("task")}
-    if (rv$pg_num == survey_start) {return("survey")} 
-    return("passed survey, need to cap pg_num")
-  })
+
   
   
-  ### PCA Plot -----
+  ### PCA Plot reactive -----
   task_pca <- reactive({
     if (rv$timer_active | ui_section() == "training") {
       dat <- task_dat()
@@ -85,8 +86,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
           USE_AES  <- FALSE
         } 
       }
-      if (block_num() == 3) {pal <- "Paired"}
-      
       if (block_num() == 2) { # 2nd block, change sign of the basis.
         pca_x <- as.matrix(dat) %*% (-1 * pca$rotation)
         pca_x <- data.frame(2 * (tourr::rescale(pca_x) - .5))
@@ -173,40 +172,29 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   })
   
   
-  
-  
-  ### Response table -----
+  ### Response table reactive -----
   ans_tbl <- reactive({
     col_blockrep <- c(s_blockrep_id[1:3],                    # block 1
                       rep(s_blockrep_id[4], 2 * (k1() - 1)), # block 2
                       rep(s_blockrep_id[5], 2 * (k2() - 1)),
                       rep(s_blockrep_id[6], 2 * (k3() - 1)),
-                      rep(s_blockrep_id[7], 4),              # block 3
-                      rep(s_blockrep_id[8], 4),
-                      rep(s_blockrep_id[9], 4),
                       paste0("survey", 1:10))                # survey
     q_id1 <- paste0("cl", letters[rep(1:(k1() - 1), each = 2)], "_", c("very", "some"))
     q_id2 <- paste0("cl", letters[rep(1:(k2() - 1), each = 2)], "_", c("very", "some"))
     q_id3 <- paste0("cl", letters[rep(1:(k3() - 1), each = 2)], "_", c("very", "some"))
     col_q_id      <- c(rep(NA, 3),                     # block 1
                        q_id1, q_id2, q_id3,            # block 2
-                       rep(paste0("gp", 1:4), n_reps), # block 3
                        rep(NA, 10))                    # survey
     col_sim_id   <- c(sim1_num, sim2_num, sim3_num,  # block 1
                       rep(sim1_num, 2 * (k1() - 1)), # block 2
                       rep(sim2_num, 2 * (k2() - 1)),
                       rep(sim3_num, 2 * (k3() - 1)),
-                      rep(sim1_num, 4),              # block 3
-                      rep(sim2_num, 4),
-                      rep(sim3_num, 4),
                       rep(NA, 10))                   # survey
     col_question <- c(rep(s_block_questions[1], n_reps),                  # block 1
                       rep(s_block_questions[2], 2 * (k_sims() - n_reps)), # block 2
-                      rep(s_block_questions[3], 4 * n_reps),              # block 3
                       s_survey_questions)                                 # survey 
     col_response <- col_duration <- c(rep(NA, n_reps),                  # block 1
                                       rep(NA, 2 * (k_sims() - n_reps)), # block 2
-                                      rep(NA, 4 * n_reps),              # block 3
                                       rep(NA, 10))                      # survey
     
     data.frame(blockrep = col_blockrep,
@@ -375,206 +363,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                     ". Duration: ", rv$task_durations[12], "."))
     }
   })
-  ##### Block 3 responses & duration
-  observeEvent(input$blk3_ans1, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[1]  <- input$blk3_ans1
-      rv$task_durations[1]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 3, input 1 entered.", 
-             paste0("Response: ",   rv$task_responses[1], 
-                    ". Duration: ", rv$task_durations[1], "."))
-    }
-  })
-  observeEvent(input$blk3_ans2, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[2]  <- input$blk3_ans2
-      rv$task_durations[2]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 3, input 2 entered.", 
-             paste0("Response: ",   rv$task_responses[2], 
-                    ". Duration: ", rv$task_durations[2], "."))
-    }
-  })
-  observeEvent(input$blk3_ans3, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[3]  <- input$blk3_ans3
-      rv$task_durations[3]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 3, input 3 entered.", 
-             paste0("Response: ",   rv$task_responses[3], 
-                    ". Duration: ", rv$task_durations[3], "."))
-    }
-  })
-  observeEvent(input$blk3_ans4, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[4]  <- input$blk3_ans4
-      rv$task_durations[4]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 3, input 4 entered.", 
-             paste0("Response: ",   rv$task_responses[4], 
-                    ". Duration: ", rv$task_durations[4], "."))
-    }
-  })
-  observeEvent(input$blk3_ans5, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[5]  <- input$blk3_ans5
-      rv$task_durations[5]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 3, input 5 entered.", 
-             paste0("Response: ",   rv$task_responses[5], 
-                    ". Duration: ", rv$task_durations[5], "."))
-    }
-  })
-  observeEvent(input$blk3_ans6, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[6]  <- input$blk3_ans6
-      rv$task_durations[6]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 3, input 6 entered.", 
-             paste0("Response: ",   rv$task_responses[6], 
-                    ". Duration: ", rv$task_durations[6], "."))
-    }
-  })
-  observeEvent(input$blk3_ans7, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[7]  <- input$blk3_ans7
-      rv$task_durations[7]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 3, input 7 entered.", 
-             paste0("Response: ",   rv$task_responses[7], 
-                    ". Duration: ", rv$task_durations[7], "."))
-    }
-  })
-  observeEvent(input$blk3_ans8, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[8]  <- input$blk3_ans8
-      rv$task_durations[8]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 3, input 8 entered.", 
-             paste0("Response: ",   rv$task_responses[8], 
-                    ". Duration: ", rv$task_durations[8], "."))
-    }
-  })
-  observeEvent(input$blk3_ans9, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[9]  <- input$blk3_ans9
-      rv$task_durations[9]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 3, input 9 entered.", 
-             paste0("Response: ",   rv$task_responses[9], 
-                    ". Duration: ", rv$task_durations[9], "."))
-    }
-  })
-  observeEvent(input$blk3_ans10, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[10] <- input$blk3_ans10
-      rv$task_durations[10] <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 3, input 10 entered.", 
-             paste0("Response: ",   rv$task_responses[10], 
-                    ". Duration: ", rv$task_durations[10], "."))
-    }
-  })
-  observeEvent(input$blk3_ans11, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[11] <- input$blk3_ans11
-      rv$task_durations[11] <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 3, input 11 entered.", 
-             paste0("Response: ",   rv$task_responses[11], 
-                    ". Duration: ", rv$task_durations[11], "."))
-    }
-  })
-  observeEvent(input$blk3_ans12, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[12] <- input$blk3_ans12
-      rv$task_durations[12] <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 3, input 12 entered.", 
-             paste0("Response: ",   rv$task_responses[12], 
-                    ". Duration: ", rv$task_durations[12], "."))
-    }
-  })
-  ##### Survey responses & duration
-  observeEvent(input$ans_gender, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[1]  <- input$ans_gender
-      rv$task_durations[1]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Survey, input 1 entered.", 
-             paste0("Response: ",   rv$task_responses[1], 
-                    ". Duration: ", rv$task_durations[1], "."))
-    }
-  })
-  observeEvent(input$ans_age, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[2]  <- input$ans_age
-      rv$task_durations[2]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Survey, input 2 entered.", 
-             paste0("Response: ",   rv$task_responses[2], 
-                    ". Duration: ", rv$task_durations[2], "."))
-    }
-  })
-  observeEvent(input$ans_edu, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[3]  <- input$ans_edu
-      rv$task_durations[3]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Survey, input 3 entered.", 
-             paste0("Response: ",   rv$task_responses[3], 
-                    ". Duration: ", rv$task_durations[3], "."))
-    }
-  })
-  observeEvent(input$ans_ease, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[4]  <- input$ans_ease
-      rv$task_durations[4]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Survey, input 4 entered.", 
-             paste0("Response: ",   rv$task_responses[4], 
-                    ". Duration: ", rv$task_durations[4], "."))
-    }
-  })
-  observeEvent(input$ans_confidence, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[5]  <- input$ans_confidence
-      rv$task_durations[5]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Survey, input 5 entered.", 
-             paste0("Response: ",   rv$task_responses[5], 
-                    ". Duration: ", rv$task_durations[5], "."))
-    }
-  })
-  observeEvent(input$ans_understand, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[6]  <- input$ans_understand
-      rv$task_durations[6]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Survey, input 6 entered.", 
-             paste0("Response: ",   rv$task_responses[6], 
-                    ". Duration: ", rv$task_durations[6], "."))
-    }
-  })
-  observeEvent(input$ans_use, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[7]  <- input$ans_use
-      rv$task_durations[7]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Survey, input 7 entered.", 
-             paste0("Response: ",   rv$task_responses[7], 
-                    ". Duration: ", rv$task_durations[7], "."))
-    }
-  })
-  observeEvent(input$ans_high_dim, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[8]  <- input$ans_high_dim
-      rv$task_durations[8]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Survey, input 8 entered.", 
-             paste0("Response: ",   rv$task_responses[8], 
-                    ". Duration: ", rv$task_durations[8], "."))
-    }
-  })
-  observeEvent(input$ans_data_vis, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[9]  <- input$ans_data_vis
-      rv$task_durations[9]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Survey, input 9 entered.", 
-             paste0("Response: ",   rv$task_responses[9], 
-                    ". Duration: ", rv$task_durations[9], "."))
-    }
-  })
-  observeEvent(input$ans_previous_knowledge, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[10] <- input$ans_previous_knowledge
-      rv$task_durations[10] <- as.integer(120 - rv$timer)
-      loggit("INFO", "Survey, input 10 entered.", 
-             paste0("Response: ",   rv$task_responses[10], 
-                    ". Duration: ", rv$task_durations[10], "."))
-    }
-  })
   
   
   ### Obs next page button -----
@@ -589,48 +377,41 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     if (ui_section() == "training" & rv$training_passes == FALSE) {
       # Evaluate training block 1
       if (block_num() == 1) {
-        if (rv$training_attempts >= 3) {
-          output$plot_msg <- renderText("<h3><span style='color:red'>Please see the proctor for additional instruction.</span></h3>") 
-          rv$training_attempts <- rv$training_attempts + 1
-          return()
-        }
+        ## TODO: removed too many training atempts blocks.
+        # if (rv$training_attempts >= 3) { # Too many attempts msg
+        #   output$plot_msg <- renderText("<h3><span style='color:red'>Please see the proctor for additional instruction.</span></h3>") 
+        #   rv$training_attempts <- rv$training_attempts + 1
+        #   return()
+        # }
         response <- input$blk1_ans
         ans <- length(attr(sim_intro, "ncl"))
         
-        if (response - ans >= 2){ # >= 2 high, retry
+        if (response - ans >= 2){ # >= 2 clusters too high, retry
           output$plot_msg <- renderText("<h3><span style='color:red'>That seems a little high, make sure to check from multiple perspectives and give it another shot.</span></h3>") 
           rv$training_attempts <- rv$training_attempts + 1
           return()
         }
-        if (response - ans <= -2){ # <= 2 low, retry
+        if (response - ans <= -2){ # <= 2 clusters too low, retry
           output$plot_msg <- renderText("<h3><span style='color:red'>That seems a little low, make sure to check from multiple perspectives and give it another shot.</span></h3>") 
           rv$training_attempts <- rv$training_attempts + 1
           return()
         }
-        if (abs(response - ans) == 1){ # within 1, pass
+        if (abs(response - ans) == 1){ # within 1 cluster, msg, passes
           output$plot_msg <- renderText(
             paste0("<h3><span style='color:red'>Close, there are actually ", ans, " clusters in the data, but you have the right idea.</span></h3>") 
           )
           rv$training_passes <- TRUE
-          ##TODO: display supersived graphic.
             return()
         }
-        
-        if (response == ans){ # exact, pass
+        if (response == ans){ # exact, msg, pass
           output$plot_msg <- renderText("<h3><span style='color:red'>That's correct, great job!</span></h3>") 
           rv$training_passes <- TRUE
-          ##TODO: display supersived graphic.
           return()
         }
       }
-      ## TODO: This removed evaluation of the training for blocks 2 and 3.
+      ## TODO: This removed evaluation of the training for blocks 2.
       # if (block_num() == 2) {
       #   output$plot_msg <- renderText("<h3><span style='color:red'>Training block 2 answer TBD.</span></h3>") 
-      #   rv$training_passes <- TRUE
-      #   return()
-      # }
-      # if (block_num() == 3) {
-      #   output$plot_msg <- renderText("<h3><span style='color:red'>Training block 3 answer TBD.</span></h3>") 
       #   rv$training_passes <- TRUE
       #   return()
       # }
@@ -668,7 +449,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     if (ui_section() == "task") {
       if (block_num() == 1){n_rows <- 1} 
       if (block_num() == 2){n_rows <- 2 * (this_k() - 1)}
-      if (block_num() == 3){n_rows <- 4}
     }
     if (ui_section() == "survey") {n_rows <- length(s_survey_questions)}
     
@@ -701,7 +481,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     }
     
     # Do the actual saving
-    save_base <- paste0("response_table_", study_factor)
+    save_base <- paste0("response_table_factorid", this_factor_id, "_")
     save_num  <- 1
     save_name <- sprintf(paste0(save_base, "%03d"), save_num)
     save_file <- paste0(save_name, ".csv")
@@ -792,18 +572,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                          inline  = TRUE)
     })
   }) # close renderUI for blk2inputs
-
-  ### Block 3 inputs, noise -----
-  output$blk3Inputs <- renderUI({
-    p <- ncol(task_dat())
-    n_gps <- 4 
-    lapply(1:n_gps, function(this_gp) {
-      checkboxGroupInput(inputId = paste0("blk3_ans_gp", this_gp), 
-                         label = paste0("Gorup ", this_gp),
-                         choices = paste0("V", 1:p), 
-                         inline = TRUE)
-    })
-  })
   
   
   ### Dev msg -----

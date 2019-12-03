@@ -7,16 +7,24 @@ library("ggplot2")
 library("spinifex")
 library("shiny")
 library("tidyr")
-#library("mvtnorm")
 library("plotly")
 library("GGally")
 library("lubridate") # For timer
 library("loggit")    # For logging
-## TODO: propagate library changes.
 
-study_factor <- "static"
+this_factor_id <- 1 #between 1 and 6
+f_ls <- c("PCA", "grand", "manual")
+latin_sq <- data.frame(rbind(c(f_ls[1], f_ls[2], f_ls[3]),
+                             c(f_ls[1], f_ls[3], f_ls[2]),
+                             c(f_ls[2], f_ls[1], f_ls[3]),
+                             c(f_ls[2], f_ls[3], f_ls[1]),
+                             c(f_ls[3], f_ls[1], f_ls[2]),
+                             c(f_ls[3], f_ls[2], f_ls[1])
+))
+colnames(latin_sq) <- paste0("period", 1:3)
+this_factor_order <- latin_sq[this_factor_id,]
 
-log_base <- paste0("log_", study_factor)
+log_base <- paste0("log_factorid", this_factor_id, "_")
 log_num  <- 1
 log_name <- sprintf(paste0(log_base, "%03d"), log_num)
 log_file <- paste0(log_name, ".json")
@@ -29,18 +37,17 @@ while (file.exists(log_file)){ # Find an unused log number
 ### Logging
 ## https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/
 ## use: loggit("INFO", "<main msg>", "<detail>")
-## Uncomment to capture log file:
-setLogFile(log_file); try_autosave <- TRUE
+## Uncomment to capture log file: 
+# TODO: uncomment for logs
+#setLogFile(log_file); try_autosave <- TRUE
 loggit("INFO", "app has started", "spinifex_study")
 
 ### Required inputs -----
 ## TODO: make sure to duplicate this section in other apps
 n_reps <- 3
-s_blocks <- c("n", "d", "s")
-s_block_names <- c("clusters, n", "important variable, r", "correlated variables, s")
+s_block_id <- c("n", "d")
 s_block_questions <- c("How many clusters exist?",
-                       "Rate the importance of each variable in terms of distinugishing the given cluster.",
-                       "Group any/all correlated variables.")
+                       "Rate the importance of each variable in terms of distinugishing the given cluster.")
 s_survey_questions <- c("What gender are you?",
                         "What age are you?",
                         "What is your highest level of completed education?",
@@ -51,11 +58,10 @@ s_survey_questions <- c("What gender are you?",
                         "I am an expert on multivariate  data and related visualization",
                         "I have broad experience with data visualization.",
                         "I had previous knowledge of this visualization.")
-study_factor <- "static"
 
 ### Variable initialization ----
-n_blocks       <- length(s_blocks)
-s_blockrep_id  <- paste0(rep(s_blocks, each = n_reps), rep(1:n_reps, n_reps))
+n_blocks       <- length(s_block_id)
+s_blockrep_id  <- paste0(rep(s_block_id, each = n_reps), rep(1:n_reps, n_reps))
 training_start <- 2 # pg 1 is intro, pg 2:4 is training
 task_start     <- training_start + n_blocks # ~ pg 5:13 is task  
 survey_start   <- task_start + n_reps * n_blocks # ~ pg 14 is survey 
@@ -90,13 +96,8 @@ main_ui <- fluidPage(
                        tags$b(s_block_questions[2]),
                        tags$br(), br(),
                        uiOutput("blk2Inputs")
-      ),
-      conditionalPanel(condition = "output.block_num == 3",
-                       tags$b(s_block_questions[3]),
-                       tags$br(), br(),
-                       uiOutput("blk3Inputs")
       )
-    ) 
+    )
   ), ### end conditionalPanel sidebarPanel for training and task
   mainPanel(
     ### _Intro mainPanel -----
@@ -121,7 +122,6 @@ main_ui <- fluidPage(
       , tags$ul(
         tags$li(paste0("Task 1 (x3 reps) -- ",     s_block_questions[1]))
         , tags$li(paste0("Task 2 (x3 reps) -- ",   s_block_questions[2]))
-        , tags$li(paste0("Task 3 (x3 reps) -- ", s_block_questions[3]))
       )
       , tags$b("Follow-up")
       , tags$ul(
@@ -139,8 +139,6 @@ main_ui <- fluidPage(
                        h2("Training -- task 1")),
       conditionalPanel(condition = "output.block_num == 2",
                        h2("Training -- task 2")),
-      conditionalPanel(condition = "output.block_num == 3",
-                       h2("Training -- task 3")),
       p("This data has 6 variables. Principle Componant Analysis (PCA) defines 
         new axes components (as linear combinations of the original variable),
         ordered by the amount of variation they explain. The plot below displays
@@ -172,17 +170,9 @@ main_ui <- fluidPage(
         the purple squares (V4) and the orange triangles (V2 and V6). 
         List V2, V4, and V6 as very important for distinguishing cluster 'a'.
         Remember the axes can be changed to look at the data from another 
-        perspective;Look at the other 3 variable and see if they 
-        contribute in separating dimensions. Continue to the next page 
-        when you content.")
-      ),
-      conditionalPanel( # Third block text
-        condition = "output.rep_num == 3",
-        tags$b("The third task is to identify groups of correllated variables. 
-        Variables that point in the same direction and both have large 
-        contributions on the variable map correllated. Looking at differnet 
-        components try to identify any and all groups of correllated 
-        variables.")
+        perspective. Look at the other variables and see if they 
+        contribute in separating directions. Continue to the next page 
+        when you are content.")
       )
     ), # close training section main panel text
     ### _Task mainPanel -----
@@ -193,9 +183,6 @@ main_ui <- fluidPage(
       ),
       conditionalPanel(condition = "output.block_num == 2",
                        h2("Evaluation -- task 2")
-      ),
-      conditionalPanel(condition = "output.block_num == 3",
-                       h2("Evaluation -- task 3")
       ),
       textOutput('timer_disp')
     ), # close task section conditional panel title text
@@ -294,8 +281,8 @@ ui <- fluidPage(
     condition = "output.pg_num < 14",
     actionButton("next_pg_button", "Next page")
   )
-  # , verbatimTextOutput("dev_msg")
-  # , actionButton("browser", "browser()")
-  # , tableOutput("ans_tbl")
+  , verbatimTextOutput("dev_msg")
+  , actionButton("browser", "browser()")
+  , tableOutput("ans_tbl")
 )
 
