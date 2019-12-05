@@ -88,14 +88,17 @@ main_ui <- fluidPage(
       conditionalPanel(condition = "output.ui_section == 'training'",
                        radioButtons(inputId = "factor", label = "Visual", 
                                     choices = this_factor_order, 
-                                    selected = this_factor_order[1])
+                                    selected = this_factor_order[1],
+                                    inline = TRUE)
       ),
-      conditionalPanel(condition = "output.factor != 'pca'",
+      conditionalPanel(condition = "output.factor != 'grand' || 
+                       (output.ui_section == 'training' && input.factor != 'grand')",
                        fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
                                 column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2"))
                        )
       ),
-      conditionalPanel(condition = "output.factor == 'mtour'",
+      conditionalPanel(condition = "output.factor == 'manual' || 
+                       (output.ui_section == 'training' && input.factor == 'manual')",
                        selectInput('manip_var', 'Manip var', "<none>"),
                        sliderInput("manip_slider", "Contribution",
                                    min = 0, max = 1, value = 0, step = .1)
@@ -206,6 +209,7 @@ main_ui <- fluidPage(
       condition = "output.ui_section == 'training' || output.ui_section == 'task'"
       , plotOutput("pca_plot", height = "auto")
       , plotlyOutput("gtour_plot", height = "640px")
+      , plotOutput("mtour_plot", height = "auto")
       , htmlOutput("plot_msg")
     ), # close plot conditional panel
     ### _Survey mainPanel -----
@@ -292,11 +296,11 @@ main_ui <- fluidPage(
 ##### UI, combine panels -----
 ui <- fluidPage(
   titlePanel("Multivariate data visualization study"),
-  main_ui,
   conditionalPanel(
     condition = "output.pg_num < 14",
     actionButton("next_pg_button", "Next page")
   )
+  , main_ui
   , verbatimTextOutput("dev_msg")
   , actionButton("browser", "browser()")
   , tableOutput("ans_tbl")

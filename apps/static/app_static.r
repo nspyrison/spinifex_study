@@ -17,6 +17,7 @@ server <- function(input, output, session) {
   rv$training_passes   <- FALSE
   rv$training_attempts <- 1
   rv$factor_num        <- 1
+  rv$curr_basis        <- NULL
   
   ##### Start reactives
   p1 <- reactive({ ncol(s_dat[[1]]) })
@@ -54,7 +55,7 @@ server <- function(input, output, session) {
     return(1) # dummy 1, NA and 999 cause other issues.
   })
   factor <- reactive({ # ~ PCA, gtour, mtour
-    if (ui_section() != "task") {return(NA)
+    if (ui_section() != "task") {return("NONE")
       } else {# is task
         factor_num <- 1 + (section_pg_num() %/% (n_blocks * n_reps))
         return(this_factor_order[factor_num])
@@ -80,7 +81,10 @@ server <- function(input, output, session) {
       return(s_dat[[rep_num()]]) 
     }
   })
-
+  manip_var_num <- reactive({ 
+    if (input$manip_var == "<none>") {return(1)}
+    return(which(colnames(task_dat()) == input$manip_var))
+  }) 
   
   
   ### PCA plot reactive -----
@@ -103,6 +107,7 @@ server <- function(input, output, session) {
           USE_AES  <- FALSE
         } 
       }
+      
       pca <- prcomp(dat_std)
       if (block_num() == 2) { # 2nd block, change sign of the basis.
         pca_x <- as.matrix(dat_std) %*% (-1 * pca$rotation)
@@ -129,7 +134,6 @@ server <- function(input, output, session) {
       circ  <- set_axes_position(data.frame(x = cos(angle), y = sin(angle)),
                                 axes_position)
       zero  <- set_axes_position(0, axes_position)
-      
       
       ### ggplot2
       gg <- ggplot()
@@ -331,17 +335,27 @@ server <- function(input, output, session) {
       if (input$manip_var == "<none>") {m_var <- 1
       } else {m_var <- which(colnames(dat) == input$manip_var)}
       
+      # render init
+      pal <- "Dark2"
+      axes_position <- "center"
+      USE_AXES <- TRUE
+      USE_AES  <- TRUE
+      if (block_num() == 1) {
+        USE_AXES <- FALSE
+        if(rv$training_passes == FALSE) { # During training
+          USE_AES  <- FALSE
+        } 
+      }
       
       ## TODO: expand oblique frame for like aes.
       ret <- oblique_frame(data      = dat_std,
                            basis     = rv$curr_basis,
                            manip_var = m_var,
-                           theta     = 0, # perform rotation when setting rv$curr_basis
+                           theta     = 0, 
                            phi       = 0,
                            col       = cluster,
                            pch       = cluster,
-                           axes      = "center",
-                           alpha     = 1
+                           axes      = axes_position
       )
       
       return(ret)
@@ -828,7 +842,7 @@ server <- function(input, output, session) {
   ### general task outputs
   output$pca_plot   <- renderPlot({pca_plot()}, height = 640) 
   output$gtour_plot <- renderPlotly({gtour_plot()})
-  output$mtour_plot <- renderPlotly({mtour_plot()})
+  output$mtour_plot <- renderPlot({mtour_plot()}, height = 640)
   output$ans_tbl    <- renderTable({rv$ans_tbl})
   
   # output$blk1_ans defined in global_*.r
