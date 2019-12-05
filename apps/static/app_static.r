@@ -240,7 +240,7 @@ server <- function(input, output, session) {
       
       ### ggplot2
       basis_df <- tour_df$basis_slides
-      basis_df <- set_axes_position(tour_df$basis_slides, axes_position)
+      basis_df[, 1:2] <- set_axes_position(tour_df$basis_slides[, 1:2], axes_position)
       data_df  <- tour_df$data_slides
       cluster  <- rep(cluster, max_frames)
       
@@ -250,7 +250,7 @@ server <- function(input, output, session) {
         gg <- gg + 
           geom_point(data_df, 
                      mapping = aes(x = x, y = y, frame = slide), 
-                     size = 3)
+                     size = 1.7) # smaller size for plotly
       } else { # if USE_AES == TRUE then apply more aes.
         gg <- gg +
           geom_point(data_df, 
@@ -258,7 +258,7 @@ server <- function(input, output, session) {
                                    color = cluster, 
                                    fill  = cluster, 
                                    shape = cluster), 
-                     size = 3)
+                     size = 1.7) # smaller size for plotly
       }
       if (USE_AXES == TRUE) { # iF USE_AXES == TRUE then draw axes.
         # axis segments
@@ -304,7 +304,9 @@ server <- function(input, output, session) {
                                     transition = 0, redraw = FALSE)
       ggp <- plotly::layout(
         ggp, showlegend = T, yaxis = list(showgrid = F, showline = F),
-        xaxis = list(scaleanchor = "y", scaleratio = 1, showgrid = F, showline = F))
+        xaxis = list(scaleanchor = "y", scaleratio = 1, showgrid = F, showline = F),
+        legend = list(x = 0.8, y = 0.7, title = "cluster")
+      )
       
       return(ggp)
     } else {return()}
