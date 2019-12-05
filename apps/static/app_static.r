@@ -36,7 +36,7 @@ server <- function(input, output, session) {
   })
   k_sims <- reactive({ k1() + k2() + k3() })
   this_p <- reactive({ ncol(task_dat()) })
-  this_k <- reactive({ length(unique(attributes(task_dat())$cluster)) })
+  this_k <- reactive({ 2 * (length(unique(attributes(s_dat[[rep_num()]])$cluster)) - 1) })
   ui_section <- reactive({ # text name of section
     if (rv$pg_num == 1) {return("intro")}
     if (rv$pg_num %in% training_start:(task_start - 1) ) {return("training")}
@@ -75,11 +75,9 @@ server <- function(input, output, session) {
     paste0(s_block_id[block_num()], rep_num())
   })
   task_dat <- reactive({ # simulation df with attachments.
-    if (ui_section() == "training") {sim_intro
+    if (ui_section() == "training") {return(sim_intro)
     } else {
-      ret <- tourr::rescale(s_dat[[rep_num()]])
-      colnames(ret) <- paste0("V", 1:ncol(ret))
-      return(ret) 
+      return(s_dat[[rep_num()]]) 
     }
   })
 
@@ -87,10 +85,12 @@ server <- function(input, output, session) {
   
   ### PCA plot reactive -----
   pca_plot <- reactive({
-    if (rv$timer_active | ui_section() == "training") {
+    if ((rv$timer_active & factor() == "pca") |
+        (ui_section() == "training" & input$factor == "pca")) {
       # data init
-      dat_std <- task_dat()
-      cluster <- attributes(dat_std)$cluster
+      dat <- task_dat()
+      dat_std <- tourr::rescale(dat)
+      cluster <- attributes(dat)$cluster
       
       # render init
       pal <- "Dark2"
@@ -132,44 +132,44 @@ server <- function(input, output, session) {
       
       
       ### ggplot2
-      ret <- ggplot()
+      gg <- ggplot()
       if (USE_AES == FALSE){
         # data points
-        ret <- ret + 
+        gg <- gg + 
           geom_point(pca_x, 
                      mapping = aes(x = get(pca_x_axis), y = get(pca_y_axis)), 
                      size = 3)
       } else { # if USE_AES == TRUE then apply more aes.
-        ret <- ret +
+        gg <- gg +
           geom_point(pca_x, 
                      mapping = aes(x = get(pca_x_axis), y = get(pca_y_axis),
                                    color = cluster, 
-                                   fill = cluster, 
+                                   fill  = cluster, 
                                    shape = cluster), 
                      size = 3)
       }
       if (USE_AXES == TRUE) { # if USE_AXES == TRUE then draw axes
         # axis segments
-        ret <- ret +
+        gg <- gg +
           geom_segment(pca_rotation,
                        mapping = aes(x = get(v_x_axis), xend = zero,
                                      y = get(v_y_axis), yend = zero),
                        size = .3, colour = "red") +
           # axis label text
-            geom_text(pca_rotation,
-                      mapping = aes(x = get(v_x_axis),
-                                    y = get(v_y_axis),
-                                    label = colnames(pca_rotation)),
-                      size = 6, colour = "red", fontface = "bold",
-                      vjust = "outward", hjust = "outward") +
-            # Cirle path
-            geom_path(circ,
-                      mapping = aes(x = x, y = y),
-                      color = "grey80", size = .3, inherit.aes = F)
-        }
+          geom_text(pca_rotation,
+                    mapping = aes(x = get(v_x_axis),
+                                  y = get(v_y_axis),
+                                  label = colnames(pca_rotation)),
+                    size = 6, colour = "red", fontface = "bold",
+                    vjust = "outward", hjust = "outward") +
+          # Cirle path
+          geom_path(circ,
+                    mapping = aes(x = x, y = y),
+                    color = "grey80", size = .3, inherit.aes = F)
+      }
       
       # Options 
-      ret <- ret + theme_minimal() +
+      gg <- gg + theme_minimal() +
         theme(aspect.ratio = 1) +
         scale_color_brewer(palette = pal) +
         theme(panel.grid.major = element_blank(), # no grid lines
@@ -184,16 +184,18 @@ server <- function(input, output, session) {
         ) +
         labs(x = x_lab, y = y_lab)
       
-      return(ret)
+      return(gg)
     } else {return()}
   })
   
   ### Grand tour plot reactive -----
   gtour_plot <- reactive({ 
-    if (rv$timer_active | ui_section() == "training") {
+    if ((rv$timer_active & factor() == "grand") | 
+        (ui_section() == "training" & input$factor == "grand")) {
       # data init
-      dat_std <- task_dat()
-      cluster <- attributes(dat_std)$cluster
+      dat <- task_dat()
+      dat_std <- tourr::rescale(dat)
+      cluster <- attributes(dat)$cluster
       
       # tour init
       angle <- .1
@@ -218,8 +220,7 @@ server <- function(input, output, session) {
       max_frames <- min(c(max_frames, dim(full_path)[3]))
       full_path <- full_path[, , 1:max_frames]
       
-      tour_df <- array2df(array = full_path, data = dat_std)
-      # tour_df is tour in long form 
+      tour_df <- array2df(array = full_path, data = dat_std) # to long form df
       
       # render init
       pal <- "Dark2"
@@ -242,8 +243,11 @@ server <- function(input, output, session) {
       basis_df <- tour_df$basis_slides
       basis_df[, 1:2] <- set_axes_position(tour_df$basis_slides[, 1:2], axes_position)
       data_df  <- tour_df$data_slides
+      ## scaling in array2df not applying here...
+      data_df[, 1:2] <- 2 * (tourr::rescale(data_df[, 1:2]) - .5)
       cluster  <- rep(cluster, max_frames)
       
+      if(block_num() == 2 & USE_AES == FALSE) {browser()}
       gg <- ggplot()
       if (USE_AES == FALSE){
         # data points
@@ -299,13 +303,15 @@ server <- function(input, output, session) {
         ) # end of ggplot2 work 
       
       ### plotly
-      ggp <- plotly::ggplotly(p = gg, tooltip = "none") 
+      ggp <- plotly::ggplotly(p = gg) #, tooltip = "none") 
       ggp <- plotly::animation_opts(p = ggp, frame = 1 / fps * 1000, 
                                     transition = 0, redraw = FALSE)
       ggp <- plotly::layout(
         ggp, showlegend = T, yaxis = list(showgrid = F, showline = F),
-        xaxis = list(scaleanchor = "y", scaleratio = 1, showgrid = F, showline = F),
-        legend = list(x = 0.8, y = 0.7, title = "cluster")
+        xaxis = list(scaleanchor = "y", scaleratio = 1, showgrid = F, 
+                     showline = F, autorange = TRUE),
+        yaxis = list(autorange = TRUE),
+        legend = list(x = 0.8, y = 0.7)
       )
       
       return(ggp)
@@ -315,11 +321,13 @@ server <- function(input, output, session) {
   
   ### Manual tour plot reactive -----
   mtour_plot <- reactive({
-    if (rv$timer_active | ui_section() == "training") {
+    if ((rv$timer_active  & factor() == "manual") | 
+        (ui_section() == "training" & input$factor == "manual")) {
       if (is.null(rv$curr_basis)) {stop("rv$curr_basis not found while calling mtour_plot()")}
       # data init
-      dat_std <- task_dat()
-      cluster <- attributes(dat_std)$cluster
+      dat <- task_dat()
+      dat_std <- tourr::rescale(dat)
+      cluster <- attributes(dat)$cluster
       if (input$manip_var == "<none>") {m_var <- 1
       } else {m_var <- which(colnames(dat) == input$manip_var)}
       
@@ -343,11 +351,12 @@ server <- function(input, output, session) {
   
   ### Response table reactive -----
   ans_tbl <- reactive({
+    # init columns
     col_factor <- 
       c(
-        rep(this_factor_order[1], n_blocks * n_reps), # across factors
-        rep(this_factor_order[2], n_blocks * n_reps),
-        rep(this_factor_order[3], n_blocks * n_reps),
+        rep(this_factor_order[1], n_reps + k_sims()), # across factors
+        rep(this_factor_order[2], n_reps + k_sims()),
+        rep(this_factor_order[3], n_reps + k_sims()),
         rep(NA, n_survey_questions)                   # survey
       )
     col_blockrep <- 
@@ -362,9 +371,9 @@ server <- function(input, output, session) {
         ), 
         paste0("survey", 1:10)           # survey
       )                
-    q_id1 <- paste0("cl", letters[rep(1:((k1() / 2) + 1), each = 2)], "_", c("very", "some"))
-    q_id2 <- paste0("cl", letters[rep(1:((k2() / 2) + 1), each = 2)], "_", c("very", "some"))
-    q_id3 <- paste0("cl", letters[rep(1:((k3() / 2) + 1), each = 2)], "_", c("very", "some"))
+    q_id1 <- paste0("cl", letters[rep(1:((k1() / 2)), each = 2)], "_", c("very", "some"))
+    q_id2 <- paste0("cl", letters[rep(1:((k2() / 2)), each = 2)], "_", c("very", "some"))
+    q_id3 <- paste0("cl", letters[rep(1:((k3() / 2)), each = 2)], "_", c("very", "some"))
     col_q_id <- 
       c(
         rep(
@@ -391,7 +400,7 @@ server <- function(input, output, session) {
       c(
         rep(
           c(rep(s_block_questions[1], n_reps),   # block 1
-            rep(s_block_questions[2], k_sims()), # block 2
+            rep(s_block_questions[2], k_sims())  # block 2
           ),
           n_factors                              # across factors
         ),
@@ -464,7 +473,8 @@ server <- function(input, output, session) {
     input$y_axis
   },
   {
-    dat_std <- task_dat()
+    dat <- task_dat()
+    dat_std <- tourr::rescale(dat)
     pca <- prcomp(dat_std)
     x <- input$x_axis
     y <- input$y_axis
@@ -473,7 +483,7 @@ server <- function(input, output, session) {
     rv$curr_basis <- pca$rotation[, c(x_num, y_num)]
     loggit("INFO", 
            paste0("New basis set (from task_dat/axes) "), 
-           paste0(print(rv$curr_basis), "x_axis: ", x, ", y_axis: ", y))
+           paste0(rv$curr_basis, "x_axis: ", x, ", y_axis: ", y))
   })
   
   ### Obs mtour slider ----
@@ -502,8 +512,7 @@ server <- function(input, output, session) {
       these_colnames <- colnames(task_dat())
       updateSelectInput(session, "manip_var", choices = these_colnames, 
                         selected = these_colnames[1])
-      loggit("INFO", paste0("task_dat() changed., input$manip_var updated."),
-             paste0("input$manip_var updated."))
+      loggit("INFO", paste0("task_dat() changed. input$manip_var choices updated."))
     }
   })
   
@@ -716,7 +725,7 @@ server <- function(input, output, session) {
     n_rows <- 0 
     if (ui_section() == "task") {
       if (block_num() == 1){n_rows <- 1} 
-      if (block_num() == 2){n_rows <- 2 * (this_k() - 1)}
+      if (block_num() == 2){n_rows <- this_k()}
     }
     if (ui_section() == "survey") {n_rows <- n_survey_questions}
     
@@ -825,18 +834,18 @@ server <- function(input, output, session) {
   # output$blk1_ans defined in global_*.r
   ### Block 2 inputs, importance of var on cl seperation -----
   output$blk2Inputs <- renderUI({
-    dat_std <- task_dat()
-    p <- ncol(dat_std)                               # num var
-    k <- length(unique(attributes(dat_std)$cluster)) # num of clusters
-    q <- (2 * (k - 1))                               # num total questions
+    dat <- task_dat()
+    p <- ncol(dat)                                # num var
+    cl <- length(unique(attributes(dat)$cluster)) # num of clusters
+    k <- (2 * (cl - 1))                           # num total questions
     
-    lapply(1:q, function(this_q){
-      this_k_letter <- letters[rep(1:(k - 1), each = 2)][this_q]
-      this_q_txt    <- c("Very", "Somewhat")[rep(1:(k - 1),2)[this_q]]
+    lapply(1:k, function(this_q){
+      this_clletter <- letters[rep(1:(cl - 1), each = 2)][this_q]
+      this_q_txt    <- c("Very", "Somewhat")[rep(1:(cl - 1),2)[this_q]]
       this_q_id     <- tolower(substr(this_q_txt, 1, 4))
       
-      checkboxGroupInput(inputId = paste0("blk2_ans_cl", this_k_letter, "_", this_q_id),
-                         label   = paste0(this_q_txt, " important for distinguishing cluster '", this_k_letter, "'"),
+      checkboxGroupInput(inputId = paste0("blk2_ans_cl", this_clletter, "_", this_q_id),
+                         label   = paste0(this_q_txt, " important for distinguishing cluster '", this_clletter, "'"),
                          choices = paste0("V", 1:p),
                          inline  = TRUE)
     })

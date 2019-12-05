@@ -7,6 +7,7 @@ library("ggplot2")
 library("spinifex")
 library("shiny")
 library("tidyr")
+library("dplyr")
 library("plotly")
 library("GGally")
 library("lubridate") # For timer
@@ -14,15 +15,14 @@ library("loggit")    # For logging
 
 this_factor_id <- 1 #between 1 and 6
 f_ls <- c("pca", "grand", "manual") # factor list
-latin_sq <- data.frame(rbind(c(f_ls[1], f_ls[2], f_ls[3]),
+latin_sq <- rbind(c(f_ls[1], f_ls[2], f_ls[3]),
                              c(f_ls[1], f_ls[3], f_ls[2]),
                              c(f_ls[2], f_ls[1], f_ls[3]),
                              c(f_ls[2], f_ls[3], f_ls[1]),
                              c(f_ls[3], f_ls[1], f_ls[2]),
                              c(f_ls[3], f_ls[2], f_ls[1])
-))
-colnames(latin_sq) <- paste0("factor", 1:3)
-this_factor_order <- latin_sq[this_factor_id,]
+)
+this_factor_order <- latin_sq[this_factor_id, ]
 
 log_base <- paste0("log_factorid", this_factor_id, "_")
 log_num  <- 1
@@ -77,14 +77,19 @@ n_survey_questions <- length(s_survey_questions) # ~10
 s_blockrep_id  <- paste0(rep(s_block_id, each = n_reps), rep(1:n_reps, n_reps))
 training_start <- 2 # pg 1 is intro, pg 2:4 is training, 1 for ui, 2, for blocks
 task_start     <- training_start + n_blocks # ~ 5, pgs 5:22 are task  
-survey_start   <- task_start + n_reps * n_blocks # ~ 23 pg 14 is survey 
+survey_start   <- task_start + 3 * (n_reps * n_blocks) # ~ 23 pg 23 is survey 
 
 ##### main_ui
 main_ui <- fluidPage(
-  ### _Side panel ----
+  ### _Sidebar panel ----
   conditionalPanel(
     condition = "output.ui_section == 'training' || output.ui_section == 'task'",
     sidebarPanel(
+      conditionalPanel(condition = "output.ui_section == 'training'",
+                       radioButtons(inputId = "factor", label = "Visual", 
+                                    choices = this_factor_order, 
+                                    selected = this_factor_order[1])
+      ),
       conditionalPanel(condition = "output.factor != 'pca'",
                        fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
                                 column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2"))
