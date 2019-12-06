@@ -75,8 +75,8 @@ n_factors          <- length(f_ls)       # ~3
 n_survey_questions <- length(s_survey_questions) # ~10
 
 s_blockrep_id  <- paste0(rep(s_block_id, each = n_reps), rep(1:n_reps, n_reps))
-training_start <- 2 # pg 1 is intro, pg 2:4 is training, 1 for ui, 2, for blocks
-task_start     <- training_start + n_blocks # ~ 5, pgs 5:22 are task  
+training_start <- 2 # pg 1 is intro, pg 2:5 is training, 1 for ui, 2, for blocks
+task_start     <- training_start + n_blocks + 2 # ~ 6, 1 intro, 1 ui, 2 block, 1 splash screen  
 survey_start   <- task_start + 3 * (n_reps * n_blocks) # ~ 23 pg 23 is survey 
 
 ##### main_ui
@@ -153,45 +153,64 @@ main_ui <- fluidPage(
     ### _Training mainPanel -----
     conditionalPanel(
       condition = "output.ui_section == 'training'",
-      conditionalPanel(condition = "output.block_num == 1",
-                       h2("Training -- task 1")),
-      conditionalPanel(condition = "output.block_num == 2",
-                       h2("Training -- task 2")),
-      p("This data has 6 variables. Principle Componant Analysis (PCA) defines 
+      conditionalPanel(condition = "output.rep_num == 0",
+                       h2("Training -- interface")
+      ),
+      conditionalPanel(condition = "output.rep_num == 1",
+                       h2("Training -- task 1")
+      ),
+      conditionalPanel(condition = "output.rep_num == 2",
+                       h2("Training -- task 2")
+      ),
+      conditionalPanel(condition = "output.rep_num == 3",
+                       h2("Training complete!")
+      )
+    ),
+    conditionalPanel( # interface familiarity 
+      condition = "output.rep_num == 0", # rep_num == 0 is ui familiarity
+      p("This data has 6 variables. Principal Componant Analysis (PCA) defines 
         new axes components (as linear combinations of the original variable),
         ordered by the amount of variation they explain. The plot below displays
         the data for the components selected on the sidebar to the left."),
       p("Take time to familiarize yourself with the controls and feel free to 
           ask any questions. During the evaluation section, you will have 2 
           minutes to explore the data, responding as accurately and quickly 
-          as possible."),
-      conditionalPanel( # first block text
-        condition = "output.rep_num == 1",
-        tags$b("The first task is to estimate the number clusters in the data. 
+          as possible.")
+    ),
+    conditionalPanel( # Task 1
+      condition = "output.rep_num == 1",
+      tags$b("The first task is to estimate the number clusters in the data. 
           Click on the radio buttons on the side bar to select different PC 
           combinations to better understand the clustertering of the data. 
           When you are ready enter the number of clusters on the sidebar then
           click the 'Next page' button below.")
-      ),
-      conditionalPanel( # second block text
-        condition = "output.rep_num == 2",
-        tags$b("The second task is to rate each variables importance for 
+    ),
+    conditionalPanel( # Task 2
+      condition = "output.rep_num == 2",
+      tags$b("The second task is to rate each variables importance for 
         distinguishing the listed cluster. The points have colored and shape 
         assigned by cluster. The variable map (grey circle) on the display 
         shows the direction and magnitude that each variable contributes to the 
         current axes. Use the variable map to identitify the variables that 
         distingish between clusters. Look at several componets to rate
-        the top four variables that help distinguish clusters.
-               \n \n
-        Consider cluster 'a' (green circles). Variables 2, 4, and 6 have 
-        relatively large magnitudes and are in directions that help distinguish
-        the purple squares (V4) and the orange triangles (V2 and V6). 
-        List V2, V4, and V6 as very important for distinguishing cluster 'a'.
-        Remember the axes can be changed to look at the data from another 
-        perspective. Look at the other variables and see if they 
-        contribute in separating directions. Continue to the next page 
-        when you are content.")
-      )
+        the top four variables that help distinguish clusters.")
+      ##TODO: Move to answer text.
+      # Consider cluster 'a' (green circles). Variables 2, 4, and 6 have 
+      # relatively large magnitudes and are in directions that help distinguish
+      # the purple squares (V4) and the orange triangles (V2 and V6). 
+      # List V2, V4, and V6 as very important for distinguishing cluster 'a'.
+      # Remember the axes can be changed to look at the data from another 
+      # perspective. Look at the other variables and see if they 
+      # contribute in separating directions. Continue to the next page 
+      # when you are content
+    ),
+    conditionalPanel( # splash page
+      condition = "output.rep_num == 3",
+      h1("\n \n \n \n
+           Great job of the training! "),
+      h3("Ask any final clarification questions. Then continue on to the 
+        evaluation section, each task is now limited to 2 minutes (time 
+           displayed on top).")
     ), # close training section main panel text
     ### _Task mainPanel -----
     conditionalPanel(
@@ -206,11 +225,12 @@ main_ui <- fluidPage(
     ), # close task section conditional panel title text
     ### _Plot mainPanel
     conditionalPanel( 
-      condition = "output.ui_section == 'training' || output.ui_section == 'task'"
-      , plotOutput("pca_plot", height = "auto")
-      , plotlyOutput("gtour_plot", height = "640px")
-      , plotOutput("mtour_plot", height = "auto")
+      condition = "(output.ui_section == 'training' && output.rep_num != 3)
+      || output.ui_section == 'task'" #rep_num == 3 is splash page. 
       , htmlOutput("plot_msg")
+      , plotOutput("pca_plot", height = "auto")
+      , plotOutput("mtour_plot", height = "auto")
+      , plotlyOutput("gtour_plot", height = "auto")
     ), # close plot conditional panel
     ### _Survey mainPanel -----
     conditionalPanel(
@@ -297,7 +317,7 @@ main_ui <- fluidPage(
 ui <- fluidPage(
   titlePanel("Multivariate data visualization study"),
   conditionalPanel(
-    condition = "output.pg_num < 14",
+    condition = "output.pg_num < 22",
     actionButton("next_pg_button", "Next page")
   )
   , main_ui

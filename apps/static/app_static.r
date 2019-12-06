@@ -46,7 +46,7 @@ server <- function(input, output, session) {
     return("passed survey, need to cap pg_num")
   })
   section_pg_num <- reactive({ # ~page num of this section.
-    if (ui_section() == "training"){
+    if (ui_section() == "training"){ # Training: 1=ui, 2=blk1, 3=blk2, 4=splash
       return(rv$pg_num - (training_start - 1))
     }
     if (ui_section() == "task"){
@@ -62,13 +62,13 @@ server <- function(input, output, session) {
       }
   })
   block_num <- reactive({ # 1:2
-    if (ui_section() == "training") {return(section_pg_num())
+    if (ui_section() == "training") {return(section_pg_num() - 1)
     } else {
       return(1 + (section_pg_num() - 1) %/% n_reps)
     }
   })
   rep_num <- reactive({ # 1:3
-    if (ui_section() == "training") {return(section_pg_num())}
+    if (ui_section() == "training") {return(section_pg_num() - 1)}
     if (section_pg_num() - (n_reps * (block_num() - 1)) <= 0) {stop("check rep_num() it's <= 0.")}
     return(section_pg_num() - (n_reps * (block_num() - 1)))
   })
@@ -88,6 +88,12 @@ server <- function(input, output, session) {
   
   
   ### PCA plot reactive -----
+  pca_height <- function(){
+    if ((rv$timer_active & factor() == "pca") |
+        (ui_section() == "training" & input$factor == "pca")) {
+      return(640)
+    } else return(1) 
+  }
   pca_plot <- reactive({
     if ((rv$timer_active & factor() == "pca") |
         (ui_section() == "training" & input$factor == "pca")) {
@@ -193,6 +199,12 @@ server <- function(input, output, session) {
   })
   
   ### Grand tour plot reactive -----
+  gtour_height <- function(){
+    if ((rv$timer_active & factor() == "grand") | 
+        (ui_section() == "training" & input$factor == "grand")) {
+      return(640)
+    } else return(1) 
+  }
   gtour_plot <- reactive({ 
     if ((rv$timer_active & factor() == "grand") | 
         (ui_section() == "training" & input$factor == "grand")) {
@@ -313,9 +325,11 @@ server <- function(input, output, session) {
       ggp <- plotly::layout(
         ggp, showlegend = T, yaxis = list(showgrid = F, showline = F),
         xaxis = list(scaleanchor = "y", scaleratio = 1, showgrid = F, 
-                     showline = F, autorange = TRUE),
-        yaxis = list(autorange = TRUE),
-        legend = list(x = 0.8, y = 0.7)
+                     showline = F, autorange = TRUE, fixedrange = FALSE),
+        #added for APP
+        height = gtour_height(),
+        yaxis = list(autorange = TRUE, fixedrange = FALSE), # suppose to rescale, I don't think it does.
+        legend = list(x = 0.8, y = 0.7) # postition the title better
       )
       
       return(ggp)
@@ -324,6 +338,12 @@ server <- function(input, output, session) {
   
   
   ### Manual tour plot reactive -----
+  mtour_height <- function(){
+    if ((rv$timer_active  & factor() == "manual") | 
+        (ui_section() == "training" & input$factor == "manual")) {
+      return(640)
+    } else return(1) 
+  }
   mtour_plot <- reactive({
     if ((rv$timer_active  & factor() == "manual") | 
         (ui_section() == "training" & input$factor == "manual")) {
@@ -529,6 +549,25 @@ server <- function(input, output, session) {
       loggit("INFO", paste0("task_dat() changed. input$manip_var choices updated."))
     }
   })
+  
+  ### Obs mtour update slider value -----
+  observeEvent(
+    {manip_var_num()
+      task_dat()
+      input$x_axis
+      input$y_axis
+    },
+    {
+      mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
+      if ("Radial" == "Radial") { # Fixed to Radial # input$manip_type == "Radial"
+        phi_i <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
+        this_val <- round(cos(phi_i), 1) # Rad
+      }
+      updateSliderInput(session, "manip_slider", value = this_val)
+      loggit("INFO", 
+             paste0("New manip slider value (from task_dat/axes) "), 
+             paste0("manip_slider: ", x, ", y_axis: ", y))      
+    })
   
   ### Obs response and duration -----
   ##### Block 1 response & duration
@@ -840,9 +879,9 @@ server <- function(input, output, session) {
   output$training_header_text <- renderText(training_header_text[block_num()])
   output$training_top_text    <- renderText(training_top_text[block_num()])
   ### general task outputs
-  output$pca_plot   <- renderPlot({pca_plot()}, height = 640) 
+  output$pca_plot   <- renderPlot({pca_plot()}, height = pca_height) 
   output$gtour_plot <- renderPlotly({gtour_plot()})
-  output$mtour_plot <- renderPlot({mtour_plot()}, height = 640)
+  output$mtour_plot <- renderPlot({mtour_plot()}, height = mtour_height)
   output$ans_tbl    <- renderTable({rv$ans_tbl})
   
   # output$blk1_ans defined in global_*.r
@@ -851,9 +890,9 @@ server <- function(input, output, session) {
     dat <- task_dat()
     p <- ncol(dat)                                # num var
     cl <- length(unique(attributes(dat)$cluster)) # num of clusters
-    k <- (2 * (cl - 1))                           # num total questions
+    q <- (2 * (cl - 1))                           # num total questions
     
-    lapply(1:k, function(this_q){
+    lapply(1:q, function(this_q){
       this_clletter <- letters[rep(1:(cl - 1), each = 2)][this_q]
       this_q_txt    <- c("Very", "Somewhat")[rep(1:(cl - 1),2)[this_q]]
       this_q_id     <- tolower(substr(this_q_txt, 1, 4))
@@ -862,6 +901,7 @@ server <- function(input, output, session) {
                          label   = paste0(this_q_txt, " important for distinguishing cluster '", this_clletter, "'"),
                          choices = paste0("V", 1:p),
                          inline  = TRUE)
+      
     })
   }) # close renderUI for blk2inputs
   
