@@ -7,21 +7,56 @@ library("ggplot2")
 library("spinifex")
 library("shiny")
 library("tidyr")
-library("mvtnorm")
+library("dplyr")
 library("plotly")
 library("GGally")
 library("lubridate") # For timer
-library("reactlog")  # Logging
+library("loggit")    # For logging
 
+this_factor_id <- 1 #between 1 and 6
+f_ls <- c("pca", "grand", "manual") # factor list
+latin_sq <- rbind(c(f_ls[1], f_ls[2], f_ls[3]),
+                             c(f_ls[1], f_ls[3], f_ls[2]),
+                             c(f_ls[2], f_ls[1], f_ls[3]),
+                             c(f_ls[2], f_ls[3], f_ls[1]),
+                             c(f_ls[3], f_ls[1], f_ls[2]),
+                             c(f_ls[3], f_ls[2], f_ls[1])
+)
+this_factor_order <- latin_sq[this_factor_id, ]
+
+log_base <- paste0("log_factorid", this_factor_id, "_")
+log_num  <- 1
+log_name <- sprintf(paste0(log_base, "%03d"), log_num)
+log_file <- paste0(log_name, ".json")
+while (file.exists(log_file)){ # Find an unused log number
+  log_name <- sprintf(paste0(log_base, "%03d"), log_num)
+  log_file <- paste0(log_name, ".json")
+  log_num  <- log_num + 1
+}
+
+### Logging
+## https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/
+## use: loggit("INFO", "<main msg>", "<detail>")
+## Uncomment to capture log file: 
+# TODO: uncomment for logs
+# setLogFile(log_file); try_autosave <- TRUE
+loggit("INFO", "app has started", "spinifex_study")
 
 ### Required inputs -----
-## TODO: make sure to duplicate this section in other apps
-n_reps <- 3
-s_blocks <- c("n", "d", "s")
-s_block_names <- c("clusters, n", "important variable, r", "correlated variables, s")
+# blocks
+s_block_id <- c("n", "d")
 s_block_questions <- c("How many clusters exist?",
-                       "Rank the variables in order of importance to distinguish groups?",
-                       "Group any/all correlated variables.")
+                       "Rate the importance of each variable in terms of distinugishing the given cluster.")
+# reps (simulations)
+sim1_num  <- "017"
+sim2_num  <- "004"
+sim3_num  <- "020"
+sim_intro <- readRDS("../simulation/simulation_data021.rds") # p = 6, pnoise = 2, cl = 3 
+sim1      <- readRDS(paste0("../simulation/simulation_data", sim1_num, ".rds")) # "./apps/simulation/simulation_data001.rds"
+sim2      <- readRDS(paste0("../simulation/simulation_data", sim2_num, ".rds"))
+sim3      <- readRDS(paste0("../simulation/simulation_data", sim3_num, ".rds"))
+s_dat <- list(sim1, sim2, sim3)
+# survey
 s_survey_questions <- c("What gender are you?",
                         "What age are you?",
                         "What is your highest level of completed education?",
@@ -30,126 +65,173 @@ s_survey_questions <- c("What gender are you?",
                         "This visualization is easily understandable.",
                         "I would recommend using this visualization",
                         "I am an expert on multivariate  data and related visualization",
-                        "I have broad experience with data disualization.",
+                        "I have broad experience with data visualization.",
                         "I had previous knowledge of this visualization.")
-study_factor <- "static"
 
 ### Variable initialization ----
-n_blocks       <- length(s_blocks)
-s_blockrep_id  <- paste0(rep(s_blocks, each = n_reps), rep(1:n_reps, n_reps))
-training_start <- 2
-task_start     <- training_start + n_blocks
-survey_start   <- task_start + n_reps * n_blocks
+n_reps             <- length(s_dat)      # ~3
+n_blocks           <- length(s_block_id) # ~2
+n_factors          <- length(f_ls)       # ~3
+n_survey_questions <- length(s_survey_questions) # ~10
 
-sim_intro <- readRDS("../simulation/simulation_data021.rds") # p = 6, pnoise = 2, cl = 3 
-sim1      <- readRDS("../simulation/simulation_data001.rds") # "./apps/simulation/simulation_data001.rds"
-sim2      <- readRDS("../simulation/simulation_data002.rds")
-sim3      <- readRDS("../simulation/simulation_data003.rds")
-s_dat <- list(sim_intro, sim1, sim2, sim3)
+s_blockrep_id  <- paste0(rep(s_block_id, each = n_reps), rep(1:n_reps, n_reps))
+training_start <- 2 # pg 1 is intro, pg 2:5 is training, 1 for ui, 2, for blocks
+task_start     <- training_start + n_blocks + 2 # ~ 6, 1 intro, 1 ui, 2 block, 1 splash screen  
+survey_start   <- task_start + 3 * (n_reps * n_blocks) # ~ 23 pg 23 is survey 
 
-
-###### Text initialization -----
-## TODO: make sure to duplicate this section in other apps
-training_header_text <- paste0("Training -- ", s_block_names)
-training_top_text <- c("In this section you will be asked to determine the number of clusters contained in the data. "
-                       , "In this section you will be asked to determine the number of how few variables accurately portray the variation in the data. "
-                       , "In this section you will be asked to determine which variables are highly correlated. ")
-training_bottom_timer_text <- "You have 2 minutes to study the display before being prompted to submit your answer."
-
-## DEV NOTE:
-# s_question_text replaced with s_block_questions[block_num()]
-# s_top_text replaced with training_top_text[block_num()]
-# s_bottom_text replaced with training_bottom_timer_text
-
-## REMOVE?
-# l_choices <- list(NULL)
-# for (i in 1:5){ 
-#   l_choices[[i]] <- i
-# }
-# names(l_choices) <- paste0("choice ", 1:5)
-
-##### Main tabPanel -----
-main_panel <- fluidPage(
-  ### Side panel only on "training" and "task" sections
+##### main_ui
+main_ui <- fluidPage(
+  ### _Sidebar panel ----
   conditionalPanel(
     condition = "output.ui_section == 'training' || output.ui_section == 'task'",
     sidebarPanel(
-      fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
-               column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2"))
+      conditionalPanel(condition = "output.ui_section == 'training'",
+                       radioButtons(inputId = "factor", label = "Visual", 
+                                    choices = this_factor_order, 
+                                    selected = this_factor_order[1],
+                                    inline = TRUE)
+      ),
+      conditionalPanel(condition = "output.factor != 'grand' || 
+                       (output.ui_section == 'training' && input.factor != 'grand')",
+                       fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
+                                column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2"))
+                       )
+      ),
+      conditionalPanel(condition = "output.factor == 'manual' || 
+                       (output.ui_section == 'training' && input.factor == 'manual')",
+                       selectInput('manip_var', 'Manip var', "<none>"),
+                       sliderInput("manip_slider", "Contribution",
+                                   min = 0, max = 1, value = 0, step = .1)
       ),
       hr(), # horizontal line
       conditionalPanel(condition = "output.block_num == 1",
-                       numericInput("blk1_ans", "How many clusters exist within the data?",
+                       tags$b(s_block_questions[1]),
+                       tags$br(), ## TODO breaks don't seem to work... 
+                       numericInput("blk1_ans", "",
                                     value = 0, min = 0, max = 10)
       ),
       conditionalPanel(condition = "output.block_num == 2",
-                       div(style = 'width:400px;',
-                           div(style = 'float:left; color:red; font-size:14px', 
-                               strong('most important')),
-                           div(style = 'float:right; color:red; font-size:14px', 
-                               strong('least important'))),
-                       tags$br(),
+                       tags$b(s_block_questions[2]),
+                       tags$br(), br(),
                        uiOutput("blk2Inputs")
-      ),
-      conditionalPanel(condition = "output.block_num == 3",
-                       uiOutput("blk3Inputs")
-      ),
-    ) 
+      )
+    )
   ), ### end conditionalPanel sidebarPanel for training and task
   mainPanel(
     ### _Intro mainPanel -----
     conditionalPanel(
       condition = "output.ui_section == 'intro'",
-      h3("Thank you for participating!")
+      h3("Welcome to the study")
       , br()
       , p("This a completely voluntary study that will take approximately 25-30 
-      minutes to complete.")
+          minutes to complete. If at any point you would like to stop, 
+          please let the proctor know.")
       , br()
       , p("You are helping to compare the effectiveness of different visuals of 
-       linear projection for multi-variate data. Each participant will be 
-       assigned to one visual, they will then watch a short video demonstrating 
-       how to perform the 3 different tasks with their visuals. Participants 
-       are then able to interact with the visual, and ask any final clarifying 
-       questions before starting the evaluated section. During this section, 3 
-       repetitions 
-       of the 3 differing tasks will be recorded. Each repetition will be capped 
-       2 minutes before being asked to proceed to the next question. After the 
-       evaluation section there is a 10-question follow-up asking about 
-       demographic information, the assigned visual, and your familiarity with
-       multi-variate data. The outline of the study is as follows:")
+          linear projections for multivariate data. You will help evaluate 1 
+          graphic variation by participating. 
+          The outline of the study is as follows:")
+      , tags$b("Training")
       , tags$ul(
         tags$li("Video training")
-        , tags$li("Visual and ui familiarity -- questions allowed")
-        , tags$li("Task one (3 reps) -- How many clusters are contained within the data?")
-        , tags$li("Task two (3 reps) -- Rank the most important variables distinguishing groups")
-        , tags$li("Task three (3 reps) -- Group correlated variables (if any)")
-        , tags$li("Follow-up questionnaire")
+        , tags$li("Graphic and ui familiarity -- questions encouraged")
+      )
+      , tags$b("Expiriment -- 2 minutes per task, no questions")
+      , tags$ul(
+        tags$li(paste0("Task 1 (x3 reps) -- ",     s_block_questions[1]))
+        , tags$li(paste0("Task 2 (x3 reps) -- ",   s_block_questions[2]))
+      )
+      , tags$b("Follow-up")
+      , tags$ul(
+        tags$li("Short questionnaire")
         , tags$li("Response submission")
       )
-      , p("Make sure to provide your email address and computer to the proctor
-   if you wish to be entered in the prize pool for top three scoring 
-   participants will receive a $50 gift card to Coles. Also, mark if you want to
-   be emailed about the subsequent publication.")
+      , p("After completing the survey let the proctor know and collect a 
+          voucher for a free hot berverage on campus.")
       , p("Thank you again for participating.")
-    ),
+    ), # close conditionPanel -- intro section text
     ### _Training mainPanel -----
     conditionalPanel(
       condition = "output.ui_section == 'training'",
-      h1("TRAINING CONTENT HERE.") ##TODO
-      , plotOutput("task_pca", height = "auto")
-      , verbatimTextOutput("question_text")
-      , verbatimTextOutput("response_msg")
-      , h4(training_bottom_timer_text)
+      conditionalPanel(condition = "output.rep_num == 0",
+                       h2("Training -- interface")
+      ),
+      conditionalPanel(condition = "output.rep_num == 1",
+                       h2("Training -- task 1")
+      ),
+      conditionalPanel(condition = "output.rep_num == 2",
+                       h2("Training -- task 2")
+      ),
+      conditionalPanel(condition = "output.rep_num == 3",
+                       h2("Training complete!")
+      )
     ),
+    conditionalPanel( # interface familiarity 
+      condition = "output.rep_num == 0", # rep_num == 0 is ui familiarity
+      p("This data has 6 variables. Principal Componant Analysis (PCA) defines 
+        new axes components (as linear combinations of the original variable),
+        ordered by the amount of variation they explain. The plot below displays
+        the data for the components selected on the sidebar to the left."),
+      p("Take time to familiarize yourself with the controls and feel free to 
+          ask any questions. During the evaluation section, you will have 2 
+          minutes to explore the data, responding as accurately and quickly 
+          as possible.")
+    ),
+    conditionalPanel( # Task 1
+      condition = "output.rep_num == 1",
+      tags$b("The first task is to estimate the number clusters in the data. 
+          Click on the radio buttons on the side bar to select different PC 
+          combinations to better understand the clustertering of the data. 
+          When you are ready enter the number of clusters on the sidebar then
+          click the 'Next page' button below.")
+    ),
+    conditionalPanel( # Task 2
+      condition = "output.rep_num == 2",
+      tags$b("The second task is to rate each variables importance for 
+        distinguishing the listed cluster. The points have colored and shape 
+        assigned by cluster. The variable map (grey circle) on the display 
+        shows the direction and magnitude that each variable contributes to the 
+        current axes. Use the variable map to identitify the variables that 
+        distingish between clusters. Look at several componets to rate
+        the top four variables that help distinguish clusters.")
+      ##TODO: Move to answer text.
+      # Consider cluster 'a' (green circles). Variables 2, 4, and 6 have 
+      # relatively large magnitudes and are in directions that help distinguish
+      # the purple squares (V4) and the orange triangles (V2 and V6). 
+      # List V2, V4, and V6 as very important for distinguishing cluster 'a'.
+      # Remember the axes can be changed to look at the data from another 
+      # perspective. Look at the other variables and see if they 
+      # contribute in separating directions. Continue to the next page 
+      # when you are content
+    ),
+    conditionalPanel( # splash page
+      condition = "output.rep_num == 3",
+      h1("\n \n \n \n
+           Great job of the training! "),
+      h3("Ask any final clarification questions. Then continue on to the 
+        evaluation section, each task is now limited to 2 minutes (time 
+           displayed on top).")
+    ), # close training section main panel text
     ### _Task mainPanel -----
     conditionalPanel(
       condition = "output.ui_section == 'task'",
-      h1("TASK CONTENT HERE.") ##TODO 
-      , textOutput('timer_disp')
-      , plotOutput("task_pca", height = "auto")
-      , verbatimTextOutput("question_text")
-      , verbatimTextOutput("response_msg")
-    ),
+      conditionalPanel(condition = "output.block_num == 1",
+                       h2("Evaluation -- task 1")
+      ),
+      conditionalPanel(condition = "output.block_num == 2",
+                       h2("Evaluation -- task 2")
+      ),
+      textOutput('timer_disp')
+    ), # close task section conditional panel title text
+    ### _Plot mainPanel
+    conditionalPanel( 
+      condition = "(output.ui_section == 'training' && output.rep_num != 3)
+      || output.ui_section == 'task'" #rep_num == 3 is splash page. 
+      , htmlOutput("plot_msg")
+      , plotOutput("pca_plot", height = "auto")
+      , plotOutput("mtour_plot", height = "auto")
+      , plotlyOutput("gtour_plot", height = "auto")
+    ), # close plot conditional panel
     ### _Survey mainPanel -----
     conditionalPanel(
       condition = "output.ui_section == 'survey'",
@@ -217,105 +299,30 @@ main_panel <- fluidPage(
                               div(style = 'float:right;', 'strongly agree')),
                   min = 1, max = 9, value = 5),
       actionButton("save_ans", "save responses"),
-      verbatimTextOutput("save_msg"),
-      h4("Thank you for participating.")
-    ) # close survey mainPanel
+      htmlOutput("save_msg"),
+      conditionalPanel(
+        condition = "output.is_saved == 1",
+        h3("Thank you for participating!"),
+        br(),
+        h4("Let the proctor know you have completed the study and have a good day.")
+      )
+    ) # close survey condition panel 
     
   ) # close mainPanel()
-) # close main_panel assignment 
+) # close fluid page wrapper 
 
 
-### TEST_UI_SECTION -----
-TEST_ui_section <- fluidPage(
-  sidebarPanel(
-    fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
-             column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2"))
-    ),
-    hr(), # horizontal line
-    conditionalPanel(condition = "output.block_num == 1",
-                     numericInput("blk1_ans", "How many clusters exist within the data?",
-                                  value = 0, min = 0, max = 10)
-    ),
-    conditionalPanel(condition = "output.block_num == 2",
-                     div(style = 'width:400px;',
-                         div(style = 'float:left; color:red; font-size:14px', 
-                             strong('most important')),
-                         div(style = 'float:right; color:red; font-size:14px', 
-                             strong('least important'))),
-                     tags$br(),
-                     uiOutput("blk2Inputs")
-    ),
-    conditionalPanel(condition = "output.block_num == 3",
-                     uiOutput("blk3Inputs")
-    ),
-  ),
-  mainPanel(
-    conditionalPanel(
-      condition = "output.ui_section == 'intro' ",
-      h1("intro"), # Working alone.
-      h3("Thank you for participating!")
-      , br()
-      , p("This a completely voluntary study that will take approximately 25-30 
-      minutes to complete.")
-      , br()
-      , p("You are helping to compare the effectiveness of different visuals of 
-       linear projection for multi-variate data. Each participant will be 
-       assigned to one visual, they will then watch a short video demonstrating 
-       how to perform the 3 different tasks with their visuals. Participants 
-       are then able to interact with the visual, and ask any final clarifying 
-       questions before starting the evaluated section. During this section, 3 
-       repetitions 
-       of the 3 differing tasks will be recorded. Each repetition will be capped 
-       2 minutes before being asked to proceed to the next question. After the 
-       evaluation section there is a 10-question follow-up asking about 
-       demographic information, the assigned visual, and your familiarity with
-       multi-variate data. The outline of the study is as follows:")
-      , tags$ul(
-        tags$li("Video training")
-        , tags$li("Visual and ui familiarity -- questions allowed")
-        , tags$li("Task one (3 reps) -- How many clusters are contained within the data?")
-        , tags$li("Task two (3 reps) -- Rank the most important variables distinguishing groups")
-        , tags$li("Task three (3 reps) -- Group correlated variables (if any)")
-        , tags$li("Follow-up questionnaire")
-        , tags$li("Response submission")
-      )
-      , p("Make sure to provide your email address and computer to the proctor
-   if you wish to be entered in the prize pool for top three scoring 
-   participants will receive a $50 gift card to Coles. Also, mark if you want to
-   be emailed about the subsequent publication.")
-      , p("Thank you again for participating.")
-    ),
-    conditionalPanel(
-      condition = "output.ui_section == 'training' ",
-      h1("training"), # working except for task_pca :/
-      h1("TRAINING CONTENT HERE.") ##TODO
-      #, plotOutput("task_pca", height = "auto")
-      , plotOutput("TEST_plot")
-      , verbatimTextOutput("question_text")
-      , verbatimTextOutput("response_msg")
-      , h4(training_bottom_timer_text)
-    ),
-    conditionalPanel( 
-      condition = "output.ui_section == 'task' ",
-      h1("task") ##TODO: ISSUE INTRODUCED HERE!?! why?
-      # , textOutput('timer_disp')
-      # , plotOutput("task_pca", height = "auto")
-      # , verbatimTextOutput("question_text")
-      # , verbatimTextOutput("response_msg")
-    ),
-    conditionalPanel(
-      condition = "output.ui_section == 'survey' ",
-      h1("survey")
-    )
-  ) # close mainPanel()
-) # close TEST_ui_section assignment
+
 ##### UI, combine panels -----
 ui <- fluidPage(
-  titlePanel("Multivariate data visualization study")
-  , TEST_ui_section
-  #, main_panel
-  , actionButton("next_pg_button", "Next page")
+  titlePanel("Multivariate data visualization study"),
+  conditionalPanel(
+    condition = "output.pg_num < 22",
+    actionButton("next_pg_button", "Next page")
+  )
+  , main_ui
   , verbatimTextOutput("dev_msg")
+  , actionButton("browser", "browser()")
   , tableOutput("ans_tbl")
 )
 

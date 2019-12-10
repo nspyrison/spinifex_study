@@ -62,12 +62,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
         disp
       }
       
-      tour_path <- tourr::interpolate(basis_set = tour_path, angle = angle)
-      attr(tour_path, "class") <- "array"
-      tour_df <- array2df(array = tour_path, data = data)
-      disp <- render_type(slides = tour_df, ...)
-      
-      disp
       this_play_tour_path(tour_path = tpath, data = dat_std, col = col, pch = pch,
                           axes = "bottomleft", max_frames = 90)
     }
@@ -391,7 +385,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   output$task_gtour    <- renderPlotly({task_gtour()}) # , height = 800)
   output$ans_tbl       <- renderTable({rv$ans_tbl})
   
-  ### Block 2 inputs, importance rank -----
+  ### Block 2 inputs, rate importance -----
   output$blk2Inputs <- renderUI({
     i <- j <- ncol(task_dat())
     lapply(1:i, function(i) {

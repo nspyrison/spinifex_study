@@ -12,6 +12,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   rv$task_durations <- NULL
   rv$save_file      <- NULL
   rv$ans_tbl        <- NULL
+  ## !!: Not in static:
   rv$curr_basis     <- NULL
   
   ##### Start reactives
@@ -72,7 +73,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                            phi       = 0, 
                            col       = col,
                            pch       = pch,
-                           axes      = "bottomleft",
+                           axes      = "center",
                            alpha     = 1
       )
       return(ret)
@@ -123,10 +124,13 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ##### End reactive
   
   ##### Start observes
-  # basis 
-  #TODO: As a reactive or an observe!?
-  #basis <- reactive({
-  observe({
+  ### Obs mtour basis ----- 
+  observeEvent({ 
+    task_dat()
+    input$x_axis
+    input$y_axis
+  },
+  {
     cat("you changed PCs\n")
     dat <- task_dat()
     dat_std <- tourr::rescale(dat)
@@ -135,15 +139,11 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     y <- input$y_axis
     x_num <- as.integer(substr(x, nchar(x), nchar(x)))
     y_num <- as.integer(substr(y, nchar(y), nchar(y)))
-    ret <- pca$rotation[, c(x_num, y_num)]
-    
-    rv$curr_basis <- ret
-    #return(ret)
+    rv$curr_basis <- pca$rotation[, c(x_num, y_num)]
   })
   
-  ### Obs slider ----
-  # x, y, radius oblique motion
-  observe({
+  ### Obs mtour slider ----
+  observeEvent(input$manip_slider, {
     cat("you changed angles\n")
     if (input$manip_var != "<none>") {
       theta <- phi <- NULL
@@ -161,23 +161,31 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     }
   })
   
-  ### Obs axis choices -----
-  observe({
+  ### Obs mtour update manip_var choices -----
+  observeEvent(task_dat(), { # Init manip_var choices on data change.
+    cat("you changed manip var\n")
+    these_colnames <- colnames(task_dat())
+    updateSelectInput(session, "manip_var", choices = these_colnames, 
+                      selected = these_colnames[1])
+  })
+  
+  ### Obs mtour update axis choices -----
+  observeEvent(task_dat(), { # Init axis choices when data changes
     cat("you changed number of PCs\n")
     p <- ncol(task_dat())
     choices <- paste0("PC", 1:p)
     updateRadioButtons(session, "x_axis", choices = choices, selected = "PC1")
     updateRadioButtons(session, "y_axis", choices = choices, selected = "PC2")
   })
-  observeEvent(input$x_axis, { # But, not the same choices, x axis
+  observeEvent(input$x_axis, { # If x_axis set == to y_axis, bump x_axis 
     if (input$x_axis == input$y_axis) {
       p <- ncol(task_dat())
       choices <- paste0("PC", 1:p)
-      opts <- choices[!choices %in% input$x_axis]
+      opts <- choices[!choices %in% input$y_axis]
       updateRadioButtons(session, "x_axis", choices = choices, selected = sample(opts, 1))
     }
   })
-  observeEvent(input$y_axis, { # But, not the same choices, y axis
+  observeEvent(input$y_axis, { # If y_axis set == to x_axis, bump y_axis 
     if (input$x_axis == input$y_axis) {
       p <- ncol(task_dat())
       choices <- paste0("PC", 1:p)
@@ -186,32 +194,21 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     }
   })
   
-  
-  ### Obs update manip_var -----
-  observe({
-    cat("you changed manip var\n")
-    these_colnames <- colnames(task_dat())
-    updateSelectInput(session, "manip_var", choices = these_colnames, 
-                      selected = these_colnames[1])
-  })
-  ## TODO delete? either this or the rv$curr_basis assignment in basis() and basis_obl()
-  # Does it freeze less without this?
-  # observe({
-  #   rv$curr_basis <- basis()
-  #   rv$curr_basis <- basis_obl()
-  # })
-  
-  
-  ### Update slider
-  observe({
-    cat("you changed basis\n")
-    #if (is.null(rv$curr_basis)) {rv$curr_basis <- basis()} # init curr_basis
+  ### Obs mtour update slider value -----
+  observeEvent(
+    {manip_var_num()
+      task_dat()
+      input$x_axis
+      input$y_axis
+    },
+    {
+    cat("you changed basis \n")
     mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
     if ("Radial" == "Radial") { # Fixed to Radial # input$manip_type == "Radial"
       phi_i <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
       this_val <- round(cos(phi_i), 1) # Rad
     }
-    isolate(updateSliderInput(session, "manip_slider", value = this_val))
+    updateSliderInput(session, "manip_slider", value = this_val)
   })
   
   
@@ -478,7 +475,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   output$basis_tbl     <- renderTable(as.data.frame(rv$curr_basis), rownames = TRUE)
   
   # output$blk1_ans defined in global
-  ### Block 2 inputs, rank importance -----
+  ### Block 2 inputs, rate importance -----
   output$blk2Inputs <- renderUI({
     i <- j <- ncol(task_dat())
     lapply(1:i, function(i) {
