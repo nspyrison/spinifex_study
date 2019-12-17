@@ -49,8 +49,8 @@ s_block_questions <- c("How many clusters exist?",
                        "Rate the importance of each variable in terms of distinugishing the given cluster.")
 # reps (simulations)
 s_sim_num  <- substr(1101:1118, 2, 4)
-sim_train1 <- readRDS("../simulation/simulation_data021.rds") # p = 6, pnoise = 2, cl = 3 
-sim_train2 <- readRDS("../simulation/simulation_data021.rds") # p = 6, pnoise = 2, cl = 3 
+sim_train1 <- readRDS("../simulation/simulation_data119.rds") # p = 6, pnoise = 2, cl = 3 
+sim_train2 <- readRDS("../simulation/simulation_data120.rds") # p = 6, pnoise = 2, cl = 3 
 s_dat <- list()
 for (i in 1:length(s_sim_num)) {
   s_dat[[i]] <- readRDS(

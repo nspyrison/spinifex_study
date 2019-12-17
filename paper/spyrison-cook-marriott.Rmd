@@ -78,21 +78,31 @@ Does the finer control afforded by the manual tour improve the ability of the an
 
 # Experimental design {#sec:design}
 
+![Experimental design](./figures/experimental_design.PNG)
+
+
 ## Participant population {#sec:population}
 
-A sample of convenience was taken from postgraduate students in the department of econometrics and business statistics at Monash University, based in Melbourne, Australia. Participants were required to have prior knowledge of Principal Component Analysis (PCA) and scatterplot matrices (SPLOM).
+A sample of convenience was taken from postgraduate students in the department of econometrics and business statistics and the faculty of information technology at Monash University, based in Melbourne, Australia. Participants were required to have prior knowledge of mulivariate data visualizations.
 
 
 ## Factors {#sec:factors}
 
-We explored performance across three factors: eigenvalue decomposition from PCA, animated random walk between prosections via grand tour, and controlling individual variable's contribution to the projection by manual tour. 
+We explored performance across three factors. The first factor is eigenvalue decomposition in the form PCA. The second factor is an animated random walk between target bases via grand tour. The third factor allows for the manual control of individual variable's contribution to the projection, for performing a manual tour. 
 
-Each participant was randomly split into one of three even factor groups. The first group was given a biplot -- a scatterplot matrix coupled with a variable mapping back to original variable space. Users were allowed to freely choise which two components to view initialized to PC1 and PC2. The second group was given the same animation, the first 60 seconds of random walk (typically __n__ basis as three frames per second) of a grand tour with the ability to freely control the location and speed of the animation. The third group was provided with the ability to control the magnitude of an individual variable contributes to the projection with a manual tour. Doing so performs a constrained rotation on the data object resulting in a change of the other variables to preserve orthogonality between dimensions. Participants could freely change which dimension to manipulate.
+
+Users are able to select which principal components are on the x and y-axes. Percent of full sample variation is displayed along the corrisponding axis.  
+
+## Participant groups
+
+Each participant was randomly split into one of three even factor groups. The first group was given a biplot -- a scatterplot matrix coupled with a variable mapping back to original variable space. Users were allowed to freely choise which two components to view initialized to PC1 and PC2. The second group was given the same animation, the first 30 seconds of random walk (typically spanning 6 or 7 bases interpolated into 90 frame viewed at 3 frames per second) of a grand tour with the ability to freely control the location and speed of the animation. The third group was provided with the ability to control the magnitude of an individual variable contributes to the projection with a manual tour. Doing so performs a constrained rotation on the data object resulting in a change of the other variables to preserve orthogonality between dimensions. Participants could freely change which dimension to manipulate.
 
 
 ## Block treatments
 
-Each participant performed each of the __three__ block treatments in random order. One block asked participants to identify the number of clusters present in the data. In this block, clusters were unsupervised, where observations appeared as black circles. This block also served as a control for assessing the general aptitude for this sort of high dimensional analysis as it was simpler. A second block asked participants to identify the top three variables for distinguishing clusters in order of importance. A third block asked for highly correlated variables if any. In the latter two blocks, clusters were supervised; observations were colored (with a color-blind friendly palette) and assigned a shape based on their cluster. 
+Each participant performed both of the 2 block treatments in fixed order. One block asked participants to identify the number of clusters present in the data. In this block, clusters were unsupervised, where all observations appeared as black circles. This block also served as a control for assessing the general aptitude for this sort of high dimensional analysis as it was simpler. A second block asked participants to identify the top three variables for distinguishing clusters in order of importance. A third block asked for highly correlated variables if any. In the latter two blocks, clusters were supervised; observations were colored (with a color-blind friendly palette) and assigned a shape based on their cluster. 
+
+It was expected that the grand tour should excell in identifying the number of clusters. This is because it offers many and more widely varying bases are viewed in quick sucsession for a more cohesive parralax-like movement making clusters relatively easy to identify. 
 
 
 ## Randomization & replication
