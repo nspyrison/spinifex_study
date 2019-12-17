@@ -48,14 +48,16 @@ s_block_id <- c("n", "d")
 s_block_questions <- c("How many clusters exist?",
                        "Rate the importance of each variable in terms of distinugishing the given cluster.")
 # reps (simulations)
-sim1_num  <- "017"
-sim2_num  <- "004"
-sim3_num  <- "020"
-sim_intro <- readRDS("../simulation/simulation_data021.rds") # p = 6, pnoise = 2, cl = 3 
-sim1      <- readRDS(paste0("../simulation/simulation_data", sim1_num, ".rds")) # "./apps/simulation/simulation_data001.rds"
-sim2      <- readRDS(paste0("../simulation/simulation_data", sim2_num, ".rds"))
-sim3      <- readRDS(paste0("../simulation/simulation_data", sim3_num, ".rds"))
-s_dat <- list(sim1, sim2, sim3)
+s_sim_num  <- substr(1101:1118, 2, 4)
+sim_train1 <- readRDS("../simulation/simulation_data021.rds") # p = 6, pnoise = 2, cl = 3 
+sim_train2 <- readRDS("../simulation/simulation_data021.rds") # p = 6, pnoise = 2, cl = 3 
+s_dat <- list()
+for (i in 1:length(s_sim_num)) {
+  s_dat[[i]] <- readRDS(
+    paste0("../simulation/simulation_data", s_sim_num[i], ".rds")
+  )
+}
+
 # survey
 s_survey_questions <- c("What gender are you?",
                         "What age are you?",
@@ -207,7 +209,7 @@ main_ui <- fluidPage(
     conditionalPanel( # splash page
       condition = "output.rep_num == 3",
       h1("\n \n \n \n
-           Great job of the training! "),
+           Great job of the training!"),
       h3("Ask any final clarification questions. Then continue on to the 
         evaluation section, each task is now limited to 2 minutes (time 
            displayed on top).")
@@ -321,8 +323,8 @@ ui <- fluidPage(
     actionButton("next_pg_button", "Next page")
   )
   , main_ui
-  , verbatimTextOutput("dev_msg")
-  , actionButton("browser", "browser()")
-  , tableOutput("ans_tbl")
+  # , verbatimTextOutput("dev_msg")
+  # , actionButton("browser", "browser()")
+  # , tableOutput("ans_tbl")
 )
 

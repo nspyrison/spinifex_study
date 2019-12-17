@@ -218,6 +218,7 @@ server <- function(input, output, session) {
       fps   <- 3
       max_frames <- 30 * fps # 90 frame at 30 sec @ fps = 3
       set.seed(123) # if tourr starts using seeds
+      ##TODO: pca basis not working (below). perform grand tour without pca basis.
       # # start basis is pca[, 1:2]
       # basis <- prcomp(dat_std)$rotation[, 1:2]
       # tpath <- save_history(dat_std, tour_path = grand_tour(), max = 8)
@@ -227,7 +228,7 @@ server <- function(input, output, session) {
       # attr(tpath, "data") <- dat_std
       # structure(tpath, class = "history_array")
       # str(tpath)
-      ##TODO: pca basis not working (above). grand tour without PCA init below      
+      ##TODO: pca basis not working (above). perform grand tour without pca basis.
       
       tpath <- save_history(dat_std, tour_path = grand_tour(), max = 8)
       
@@ -338,7 +339,7 @@ server <- function(input, output, session) {
   
   
   ### Manual tour plot reactive -----
-  mtour_height <- function(){
+  mtour_height <- function() {
     if ((rv$timer_active  & factor() == "manual") | 
         (ui_section() == "training" & input$factor == "manual")) {
       return(640)
@@ -362,24 +363,36 @@ server <- function(input, output, session) {
       USE_AES  <- TRUE
       if (block_num() == 1) {
         USE_AXES <- FALSE
+        axes_position <- "off"
         if(rv$training_passes == FALSE) { # During training
           USE_AES  <- FALSE
         } 
       }
       
-      ## TODO: expand oblique frame for like aes.
-      ret <- oblique_frame(data      = dat_std,
-                           basis     = rv$curr_basis,
-                           manip_var = m_var,
-                           theta     = 0, 
-                           phi       = 0,
-                           col       = cluster,
-                           pch       = cluster,
-                           axes      = axes_position
-      )
+      if (USE_AES == TRUE) {
+        ret <- oblique_frame(data      = dat_std,
+                             basis     = rv$curr_basis,
+                             manip_var = m_var,
+                             theta     = 0, 
+                             phi       = 0,
+                             col       = cluster,
+                             pch       = cluster,
+                             axes      = axes_position
+        )
+      } else { # USE_AES == FALSE
+        ret <- oblique_frame(data      = dat_std,
+                             basis     = rv$curr_basis,
+                             manip_var = m_var,
+                             theta     = 0, 
+                             phi       = 0,
+                             col       = cluster,
+                             pch       = cluster,
+                             axes      = axes_position
+        )
+      }
       
       return(ret)
-    } else {return()}
+    } else {return()} # non-display conditions return nothing.
   })
   
   
@@ -388,6 +401,7 @@ server <- function(input, output, session) {
     # init columns
     col_factor <- 
       c(
+        rep("training", n_reps + k_sims())            
         rep(this_factor_order[1], n_reps + k_sims()), # across factors
         rep(this_factor_order[2], n_reps + k_sims()),
         rep(this_factor_order[3], n_reps + k_sims()),
@@ -559,14 +573,12 @@ server <- function(input, output, session) {
     },
     {
       mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
-      if ("Radial" == "Radial") { # Fixed to Radial # input$manip_type == "Radial"
-        phi_i <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
-        this_val <- round(cos(phi_i), 1) # Rad
-      }
+      phi_i <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
+      this_val <- round(cos(phi_i), 1) # Rad
       updateSliderInput(session, "manip_slider", value = this_val)
       loggit("INFO", 
              paste0("New manip slider value (from task_dat/axes) "), 
-             paste0("manip_slider: ", x, ", y_axis: ", y))      
+             paste0("manip_slider: ", this_val))      
     })
   
   ### Obs response and duration -----
