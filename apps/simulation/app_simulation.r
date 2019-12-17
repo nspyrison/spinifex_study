@@ -14,7 +14,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   ### Generate simulation data -----
   ### _Reactives -----
   task_dat <- reactive({ # for generating simulations
-    ret <- simulate_clusters(p = input$sim_p,
+    ret <- APP_simulate_clusters(p = input$sim_p,
                              pnoise = input$sim_pnoise,
                              cl = input$sim_cl)
     colnames(ret) <- paste0("V", 1:ncol(ret))
@@ -59,7 +59,7 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   
   ### Save button, simulation data
   observeEvent(input$save_sim, {
-    save_num <- 1
+    save_num <- 101
     save_name <- sprintf("simulation_data%03d", save_num)
     save_file <- paste0(save_name, ".rds")
     while (file.exists(save_file)){
@@ -87,22 +87,11 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   })
   load_mncl_reord <- reactive({
     d <- load_dat()
-    p <- ncol(d)
-    n_cl <- length(attr(d, "ncl"))
-    reord <- attr(d, "col_reorder")
-    mncl <- attr(d, "mncl")[, reord]
-    rownames(mncl) <- paste0("cl ", letters[1:n_cl])
-    colnames(mncl) <- paste0("V", 1:p)
-    mncl
+    attr(d, "mncl") # already reordered after 17/12/2019
   })
   load_vc_reord <- reactive({
     d <- load_dat()
-    p <- ncol(d)
-    reord <- attr(d, "col_reorder")
-    vc <- round(attr(d, "vc")[reord, reord], 1)
-    colnames(vc) <- paste0("V", 1:p)
-    rownames(vc) <- paste0("V", 1:p)
-    vc
+    round(attr(d, "vc"), 1) # already reordered after 17/12/2019
   })
   
   # PCA plot, loaded sims.
@@ -159,22 +148,11 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
   })
   load2_mncl_reord <- reactive({
     d <- load2_dat()
-    p <- ncol(d)
-    n_cl <- length(attr(d, "ncl"))
-    reord <- attr(d, "col_reorder")
-    mncl <- attr(d, "mncl")[, reord]
-    rownames(mncl) <- paste0("cl ", letters[1:n_cl])
-    colnames(mncl) <- paste0("V", 1:p)
-    mncl
+    attr(d, "mncl") # already reordered after 17/12/2019
   })
   load2_vc_reord <- reactive({
     d <- load2_dat()
-    p <- ncol(d)
-    reord <- attr(d, "col_reorder")
-    vc <- round(attr(d, "vc")[reord, reord], 1)
-    colnames(vc) <- paste0("V", 1:p)
-    rownames(vc) <- paste0("V", 1:p)
-    vc
+    round(attr(d, "vc"), 1) # already reordered after 17/12/2019
   })
 
   # Manual plot (obl_frame()), load2 sims.

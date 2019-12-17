@@ -34,8 +34,8 @@ panel_generate <- tabPanel(
   "generate simulation", 
   sidebarPanel(
     numericInput("sim_p", label = "Number of variables, p", value = 10)
-    , numericInput("sim_pnoise", label = "Number of noise variables, pnoise", value = 4)
     , numericInput("sim_cl", label = "Number of clusters, cl", value = 4)
+    , numericInput("sim_pnoise", label = "Number of noise variables, pnoise", value = 4)
     , fluidRow(column(6, radioButtons(inputId = "task_x_axis", 
                                       label = "x axis", choices = "PC1")),
                column(6, radioButtons(inputId = "task_y_axis", 
@@ -116,7 +116,7 @@ ui <- fluidPage(
 
 
 ###### Simulate clusters
-simulate_clusters <- function(p = 10, pnoise = 4, cl = 4){
+APP_simulate_clusters <- function(p = 10, pnoise = 4, cl = 4){
   #default: p = 10; pnoise = 4; cl = 4
   x <- NULL
   ncl <- NULL
@@ -137,21 +137,28 @@ simulate_clusters <- function(p = 10, pnoise = 4, cl = 4){
   x <- scale(x)
   x <- as.data.frame(x)
   
-  # Show color on plots to check clustering
-  cluster <- factor(rep(letters[1:cl], ncl))
-  cluster_col <- col_of(cluster)
-  
-  # Scramble rows and columns
+  # Reorder rows and columns
   x.indx <- sample(1:nrow(x))
   y.indx <- sample(1:ncol(x))
   x <- x[x.indx, y.indx]
+  
+  # Mask output after reorder
+  rownames(x) <- 1:nrow(x)
+  colnames(x) <- paste0("V", 1:ncol(x))
+  mncl <- mncl[, y.indx]
+  rownames(mncl) <- paste0("cl ", letters[1:nrow(mncl)])
+  colnames(mncl) <- paste0("V", 1:ncol(mncl))
+  vc <- vc[y.indx, y.indx]
+  cluster <- factor(rep(letters[1:cl], ncl))
   cluster <- cluster[x.indx]
   
+  # Record attributes
   attr(x, "ncl") <- ncl            # number of obs in each cluster
   attr(x, "mncl") <- mncl          # mean of each cluster*variable
-  attr(x, "vc") <- vc              # variance-covariance matrix
-  attr(x, "cluster") <- cluster    # cluster factor
+  attr(x, "vc") <- vc              # variance-covariance matrix, after reorder
+  attr(x, "cluster") <- cluster    # cluster factor, after reorder
   attr(x, "col_reorder") <- y.indx # order variables were scrambled in
+  attr(x, "row_reorder") <- x.indx # order rows were scrambled in 
   return(x)
 }
 
