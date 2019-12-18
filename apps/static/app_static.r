@@ -25,17 +25,24 @@ server <- function(input, output, session) {
   p3 <- reactive({ ncol(s_dat[[3]]) })
   k1 <- reactive({
     n_cls <- length(unique(attributes(s_dat[[1]])$cluster)) 
-    2 * (n_cls - 1)
+    return(2 * (n_cls - 1))
   })
   k2 <- reactive({
     n_cls <- length(unique(attributes(s_dat[[2]])$cluster))
-    2 * (n_cls - 1)
+    return(2 * (n_cls - 1))
   })
   k3 <- reactive({
     n_cls <- length(unique(attributes(s_dat[[3]])$cluster))
-    2 * (n_cls - 1)
+    return(2 * (n_cls - 1))
   })
   k_sims <- reactive({ k1() + k2() + k3() })
+  k_trains <- reactive({
+    n_cls1 <- length(unique(attributes(s_train[[1]])$cluster))
+    n_cls2 <- length(unique(attributes(s_train[[2]])$cluster))
+    k1 <- 2 * (n_cls1 - 1)
+    k2 <- 2 * (n_cls2 - 1)
+    return(k1 + k2)
+  })
   this_p <- reactive({ ncol(task_dat()) })
   this_k <- reactive({ 2 * (length(unique(attributes(s_dat[[rep_num()]])$cluster)) - 1) })
   ui_section <- reactive({ # text name of section
@@ -62,13 +69,13 @@ server <- function(input, output, session) {
       }
   })
   block_num <- reactive({ # 1:2
-    if (ui_section() == "training") {return(section_pg_num() - 1)
+    if (ui_section() == "training") {return(section_pg_num())
     } else {
       return(1 + (section_pg_num() - 1) %/% n_reps)
     }
   })
   rep_num <- reactive({ # 1:3
-    if (ui_section() == "training") {return(section_pg_num() - 1)}
+    if (ui_section() == "training") {return(section_pg_num())}
     if (section_pg_num() - (n_reps * (block_num() - 1)) <= 0) {stop("check rep_num() it's <= 0.")}
     return(section_pg_num() - (n_reps * (block_num() - 1)))
   })
@@ -76,7 +83,9 @@ server <- function(input, output, session) {
     paste0(s_block_id[block_num()], rep_num())
   })
   task_dat <- reactive({ # simulation df with attachments.
-    if (ui_section() == "training") {return(sim_intro)
+    if (ui_section() == "training") {
+      if (rep_num() %in% c(3, 5)) {return(s_train[[2]])
+        } else return(s_train[[1]])
     } else {
       return(s_dat[[rep_num()]]) 
     }
@@ -401,7 +410,7 @@ server <- function(input, output, session) {
     # init columns
     col_factor <- 
       c(
-        rep("training", n_reps + k_sims())            
+        rep("training", n_trainings + k_trains()),    # training
         rep(this_factor_order[1], n_reps + k_sims()), # across factors
         rep(this_factor_order[2], n_reps + k_sims()),
         rep(this_factor_order[3], n_reps + k_sims()),
@@ -409,60 +418,65 @@ server <- function(input, output, session) {
       )
     col_blockrep <- 
       c(
+        rep("training", n_trainings + k_trains()), # training
         rep(
-          c(s_blockrep_id[1:3],          # block 1
-            rep(s_blockrep_id[4], k1()), # block 2
+          c(s_blockrep_id[1:3],                    # block 1
+            rep(s_blockrep_id[4], k1()),           # block 2
             rep(s_blockrep_id[5], k2()),
             rep(s_blockrep_id[6], k3())
           ), 
-          n_factors                      # across factors
+          n_factors                                # across factors
         ), 
-        paste0("survey", 1:10)           # survey
+        paste0("survey", 1:10)                     # survey
       )                
     q_id1 <- paste0("cl", letters[rep(1:((k1() / 2)), each = 2)], "_", c("very", "some"))
     q_id2 <- paste0("cl", letters[rep(1:((k2() / 2)), each = 2)], "_", c("very", "some"))
     q_id3 <- paste0("cl", letters[rep(1:((k3() / 2)), each = 2)], "_", c("very", "some"))
     col_q_id <- 
       c(
+        rep("training", n_trainings + k_trains()), # training
         rep(
-          c(rep(NA, 3),         # block 1
-            q_id1, q_id2, q_id3 # block 2
+          c(rep(NA, 3),                            # block 1
+            q_id1, q_id2, q_id3                    # block 2
           ), 
-          n_factors             # across factors
+          n_factors                                # across factors
         ), 
-        rep(NA, 10)             # survey
+        rep(NA, 10)                                # survey
       )
     col_sim_id   <- 
       c(
+        rep("training", n_trainings + k_trains()), # training
         rep(
-          c(sim1_num, sim2_num, sim3_num, # block 1
-            rep(sim1_num, k1()),          # block 2
+          c(sim1_num, sim2_num, sim3_num,          # block 1
+            rep(sim1_num, k1()),                   # block 2
             rep(sim2_num, k2()),
             rep(sim3_num, k3())
           ),
-          n_factors                       # across factors
+          n_factors                                # across factors
         ),
-        rep(NA, 10)                       # survey
+        rep(NA, 10)                                # survey
       )
     col_question <- 
       c(
+        rep("training", n_trainings + k_trains()), # training
         rep(
-          c(rep(s_block_questions[1], n_reps),   # block 1
-            rep(s_block_questions[2], k_sims())  # block 2
+          c(rep(s_block_questions[1], n_reps),     # block 1
+            rep(s_block_questions[2], k_sims())    # block 2
           ),
-          n_factors                              # across factors
+          n_factors                                # across factors
         ),
-        s_survey_questions                       # survey
+        s_survey_questions                         # survey
       ) 
     col_response <- col_duration <- 
       c(
+        rep("training", n_trainings + k_trains()), # training
         rep(
-          c(rep(NA, n_reps),  # block 1
-            rep(NA, k_sims()) # block 2
+          c(rep(NA, n_reps),                       # block 1
+            rep(NA, k_sims())                      # block 2
           ),
-          n_factors           # across factors
+          n_factors                                # across factors
         ),
-        rep(NA, 10)           # survey
+        rep(NA, 10)                                # survey
       )
     
     data.frame(factor   = col_factor,
@@ -683,24 +697,6 @@ server <- function(input, output, session) {
                     ". Duration: ", rv$task_durations[10], "."))
     }
   })
-  observeEvent(input$blk2_ans11, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[11] <- input$blk2_ans11
-      rv$task_durations[11] <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 2, input 11 entered.", 
-             paste0("Response: ", rv$task_responses[11], 
-                    ". Duration: ", rv$task_durations[11], "."))
-    }
-  })
-  observeEvent(input$blk2_ans12, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[12] <- input$blk2_ans12
-      rv$task_durations[12] <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 2, input 12 entered.", 
-             paste0("Response: ", rv$task_responses[12], 
-                    ". Duration: ", rv$task_durations[12], "."))
-    }
-  })
   
   
   ### Obs next page button -----
@@ -713,17 +709,11 @@ server <- function(input, output, session) {
     
     # If training section, evaluate response 
     if (ui_section() == "training" & rv$training_passes == FALSE) {
-      # Evaluate training block 1
+      # Evaluate training block 1 
+      ##TODO: NEED TO HARD CODE INSTRUCTIONS TO FIND THE ANSWER FOR TRAINING DATA 1 & 2.
       if (block_num() == 1) {
-        ## TODO: removed too many training atempts blocks.
-        # if (rv$training_attempts >= 3) { # Too many attempts msg
-        #   output$plot_msg <- renderText("<h3><span style='color:red'>Please see the proctor for additional instruction.</span></h3>") 
-        #   rv$training_attempts <- rv$training_attempts + 1
-        #   return()
-        # }
         response <- input$blk1_ans
-        ans <- length(attr(sim_intro, "ncl"))
-        
+        ans <- length(attr(task_dat(), "ncl"))
         if (response - ans >= 2){ # >= 2 clusters too high, retry
           output$plot_msg <- renderText("<h3><span style='color:red'>That seems a little high, make sure to check from multiple perspectives and give it another shot.</span></h3>") 
           rv$training_attempts <- rv$training_attempts + 1

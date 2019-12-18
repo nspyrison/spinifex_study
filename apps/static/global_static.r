@@ -13,14 +13,11 @@ library("GGally")
 library("lubridate") # For timer
 library("loggit")    # For logging
 
-this_factor_id <- 1 #between 1 and 6
+this_factor_id <- 1 # between 1 and 3 ## SET GROUP HERE
 f_ls <- c("pca", "grand", "manual") # factor list
-latin_sq <- rbind(c(f_ls[1], f_ls[2], f_ls[3]),
-                             c(f_ls[1], f_ls[3], f_ls[2]),
-                             c(f_ls[2], f_ls[1], f_ls[3]),
-                             c(f_ls[2], f_ls[3], f_ls[1]),
-                             c(f_ls[3], f_ls[1], f_ls[2]),
-                             c(f_ls[3], f_ls[2], f_ls[1])
+latin_sq <- rbind(c(f_ls[1], f_ls[2], f_ls[3]), # ~ grp 1
+                  c(f_ls[2], f_ls[3], f_ls[1]), # ~ grp 2
+                  c(f_ls[3], f_ls[1], f_ls[2])  # ~ grp 2 
 )
 this_factor_order <- latin_sq[this_factor_id, ]
 
@@ -38,7 +35,7 @@ while (file.exists(log_file)){ # Find an unused log number
 ## https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## Uncomment to capture log file: 
-# TODO: uncomment for logs
+# TODO: uncomment the following line to apply logging
 # setLogFile(log_file); try_autosave <- TRUE
 loggit("INFO", "app has started", "spinifex_study")
 
@@ -51,6 +48,7 @@ s_block_questions <- c("How many clusters exist?",
 s_sim_num  <- substr(1101:1118, 2, 4)
 sim_train1 <- readRDS("../simulation/simulation_data119.rds") # p = 6, pnoise = 2, cl = 3 
 sim_train2 <- readRDS("../simulation/simulation_data120.rds") # p = 6, pnoise = 2, cl = 3 
+s_train <- list(sim_train1, sim_train2)
 s_dat <- list()
 for (i in 1:length(s_sim_num)) {
   s_dat[[i]] <- readRDS(
@@ -62,24 +60,25 @@ for (i in 1:length(s_sim_num)) {
 s_survey_questions <- c("What gender are you?",
                         "What age are you?",
                         "What is your highest level of completed education?",
-                        "This visualization was easy to use.",
-                        "I am confident of my answers.",
-                        "This visualization is easily understandable.",
-                        "I would recommend using this visualization",
-                        "I am an expert on multivariate  data and related visualization",
-                        "I have broad experience with data visualization.",
-                        "I had previous knowledge of this visualization.")
+                        "I am experianced with data vizualization.",
+                        "I have education in multivariate statistical analysis.",
+                        "I was already familar with this visualization.",
+                        "I found this visualization easy to use.",
+                        "I felt confident in my answer with this visualization.",
+                        "I liked using this visualization.")
 
 ### Variable initialization ----
 n_reps             <- length(s_dat)      # ~3
+n_trainings        <- length(s_train)    # ~2
 n_blocks           <- length(s_block_id) # ~2
 n_factors          <- length(f_ls)       # ~3
 n_survey_questions <- length(s_survey_questions) # ~10
 
 s_blockrep_id  <- paste0(rep(s_block_id, each = n_reps), rep(1:n_reps, n_reps))
 training_start <- 2 # pg 1 is intro, pg 2:5 is training, 1 for ui, 2, for blocks
-task_start     <- training_start + n_blocks + 2 # ~ 6, 1 intro, 1 ui, 2 block, 1 splash screen  
-survey_start   <- task_start + 3 * (n_reps * n_blocks) # ~ 23 pg 23 is survey 
+task_start     <- training_start + 1 + 2 * n_blocks + 1 
+# ~ 8, pg 2 + 1 ui training + 2 trainings across 2 blocks, 1 splash screen  
+survey_start   <- task_start + 3 * (n_reps * n_blocks)  # ~ 25, last pg is survey 
 
 ##### main_ui
 main_ui <- fluidPage(
@@ -155,18 +154,21 @@ main_ui <- fluidPage(
     ### _Training mainPanel -----
     conditionalPanel(
       condition = "output.ui_section == 'training'",
-      conditionalPanel(condition = "output.rep_num == 0",
+      conditionalPanel(condition = "output.rep_num == 1", # ui intro 
                        h2("Training -- interface")
       ),
-      conditionalPanel(condition = "output.rep_num == 1",
+      conditionalPanel(condition = "output.rep_num == 2",
                        h2("Training -- task 1")
       ),
-      conditionalPanel(condition = "output.rep_num == 2",
+      conditionalPanel(condition = "output.rep_num == 3",
+                       h2("Training -- task 1 training 2")
+      ),
+      conditionalPanel(condition = "output.rep_num == 4",
                        h2("Training -- task 2")
       ),
-      conditionalPanel(condition = "output.rep_num == 3",
-                       h2("Training complete!")
-      )
+      conditionalPanel(condition = "output.rep_num == 5",
+                       h2("Training -- task 2 training 2")
+      ) # splash page is 6, no header
     ),
     conditionalPanel( # interface familiarity 
       condition = "output.rep_num == 0", # rep_num == 0 is ui familiarity
@@ -207,9 +209,9 @@ main_ui <- fluidPage(
       # when you are content
     ),
     conditionalPanel( # splash page
-      condition = "output.rep_num == 3",
-      h1("\n \n \n \n
-           Great job of the training!"),
+      condition = "output.rep_num == 6",
+      h1(),h1(),h1(),
+      h1("Training complete, Great job!"),
       h3("Ask any final clarification questions. Then continue on to the 
         evaluation section, each task is now limited to 2 minutes (time 
            displayed on top).")
@@ -227,8 +229,8 @@ main_ui <- fluidPage(
     ), # close task section conditional panel title text
     ### _Plot mainPanel
     conditionalPanel( 
-      condition = "(output.ui_section == 'training' && output.rep_num != 3)
-      || output.ui_section == 'task'" #rep_num == 3 is splash page. 
+      condition = "(output.ui_section == 'training' && output.rep_num != 6)
+      || output.ui_section == 'task'" #rep_num == 6 is splash page. 
       , htmlOutput("plot_msg")
       , plotOutput("pca_plot", height = "auto")
       , plotOutput("mtour_plot", height = "auto")
@@ -241,7 +243,7 @@ main_ui <- fluidPage(
                   choices = c("decline to answer",
                               "female",
                               "male",
-                              "inter-gender/other")
+                              "intergender/other")
       ),
       selectInput("ans_age", label = s_survey_questions[2], 
                   choices = c("decline to answer",
@@ -323,8 +325,8 @@ ui <- fluidPage(
     actionButton("next_pg_button", "Next page")
   )
   , main_ui
-  # , verbatimTextOutput("dev_msg")
-  # , actionButton("browser", "browser()")
-  # , tableOutput("ans_tbl")
+  , verbatimTextOutput("dev_msg")
+  , actionButton("browser", "browser()")
+  , tableOutput("ans_tbl")
 )
 
