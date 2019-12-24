@@ -171,7 +171,7 @@ main_ui <- fluidPage(
       ) # splash page is 6, no header
     ),
     conditionalPanel( # interface familiarity 
-      condition = "output.rep_num == 0", # rep_num == 0 is ui familiarity
+      condition = "output.rep_num == 1", # rep_num == 1 is ui familiarity
       p("This data has 6 variables. Principal Componant Analysis (PCA) defines 
         new axes components (as linear combinations of the original variable),
         ordered by the amount of variation they explain. The plot below displays

@@ -55,11 +55,11 @@ server <- function(input, output, session) {
     return("passed survey, need to cap pg_num")
   })
   section_pg_num <- reactive({ # ~page num of this section.
-    if (ui_section() == "training"){ # Training: 1=ui, 2=blk1, 3=blk2, 4=splash
-      return(rv$pg_num - (training_start - 1))
+    if (ui_section() == "training"){ # Training: 1=ui, 2&3=blk1, 4&5=blk2, 6=splash
+      return(rv$pg_num - (training_start))
     }
     if (ui_section() == "task"){
-      return(rv$pg_num - (task_start - 1))
+      return(rv$pg_num - (task_start))
     }
     return(1) # dummy 1, NA and 999 cause other issues.
   })
@@ -71,7 +71,7 @@ server <- function(input, output, session) {
       }
   })
   block_num <- reactive({ # 1:2
-    if (ui_section() == "training") {return(section_pg_num())
+    if (ui_section() == "training") {return(c(0, 1, 1, 2, 2, 0)[section_pg_num()])
     } else {
       return(1 + (section_pg_num() - 1) %/% n_reps)
     }
@@ -789,7 +789,7 @@ server <- function(input, output, session) {
     
     ### NEW PAGE:
     rv$pg_num <- rv$pg_num + 1 
-    if (rv$second_training != TRUE & input$second_training == FALSE)
+    if (!(rv$second_training == TRUE | input$second_training == TRUE))
       rv$pg_num <- rv$pg_num + 1 # if second training not needed, skip a page.
     # Reset responses, duration, and timer for next task
     output$plot_msg <- renderText("")
