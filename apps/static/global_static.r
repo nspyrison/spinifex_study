@@ -189,7 +189,7 @@ main_ui <- fluidPage(
           When you are ready enter the number of clusters on the sidebar then
           click the 'Next page' button below.")
     ),
-    conditionalPanel( # training block 2, pg 2 
+    conditionalPanel( # training block 1, pg 2 
       condition = "output.rep_num == 2",
       tags$b("The second task is to rate each variables importance for 
         distinguishing the listed cluster. The points have colored and shape 
@@ -208,6 +208,7 @@ main_ui <- fluidPage(
       # contribute in separating directions. Continue to the next page 
       # when you are content
     ),
+    ##TODO: add text for block 2, task 1 and 2 here
     conditionalPanel( # splash page
       condition = "output.rep_num == 6",
       h1(),h1(),h1(),

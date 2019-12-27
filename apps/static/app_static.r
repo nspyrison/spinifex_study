@@ -56,7 +56,7 @@ server <- function(input, output, session) {
   })
   section_pg_num <- reactive({ # ~page num of this section.
     if (ui_section() == "training"){ # Training: 1=ui, 2&3=blk1, 4&5=blk2, 6=splash
-      return(rv$pg_num - (training_start))
+      return(rv$pg_num - (training_start - 1))
     }
     if (ui_section() == "task"){
       return(rv$pg_num - (task_start))
@@ -706,8 +706,7 @@ server <- function(input, output, session) {
     if (rv$pg_num == 1){ rv$ans_tbl <- ans_tbl() }
     # if <on last task> {<do nothing>}
     if (rv$pg_num >= survey_start){ return() }
-    rv$second_training <- FALSE
-    updateCheckboxInput(session, "second_training", value = FALSE)
+
     
     # If training section, evaluate response
     if (ui_section() == "training" & rv$training_aes == FALSE) {
@@ -787,10 +786,13 @@ server <- function(input, output, session) {
       rv$ans_tbl[ins_row:(ins_row + ins_nrows), 7] <- rv$task_durations
     }
     
-    ### NEW PAGE:
-    rv$pg_num <- rv$pg_num + 1 
-    if (!(rv$second_training == TRUE | input$second_training == TRUE))
-      rv$pg_num <- rv$pg_num + 1 # if second training not needed, skip a page.
+    ### NEW PAGE: -----
+    # if second training not needed, skip a page.
+    if (ui_section() == "training" & rep_num() %in% c(2, 4) & # rep 1 of block 1 & 2
+        !(rv$second_training == TRUE | input$second_training == TRUE)) {
+      rv$pg_num <- rv$pg_num + 1
+    }
+    rv$pg_num <- rv$pg_num + 1
     # Reset responses, duration, and timer for next task
     output$plot_msg <- renderText("")
     rv$task_responses <- NULL
@@ -798,6 +800,8 @@ server <- function(input, output, session) {
     rv$timer <- 120
     rv$timer_active <- TRUE
     rv$training_aes <- FALSE
+    rv$second_training <- FALSE
+    updateCheckboxInput(session, "second_training", value = FALSE)
     
     # Clear task response
     if (ui_section() == "task") {
