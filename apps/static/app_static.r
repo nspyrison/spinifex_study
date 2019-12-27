@@ -786,7 +786,7 @@ server <- function(input, output, session) {
       rv$ans_tbl[ins_row:(ins_row + ins_nrows), 7] <- rv$task_durations
     }
     
-    ### NEW PAGE: -----
+    ### NEW PAGE:
     # if second training not needed, skip a page.
     if (ui_section() == "training" & rep_num() %in% c(2, 4) & # rep 1 of block 1 & 2
         !(rv$second_training == TRUE | input$second_training == TRUE)) {

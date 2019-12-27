@@ -13,18 +13,12 @@ library("plotly")
 axes_position <- "center"
 options(max.print = 500)
 
-load_num  <- 1
-load_name <- sprintf("simulation_data%03d", load_num)
-load_file <- paste0("./", load_name, ".rds") # "./apps/simulation/"
-#local_file <- paste0("./apps/simulation/", load_name, ".rds"); assign(load_name, readRDS(local_file))
-while (file.exists(load_file)){
-  assign(load_name, readRDS(load_file))
-  load_num  <- load_num + 1
-  load_name <- sprintf("simulation_data%03d", load_num)
-  load_file <- paste0("./", load_name, ".rds")
+load_list <- list.files("./", pattern = "^simulation_data")
+for (i in 1:length(load_list)){
+  load_name <- load_list[i]
+  assign(load_name, readRDS(load_name))
 }
 loaded_sim_names <- ls()[grepl("simulation_data", ls())]
-
 load_choices <- if (length(loaded_sim_names) > 0) {loaded_sim_names
 } else {"<no 'simulation_dataNNN.rds' loaded>"} 
 
@@ -181,12 +175,15 @@ APP_pca_plot <- function(dat, class, in_x, in_y){
   #x_range <- max(x) - min(x)
   #y_range <- max(y) - min(y)
   #a_ratio <- x_range / y_range
+
   
   ggplot() + 
     # data points
     geom_point(pca_x, mapping = aes(x = get(in_x), 
-                                    y = get(in_y)),
-               color = col, fill = col, shape = pch) +
+                                    y = get(in_y),
+                                    color = class,
+                                    fill = class,
+                                    shape = class)) +
     # axis segments
     geom_segment(pca_rotation, 
                  mapping = aes(x = get(rot_x_axis), xend = zero,
@@ -209,7 +206,10 @@ APP_pca_plot <- function(dat, class, in_x, in_y){
     scale_color_brewer(palette = "Dark2") +
     theme(axis.text.x = element_blank(),
           axis.text.y = element_blank(),
-          legend.position = 'none') +
+          legend.box.background = element_rect(),
+          legend.title = element_text(size = 18, face = "bold"),
+          legend.text  = element_text(size = 18, face = "bold")
+          ) +
     labs(x = in_x, y = in_y)
 }
 
