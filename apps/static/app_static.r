@@ -46,7 +46,11 @@ server <- function(input, output, session) {
   })
   k_trains <- reactive({ k_t1() + k_t2() })
   this_p <- reactive({ ncol(task_dat()) })
-  this_k <- reactive({ 2 * (length(unique(attributes(s_dat[[rep_num()]])$cluster)) - 1) })
+  this_k <- reactive({ 
+    2 * (length(unique(attributes(s_dat[[rep_num()]])$cluster)) - 1) 
+  })
+  this_cl <- reactive({ length(unique(attributes(s_dat[[rep_num()]])$cluster)) })
+  
   ui_section <- reactive({ # text name of section
     if (rv$pg_num == 1) {return("intro")}
     if (rv$pg_num %in% training_start:(task_start - 1) ) {return("training")}
@@ -608,94 +612,76 @@ server <- function(input, output, session) {
     }
   })
   ##### Block 2 responses & duration
-  observeEvent(input$blk2_ans1, {
+  observeEvent(input$blk2_ans_cla_very, {
     if((120 - rv$timer) > 1) {
-      rv$task_responses[1] <- input$blk2_ans1
+      rv$task_responses[1] <- input$blk2_ans_cla_very
       rv$task_durations[1] <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 2, input 1 entered.", 
+      loggit("INFO", "Block 2, cluster 'a' very important response entered.", 
              paste0("Response: ", rv$task_responses[1], 
                     ". Duration: ", rv$task_durations[1], "."))
     }
   })
-  observeEvent(input$blk2_ans2, {
+  observeEvent(input$blk2_ans_cla_some, {
     if((120 - rv$timer) > 1) {
-      rv$task_responses[2]  <- input$blk2_ans2
-      rv$task_durations[2]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 2, input 2 entered.", 
+      rv$task_responses[2] <- input$blk2_ans_cla_some
+      rv$task_durations[2] <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 2, cluster 'a' somewhat important response entered.", 
              paste0("Response: ", rv$task_responses[2], 
                     ". Duration: ", rv$task_durations[2], "."))
     }
   })
-  observeEvent(input$blk2_ans3, {
+  observeEvent(input$blk2_ans_clb_very, {
     if((120 - rv$timer) > 1) {
-      rv$task_responses[3]  <- input$blk2_ans3
-      rv$task_durations[3]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 2, input 3 entered.", 
+      rv$task_responses[3] <- input$blk2_ans_clb_very
+      rv$task_durations[3] <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 2, cluster 'b' very important response entered.", 
              paste0("Response: ", rv$task_responses[3], 
                     ". Duration: ", rv$task_durations[3], "."))
     }
   })
-  observeEvent(input$blk2_ans4, {
+  observeEvent(input$blk2_ans_clb_some, {
     if((120 - rv$timer) > 1) {
-      rv$task_responses[4]  <- input$blk2_ans4
-      rv$task_durations[4]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 2, input 4 entered.", 
+      rv$task_responses[4] <- input$blk2_ans_clb_some
+      rv$task_durations[4] <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 2, cluster 'b' somewhat important response entered.", 
              paste0("Response: ", rv$task_responses[4], 
                     ". Duration: ", rv$task_durations[4], "."))
     }
   })
-  observeEvent(input$blk2_ans5, {
+  observeEvent(input$blk2_ans_clc_very, {
     if((120 - rv$timer) > 1) {
-      rv$task_responses[5]  <- input$blk2_ans5
-      rv$task_durations[5]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 2, input 5 entered.", 
+      rv$task_responses[5] <- input$blk2_ans_clc_very
+      rv$task_durations[5] <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 2, cluster 'c' very important response entered.", 
              paste0("Response: ", rv$task_responses[5], 
                     ". Duration: ", rv$task_durations[5], "."))
     }
   })
-  observeEvent(input$blk2_ans6, {
+  observeEvent(input$blk2_ans_clc_some, {
     if((120 - rv$timer) > 1) {
-      rv$task_responses[6]  <- input$blk2_ans6
-      rv$task_durations[6]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 2, input 6 entered.", 
+      rv$task_responses[6] <- input$blk2_ans_clc_some
+      rv$task_durations[6] <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 2, cluster 'c' somewhat important response entered.", 
              paste0("Response: ", rv$task_responses[6], 
                     ". Duration: ", rv$task_durations[6], "."))
     }
   })
-  observeEvent(input$blk2_ans7, {
+  observeEvent(input$blk2_ans_cld_very, {
     if((120 - rv$timer) > 1) {
-      rv$task_responses[7]  <- input$blk2_ans7
-      rv$task_durations[7]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 2, input 7 entered.", 
+      rv$task_responses[7] <- input$blk2_ans_cld_very
+      rv$task_durations[7] <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 2, cluster 'd' very important response entered.", 
              paste0("Response: ", rv$task_responses[7], 
                     ". Duration: ", rv$task_durations[7], "."))
     }
   })
-  observeEvent(input$blk2_ans8, {
+  observeEvent(input$blk2_ans_cld_some, {
     if((120 - rv$timer) > 1) {
-      rv$task_responses[8]  <- input$blk2_ans8
-      rv$task_durations[8]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 2, input 8 entered.", 
+      rv$task_responses[8] <- input$blk2_ans_cld_some
+      rv$task_durations[8] <- as.integer(120 - rv$timer)
+      loggit("INFO", "Block 2, cluster 'd' somewhat important response entered.", 
              paste0("Response: ", rv$task_responses[8], 
                     ". Duration: ", rv$task_durations[8], "."))
-    }
-  })
-  observeEvent(input$blk2_ans9, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[9]  <- input$blk2_ans9
-      rv$task_durations[9]  <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 2, input 9 entered.", 
-             paste0("Response: ", rv$task_responses[9], 
-                    ". Duration: ", rv$task_durations[9], "."))
-    }
-  })
-  observeEvent(input$blk2_ans10, {
-    if((120 - rv$timer) > 1) {
-      rv$task_responses[10] <- input$blk2_ans10
-      rv$task_durations[10] <- as.integer(120 - rv$timer)
-      loggit("INFO", "Block 2, input 10 entered.", 
-             paste0("Response: ", rv$task_responses[10], 
-                    ". Duration: ", rv$task_durations[10], "."))
     }
   })
   
@@ -706,13 +692,11 @@ server <- function(input, output, session) {
     if (rv$pg_num == 1){ rv$ans_tbl <- ans_tbl() }
     # if <on last task> {<do nothing>}
     if (rv$pg_num >= survey_start){ return() }
-
     
     # If training section, evaluate response
-    if (ui_section() == "training" & rv$training_aes == FALSE) {
+    if (ui_section() == "training") {
       # Evaluate training block 1 
-      ##TODO: NEED TO HARD CODE INSTRUCTIONS TO FIND THE ANSWER FOR TRAINING DATA 1 & 2.
-      if (block_num() == 1) {
+      if (block_num() == 1 & rv$training_aes == FALSE) {
         response <- input$blk1_ans
         ans <- length(attr(task_dat(), "ncl"))
         if (response - ans >= 2){ # >= 2 clusters too high, retry
@@ -770,13 +754,85 @@ server <- function(input, output, session) {
           return()
         }
       }
-      ## TODO: This removed evaluation of the training for blocks 2.
-      # if (block_num() == 2) {
-      #   output$plot_msg <- renderText("<h3><span style='color:red'>Training block 2 answer TBD.</span></h3>") 
-      #   rv$training_aes <- TRUE
-      #   return()
-      # }
-    }
+      # Evaluation of the training for blocks 2.
+      #~~WORKING HERE -----
+      if (block_num() == 2) {
+        # block 2 response
+        resp_cla_very <- input$blk2_ans_cla_very 
+        # ~ c("V1", "V3") # row 1, col 1, 3 = 2
+        resp_cla_some <- input$blk2_ans_cla_some 
+        # ~ c("V2", "V4", "V5") # row 1, col 2, 4, 5 = 1
+        resp_clb_very <- input$blk2_ans_clb_very
+        resp_clb_some <- input$blk2_ans_clb_some
+        resp_clc_very <- input$blk2_ans_clc_very
+        resp_clc_some <- input$blk2_ans_clc_some
+        resp_cld_very <- input$blk2_ans_cld_very # if NA: NULL
+        resp_cld_some <- input$blk2_ans_cld_some
+        response_list <- list(resp_cla_very, resp_cla_some,
+                              resp_clb_very, resp_clb_some,
+                              resp_clc_very, resp_clc_some,
+                              resp_cld_very, resp_cld_some)
+        
+        p    <- this_p()
+        n_cl <- this_cl()
+        response <- matrix(0, nrow = n_cl, ncol = p)
+        for (i in 1:p){
+          resp_i <- 2 * p - 1 
+          this_col_very <- as.integer(substr(response_list[[resp_i]], 2, 2))
+          this_col_some <- as.integer(substr(response_list[[resp_i + 1]], 2, 2))
+          response[i, this_col_very] <- 2
+          response[i, this_col_some] <- 1
+        }
+        
+        # block 2 answer
+        dat <- task_dat()
+        supervied_dat <- data.frame(dat, cluster = attr(dat, "cluster"))
+        this_lda <- MASS::lda(cluster ~ ., data = supervied_dat)
+        abs_lda_means <- abs(this_lda$means)
+        
+        abs_lda_means_rowptile <- NULL
+        for (i in 1:nrow(abs_lda_means)){
+          abs_lda_means_rowptile[i, ] <- 
+            abs_lda_means[i, ] / max(abs_lda_means[i,])
+        }
+        ans <- dplyr::case_when(
+          abs_lda_means_rowptile >= .75 ~ 2, # very important is 2, > 75% ptile
+          abs_lda_means_rowptile >= .25 ~ 1, # some important is 2, > 25% ptile
+          abs_lda_means_rowptile >= 0 ~ 0
+        )
+        
+        score <- -1 * sum((response - ans)^2) # i got -3 for 1 cl,
+        bar <- -6 * n_cl
+        
+        if (score < bar){ # score not passing
+          rv$second_training <- TRUE
+          output$plot_msg <- renderText(paste0(
+            "<h3><span style='color:red'>
+          That seems a little off. 
+          Remember that the importance of a variable for
+          distinguishing a group is related to variables in a separating 
+          direction with large magnidutes in the projection, but variables with
+          small contributions cannot be ruled out, multiple projections most be 
+          looked at.
+          </span></h3>"))
+          return()
+        }
+        if (score >= bar){ # score is passing
+          rv$second_training <- "ask"
+          output$plot_msg <- renderText(paste0(
+            "<h3><span style='color:red'>
+            Very good! 
+            As a reminder, the importance of a variable for
+            distinguishing a group is related to variables in a separating 
+            direction with large magnidutes in the projection, but variables with
+            small contributions cannot be ruled out, multiple projections most be 
+            looked at.
+            </span></h3>"))
+          return()
+        }
+      }
+      
+    } # end of training section evaluation
     
     # If task section, write reponses and duration to ans_tbl
     if (ui_section() == "task") {
@@ -936,10 +992,13 @@ server <- function(input, output, session) {
       this_q_txt    <- c("Very", "Somewhat")[rep(1:(cl - 1),2)[this_q]]
       this_q_id     <- tolower(substr(this_q_txt, 1, 4))
       
-      checkboxGroupInput(inputId = paste0("blk2_ans_cl", this_clletter, "_", this_q_id),
-                         label   = paste0(this_q_txt, " important for distinguishing cluster '", this_clletter, "'"),
-                         choices = paste0("V", 1:p),
-                         inline  = TRUE)
+      checkboxGroupInput(
+        inputId = paste0("blk2_ans_cl", this_clletter, "_", this_q_id), #blk2_ans_cla_very
+        label   = paste0(this_q_txt, " important for distinguishing cluster '", 
+                         this_clletter, "'"),
+        choices = paste0("V", 1:p),
+        inline  = TRUE
+      )
       
     })
   }) # close renderUI for blk2inputs

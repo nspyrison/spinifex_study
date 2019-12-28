@@ -246,7 +246,7 @@ dplyr::case_when(
   this_row_ptile >= .25 ~ 1,
   this_row_ptile >= 0 ~ 0
 ))
-score <- -1 * sum((response - ans)^2)
+(score <- -1 * sum((response - ans)^2))
 
 
 
