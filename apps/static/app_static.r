@@ -86,7 +86,16 @@ server <- function(input, output, session) {
     return(section_pg_num() - (n_reps * (block_num() - 1)))
   })
   blockrep <- reactive({ # n1, n2, d1, d2
-    paste0(s_block_id[block_num()], rep_num())
+    if (ui_section() == "training") {
+      ls <- paste0("training_", 
+                   c(paste0(s_block_id[1], 1:2),
+                     rep(paste0(s_block_id[2], 1), k_t1()),
+                     rep(paste0(s_block_id[2], 2), k_t2())
+                   )
+      )
+      return(ls[section_pg_num()])
+    }
+    return(paste0(s_block_id[block_num()], rep_num()))
   })
   task_dat <- reactive({ # simulation df with attachments.
     if (ui_section() == "training") {
@@ -416,9 +425,12 @@ server <- function(input, output, session) {
       )
     col_blockrep <- 
       c(
-        paste0("training_", s_block_id[1], 1:2), # training
-        rep(paste0("training_", s_block_id[2], 1), k_t1()),
-        rep(paste0("training_", s_block_id[2], 2), k_t2()),
+        paste0("training_", 
+               c(paste0(s_block_id[1], 1:2),             # training
+                 rep(paste0(s_block_id[2], 1), k_t1()),
+                 rep(paste0(s_block_id[2], 2), k_t2())
+               )
+        ),
         rep(
           c(s_blockrep_id[1:3],                  # block 1
             rep(s_blockrep_id[4], k1()),         # block 2
@@ -472,7 +484,7 @@ server <- function(input, output, session) {
         ),
         s_survey_questions                      # survey
       ) 
-    col_response <- col_duration <- 
+    col_response <- col_duration <-
       c(
         rep(NA, n_trainings + k_trains()), # training
         rep(
@@ -699,8 +711,8 @@ server <- function(input, output, session) {
       if (block_num() == 1 & rv$training_aes == FALSE) {
         response <- input$blk1_ans
         ans <- length(attr(task_dat(), "ncl"))
+        rv$training_aes <- TRUE
         if (response - ans >= 2){ # >= 2 clusters too high, retry
-          rv$training_aes <- TRUE
           rv$second_training <- TRUE
           output$plot_msg <- renderText(paste0(
           "<h3><span style='color:red'>
@@ -713,7 +725,6 @@ server <- function(input, output, session) {
           return()
         }
         if (response - ans <= -2){ # <= 2 clusters too low, retry
-          rv$training_aes <- TRUE
           rv$second_training <- TRUE
           output$plot_msg <- renderText(paste0(
             "<h3><span style='color:red'>
@@ -727,7 +738,6 @@ server <- function(input, output, session) {
         }
         if (abs(response - ans) == 1){ # within 1 cluster, msg, passes
           rv$second_training <- "ask"
-          rv$training_aes <- TRUE
           output$plot_msg <- renderText(paste0(
           "<h3><span style='color:red'>
           Close, this data has ", ans, " clusters. You have the right idea. 
@@ -741,7 +751,6 @@ server <- function(input, output, session) {
         }
         if (response == ans){ # exact answer
           rv$second_training <- "ask"
-          rv$training_aes <- TRUE
           output$plot_msg <- renderText(
           "<h3><span style='color:red'>
           That's correct, great job! 
@@ -756,12 +765,11 @@ server <- function(input, output, session) {
       }
       # Evaluation of the training for blocks 2.
       #~~WORKING HERE -----
-      if (block_num() == 2) {
+      if (block_num() == 2 & rv$training_aes == FALSE) {
+        rv$training_aes <- TRUE
         # block 2 response
-        resp_cla_very <- input$blk2_ans_cla_very 
-        # ~ c("V1", "V3") # row 1, col 1, 3 = 2
-        resp_cla_some <- input$blk2_ans_cla_some 
-        # ~ c("V2", "V4", "V5") # row 1, col 2, 4, 5 = 1
+        resp_cla_very <- input$blk2_ans_cla_very # ~ c("V1", "V3") # row 1, col 1, 3 = 2
+        resp_cla_some <- input$blk2_ans_cla_some # ~ c("V2", "V4", "V5") # row 1, col 2, 4, 5 = 1
         resp_clb_very <- input$blk2_ans_clb_very
         resp_clb_some <- input$blk2_ans_clb_some
         resp_clc_very <- input$blk2_ans_clc_very
@@ -775,13 +783,13 @@ server <- function(input, output, session) {
         
         p    <- this_p()
         n_cl <- this_cl()
-        response <- matrix(0, nrow = n_cl, ncol = p)
-        for (i in 1:p){
-          resp_i <- 2 * p - 1 
+        response <- matrix(0, nrow = n_cl, ncol = p) # cannot distinguish between 0 and NA
+        for (i in 1:n_cl){
+          resp_i <- 2 * i - 1 
           this_col_very <- as.integer(substr(response_list[[resp_i]], 2, 2))
           this_col_some <- as.integer(substr(response_list[[resp_i + 1]], 2, 2))
-          response[i, this_col_very] <- 2
-          response[i, this_col_some] <- 1
+          if (length(this_col_very) >= 1) response[i, this_col_very] <- 2
+          if (length(this_col_some) >= 1) response[i, this_col_some] <- 1
         }
         
         # block 2 answer
@@ -790,7 +798,8 @@ server <- function(input, output, session) {
         this_lda <- MASS::lda(cluster ~ ., data = supervied_dat)
         abs_lda_means <- abs(this_lda$means)
         
-        abs_lda_means_rowptile <- NULL
+        abs_lda_means_rowptile <- matrix(NA, nrow = nrow(this_lda$means),
+                                         ncol = ncol(this_lda$means))
         for (i in 1:nrow(abs_lda_means)){
           abs_lda_means_rowptile[i, ] <- 
             abs_lda_means[i, ] / max(abs_lda_means[i,])
@@ -802,7 +811,7 @@ server <- function(input, output, session) {
         )
         
         score <- -1 * sum((response - ans)^2) # i got -3 for 1 cl,
-        bar <- -6 * n_cl
+        bar <- -6 * (n_cl - 1)
         
         if (score < bar){ # score not passing
           rv$second_training <- TRUE
@@ -835,7 +844,7 @@ server <- function(input, output, session) {
     } # end of training section evaluation
     
     # If task section, write reponses and duration to ans_tbl
-    if (ui_section() == "task") {
+    if (ui_section() %in% c("training", "task")) {
       ins_row <- which(rv$ans_tbl$blockrep == blockrep())[1] # first row of this blockrep.
       ins_nrows <- length(rv$task_responses) - 1
       rv$ans_tbl[ins_row:(ins_row + ins_nrows), 6] <- rv$task_responses
