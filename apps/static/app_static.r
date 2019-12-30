@@ -63,7 +63,7 @@ server <- function(input, output, session) {
       return(rv$pg_num - (training_start - 1))
     }
     if (ui_section() == "task"){
-      return(rv$pg_num - (task_start))
+      return(rv$pg_num - (task_start -1))
     }
     return(1) # dummy 1, NA and 999 cause other issues.
   })
@@ -75,7 +75,8 @@ server <- function(input, output, session) {
       }
   })
   block_num <- reactive({ # 1:2
-    if (ui_section() == "training") {return(c(0, 1, 1, 2, 2, 0)[section_pg_num()])
+    if (ui_section() == "training") {
+      return(c(0, 1, 1, 2, 2, 0)[section_pg_num()])
     } else {
       return(1 + (section_pg_num() - 1) %/% n_reps)
     }
@@ -89,11 +90,11 @@ server <- function(input, output, session) {
     if (ui_section() == "training") {
       ls <- paste0("training_", 
                    c(paste0(s_block_id[1], 1:2),
-                     rep(paste0(s_block_id[2], 1), k_t1()),
-                     rep(paste0(s_block_id[2], 2), k_t2())
+                     paste0(s_block_id[2], 1),
+                     paste0(s_block_id[2], 2)
                    )
       )
-      return(ls[section_pg_num()])
+      return(ls[section_pg_num() - 1])
     }
     return(paste0(s_block_id[block_num()], rep_num()))
   })
@@ -281,7 +282,6 @@ server <- function(input, output, session) {
       data_df[, 1:2] <- 2 * (tourr::rescale(data_df[, 1:2]) - .5)
       cluster  <- rep(cluster, max_frames)
       
-      if(block_num() == 2 & USE_AES == FALSE) {browser()}
       gg <- ggplot()
       if (USE_AES == FALSE){
         # data points
@@ -441,12 +441,15 @@ server <- function(input, output, session) {
         ), 
         paste0("survey", 1:n_survey_questions)   # survey
       )
+    q_id_t1 <- paste0("cl", letters[rep(1:((k_t1() / 2)), each = 2)], "_", c("very", "some"))
+    q_id_t2 <- paste0("cl", letters[rep(1:((k_t2() / 2)), each = 2)], "_", c("very", "some"))
     q_id1 <- paste0("cl", letters[rep(1:((k1() / 2)), each = 2)], "_", c("very", "some"))
     q_id2 <- paste0("cl", letters[rep(1:((k2() / 2)), each = 2)], "_", c("very", "some"))
     q_id3 <- paste0("cl", letters[rep(1:((k3() / 2)), each = 2)], "_", c("very", "some"))
     col_q_id <- 
       c(
-        rep(NA, n_trainings + k_trains()), # training
+        rep(NA, n_trainings),              # training
+        q_id_t1, q_id_t2,
         rep(
           c(rep(NA, n_reps),               # block 1
             q_id1, q_id2, q_id3            # block 2
@@ -626,7 +629,7 @@ server <- function(input, output, session) {
   ##### Block 2 responses & duration
   observeEvent(input$blk2_ans_cla_very, {
     if((120 - rv$timer) > 1) {
-      rv$task_responses[1] <- input$blk2_ans_cla_very
+      rv$task_responses[1] <- paste(input$blk2_ans_cla_very, collapse = ",")
       rv$task_durations[1] <- as.integer(120 - rv$timer)
       loggit("INFO", "Block 2, cluster 'a' very important response entered.", 
              paste0("Response: ", rv$task_responses[1], 
@@ -635,7 +638,7 @@ server <- function(input, output, session) {
   })
   observeEvent(input$blk2_ans_cla_some, {
     if((120 - rv$timer) > 1) {
-      rv$task_responses[2] <- input$blk2_ans_cla_some
+      rv$task_responses[2] <- paste(input$blk2_ans_cla_some, collapse = ",")
       rv$task_durations[2] <- as.integer(120 - rv$timer)
       loggit("INFO", "Block 2, cluster 'a' somewhat important response entered.", 
              paste0("Response: ", rv$task_responses[2], 
@@ -644,7 +647,7 @@ server <- function(input, output, session) {
   })
   observeEvent(input$blk2_ans_clb_very, {
     if((120 - rv$timer) > 1) {
-      rv$task_responses[3] <- input$blk2_ans_clb_very
+      rv$task_responses[3] <- paste(input$blk2_ans_clb_very, collapse = ",")
       rv$task_durations[3] <- as.integer(120 - rv$timer)
       loggit("INFO", "Block 2, cluster 'b' very important response entered.", 
              paste0("Response: ", rv$task_responses[3], 
@@ -653,7 +656,7 @@ server <- function(input, output, session) {
   })
   observeEvent(input$blk2_ans_clb_some, {
     if((120 - rv$timer) > 1) {
-      rv$task_responses[4] <- input$blk2_ans_clb_some
+      rv$task_responses[4] <- paste(input$blk2_ans_clb_some, collapse = ",")
       rv$task_durations[4] <- as.integer(120 - rv$timer)
       loggit("INFO", "Block 2, cluster 'b' somewhat important response entered.", 
              paste0("Response: ", rv$task_responses[4], 
@@ -662,7 +665,7 @@ server <- function(input, output, session) {
   })
   observeEvent(input$blk2_ans_clc_very, {
     if((120 - rv$timer) > 1) {
-      rv$task_responses[5] <- input$blk2_ans_clc_very
+      rv$task_responses[5] <- paste(input$blk2_ans_clc_very, collapse = ",")
       rv$task_durations[5] <- as.integer(120 - rv$timer)
       loggit("INFO", "Block 2, cluster 'c' very important response entered.", 
              paste0("Response: ", rv$task_responses[5], 
@@ -671,7 +674,7 @@ server <- function(input, output, session) {
   })
   observeEvent(input$blk2_ans_clc_some, {
     if((120 - rv$timer) > 1) {
-      rv$task_responses[6] <- input$blk2_ans_clc_some
+      rv$task_responses[6] <- paste(input$blk2_ans_clc_some, collapse = ",")
       rv$task_durations[6] <- as.integer(120 - rv$timer)
       loggit("INFO", "Block 2, cluster 'c' somewhat important response entered.", 
              paste0("Response: ", rv$task_responses[6], 
@@ -680,7 +683,7 @@ server <- function(input, output, session) {
   })
   observeEvent(input$blk2_ans_cld_very, {
     if((120 - rv$timer) > 1) {
-      rv$task_responses[7] <- input$blk2_ans_cld_very
+      rv$task_responses[7] <- paste(input$blk2_ans_cld_very, collapse = ",")
       rv$task_durations[7] <- as.integer(120 - rv$timer)
       loggit("INFO", "Block 2, cluster 'd' very important response entered.", 
              paste0("Response: ", rv$task_responses[7], 
@@ -689,7 +692,7 @@ server <- function(input, output, session) {
   })
   observeEvent(input$blk2_ans_cld_some, {
     if((120 - rv$timer) > 1) {
-      rv$task_responses[8] <- input$blk2_ans_cld_some
+      rv$task_responses[8] <- paste(input$blk2_ans_cld_some, collapse = ",")
       rv$task_durations[8] <- as.integer(120 - rv$timer)
       loggit("INFO", "Block 2, cluster 'd' somewhat important response entered.", 
              paste0("Response: ", rv$task_responses[8], 
@@ -844,7 +847,11 @@ server <- function(input, output, session) {
     } # end of training section evaluation
     
     # If task section, write reponses and duration to ans_tbl
-    if (ui_section() %in% c("training", "task")) {
+    # ~~ANS_TBL -----
+    if (ui_section() == "task" |
+        ui_section() == "training" & block_num() %in% 1:2) {
+      # if (ui_section() == "task") {browser()}
+      #browser()
       ins_row <- which(rv$ans_tbl$blockrep == blockrep())[1] # first row of this blockrep.
       ins_nrows <- length(rv$task_responses) - 1
       rv$ans_tbl[ins_row:(ins_row + ins_nrows), 6] <- rv$task_responses
@@ -941,7 +948,7 @@ server <- function(input, output, session) {
   
   ### Obs timer -----
   observe({
-    if (ui_section() == "task") {
+    if (ui_section() %in% c("training", "task")) {
       invalidateLater(1000, session)
       isolate({
         rv$timer <- rv$timer - 1
