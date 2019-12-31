@@ -238,7 +238,7 @@ main_ui <- fluidPage(
     ### _Plot mainPanel
     conditionalPanel( 
       condition = "(output.ui_section == 'training' && output.rep_num != 6)
-      || output.ui_section == 'task'", #rep_num == 6 is splash page. 
+      || output.ui_section == 'task'", # rep_num == 6 is splash page. 
       htmlOutput("plot_msg"),
       conditionalPanel( 
         condition = "output.second_training == 'ask'",

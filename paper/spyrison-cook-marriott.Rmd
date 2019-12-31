@@ -116,7 +116,7 @@ Participants were randomly assigned to one of 3 factors deciding which visual me
 
 ## Data simulations {#sec:sim}
 
-The data used for the demonstration of each block was __TODO__ flea data, containing __TODO__. The remaining __3__ data sets were selected from generated simulations with varing  parmeters. Each set has __8 to 10__ variables with __4 to 5__ noise variables. Noise variables were distributed $~ \mathcal{N}(0, \sigma^2)$, while non-noise variables were distributed $~ \mathcal{N}(\mu, \sigma^2)~|~\mu\in \{-3, -2, ... 3\}$. In the variance-covariance matrix, non-diagonal elements of the were near -.1 to .7. Each simulation contained either 3 or 4 clusters, where each cluster recieved between 30 to 150 observations.
+The data used for the study were sampled from 4 multivariate normal distributions. The distributions were parameterized with number of clusters, number of noise variables, and number of variables. Each simulation contained either 3 or 4 clusters, with each cluster containing a random number of observations between 30 and 150. Each simulation contained 3 or 4 noise variables, which are distributed as $~ \mathcal{N}(0, \sigma^2)$. __TODO:CONTINUE__ Noise variables were distributed , while non-noise variables were distributed $~ \mathcal{N}(\mu, \sigma^2)~|~\mu\in \{-3, -2, ... 3\}$. In the variance-covariance matrix, non-diagonal elements of the were near -.1 to .7. Each simulation contained either 3 or 4 clusters, where each cluster recieved between 30 to 150 observations.
 
 
 
