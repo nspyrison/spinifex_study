@@ -43,7 +43,8 @@ loggit("INFO", "app has started", "spinifex_study")
 # blocks
 s_block_id <- c("n", "d")
 s_block_questions <- c("How many clusters exist?",
-                       "Rate the importance of each variable in terms of distinugishing the given cluster.")
+                       "Rate the importance of each variable in terms of 
+                       distinugishing the given cluster.")
 # reps (simulations)
 s_sim_num  <- as.character(101:118)
 sim_train1 <- readRDS("../simulation/simulation_data119.rds") # p = 6, pnoise = 2, cl = 3 
@@ -60,12 +61,12 @@ for (i in 1:length(s_sim_num)) {
 s_survey_questions <- c("What gender are you?",
                         "What age are you?",
                         "What is your highest level of completed education?",
-                        "I am experianced with data vizualization.",
+                        "I am experienced with data visualization.",
                         "I have education in multivariate statistical analysis.",
-                        "I was already familar with this visualization.",
-                        "I found this visualization easy to use.",
-                        "I felt confident in my answer with this visualization.",
-                        "I liked using this visualization.")
+                        rep("I was already familiar with this visualization.", 3),
+                        rep("I found this visualization easy to use.", 3),
+                        rep("I felt confident in my answer with this visualization.", 3),
+                        rep("I liked using this visualization.", 3))
 
 ### Variable initialization ----
 n_trainings        <- length(s_train)    # ~2
@@ -128,24 +129,22 @@ main_ui <- fluidPage(
           minutes to complete. If at any point you would like to stop, 
           please let the proctor know.")
       , br()
-      , p("You are helping to compare the effectiveness of different visuals of 
-          linear projections for multivariate data. You will help evaluate 1 
-          graphic variation by participating. 
+      , p("You are helping to compare the effectiveness of different 
+          visualizations of linear projections for multivariate data. 
           The outline of the study is as follows:")
-      , tags$b("Training")
       , tags$ul(
-        tags$li("Video training")
-        , tags$li("Graphic and ui familiarity -- questions encouraged")
+        tags$li("Study introduction")
+        , tags$li("Video training")
+        , tags$li("Interface familiarity -- questions encouraged")
       )
-      , tags$b("Expiriment -- 2 minutes per task, no questions")
+      , p("Evaluation, for each of the 3 visuals -- no questions")
       , tags$ul(
-        tags$li(paste0("Task 1 (x3 reps) -- ",     s_block_questions[1]))
-        , tags$li(paste0("Task 2 (x3 reps) -- ",   s_block_questions[2]))
+        tags$li(paste0("Task 1 (x3 reps, 60 sec) -- ", s_block_questions[1]))
+        , tags$li(paste0("Task 2 (x3 reps, 180 sec) -- ", s_block_questions[2]))
       )
-      , tags$b("Follow-up")
       , tags$ul(
-        tags$li("Short questionnaire")
-        , tags$li("Response submission")
+        tags$li("Follow up questionnaire")
+        , tags$li("Save responses")
       )
       , p("After completing the survey let the proctor know and collect a 
           voucher for a free hot berverage on campus.")
@@ -171,7 +170,7 @@ main_ui <- fluidPage(
       ), # splash page is 6, no header
       conditionalPanel( # interface familiarity 
         condition = "output.rep_num == 1", # rep_num == 1 is ui familiarity
-        p("This data has 6 variables. Principal Componant Analysis (PCA) defines 
+        p("This data has 6 variables. Principal Component Analysis (PCA) defines 
         new axes components (as linear combinations of the original variable),
         ordered by the amount of variation they explain. The plot below displays
         the data for the components selected on the sidebar to the left."),
@@ -183,19 +182,19 @@ main_ui <- fluidPage(
       conditionalPanel( # training block 1, pg 1
         condition = "output.block_num == 1",
         tags$b("The first task is to estimate the number clusters in the data. 
-          Click on the radio buttons on the side bar to select different PC 
-          combinations to better understand the clustertering of the data. 
-          When you are ready enter the number of clusters on the sidebar then
+          Click on the radio buttons on the sidebar to select different PC 
+          combinations to better understand the clustering of the data. 
+          When you are ready to enter the number of clusters on the sidebar then
           click the 'Next page' button below.")
       ),
       conditionalPanel( # training block 1, pg 2 
         condition = "output.block_num == 2",
         tags$b("The second task is to rate each variables importance for 
         distinguishing the listed cluster. The points have colored and shape 
-        assigned by cluster. The variable map (grey circle) on the display 
+        assigned by their cluster. The variable map (grey circle) on the display 
         shows the direction and magnitude that each variable contributes to the 
-        current axes. Use the variable map to identitify the variables that 
-        distingish between clusters. Look at several componets to rate
+        current axes. Use the variable map to identify the variables that 
+        distinguish between clusters. Look at several components to rate
         the top four variables that help distinguish clusters.")
         ##TODO: Move to answer text.
         # Consider cluster 'a' (green circles). Variables 2, 4, and 6 have 
@@ -204,7 +203,7 @@ main_ui <- fluidPage(
         # List V2, V4, and V6 as very important for distinguishing cluster 'a'.
         # Remember the axes can be changed to look at the data from another 
         # perspective. Look at the other variables and see if they 
-        # contribute in separating directions. Continue to the next page 
+        # contribute in separate directions. Continue to the next page 
         # when you are content
       ),
       ##TODO: add text for block 2, task 1 and 2 here
@@ -251,20 +250,20 @@ main_ui <- fluidPage(
     ### _Survey mainPanel -----
     conditionalPanel(
       condition = "output.ui_section == 'survey'",
-      selectInput("ans_gender", label = s_survey_questions[1], 
+      selectInput("survey1", label = s_survey_questions[1], 
                   choices = c("decline to answer",
                               "female",
                               "male",
                               "intergender/other")
       ),
-      selectInput("ans_age", label = s_survey_questions[2], 
+      selectInput("survey2", label = s_survey_questions[2], 
                   choices = c("decline to answer",
                               "19 or younger",
                               "20 to 29",
                               "30 to 39",
                               "40 or older")
       ),
-      selectInput("ans_edu", label = s_survey_questions[3], 
+      selectInput("survey3", label = s_survey_questions[3], 
                   choices = c("decline to answer",
                               "High school",
                               "Undergraduate",
@@ -273,37 +272,37 @@ main_ui <- fluidPage(
       ),
       h3("How much do you agree with the following statments?"),
       h4(s_survey_questions[4]),
-      sliderInput("ans_ease",
+      sliderInput("survey4",
                   label = div(style = 'width:300px;',
                               div(style = 'float:left;', 'strongly disagree'),
                               div(style = 'float:right;', 'strongly agree')),
                   min = 1, max = 9, value = 5),
       h4(s_survey_questions[5]),
-      sliderInput("ans_confidence",
+      sliderInput("survey5",
                   label = div(style = 'width:300px;',
                               div(style = 'float:left;', 'strongly disagree'),
                               div(style = 'float:right;', 'strongly agree')),
                   min = 1, max = 9, value = 5),
       h4(s_survey_questions[6]),
-      sliderInput("ans_understand",
+      sliderInput("survey6",
                   label = div(style = 'width:300px;',
                               div(style = 'float:left;', 'strongly disagree'),
                               div(style = 'float:right;', 'strongly agree')),
                   min = 1, max = 9, value = 5),
       h4(s_survey_questions[7]),
-      sliderInput("ans_use",
+      sliderInput("survey7",
                   label = div(style = 'width:300px;',
                               div(style = 'float:left;', 'strongly disagree'),
                               div(style = 'float:right;', 'strongly agree')),
                   min = 1, max = 9, value = 5),
       h4(s_survey_questions[8]),
-      sliderInput("ans_high_dim",
+      sliderInput("survey8",
                   label = div(style = 'width:300px;',
                               div(style = 'float:left;', 'strongly disagree'),
                               div(style = 'float:right;', 'strongly agree')),
                   min = 1, max = 9, value = 5),
       h4(s_survey_questions[9]),
-      sliderInput("ans_data_vis",
+      sliderInput("survey9",
                   label = div(style = 'width:300px;',
                               div(style = 'float:left;', 'strongly disagree'),
                               div(style = 'float:right;', 'strongly agree')),
@@ -344,12 +343,11 @@ ui <- fluidPage(
 
 
 app_render_ <- function(slides, # paste over spinifex render to add size
-                    manip_col = "blue",
-                    col = "black", 
-                    pch = 20,
-                    axes = "center",
-                    alpha = 1,
-                    ...) {
+                        manip_col = "blue",
+                        axes = "center",
+                        alpha = 1,
+                        cluster,
+                        ...) {
   # Initialize
   if (length(slides) == 2)
     data_slides <- data.frame(slides[[2]])
@@ -368,42 +366,43 @@ app_render_ <- function(slides, # paste over spinifex render to add size
                                basis_slides[, (d+1):ncol(basis_slides)])
   }
   ## manip var axes asethetics
-  axes_col <- "grey50"
+  axes_col <- "red"
   axes_siz <- 0.3
   if(!is.null(manip_var)) {
-    axes_col            <- rep("grey50", p) 
+    axes_col            <- rep("red", p) 
     axes_col[manip_var] <- manip_col
     axes_col            <- rep(axes_col, n_slides)
     axes_siz            <- rep(0.3, p)
     axes_siz[manip_var] <- 1
     axes_siz            <- rep(axes_siz, n_slides)
   }
-  ## projection color and point char asethetics
-  if(length(col) != 1) {
-    if (is.factor(col)) {col <- col_of(col)}
-    col <- rep_len(col, nrow(data_slides))
-  }
-  if(length(pch) != 1) {
-    if (is.factor(pch)) {pch <- pch_of(pch)}
-    pch <- rep_len(pch, nrow(data_slides))
-  }
-  
+
   xy_min <- min(circ[, 1:2], data_slides[, 1:2]) - .1
   xy_max <- max(circ[, 1:2], data_slides[, 1:2]) + .1
   gg <- 
     ## ggplot settings
     ggplot2::ggplot() +
     ggplot2::theme_void() +
-    ggplot2::theme(legend.position = "none") +
+    ggplot2::theme(panel.grid.major = element_blank(), # no grid lines
+                   panel.grid.minor = element_blank(), # no grid lines
+                   axis.text.x = element_blank(),      # no axis marks
+                   axis.text.y = element_blank(),      # no axis marks
+                   axis.title.x = element_blank(),     # no axis titles for gtour
+                   axis.title.y = element_blank(),     # no axis titles for gtour
+                   legend.box.background = element_rect(),
+                   legend.title = element_text(size = 18, face = "bold"),
+                   legend.text  = element_text(size = 18, face = "bold")) +
     ggplot2::scale_color_brewer(palette = "Dark2") +
     ggplot2::xlim(xy_min, xy_max) +
     ggplot2::ylim(xy_min, xy_max) +
     ## Projected data points
     suppressWarnings( # Suppress for unused aes "frame".
       ggplot2::geom_point( 
-        data = data_slides, size = 5, 
-        shape = pch, color = col, fill = col, alpha = alpha,
-        mapping = ggplot2::aes(x = x, y = y, frame = slide)
+        data = data_slides, size = 3, alpha = alpha,
+        mapping = ggplot2::aes(x = x, y = y, frame = slide,
+                               color = cluster, 
+                               fill  = cluster, 
+                               shape = cluster)
       )
     )
   
@@ -430,7 +429,7 @@ app_render_ <- function(slides, # paste over spinifex render to add size
           data = basis_slides, 
           mapping = ggplot2::aes(x = x, y = y, 
                                  frame = slide, label = lab),
-          colour = axes_col, size = 4, vjust = "outward", hjust = "outward")
+          colour = axes_col, size = 6, vjust = "outward", hjust = "outward")
       )
   }
   
@@ -439,7 +438,7 @@ app_render_ <- function(slides, # paste over spinifex render to add size
 
 app_oblique_frame <-
   function(basis        = NULL,
-           data         = NULL, ### TODO: when NULL data gets assigned small numeric 1x1 value, where & why?
+           data         = NULL,
            manip_var    = NULL,
            theta        = 0,
            phi          = 0,

@@ -3,7 +3,7 @@ output: pdf_document
 title: >
   The effect of interaction on understanding variable contributions on linear projections 
 author:
-  Nick, Di, Kim
+  Nicholas Spyrison, Dianne Cook, Kim Marriott
 abstract: >
   Principal Component Analysis (PCA) and related eigenvalue techniques are the traditional standard for viewing prosections of multivariate spaces. However, the full story of the data is rarely portrayed accurately in a few projections. More recently, grand tours offer an animation of random walks offering many angles to view embedded spaces. A manual tour provides a means of controlling the contribution of individual variables to a projected subspace. We have developed an application to facilitate the exploration of multivariate data though the use of various tour methods. To explore the efficacy of this tool we performed a comparative user study. Participants in our study performed several high-level analysis tasks across the three factors and provide subjective ratings. Accuracy, speed, and qualitative feedback are used to compare and rate analysts' ability to understand the importance of individual variables' contribution to distinguishing clustering with the data. User feedback suggests that...
 keywords: exploratory data analysis, projection pursuit, high dimensional data, data visualization, cluster analysis, dimension reduction,  statistical graphics, data science, user study, between users,
@@ -72,6 +72,19 @@ library(dplyr)
 
 # Introduction
 
+<!-- splash into mutivarite spaces, vis is important  -->
+Multivariate data is ubiquitus in a wide number of fields.
+
+
+<!-- historically linear projection done on a discrete few number of projections  -->
+
+
+
+<!-- touring views many frames in quick succession-->
+
+
+
+
 # Hypothesis
 
 Does the finer control afforded by the manual tour improve the ability of the analyst to understand the importance of variables contributing to the structure?
@@ -83,9 +96,10 @@ knitr::include_graphics("./figures/experimental_design.PNG")
 
 ```
 
+```{r designExample, echo = F, out.width = '100%',                             fig.cap = "Example case. Person `A` is assigned to group 2, where they will use factor 2 (`Grand tour`) for the first period. They perform 3 repetitions of block 1 on simulations of increasing difficulty. Then 3 repetitions of block 2 on unique simulations sampled from the same distributions of increasing difficulty. After this, they proceed to period 2, where they are use factor 3 (`Manual tour`) to perform 3 repetitions of each block. Lastly, in the third period they use factor 1 (`PCA`) to perform the tasks."}
+knitr::include_graphics("./figures/experimental_design_personA.PNG")
 
-![Example case. Person `A` is assigned to group 2, where they will use factor 2 (`Grand tour`) for the first period. They perform 3 repetitions of block 1 on simulations of increasing difficulty. Then 3 repetitions of block 2 on unique simulations sampled from the same distributions of increasing difficulty. After this, they proceed to period 2, where they are use factor 3 (`Manual tour`) to perform 3 repetitions of each block. Lastly, in the third period they use factor 1 (`PCA`) to perform the tasks.](./figures/experimental_design_personA.PNG)
-
+```
 
 
 ## Participant population {#sec:population}
@@ -105,7 +119,14 @@ __TODO__
 
 We explored performance across three factors. The first factor is Principal Component Analysis (`PCA`). The second factor is an animated walk of interpolation frames between target bases, called a `grand tour`. The third factor allows for the manual control of the individual variable's contribution to the projection, performing a `manual tour`.
 
-Users can select which principal components are on the x and y-axes. Percent of full sample variation is displayed along the corresponding axis.  
+<!-- PCA as Standard for  -->
+
+
+<!-- explian tours, asimov, grand, manual -->
+
+
+
+User interface was kept the same whenever possible, but control interface did change slightly to accomadate differneces between factors. PCA had two side-by-side radio button selections that control which prinicipal components were displayed on the x- and y-axes. The manual tour had same axes selection, with the the addition of a drop-down bar and slider control. The drop-down selects the variable to manipulate the contribution of, while the slider controled the magnitude [0-1] of the contribution of that variable on the projection. Performing this manipulation does require the contributions of the other variables to change if they are to keep their orthogonal relationship.
 
 
 ## Block treatments {#sec:blocks}
