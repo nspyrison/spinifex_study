@@ -13,6 +13,13 @@ library("GGally")
 library("lubridate") # For timer
 library("loggit")    # For logging
 
+### Logging
+## https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/
+## use: loggit("INFO", "<main msg>", "<detail>")
+## Uncomment the following line to apply logging
+setLogFile(log_file)
+loggit("INFO", "app has started", "spinifex_study")
+
 this_factor_id <- 1 # between 1 and 3 ## SET GROUP HERE
 f_ls <- c("pca", "grand", "manual") # factor list
 latin_sq <- rbind(c(f_ls[1], f_ls[2], f_ls[3]), # ~ grp 1
@@ -31,13 +38,6 @@ while (file.exists(log_file)){ # Find an unused log number
   log_num  <- log_num + 1
 }
 
-### Logging
-## https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/
-## use: loggit("INFO", "<main msg>", "<detail>")
-## Uncomment to capture log file: 
-# TODO: uncomment the following line to apply logging
-# setLogFile(log_file); try_autosave <- TRUE
-loggit("INFO", "app has started", "spinifex_study")
 
 ### Required inputs -----
 # blocks
@@ -68,7 +68,7 @@ s_survey_questions <- c("What gender are you?",
                         rep("I felt confident in my answer with this visualization.", 3),
                         rep("I liked using this visualization.", 3))
 
-### Variable initialization ----
+### Variable initialization -----
 n_trainings        <- length(s_train)    # ~2
 n_factors          <- length(f_ls)       # ~3
 n_blocks           <- length(s_block_id) # ~2
@@ -81,264 +81,273 @@ task_start     <- (training_start - 1) + 1 + 2 * n_blocks + 1
 # ~ 8, pg 2 + 1 ui training + 2 trainings across 2 blocks, 1 splash screen  
 survey_start   <- task_start + 3 * (n_reps * n_blocks)  # ~ 25, last pg is survey 
 
-##### main_ui
-main_ui <- fluidPage(
-  ### _Sidebar panel ----
+### header_ui -----
+header_ui <- fluidPage(
+  titlePanel("Multivariate data visualization study"),
+  conditionalPanel( 
+    condition = "output.ui_section == 'training' && output.second_training == 'ask'",
+    checkboxInput("second_training", "Do you want another training set?", 
+                  value = FALSE)
+  ),
   conditionalPanel(
-    condition = "output.ui_section == 'training' || output.ui_section == 'task'",
-    sidebarPanel(
-      conditionalPanel(condition = "output.ui_section == 'training'",
-                       radioButtons(inputId = "factor", label = "Visual", 
-                                    choices = this_factor_order, 
-                                    selected = this_factor_order[1],
-                                    inline = TRUE)
-      ),
-      conditionalPanel(condition = "output.factor != 'grand' || 
+    condition = "output.pg_num < 22",
+    actionButton("next_pg_button", "Next page")
+  )
+)
+
+### sidebar_ui ----
+sidebar_ui <- conditionalPanel(
+  condition = "output.ui_section == 'training' || output.ui_section == 'task'",
+  sidebarPanel(
+    conditionalPanel(condition = "output.ui_section == 'training'",
+                     radioButtons(inputId = "factor", label = "Visual", 
+                                  choices = this_factor_order, 
+                                  selected = this_factor_order[1],
+                                  inline = TRUE)
+    ),
+    conditionalPanel(condition = "output.factor != 'grand' || 
                        (output.ui_section == 'training' && input.factor != 'grand')",
-                       fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
-                                column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2"))
-                       )
-      ),
-      conditionalPanel(condition = "output.factor == 'manual' || 
+                     fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
+                              column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2"))
+                     )
+    ),
+    conditionalPanel(condition = "output.factor == 'manual' || 
                        (output.ui_section == 'training' && input.factor == 'manual')",
-                       selectInput('manip_var', 'Manip var', "<none>"),
-                       sliderInput("manip_slider", "Contribution",
-                                   min = 0, max = 1, value = 0, step = .1)
-      ),
-      hr(), # horizontal line
-      conditionalPanel(condition = "output.block_num == 1",
-                       tags$b(s_block_questions[1]),
-                       tags$br(), ## TODO breaks don't seem to work... 
-                       numericInput("blk1_ans", "",
-                                    value = 0, min = 0, max = 10)
-      ),
-      conditionalPanel(condition = "output.block_num == 2",
-                       tags$b(s_block_questions[2]),
-                       tags$br(), br(),
-                       uiOutput("blk2Inputs")
-      )
+                     selectInput('manip_var', 'Manip var', "<none>"),
+                     sliderInput("manip_slider", "Contribution",
+                                 min = 0, max = 1, value = 0, step = .1)
+    ),
+    hr(), # horizontal line
+    conditionalPanel(condition = "output.block_num == 1",
+                     tags$b(s_block_questions[1]),
+                     tags$br(), ## TODO breaks don't seem to work... 
+                     numericInput("blk1_ans", "",
+                                  value = 0, min = 0, max = 10)
+    ),
+    conditionalPanel(condition = "output.block_num == 2",
+                     tags$b(s_block_questions[2]),
+                     tags$br(), br(),
+                     uiOutput("blk2Inputs")
     )
-  ), ### end conditionalPanel sidebarPanel for training and task
-  mainPanel(
-    ### _Intro mainPanel -----
-    conditionalPanel(
-      condition = "output.ui_section == 'intro'",
-      h3("Welcome to the study")
-      , br()
-      , p("This a completely voluntary study that will take approximately 45-50 
+  )
+) ### end sidebar_ui
+
+##### main_ui -----
+main_ui <- mainPanel(
+  ### _Intro mainPanel -----
+  conditionalPanel(
+    condition = "output.ui_section == 'intro'",
+    h3("Welcome to the study")
+    , br()
+    , p("This a completely voluntary study that will take approximately 45-50 
           minutes to complete. If at any point you would like to stop, 
           please let the proctor know.")
-      , br()
-      , p("You are helping to compare the effectiveness of different 
+    , br()
+    , p("You are helping to compare the effectiveness of different 
           visualizations of linear projections for multivariate data. 
           The outline of the study is as follows:")
-      , tags$ul(
-        tags$li("Study introduction")
-        , tags$li("Video training")
-        , tags$li("Interface familiarity -- questions encouraged")
-      )
-      , p("Evaluation, for each of the 3 visuals -- no questions")
-      , tags$ul(
-        tags$li(paste0("Task 1 (x3 reps, 60 sec) -- ", s_block_questions[1]))
-        , tags$li(paste0("Task 2 (x3 reps, 180 sec) -- ", s_block_questions[2]))
-      )
-      , tags$ul(
-        tags$li("Follow up questionnaire")
-        , tags$li("Save responses")
-      )
-      , p("After completing the survey let the proctor know and collect a 
-          voucher for a free hot berverage on campus.")
-      , p("Thank you again for participating.")
-    ), # close conditionPanel -- intro section text
-    ### _Training mainPanel -----
-    conditionalPanel(
-      condition = "output.ui_section == 'training'",
-      conditionalPanel(condition = "output.rep_num == 1", # ui intro 
-                       h2("Training -- interface")
-      ),
-      conditionalPanel(condition = "output.rep_num == 2",
-                       h2("Training -- task 1")
-      ),
-      conditionalPanel(condition = "output.rep_num == 3",
-                       h2("Training -- task 1 training 2")
-      ),
-      conditionalPanel(condition = "output.rep_num == 4",
-                       h2("Training -- task 2")
-      ),
-      conditionalPanel(condition = "output.rep_num == 5",
-                       h2("Training -- task 2 training 2")
-      ), # splash page is 6, no header
-      conditionalPanel( # interface familiarity 
-        condition = "output.rep_num == 1", # rep_num == 1 is ui familiarity
-        p("This data has 6 variables. Principal Component Analysis (PCA) defines 
+    , tags$ul(
+      tags$li("Study introduction")
+      , tags$li("Video training")
+      , tags$li("Interface familiarity -- questions encouraged")
+    )
+    , p("Evaluation, for each of the 3 visuals -- no questions")
+    , tags$ul(
+      tags$li(paste0("Task 1 (x3 reps, 60 sec) -- ", s_block_questions[1]))
+      , tags$li(paste0("Task 2 (x3 reps, 180 sec) -- ", s_block_questions[2]))
+    )
+    , tags$ul(
+      tags$li("Follow up questionnaire")
+      , tags$li("Save responses")
+    )
+    , p("After completing the survey let the proctor know and collect a 
+          voucher for a free hot beverage on campus.")
+    , p("Thank you again for participating.")
+  ), # close conditionPanel -- intro section text
+  
+  ### _Training mainPanel -----
+  conditionalPanel(
+    condition = "output.ui_section == 'training'",
+    conditionalPanel(condition = "output.rep_num == 1", # ui intro 
+                     h2("Training -- interface")
+    ),
+    conditionalPanel(condition = "output.rep_num == 2",
+                     h2("Training -- task 1")
+    ),
+    conditionalPanel(condition = "output.rep_num == 3",
+                     h2("Training -- task 1 training 2")
+    ),
+    conditionalPanel(condition = "output.rep_num == 4",
+                     h2("Training -- task 2")
+    ),
+    conditionalPanel(condition = "output.rep_num == 5",
+                     h2("Training -- task 2 training 2")
+    ), # splash page is 6, no header
+    conditionalPanel( # interface familiarity 
+      condition = "output.rep_num == 1", # rep_num == 1 is ui familiarity
+      p("This data has 6 variables. Principal Component Analysis (PCA) defines 
         new axes components (as linear combinations of the original variable),
         ordered by the amount of variation they explain. The plot below displays
         the data for the components selected on the sidebar to the left."),
-        p("Take time to familiarize yourself with the controls and feel free to 
+      p("Take time to familiarize yourself with the controls and feel free to 
           ask any questions. During the evaluation section, you will have 2 
           minutes to explore the data, responding as accurately and quickly 
           as possible.")
-      ),
-      conditionalPanel( # training block 1, pg 1
-        condition = "output.block_num == 1",
-        tags$b("The first task is to estimate the number clusters in the data. 
+    ),
+    conditionalPanel( # training block 1, pg 1
+      condition = "output.block_num == 1",
+      tags$b("The first task is to estimate the number clusters in the data. 
           Click on the radio buttons on the sidebar to select different PC 
           combinations to better understand the clustering of the data. 
           When you are ready to enter the number of clusters on the sidebar then
           click the 'Next page' button below.")
-      ),
-      conditionalPanel( # training block 1, pg 2 
-        condition = "output.block_num == 2",
-        tags$b("The second task is to rate each variables importance for 
+    ),
+    conditionalPanel( # training block 1, pg 2 
+      condition = "output.block_num == 2",
+      tags$b("The second task is to rate each variables importance for 
         distinguishing the listed cluster. The points have colored and shape 
         assigned by their cluster. The variable map (grey circle) on the display 
         shows the direction and magnitude that each variable contributes to the 
         current axes. Use the variable map to identify the variables that 
         distinguish between clusters. Look at several components to rate
         the top four variables that help distinguish clusters.")
-        ##TODO: Move to answer text.
-        # Consider cluster 'a' (green circles). Variables 2, 4, and 6 have 
-        # relatively large magnitudes and are in directions that help distinguish
-        # the purple squares (V4) and the orange triangles (V2 and V6). 
-        # List V2, V4, and V6 as very important for distinguishing cluster 'a'.
-        # Remember the axes can be changed to look at the data from another 
-        # perspective. Look at the other variables and see if they 
-        # contribute in separate directions. Continue to the next page 
-        # when you are content
-      ),
-      ##TODO: add text for block 2, task 1 and 2 here
-      conditionalPanel( # splash page
-        condition = "output.rep_num == 6",
-        h1(),h1(),h1(),
-        h1("Training complete, Great job!"),
-        h3("Ask any final clarification questions. Then continue on to the 
+      ##TODO: Move to answer text.
+      # Consider cluster 'a' (green circles). Variables 2, 4, and 6 have 
+      # relatively large magnitudes and are in directions that help distinguish
+      # the purple squares (V4) and the orange triangles (V2 and V6). 
+      # List V2, V4, and V6 as very important for distinguishing cluster 'a'.
+      # Remember the axes can be changed to look at the data from another 
+      # perspective. Look at the other variables and see if they 
+      # contribute in separate directions. Continue to the next page 
+      # when you are content
+    ),
+    ##TODO: add text for block 2, task 1 and 2 here
+    conditionalPanel( # splash page
+      condition = "output.rep_num == 6",
+      h1(),h1(),h1(),
+      h1("Training complete, Great job!"),
+      h3("Ask any final clarification questions. Then continue on to the 
         evaluation section, each task is now limited to 2 minutes (time 
            displayed on top).")
-      ),
-    ),# close training section main panel text
-    
-    ### _Task mainPanel -----
+    ),
+  ),# close training section main panel text
+  
+  ### _Task mainPanel -----
+  conditionalPanel(
+    condition = "output.ui_section == 'task'",
+    conditionalPanel(condition = "output.block_num == 1 && output.factor == 'pca'",
+                     h2("Evaluation -- task 1 (factor: pca)")),
+    conditionalPanel(condition = "output.block_num == 1 && output.factor == 'grand'",
+                     h2("Evaluation -- task 1 (factor: grand tour)")),
+    conditionalPanel(condition = "output.block_num == 1 && output.factor == 'manual'",
+                     h2("Evaluation -- task 1 (factor: manual tour)")),
+    conditionalPanel(condition = "output.block_num == 2 && output.factor == 'pca'",
+                     h2("Evaluation -- task 2 (factor: pca)")),
+    conditionalPanel(condition = "output.block_num == 2 && output.factor == 'grand'",
+                     h2("Evaluation -- task 2 (factor: grand tour)")),
+    conditionalPanel(condition = "output.block_num == 2 && output.factor == 'manual'",
+                     h2("Evaluation -- task 2 (factor: manual tour)")),
+    textOutput('timer_disp')
+  ), # close task section conditional panel title text
+  
+  ### _Plot mainPanel
+  conditionalPanel( 
+    condition = "(output.ui_section == 'training' && output.rep_num != 6)
+      || output.ui_section == 'task'", # rep_num == 6 is splash page.
+    htmlOutput("plot_msg"),
+    plotOutput("pca_plot", height = "auto"),
+    plotOutput("mtour_plot", height = "auto"),
+    plotlyOutput("gtour_plot", height = "auto")
+  ), # close plot conditional panel
+  
+  ### _Survey mainPanel -----
+  conditionalPanel(
+    condition = "output.ui_section == 'survey'",
+    selectInput("survey1", label = s_survey_questions[1], 
+                choices = c("decline to answer",
+                            "female",
+                            "male",
+                            "intergender/other")
+    ),
+    selectInput("survey2", label = s_survey_questions[2], 
+                choices = c("decline to answer",
+                            "19 or younger",
+                            "20 to 29",
+                            "30 to 39",
+                            "40 or older")
+    ),
+    selectInput("survey3", label = s_survey_questions[3], 
+                choices = c("decline to answer",
+                            "High school",
+                            "Undergraduate",
+                            "Honors, masters, mba", 
+                            "Doctorate")
+    ),
+    h3("How much do you agree with the following statments?"),
+    h4(s_survey_questions[4]),
+    sliderInput("survey4",
+                label = div(style = 'width:300px;',
+                            div(style = 'float:left;', 'strongly disagree'),
+                            div(style = 'float:right;', 'strongly agree')),
+                min = 1, max = 9, value = 5),
+    h4(s_survey_questions[5]),
+    sliderInput("survey5",
+                label = div(style = 'width:300px;',
+                            div(style = 'float:left;', 'strongly disagree'),
+                            div(style = 'float:right;', 'strongly agree')),
+                min = 1, max = 9, value = 5),
+    h4(s_survey_questions[6]),
+    sliderInput("survey6",
+                label = div(style = 'width:300px;',
+                            div(style = 'float:left;', 'strongly disagree'),
+                            div(style = 'float:right;', 'strongly agree')),
+                min = 1, max = 9, value = 5),
+    h4(s_survey_questions[7]),
+    sliderInput("survey7",
+                label = div(style = 'width:300px;',
+                            div(style = 'float:left;', 'strongly disagree'),
+                            div(style = 'float:right;', 'strongly agree')),
+                min = 1, max = 9, value = 5),
+    h4(s_survey_questions[8]),
+    sliderInput("survey8",
+                label = div(style = 'width:300px;',
+                            div(style = 'float:left;', 'strongly disagree'),
+                            div(style = 'float:right;', 'strongly agree')),
+                min = 1, max = 9, value = 5),
+    h4(s_survey_questions[9]),
+    sliderInput("survey9",
+                label = div(style = 'width:300px;',
+                            div(style = 'float:left;', 'strongly disagree'),
+                            div(style = 'float:right;', 'strongly agree')),
+                min = 1, max = 9, value = 5),
+    h4(s_survey_questions[10]),
+    sliderInput("ans_previous_knowledge",
+                label = div(style = 'width:300px;',
+                            div(style = 'float:left;', 'strongly disagree'),
+                            div(style = 'float:right;', 'strongly agree')),
+                min = 1, max = 9, value = 5),
+    actionButton("save_ans", "save responses"),
+    htmlOutput("save_msg"),
     conditionalPanel(
-      condition = "output.ui_section == 'task'",
-      conditionalPanel(condition = "output.block_num == 1 && output.factor = 'pca'",
-                       h2("Evaluation -- task 1 (factor: pca)")),
-      conditionalPanel(condition = "output.block_num == 1 && output.factor = 'grand'",
-                       h2("Evaluation -- task 1 (factor: grand)")),
-      conditionalPanel(condition = "output.block_num == 1 && output.factor = 'manual'",
-                       h2("Evaluation -- task 1 (factor: manual)")),
-      conditionalPanel(condition = "output.block_num == 2 && output.factor = 'pca'",
-                       h2("Evaluation -- task 2 (factor: pca)")),
-      conditionalPanel(condition = "output.block_num == 2 && output.factor = 'grand'",
-                       h2("Evaluation -- task 2 (factor: grand)")),
-      conditionalPanel(condition = "output.block_num == 2 && output.factor = 'manual'",
-                       h2("Evaluation -- task 2 (factor: manual)")),
-      textOutput('timer_disp')
-    ), # close task section conditional panel title text
-    ### _Plot mainPanel
-    conditionalPanel( 
-      condition = "(output.ui_section == 'training' && output.rep_num != 6)
-      || output.ui_section == 'task'", # rep_num == 6 is splash page. 
-      htmlOutput("plot_msg"),
-      conditionalPanel( 
-        condition = "output.second_training == 'ask'",
-        checkboxInput("second_training", "Do you want another training set?", 
-                      value = FALSE)),
-      plotOutput("pca_plot", height = "auto"),
-      plotOutput("mtour_plot", height = "auto"),
-      plotlyOutput("gtour_plot", height = "auto")
-    ), # close plot conditional panel
-    ### _Survey mainPanel -----
-    conditionalPanel(
-      condition = "output.ui_section == 'survey'",
-      selectInput("survey1", label = s_survey_questions[1], 
-                  choices = c("decline to answer",
-                              "female",
-                              "male",
-                              "intergender/other")
-      ),
-      selectInput("survey2", label = s_survey_questions[2], 
-                  choices = c("decline to answer",
-                              "19 or younger",
-                              "20 to 29",
-                              "30 to 39",
-                              "40 or older")
-      ),
-      selectInput("survey3", label = s_survey_questions[3], 
-                  choices = c("decline to answer",
-                              "High school",
-                              "Undergraduate",
-                              "Honors, masters, mba", 
-                              "Doctorate")
-      ),
-      h3("How much do you agree with the following statments?"),
-      h4(s_survey_questions[4]),
-      sliderInput("survey4",
-                  label = div(style = 'width:300px;',
-                              div(style = 'float:left;', 'strongly disagree'),
-                              div(style = 'float:right;', 'strongly agree')),
-                  min = 1, max = 9, value = 5),
-      h4(s_survey_questions[5]),
-      sliderInput("survey5",
-                  label = div(style = 'width:300px;',
-                              div(style = 'float:left;', 'strongly disagree'),
-                              div(style = 'float:right;', 'strongly agree')),
-                  min = 1, max = 9, value = 5),
-      h4(s_survey_questions[6]),
-      sliderInput("survey6",
-                  label = div(style = 'width:300px;',
-                              div(style = 'float:left;', 'strongly disagree'),
-                              div(style = 'float:right;', 'strongly agree')),
-                  min = 1, max = 9, value = 5),
-      h4(s_survey_questions[7]),
-      sliderInput("survey7",
-                  label = div(style = 'width:300px;',
-                              div(style = 'float:left;', 'strongly disagree'),
-                              div(style = 'float:right;', 'strongly agree')),
-                  min = 1, max = 9, value = 5),
-      h4(s_survey_questions[8]),
-      sliderInput("survey8",
-                  label = div(style = 'width:300px;',
-                              div(style = 'float:left;', 'strongly disagree'),
-                              div(style = 'float:right;', 'strongly agree')),
-                  min = 1, max = 9, value = 5),
-      h4(s_survey_questions[9]),
-      sliderInput("survey9",
-                  label = div(style = 'width:300px;',
-                              div(style = 'float:left;', 'strongly disagree'),
-                              div(style = 'float:right;', 'strongly agree')),
-                  min = 1, max = 9, value = 5),
-      h4(s_survey_questions[10]),
-      sliderInput("ans_previous_knowledge",
-                  label = div(style = 'width:300px;',
-                              div(style = 'float:left;', 'strongly disagree'),
-                              div(style = 'float:right;', 'strongly agree')),
-                  min = 1, max = 9, value = 5),
-      actionButton("save_ans", "save responses"),
-      htmlOutput("save_msg"),
-      conditionalPanel(
-        condition = "output.is_saved == 1",
-        h3("Thank you for participating!"),
-        br(),
-        h4("Let the proctor know you have completed the study and have a good day.")
-      )
-    ) # close survey condition panel 
-    
-  ) # close mainPanel()
-) # close fluid page wrapper 
+      condition = "output.is_saved == 1",
+      h3("Thank you for participating!"),
+      br(),
+      h4("Let the proctor know you have completed the study and have a good day.")
+    )
+  ) # close survey condition panel 
+  
+) # close mainPanel()
 
 
 
 ##### UI, combine panels -----
 ui <- fluidPage(
-  titlePanel("Multivariate data visualization study"),
-  conditionalPanel(
-    condition = "output.pg_num < 22",
-    actionButton("next_pg_button", "Next page")
-  )
-  , main_ui
-  , verbatimTextOutput("dev_msg")
-  , actionButton("browser", "browser()")
-  , tableOutput("ans_tbl")
+  header_ui,
+  sidebar_ui,
+  main_ui
+  # , verbatimTextOutput("dev_msg")
+  # , actionButton("browser", "browser()")
+  # , tableOutput("ans_tbl")
 )
 
 
@@ -368,15 +377,7 @@ app_render_ <- function(slides, # paste over spinifex render to add size
   ## manip var axes asethetics
   axes_col <- "red"
   axes_siz <- 0.3
-  if(!is.null(manip_var)) {
-    axes_col            <- rep("red", p) 
-    axes_col[manip_var] <- manip_col
-    axes_col            <- rep(axes_col, n_slides)
-    axes_siz            <- rep(0.3, p)
-    axes_siz[manip_var] <- 1
-    axes_siz            <- rep(axes_siz, n_slides)
-  }
-
+  
   xy_min <- min(circ[, 1:2], data_slides[, 1:2]) - .1
   xy_max <- max(circ[, 1:2], data_slides[, 1:2]) + .1
   gg <- 
