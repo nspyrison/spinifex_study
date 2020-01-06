@@ -72,32 +72,84 @@ library(dplyr)
 
 # Introduction
 
-<!-- splash into mutivarite spaces, vis is important  -->
-Multivariate data is ubiquitus. Yet exploratory data analysis of such spaces becomes difficult, increaingly so as dimension increases. Numeric statistic summarization of data often doesn't explain the full complexity of the data or worse, can be downright deseptive. For these reasons it's important to keep visualization of data spaces and extend the diversity of application. However, visualizing data containing more than a handful of variables is not trivial. 
+<!-- Mutivarite spaces and EDA  -->
+Multivariate data is ubiquitus. Yet exploratory data [@tukey_exploratory_1977] analysis of such spaces becomes difficult, increasingly so as dimension increases. Numeric statistic summarization of data often doesn't explain the full complexity of the data or worse, can be downright deseptive [@anscombe_graphs_1973; @matejka_same_2017]. For these reasons it's important to use visualization of data spaces and extend the diversity of it's application. However, visualizing data containing more than a handful of variables is not trivial. 
 
-<!-- PCA and SPLOM -->
-Hystorically, and surpising often in rencent time such data is visualized with relatively modest number of linear projections. Principal component analysis (PCA) redefines the basis axes in linear combinations of variables in decreasing variation explained. Viewing several of the first such componments is sufficent for macro summarization data from a single distribution, but often doesn't reveal finer stuctural features or differing structure between classes. Alternatively, scatterplot matrices are common to explore scatterplots of all pairs of variables. This is performant for quickly exploring all variable distributions. Both of these techniques only allow for a relatively small amount of the posible phase space and thus data structure to be explored.
+<!-- scope of tasks -->
+<!-- DEFINE SCOPE OF INTERSTED TASKS HERE?? -->
+<!-- There are many several facets of interest in exploring multivariate spaces.  -->
+
+<!-- PCA  -->
+For over a century Principal component analysis (PCA) [@pearson_liii._1901] has been used to explore such spaces. PCA redefines the axes basis as linear combinations of the orginal variables into principal components ordered by decreasing variation explained. Viewing several of the first such componments is sufficent for macro summarization data from a single distribution, but doesn't reveal finer stuctural features or differing structure between classes. 
+
+<!-- SPLOM -->
+Alternatively, scatterplot matrices are common to explore scatterplots of all pairs of variables. This is performant for quickly exploring all variable distributions. Both of these techniques only allow for a relatively small amount of the posible phase space and thus data structure to be explored.
 
 <!-- tours intro -->
-Later, Asimov {@grandtour}, coined `tour`, an animation of many projections across small changes in the basis. Exploring mutivariate spaces this way offers a number of desireable features including more depth visual cues and extensible phase space exploration. 
+Later, Asimov [@asimov_grand_1985], coined `tour`, an animation of many projections across small changes in the basis. Exploring mutivariate spaces this way offers a number of desireable features including more depth visual cues and extensible phase space exploration.
+
+<!-- Grand tour -->
+The various types of tours are disintuished by the method defining the path the basis animates. The originial, and widest know, is the `grand` tour [@asimov_grand_1985]. In a grand tour several target bases are identified by constrained random walk. These target bases are then interpolated into many interim frames to be viewed as a more coninuous animation.
+
+<!-- Manual tour -->
+The `manual` tour [@cook_manual_1997] defines its basis path by manipulating the basis contribution of a selected variable. Many such manipulations may be predefined and animated. Alternatively, these parameterized steps can allow human-in-the-loop [@karwowski_international_2006] interactive use.
+
+<!-- Research gap -->
+Exploring and understanding finer structural details is an undersurviced aspect of multivariate data analysis. This work contained below performs an within-participant exploratory study to shed light on techniques that may be most suited for such a task.
+
+<!-- structure of the paper -->
+Section \ref{sec:hypothesis} formalizes the hypothesis statement. Section \ref{sec:design} explains the experimental deign, with sections \ref{sec:factors} and \ref{sec:blocks} explaining the design factors and blocks. The results of the study are found in section \ref{sec:results}. An accompanying tool is discussed in section \ref{sec:spinifex}. Disscussion is covered in section \ref{sec:discussion}.
+
+__Note: section refs not working in this format, specific to `rticles`?__
+
+# Hypothesis {#sec:hypothesis}
+
+<!-- PCA as control -->
+Supporting and extending the applicability of data visualization is an important endeavor. There exist various linear projection techniques to explore multivariate data spaces. 
+
+
+<!-- Grand as control phase space, no fine control. -->
+
+<!-- hypothesis statement -->
+Does the finer control afforded by the manual tour improve the ability of the analyst to understand the importance of variables contributing to the structure?
+
 
 <!-- non linear projections;; TO hypothesis? -->
 More recently there has been advances and fanfare in non-linear projections such as self-organizing maps, and T-SNE. Because of the use of non-affine transformations they offer arbitrary model spaces, with no clear interoperability back to variable space. This precludes them as canidates for exploratory data analysis of the multivariate data in question. They can be useful for rapid identification of possible outliers or classes. 
 
-<!-- explaination of grand/manual here or in hypothesis? -->
-There are several ways to define the path of rotating the basis. A `grand` tour is the most well known and selects several target bases via a constrained random walk. These target bases are then interpolated into many interim frames.
-
-
-
-
-
-
-
-# Hypothesis
-
-Does the finer control afforded by the manual tour improve the ability of the analyst to understand the importance of variables contributing to the structure?
 
 # Experimental design {#sec:design}
+
+## Factors {#sec:factors}
+
+We explored performance across three factors. The first factor is Principal Component Analysis (`PCA`). The second factor is an animated walk of interpolation frames between target bases, called a `grand tour`. The third factor allows for the manual control of the individual variable's contribution to the projection, performing a `manual tour`.
+
+<!-- PCA as Standard for  -->
+
+
+<!-- explian tours, asimov, grand, manual -->
+User interface was kept the same whenever possible, but control interface did change slightly to accomadate differneces between factors. PCA had two side-by-side radio button selections that control which prinicipal components were displayed on the x- and y-axes. The manual tour had same axes selection, with the the addition of a drop-down bar and slider control. The drop-down selects the variable to manipulate the contribution of, while the slider controled the magnitude [0-1] of the contribution of that variable on the projection. Performing this manipulation does require the contributions of the other variables to change if they are to keep their orthogonal relationship.
+
+
+## Block treatments {#sec:blocks}
+
+Within each factor, participants performed 2 block treatments in a fixed order. The first block asked participants to identify the number of clusters present in the data. In this block, clusters were unsupervised, where all observations appeared as black circles and the basis variable map was omitted. This block also served as a control for assessing the general aptitude for this sort of high dimensional analysis as it was simpler. A second block asked participants to identify any/all variables that were very important and somewhat important for distinguishing a given cluster from the others. For instance, which variables are very important for distinguishing cluster `b`. This block was supervised by cluster; observations were assigned shape and (color-blind friendly) color according to their cluster. A basis variable map was provided demonstrating the magnitude and direction of the variable contribution for the given linear projection.
+
+The first block is a ubiquitous task for unsupervised data but was included as more of a validation task rather than directly addressing the hypothesis.  
+It was expected that the grand tour should excel in identifying the number of clusters. This is because the grand tour shows many bases across all variables viewed in quick succession. This makes for a more cohesive parallax-like movement between clusters, making them relatively easy to identify. In contrast, PCA offers the fewest bases with the most discrete changes. The manual tour explores one dimension at a time. This exploration views a smaller variable-space than the grand tour, providing fewer visual cues between clusters. 
+
+
+
+## Repetition {#sec:reps}
+
+Participants were randomly assigned to 1 of 3 even groups. Each group had a  different factor order containing all factors. Both blocks were performed in the same order. Each block had 3 repetitions performed on new simulations that were drawn from 3 parameterizations in increasing difficulty. Each participant went through the simulations in the same order, while the order of their factor varied. Fixing repetition order while varying factors should mitigate potential learning bais.  
+
+
+## Groups {#sec:groups}
+
+Each participant was randomly split into one of three even factor groups. The first group was given a biplot -- a scatterplot matrix coupled with a variable mapping back to original variable space. Users were allowed to freely choose which two components to view initialized to PC1 and PC2. The second group was given the same animation, the first 30 seconds of random walk (typically spanning 6 or 7 bases interpolated into 90 frames viewed at 3 frames per second) of a grand tour with the ability to freely control the location and speed of the animation. The third group was provided with the ability to control the magnitude of an individual variable contributes to the projection with a manual tour. Doing so performs a constrained rotation on the data object resulting in a change of the other variables to preserve orthogonality between dimensions. Participants could freely change which dimension to manipulate.
+
+
 
 ```{r design, echo = F, out.width = '100%',                                     fig.cap = "Experimental design setup. Participants are assigned to one of 3 even groups controlling the factor order. Within each factor, users perform 3 repetitions of block 1 and then block 2 before proceeding to the next factor. Simulations are used in a fixed order (while factor order changes). Simulations for the first repetition are unique samples drawn from the same distribution. Similarly, the second and third repetitions are drawn from their own more complex distributions."}
 knitr::include_graphics("./figures/experimental_design.PNG")
@@ -114,42 +166,12 @@ knitr::include_graphics("./figures/experimental_design_personA.PNG")
 
 A sample of convenience was taken from postgraduate students in the department of econometrics and business statistics and the faculty of information technology at Monash University, based in Melbourne, Australia. Participants were required to have prior knowledge of multivariate data visualizations.
 
-## Groups {#sec:groups}
 
-Each participant was randomly split into one of three even factor groups. The first group was given a biplot -- a scatterplot matrix coupled with a variable mapping back to original variable space. Users were allowed to freely choose which two components to view initialized to PC1 and PC2. The second group was given the same animation, the first 30 seconds of random walk (typically spanning 6 or 7 bases interpolated into 90 frames viewed at 3 frames per second) of a grand tour with the ability to freely control the location and speed of the animation. The third group was provided with the ability to control the magnitude of an individual variable contributes to the projection with a manual tour. Doing so performs a constrained rotation on the data object resulting in a change of the other variables to preserve orthogonality between dimensions. Participants could freely change which dimension to manipulate.
 
 ## Training {#sec:training}
 
 __TODO__
 
-
-## Factors {#sec:factors}
-
-We explored performance across three factors. The first factor is Principal Component Analysis (`PCA`). The second factor is an animated walk of interpolation frames between target bases, called a `grand tour`. The third factor allows for the manual control of the individual variable's contribution to the projection, performing a `manual tour`.
-
-<!-- PCA as Standard for  -->
-
-
-<!-- explian tours, asimov, grand, manual -->
-
-
-
-User interface was kept the same whenever possible, but control interface did change slightly to accomadate differneces between factors. PCA had two side-by-side radio button selections that control which prinicipal components were displayed on the x- and y-axes. The manual tour had same axes selection, with the the addition of a drop-down bar and slider control. The drop-down selects the variable to manipulate the contribution of, while the slider controled the magnitude [0-1] of the contribution of that variable on the projection. Performing this manipulation does require the contributions of the other variables to change if they are to keep their orthogonal relationship.
-
-
-## Block treatments {#sec:blocks}
-
-Within each factor, participants performed 2 block treatments in a fixed order. The first block asked participants to identify the number of clusters present in the data. In this block, clusters were unsupervised, where all observations appeared as black circles and the basis variable map was omitted. This block also served as a control for assessing the general aptitude for this sort of high dimensional analysis as it was simpler. A second block asked participants to identify any/all variables that were very important and somewhat important for distinguishing a given cluster from the others. For instance, which variables are very important for distinguishing cluster `b`. This block was supervised by cluster; observations were assigned shape and (color-blind friendly) color according to their cluster. A basis variable map was provided demonstrating the magnitude and direction of the variable contribution for the given linear projection.
-
-The first block is a ubiquitous task for unsupervised data but was included as more of a validation task rather than directly addressing the hypothesis.  
-It was expected that the grand tour should excel in identifying the number of clusters. This is because the grand tour shows many bases across all variables viewed in quick succession. This makes for a more cohesive parallax-like movement between clusters, making them relatively easy to identify. In contrast, PCA offers the fewest bases with the most discrete changes. The manual tour explores one dimension at a time. This exploration views a smaller variable-space than the grand tour, providing fewer visual cues between clusters. 
-
-
-
-
-## Repetition {#sec:reps}
-
-Participants were randomly assigned to 1 of 3 even groups. Each group had a  different factor order containing all factors. Both blocks were performed in the same order. Each block had 3 repetitions performed on new simulations that were drawn from 3 parameterizations in increasing difficulty. Each participant went through the simulations in the same order, while the order of their factor varied. Fixing repetition order while varying factors should mitigate potential learning bais.  
 
 
 
@@ -188,7 +210,7 @@ After responses for each block were collected, participants were given a short s
 
 # Accompanying tool: spinifex application {#sec:spinifex}
 
-To accompany this study we have produced a more general use tool to perform such exploratory analysis of high dimensional data. The `spinifex`{@CITE} R package (version 0.2.0 and up) contains a free, open-source version of a `shiny` {@CITE} application. The application features traditional static visualizations including PCA, with biplots and scree plots, and scatterplot matrices. The application also implements various tours, including manual tours, projection pursuit, and limited versions of grand, little, and local tours. Data can be imported in .csv and .rda format, and projections can be saved as .png, .gif, and .csv formats where applicable. Run the following R code for help getting started.
+To accompany this study we have produced a more general use tool to perform such exploratory analysis of high dimensional data. The `spinifex`{@CITE} R package (version 0.2.0 and up) contains a free, open-source version of a `shiny` [@chang_shiny:_2018] application. The application features traditional static visualizations including PCA, with biplots and scree plots, and scatterplot matrices. The application also implements various tours, including manual tours, projection pursuit, and limited versions of grand, little, and local tours. Data can be imported in .csv and .rda format, and projections can be saved as .png, .gif, and .csv formats where applicable. Run the following R code for help getting started.
 ```{r getting_started, eval = F}
 install.packages("spinifex")
 spinifex::run_app("intro")
