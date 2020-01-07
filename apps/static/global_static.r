@@ -144,25 +144,26 @@ main_ui <- mainPanel(
           please let the proctor know.")
     , br()
     , p("You are helping to compare the effectiveness of different 
-          visualizations of linear projections for multivariate data. 
-          The outline of the study is as follows:")
+          multivariate data visualization techniques. 
+          The study is structured as follows:")
+    , p("Training -- questions encouraged")
     , tags$ul(
-      tags$li("Study introduction")
-      , tags$li("Video training")
-      , tags$li("Interface familiarity -- questions encouraged")
+      tags$li("Video training: you will first watch a five minute video explaining the techniques")
+      , tags$li("Interface familiarity: you will get to explore the interface for the different tasks, answer questions about the data, and receive feedback")
     )
     , p("Evaluation, for each of the 3 visuals -- no questions")
     , tags$ul(
-      tags$li(paste0("Task 1 (x3 reps, 60 sec) -- ", s_block_questions[1]))
-      , tags$li(paste0("Task 2 (x3 reps, 180 sec) -- ", s_block_questions[2]))
+      tags$li(paste0("Task 1 (x3 reps, 60 sec) -- "))
+      , tags$li(paste0("Task 2 (x3 reps, 180 sec) -- "))
     )
+    , p("Wrap up study")
     , tags$ul(
-      tags$li("Follow up questionnaire")
-      , tags$li("Save responses")
+      tags$li("Complete survey")
+      , tags$li("Save and exit from app")
+      , tags$li("Collect a 
+          voucher for a free hot beverage on campus, from the proctor.")
     )
-    , p("After completing the survey let the proctor know and collect a 
-          voucher for a free hot beverage on campus.")
-    , p("Thank you again for participating.")
+    , p("We really appreciate your participating in this study.")
   ), # close conditionPanel -- intro section text
   
   ### _Training mainPanel -----
