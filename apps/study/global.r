@@ -17,7 +17,7 @@ library("loggit")    # For logging
 ## https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## Uncomment the following line to apply logging
-setLogFile(log_file)
+# setLogFile(log_file)
 loggit("INFO", "app has started", "spinifex_study")
 
 this_factor_id <- 1 # between 1 and 3 ## SET GROUP HERE
@@ -72,14 +72,16 @@ s_survey_questions <- c("What gender are you?",
 n_trainings        <- length(s_train)    # ~2
 n_factors          <- length(f_ls)       # ~3
 n_blocks           <- length(s_block_id) # ~2
-n_reps             <- length(s_dat) / (n_blocks * n_factors) # ~3
+n_reps             <- 3 #length(s_dat) / (n_blocks * n_factors) # 18/(2*3) = 3
 n_survey_questions <- length(s_survey_questions) # ~10
 
 s_blockrep_id  <- paste0(rep(s_block_id, each = n_reps), rep(1:n_reps, n_blocks))
-training_start <- 2 # pg 1 is intro, pg 2:7 is training, 1 for ui, 2, for blocks
-task_start     <- (training_start - 1) + 1 + 2 * n_blocks + 1 
-# ~ 8, pg 2 + 1 ui training + 2 trainings across 2 blocks, 1 splash screen  
-survey_start   <- task_start + 3 * (n_reps * n_blocks)  # ~ 25, last pg is survey 
+# intro is pg 1; video intro is pg 2
+training_start <- 3
+# ~ 9, pg 2:8 is training; (start on ui, 2x2 for tasks, splash)
+task_start     <- (training_start + 2 * n_blocks + 1) + 1
+# ~ 28, 9 + 3 * 3 * 2 + 1
+survey_start   <- (task_start + 3 * (n_reps * n_blocks)) + 1  
 
 ### header_ui -----
 header_ui <- fluidPage(
@@ -90,7 +92,7 @@ header_ui <- fluidPage(
                   value = FALSE)
   ),
   conditionalPanel(
-    condition = "output.pg_num < 22",
+    condition = "output.pg_num < 28",
     actionButton("next_pg_button", "Next page")
   )
 )
@@ -120,7 +122,7 @@ sidebar_ui <- conditionalPanel(
     hr(), # horizontal line
     conditionalPanel(condition = "output.block_num == 1",
                      tags$b(s_block_questions[1]),
-                     tags$br(), ## TODO breaks don't seem to work... 
+                     tags$br(),
                      numericInput("blk1_ans", "",
                                   value = 0, min = 0, max = 10)
     ),
@@ -148,20 +150,22 @@ main_ui <- mainPanel(
           The study is structured as follows:")
     , p("Training -- questions encouraged")
     , tags$ul(
-      tags$li("Video training: you will first watch a five minute video explaining the techniques")
-      , tags$li("Interface familiarity: you will get to explore the interface for the different tasks, answer questions about the data, and receive feedback")
+      tags$li("Video training: you will first watch a five minute video 
+              explaining the techniques")
+      , tags$li("Interface familiarity: you will get to explore the interface 
+                for the different tasks, answer questions about the data, and 
+                receive feedback")
     )
     , p("Evaluation, for each of the 3 visuals -- independent effort with no questions")
     , tags$ul(
-      tags$li(paste0("Task 1 (x3 reps, 60 sec) "))
-      , tags$li(paste0("Task 2 (x3 reps, 180 sec) "))
+      tags$li("Task 1 (x3 reps, 60 sec)")
+      , tags$li("Task 2 (x3 reps, 180 sec)")
     )
     , p("Wrap up study")
     , tags$ul(
       tags$li("Complete survey")
       , tags$li("Save and exit from app")
-      , tags$li("Collect a 
-          voucher for a free hot beverage on campus, from the proctor.")
+      , tags$li("Collect a voucher for a free hot beverage on campus, from the proctor.")
     )
     , p("We really appreciate your participation in this study.")
   ), # close conditionPanel -- intro section text
@@ -251,7 +255,7 @@ main_ui <- mainPanel(
     textOutput('timer_disp')
   ), # close task section conditional panel title text
   
-  ### _Plot mainPanel
+  ### _Plot mainPanel ----
   conditionalPanel( 
     condition = "(output.ui_section == 'training' && output.rep_num != 6)
       || output.ui_section == 'task'", # rep_num == 6 is splash page.
@@ -346,9 +350,9 @@ ui <- fluidPage(
   header_ui,
   sidebar_ui,
   main_ui
-  # , verbatimTextOutput("dev_msg")
-  # , actionButton("browser", "browser()")
-  # , tableOutput("ans_tbl")
+  , verbatimTextOutput("dev_msg")
+  , actionButton("browser", "browser()")
+  , tableOutput("ans_tbl")
 )
 
 

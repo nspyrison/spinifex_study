@@ -1,4 +1,4 @@
-source('global_static.r', local = TRUE)
+source('global.r', local = TRUE)
 
 
 ##### Server function, for shiny app
@@ -59,17 +59,18 @@ server <- function(input, output, session) {
     return("passed survey, need to cap pg_num")
   })
   section_pg_num <- reactive({ # ~page num of this section.
-    if (ui_section() == "training"){ # Training: 1=ui, 2&3=blk1, 4&5=blk2, 6=splash
+    if (ui_section() == "intro") {return(rv$pg_num)}
+    if (ui_section() == "training"){
       return(rv$pg_num - (training_start - 1))
     }
     if (ui_section() == "task"){
       return(rv$pg_num - (task_start -1))
     }
-    return(1) # dummy 1, NA and 999 cause other issues.
+    if (ui_section() == "survey") {return(rv$pg_num)}
   })
   period_num <- reactive({1 + (section_pg_num() %/% (n_blocks * n_reps))})
   factor <- reactive({ # ~ PCA, gtour, mtour
-    if (ui_section() %in% c("task", "training")) {return(this_factor_order[period_num()])
+    if (ui_section() == "task") {return(this_factor_order[period_num()])
       } else {# is task
         return("NONE/ NA")
       }
@@ -116,18 +117,33 @@ server <- function(input, output, session) {
     if (input$manip_var == "<none>") {return(1)}
     return(which(colnames(task_dat()) == input$manip_var))
   }) 
-  
+  pca_active <- reactive({
+    if ((rv$timer_active == TRUE & factor() == "pca") |
+        (ui_section() == "training" & input$factor == "pca")) {
+      return(TRUE)
+    } else return(FALSE)
+  })
+  grand_active <- reactive({
+    if ((rv$timer_active == TRUE & factor() == "grand") | 
+        (ui_section() == "training" & input$factor == "grand")) {
+      return(TRUE)
+    } else return(FALSE)
+  })
+  manual_active <- reactive({
+    if ((rv$timer_active == TRUE & factor() == "manual") | 
+        (ui_section() == "training" & input$factor == "manual")) {
+      return(TRUE)
+    } else return(FALSE)
+  })
   
   ### PCA plot reactive -----
   pca_height <- function(){
-    if ((rv$timer_active == TRUE & factor() == "pca") |
-        (ui_section() == "training" & input$factor == "pca")) {
+    if (pca_active() == TRUE) {
       return(640)
     } else return(1) 
   }
   pca_plot <- reactive({
-    if ((rv$timer_active == TRUE & factor() == "pca") |
-        (ui_section() == "training" & input$factor == "pca")) {
+    if (pca_active() == TRUE) {
       # data init
       dat <- task_dat()
       dat_std <- tourr::rescale(dat)
@@ -224,14 +240,12 @@ server <- function(input, output, session) {
   
   ### Grand tour plot reactive -----
   gtour_height <- function(){
-    if ((rv$timer_active == TRUE & factor() == "grand") | 
-        (ui_section() == "training" & input$factor == "grand")) {
+    if (grand_active() == TRUE) {
       return(640)
     } else return(1) 
   }
   gtour_plot <- reactive({ 
-    if ((rv$timer_active == TRUE & factor() == "grand") | 
-        (ui_section() == "training" & input$factor == "grand")) {
+    if (grand_active() == TRUE) {
       # data init
       dat <- task_dat()
       dat_std <- tourr::rescale(dat)
@@ -363,14 +377,12 @@ server <- function(input, output, session) {
   
   ### Manual tour plot reactive -----
   mtour_height <- function() {
-    if ((rv$timer_active == TRUE & factor() == "manual") | 
-        (ui_section() == "training" & input$factor == "manual")) {
+    if (manual_active()) {
       return(800)
     } else return(1) 
   }
   mtour_plot <- reactive({
-    if ((rv$timer_active == TRUE & factor() == "manual") | 
-        (ui_section() == "training" & input$factor == "manual")) {
+    if (manual_active()) {
       if (is.null(rv$curr_basis)) {stop("rv$curr_basis not found while calling mtour_plot()")}
       # data init
       dat <- task_dat()
@@ -885,7 +897,7 @@ server <- function(input, output, session) {
   observeEvent(input$next_pg_button, {
     # Init rv$ans_tbl <- ans_tbl() first press
     if (rv$pg_num == 1){ rv$ans_tbl <- ans_tbl() }
-    # if <on last task> {<do nothing>}
+    # if <on last task> {<do nothing>}. Also shouldn't be visible
     if (rv$pg_num >= survey_start){ return() }
     
     
@@ -894,59 +906,44 @@ server <- function(input, output, session) {
     if (ui_section() == "training") {
       # Evaluate training block 1 
       if (block_num() == 1 & rv$training_aes == FALSE) {
+        rv$training_aes <- TRUE
         response <- input$blk1_ans
         ans <- length(attr(task_dat(), "ncl"))
-        rv$training_aes <- TRUE
-        if (response - ans >= 2){ # >= 2 clusters too high, retry
-          rv$second_training <- TRUE
-          output$plot_msg <- renderText(paste0(
-          "<h3><span style='color:red'>
-          That is little high, this data has ", ans, " clusters. Try again on another training set.
-          For PCA make sure to plot several components. 
+        delta <- response - ans
+        
+        theme_start <- "<h3><span style='color:red'>"
+        this_msg <- ""
+        main_msg <- 
+          "For PCA make sure to plot several components. 
           Using the grand tour look for groups of points moving together. 
           In the manual tour choose the variables with the largest axes 
-          sequentially to manipulate their contribution to the projection.  
-          </span></h3>")) 
-          return()
-        }
-        if (response - ans <= -2){ # <= 2 clusters too low, retry
+          sequentially to manipulate their contribution to the projection."
+        theme_end <- "</span></h3>"
+        
+        if (delta >= 2){ # >= 2 clusters too high, retry
           rv$second_training <- TRUE
-          output$plot_msg <- renderText(paste0(
-            "<h3><span style='color:red'>
-          That is little low, this data has ", ans, " clusters. 
-          For PCA make sure to check a few combinations of components. 
-          Using the grand tour look for clusters moving together. 
-          In the manual tour rapidly check a few variables 
-          while identifying clusters. Try again on another set. 
-          </span></h3>")) 
-          return()
+          this_msg <- paste0("That is little high, this data has ", ans, " clusters. 
+            Try again on another training set. ")
         }
-        if (abs(response - ans) == 1){ # within 1 cluster, msg, passes
+        if (delta <= -2){ # <= 2 clusters too low, retry
+          rv$second_training <- TRUE
+          this_msg <- paste0("That is little low, this data has ", ans, " clusters. 
+            Try again on another training set. ")
+        }
+        if (abs(delta) == 1){ # within 1 cluster, passes
           rv$second_training <- "ask"
-          output$plot_msg <- renderText(paste0(
-          "<h3><span style='color:red'>
-          Close, this data has ", ans, " clusters. You have the right idea. 
-          As a reminder,
-          for PCA make sure to check a few combinations of components. 
-          Using the grand tour look for clusters moving together. 
-          In the manual tour rapidly check a few variables 
-          while identifying clusters.
-          </span></h3>"))
-          return()
+          this_msg <- paste0("Close, this data has ", ans, " clusters. 
+            You have the right idea. As a reminder, ")
         }
-        if (response == ans){ # exact answer
+        if (delta == 0){ # exact answer, passes
           rv$second_training <- "ask"
-          output$plot_msg <- renderText(
-          "<h3><span style='color:red'>
-          That's correct, great job! 
-          As a reminder,
-          for PCA make sure to check a few combinations of components. 
-          Using the grand tour look for clusters moving together. 
-          In the manual tour rapidly check a few variables 
-          while identifying clusters.
-          </span></h3>") 
-          return()
+          this_msg <- paste0("That's correct, this data has ", ans, " clusters.
+            As a reminder, ")
         }
+        output$plot_msg <- renderText(paste0(
+          theme_start, this_msg, main_msg, theme_end
+        ))
+        return()
       }
       # Evaluation of the training for blocks 2.
 
@@ -1034,7 +1031,6 @@ server <- function(input, output, session) {
         (ui_section() == "training" & block_num() %in% 1:2)) {
       ins_row <- which(rv$ans_tbl$blockrep == blockrep())[1] # first row of this blockrep.
       ins_nrows <- length(rv$task_responses) - 1
-      if (ui_section() == "task") {browser()}
       rv$ans_tbl[ins_row:(ins_row + ins_nrows), 6] <- rv$task_responses
       rv$ans_tbl[ins_row:(ins_row + ins_nrows), 7] <- rv$task_durations
     }

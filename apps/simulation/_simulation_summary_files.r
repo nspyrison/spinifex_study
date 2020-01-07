@@ -192,7 +192,7 @@ sim_ratings
 #   #would they be better example than sim 21?
 #   geom_text(mapping = aes(label = id))
 #   # note that this may help pick simulations, but doesn't give ground truth for
-#   # blocks 2 and 3.
+#   # tasks 2 and 3.
 # ## manually looking at 9,11,12 i don't think they are really too simple.
 # 
 # # sim 17 is a canidate for the hardest 3 cluster data set 
@@ -208,10 +208,10 @@ sim_ratings
 # # sim_parameters[c(21, 17, 4, 20), ] OLD SET
 # 
 # ### _scratch GROUND TRUTH ----
-# ### block 1:
+# ### task 1:
 # (blk1 <- sim_parameters[c(21, 17, 4, 20), c(1, 3)])
 # 
-### __block 2: -----
+### __task 2: -----
 ex <- readRDS("./apps/simulation/simulation_data021.rds")
 
 this_sim <- ex #get(loaded_sim_names[i])

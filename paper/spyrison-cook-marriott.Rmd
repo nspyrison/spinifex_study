@@ -170,7 +170,7 @@ A sample of convenience was taken from postgraduate students in the department o
 
 ## Training {#sec:training}
 
-__TODO__
+Training was controled for all participants. The same ui,  
 
 
 
@@ -224,5 +224,6 @@ spinifex::run_app("primary")
 
 This article was created in R [@r_core_team_r:_2019], using \_CRANpkg{knitr} [@stodden_knitr:_2014] and \_CRANpkg{rmarkdown} [@xie_r_2018], with code generating the examples inline. The source files for this article be found at [github.com/nspyrison/spinifex_study/](https://github.com/nspyrison/spinifex_paper/). The source code for the \_pkg{spinifex} package and accompanying shiny application can be found at [github.com/nspyrison/spinifex/](https://github.com/nspyrison/spinifex/).
 
+__Note: that \\_CRANpkg{} refs don't work in the format yet either__
 
 # Bibliography {#sec:bib}
