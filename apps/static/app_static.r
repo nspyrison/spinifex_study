@@ -901,11 +901,11 @@ server <- function(input, output, session) {
           rv$second_training <- TRUE
           output$plot_msg <- renderText(paste0(
           "<h3><span style='color:red'>
-          That is little high, this data has ", ans, " clusters. 
-          For PCA make sure to check a few combinations of components. 
-          Using the grand tour look for clusters moving together. 
-          In the manual tour rapidly check a few variables 
-          while identifying clusters. Try again on another set. 
+          That is little high, this data has ", ans, " clusters. Try again on another training set.
+          For PCA make sure to plot several components. 
+          Using the grand tour look for groups of points moving together. 
+          In the manual tour choose the variables with the largest axes 
+          sequentially to manipulate their contribution to the projection.  
           </span></h3>")) 
           return()
         }

@@ -151,10 +151,10 @@ main_ui <- mainPanel(
       tags$li("Video training: you will first watch a five minute video explaining the techniques")
       , tags$li("Interface familiarity: you will get to explore the interface for the different tasks, answer questions about the data, and receive feedback")
     )
-    , p("Evaluation, for each of the 3 visuals -- no questions")
+    , p("Evaluation, for each of the 3 visuals -- independent effort with no questions")
     , tags$ul(
-      tags$li(paste0("Task 1 (x3 reps, 60 sec) -- "))
-      , tags$li(paste0("Task 2 (x3 reps, 180 sec) -- "))
+      tags$li(paste0("Task 1 (x3 reps, 60 sec) "))
+      , tags$li(paste0("Task 2 (x3 reps, 180 sec) "))
     )
     , p("Wrap up study")
     , tags$ul(
@@ -163,7 +163,7 @@ main_ui <- mainPanel(
       , tags$li("Collect a 
           voucher for a free hot beverage on campus, from the proctor.")
     )
-    , p("We really appreciate your participating in this study.")
+    , p("We really appreciate your participation in this study.")
   ), # close conditionPanel -- intro section text
   
   ### _Training mainPanel -----
