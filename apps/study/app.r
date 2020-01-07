@@ -68,14 +68,14 @@ server <- function(input, output, session) {
     }
     if (ui_section() == "survey") {return(rv$pg_num)}
   })
-  period_num <- reactive({1 + (section_pg_num() %/% (n_blocks * n_reps))})
+  period_num <- reactive({1 + (section_pg_num() %/% (n_tasks * n_reps))})
   factor <- reactive({ # ~ PCA, gtour, mtour
     if (ui_section() == "task") {return(this_factor_order[period_num()])
       } else {# is task
         return("NONE/ NA")
       }
   })
-  block_num <- reactive({ # 1:2
+  task_num <- reactive({ # 1:2
     if (ui_section() == "training") {
       return(c(0, 1, 1, 2, 2, 0)[section_pg_num()])
     } else {
@@ -84,27 +84,27 @@ server <- function(input, output, session) {
   })
   rep_num <- reactive({ # 1:3
     if (ui_section() == "training") {return(section_pg_num())}
-    if (section_pg_num() - (n_reps * (block_num() - 1)) <= 0) {stop("check rep_num() it's <= 0.")}
-    return(section_pg_num() - (n_reps * (block_num() - 1)))
+    if (section_pg_num() - (n_reps * (task_num() - 1)) <= 0) {stop("check rep_num() it's <= 0.")}
+    return(section_pg_num() - (n_reps * (task_num() - 1)))
   })
-  blockrep <- reactive({ # n1, n2, d1, d2
+  taskrep <- reactive({ # n1, n2, d1, d2
     if (ui_section() == "training") {
       ls <- paste0("training_", 
-                   c(paste0(s_block_id[1], 1:2),
-                     paste0(s_block_id[2], 1),
-                     paste0(s_block_id[2], 2)
+                   c(paste0(s_task_id[1], 1:2),
+                     paste0(s_task_id[2], 1),
+                     paste0(s_task_id[2], 2)
                    )
       )
       return(ls[section_pg_num() - 1])
     }
-    return(paste0(s_block_id[block_num()], rep_num()))
+    return(paste0(s_task_id[task_num()], rep_num()))
   })
-  block_time <- reactive({
-    if (block_num() == 1) return(60)
-    if (block_num() == 2) return(180)
+  task_time <- reactive({
+    if (task_num() == 1) return(60)
+    if (task_num() == 2) return(180)
     return(999)
   })
-  time_elapsed <- reactive({ as.integer(block_time() - rv$timer) })
+  time_elapsed <- reactive({ as.integer(task_time() - rv$timer) })
   task_dat <- reactive({ # simulation df with attachments.
     if (ui_section() == "training") {
       if (rep_num() %in% c(3, 5)) {return(s_train[[2]])
@@ -154,7 +154,7 @@ server <- function(input, output, session) {
       axes_position <- "center"
       USE_AXES <- TRUE
       USE_AES  <- TRUE
-      if (block_num() == 1) {
+      if (task_num() == 1) {
         USE_AXES <- FALSE
         if(rv$training_aes == FALSE) { # During training
           USE_AES  <- FALSE
@@ -282,7 +282,7 @@ server <- function(input, output, session) {
       axes_position <- "center"
       USE_AXES <- TRUE
       USE_AES  <- TRUE
-      if (block_num() == 1) {
+      if (task_num() == 1) {
         USE_AXES <- FALSE
         if(rv$training_aes == FALSE) { # During training
           USE_AES  <- FALSE
@@ -397,7 +397,7 @@ server <- function(input, output, session) {
       axes_position <- "center"
       USE_AXES <- TRUE
       USE_AES  <- TRUE
-      if (block_num() == 1) {
+      if (task_num() == 1) {
         USE_AXES <- FALSE
         axes_position <- "off"
         if(rv$training_aes == FALSE) { # During training
@@ -440,19 +440,19 @@ server <- function(input, output, session) {
         rep(this_factor_order[3], n_reps + k_sims()),
         paste0("survey", 1:n_survey_questions)        # survey
       )
-    col_blockrep <- 
+    col_taskrep <- 
       c(
         paste0("training_", 
-               c(paste0(s_block_id[1], 1:2),             # training
-                 rep(paste0(s_block_id[2], 1), k_t1()),
-                 rep(paste0(s_block_id[2], 2), k_t2())
+               c(paste0(s_task_id[1], 1:2),             # training
+                 rep(paste0(s_task_id[2], 1), k_t1()),
+                 rep(paste0(s_task_id[2], 2), k_t2())
                )
         ),
         rep(
-          c(s_blockrep_id[1:3],                  # block 1
-            rep(s_blockrep_id[4], k1()),         # block 2
-            rep(s_blockrep_id[5], k2()),
-            rep(s_blockrep_id[6], k3())
+          c(s_taskrep_id[1:3],                  # task 1
+            rep(s_taskrep_id[4], k1()),         # task 2
+            rep(s_taskrep_id[5], k2()),
+            rep(s_taskrep_id[6], k3())
           ), 
           n_factors                              # across factors
         ), 
@@ -468,15 +468,15 @@ server <- function(input, output, session) {
         rep(NA, n_trainings),              # training
         q_id_t1, q_id_t2,
         rep(
-          c(rep(NA, n_reps),               # block 1
-            q_id1, q_id2, q_id3            # block 2
+          c(rep(NA, n_reps),               # task 1
+            q_id1, q_id2, q_id3            # task 2
           ), 
           n_factors                        # across factors
         ), 
         rep(NA, n_survey_questions)        # survey
       )
-    sim_set <- c(101, 107, 113,       # block 1
-                 rep(102, k1()),      # block 2
+    sim_set <- c(101, 107, 113,       # task 1
+                 rep(102, k1()),      # task 2
                  rep(108, k2()),
                  rep(114, k3())
     )
@@ -494,11 +494,11 @@ server <- function(input, output, session) {
       )
     col_question <- 
       c(
-        rep(s_block_questions[1], n_trainings),
-        rep(s_block_questions[2], k_trains()),  # training
+        rep(s_task_questions[1], n_trainings),
+        rep(s_task_questions[2], k_trains()),  # training
         rep(
-          c(rep(s_block_questions[1], n_reps),  # block 1
-            rep(s_block_questions[2], k_sims()) # block 2
+          c(rep(s_task_questions[1], n_reps),  # task 1
+            rep(s_task_questions[2], k_sims()) # task 2
           ),
           n_factors                             # across factors
         ),
@@ -508,8 +508,8 @@ server <- function(input, output, session) {
       c(
         rep(NA, n_trainings + k_trains()), # training
         rep(
-          c(rep(NA, n_reps),               # block 1
-            rep(NA, k_sims())              # block 2
+          c(rep(NA, n_reps),               # task 1
+            rep(NA, k_sims())              # task 2
           ),
           n_factors                        # across factors
         ),
@@ -517,7 +517,7 @@ server <- function(input, output, session) {
       )
     
     data.frame(factor   = col_factor,
-               blockrep = col_blockrep,
+               taskrep = col_taskrep,
                q_id     = col_q_id,
                sim_id   = col_sim_id,
                question = col_question,
@@ -632,23 +632,23 @@ server <- function(input, output, session) {
              paste0("manip_slider: ", this_val))
     })
   
-  ##### Obs block answers -----
-  ### Block 1 response & duration
+  ##### Obs task answers -----
+  ### task 1 response & duration
   observeEvent(input$blk1_ans, {
     if(time_elapsed() > 1) {
       rv$task_responses[1] <- input$blk1_ans
       rv$task_durations[1] <- time_elapsed()
-      loggit("INFO", "Block 1 entered.", 
+      loggit("INFO", "task 1 entered.", 
              paste0("Response: ", rv$task_responses[1], 
                     ". Duration: ", rv$task_durations[1], "."))
     }
   })
-  ### Block 2 responses & duration
+  ### task 2 responses & duration
   observeEvent(input$blk2_ans_cla_very, {
     if(time_elapsed() > 1) {
       rv$task_responses[1] <- paste(input$blk2_ans_cla_very, collapse = ",")
       rv$task_durations[1] <- time_elapsed()
-      loggit("INFO", "Block 2, cluster 'a' very important response entered.", 
+      loggit("INFO", "task 2, cluster 'a' very important response entered.", 
              paste0("Response: ", rv$task_responses[1], 
                     ". Duration: ", rv$task_durations[1], "."))
     }
@@ -657,7 +657,7 @@ server <- function(input, output, session) {
     if(time_elapsed() > 1) {
       rv$task_responses[2] <- paste(input$blk2_ans_cla_some, collapse = ",")
       rv$task_durations[2] <- time_elapsed()
-      loggit("INFO", "Block 2, cluster 'a' somewhat important response entered.", 
+      loggit("INFO", "task 2, cluster 'a' somewhat important response entered.", 
              paste0("Response: ", rv$task_responses[2], 
                     ". Duration: ", rv$task_durations[2], "."))
     }
@@ -666,7 +666,7 @@ server <- function(input, output, session) {
     if(time_elapsed() > 1) {
       rv$task_responses[3] <- paste(input$blk2_ans_clb_very, collapse = ",")
       rv$task_durations[3] <- time_elapsed()
-      loggit("INFO", "Block 2, cluster 'b' very important response entered.", 
+      loggit("INFO", "task 2, cluster 'b' very important response entered.", 
              paste0("Response: ", rv$task_responses[3], 
                     ". Duration: ", rv$task_durations[3], "."))
     }
@@ -675,7 +675,7 @@ server <- function(input, output, session) {
     if(time_elapsed() > 1) {
       rv$task_responses[4] <- paste(input$blk2_ans_clb_some, collapse = ",")
       rv$task_durations[4] <- time_elapsed()
-      loggit("INFO", "Block 2, cluster 'b' somewhat important response entered.", 
+      loggit("INFO", "task 2, cluster 'b' somewhat important response entered.", 
              paste0("Response: ", rv$task_responses[4], 
                     ". Duration: ", rv$task_durations[4], "."))
     }
@@ -684,7 +684,7 @@ server <- function(input, output, session) {
     if(time_elapsed() > 1) {
       rv$task_responses[5] <- paste(input$blk2_ans_clc_very, collapse = ",")
       rv$task_durations[5] <- time_elapsed()
-      loggit("INFO", "Block 2, cluster 'c' very important response entered.", 
+      loggit("INFO", "task 2, cluster 'c' very important response entered.", 
              paste0("Response: ", rv$task_responses[5], 
                     ". Duration: ", rv$task_durations[5], "."))
     }
@@ -693,7 +693,7 @@ server <- function(input, output, session) {
     if(time_elapsed() > 1) {
       rv$task_responses[6] <- paste(input$blk2_ans_clc_some, collapse = ",")
       rv$task_durations[6] <- time_elapsed()
-      loggit("INFO", "Block 2, cluster 'c' somewhat important response entered.", 
+      loggit("INFO", "task 2, cluster 'c' somewhat important response entered.", 
              paste0("Response: ", rv$task_responses[6], 
                     ". Duration: ", rv$task_durations[6], "."))
     }
@@ -702,7 +702,7 @@ server <- function(input, output, session) {
     if(time_elapsed() > 1) {
       rv$task_responses[7] <- paste(input$blk2_ans_cld_very, collapse = ",")
       rv$task_durations[7] <- time_elapsed()
-      loggit("INFO", "Block 2, cluster 'd' very important response entered.", 
+      loggit("INFO", "task 2, cluster 'd' very important response entered.", 
              paste0("Response: ", rv$task_responses[7], 
                     ". Duration: ", rv$task_durations[7], "."))
     }
@@ -711,7 +711,7 @@ server <- function(input, output, session) {
     if(time_elapsed() > 1) {
       rv$task_responses[8] <- paste(input$blk2_ans_cld_some, collapse = ",")
       rv$task_durations[8] <- time_elapsed()
-      loggit("INFO", "Block 2, cluster 'd' somewhat important response entered.", 
+      loggit("INFO", "task 2, cluster 'd' somewhat important response entered.", 
              paste0("Response: ", rv$task_responses[8], 
                     ". Duration: ", rv$task_durations[8], "."))
     }
@@ -904,8 +904,8 @@ server <- function(input, output, session) {
     ### _Training evaluation -----
     # If training section, evaluate response
     if (ui_section() == "training") {
-      # Evaluate training block 1 
-      if (block_num() == 1 & rv$training_aes == FALSE) {
+      # Evaluate training task 1 
+      if (task_num() == 1 & rv$training_aes == FALSE) {
         rv$training_aes <- TRUE
         response <- input$blk1_ans
         ans <- length(attr(task_dat(), "ncl"))
@@ -945,11 +945,11 @@ server <- function(input, output, session) {
         ))
         return()
       }
-      # Evaluation of the training for blocks 2.
+      # Evaluation of the training for tasks 2.
 
-      if (block_num() == 2 & rv$training_aes == FALSE) {
+      if (task_num() == 2 & rv$training_aes == FALSE) {
         rv$training_aes <- TRUE
-        # block 2 response
+        # task 2 response
         resp_cla_very <- input$blk2_ans_cla_very # ~ c("V1", "V3") # row 1, col 1, 3 = 2
         resp_cla_some <- input$blk2_ans_cla_some # ~ c("V2", "V4", "V5") # row 1, col 2, 4, 5 = 1
         resp_clb_very <- input$blk2_ans_clb_very
@@ -974,7 +974,7 @@ server <- function(input, output, session) {
           if (length(this_col_some) >= 1) response[i, this_col_some] <- 1
         }
         
-        # block 2 answer
+        # task 2 answer
         dat <- task_dat()
         supervied_dat <- data.frame(dat, cluster = attr(dat, "cluster"))
         this_lda <- MASS::lda(cluster ~ ., data = supervied_dat)
@@ -1028,8 +1028,8 @@ server <- function(input, output, session) {
     # If task section, write reponses and duration to ans_tbl
     # _rv$ans_tbl -----
     if (ui_section() == "task" |
-        (ui_section() == "training" & block_num() %in% 1:2)) {
-      ins_row <- which(rv$ans_tbl$blockrep == blockrep())[1] # first row of this blockrep.
+        (ui_section() == "training" & task_num() %in% 1:2)) {
+      ins_row <- which(rv$ans_tbl$taskrep == taskrep())[1] # first row of this taskrep.
       ins_nrows <- length(rv$task_responses) - 1
       rv$ans_tbl[ins_row:(ins_row + ins_nrows), 6] <- rv$task_responses
       rv$ans_tbl[ins_row:(ins_row + ins_nrows), 7] <- rv$task_durations
@@ -1037,7 +1037,7 @@ server <- function(input, output, session) {
     
     ### _New page ----
     # if second training not needed, skip a page.
-    if (ui_section() == "training" & rep_num() %in% c(2, 4) & # rep 1 of block 1 & 2
+    if (ui_section() == "training" & rep_num() %in% c(2, 4) & # rep 1 of task 1 & 2
         !(rv$second_training == TRUE | input$second_training == TRUE)) {
       rv$pg_num <- rv$pg_num + 1
     }
@@ -1046,7 +1046,7 @@ server <- function(input, output, session) {
     output$plot_msg <- renderText("")
     rv$task_responses <- NULL
     rv$task_durations <- NULL
-    rv$timer <- block_time()
+    rv$timer <- task_time()
     rv$timer_active <- TRUE
     rv$training_aes <- FALSE
     rv$second_training <- FALSE
@@ -1054,7 +1054,7 @@ server <- function(input, output, session) {
     
     # Clear task response
     if (ui_section() == "task") {
-      if (block_num() == 1) { # reset to same settings.
+      if (task_num() == 1) { # reset to same settings.
         updateNumericInput(session, "blk1_ans", "",
                            value = 0, min = 0, max = 10)
       }
@@ -1062,8 +1062,8 @@ server <- function(input, output, session) {
     
     # Set structure for responses and durations
     n_rows <- 1
-    if (block_num() == 1){n_rows <- 1} 
-    if (block_num() == 2){n_rows <- this_k()}
+    if (task_num() == 1){n_rows <- 1} 
+    if (task_num() == 2){n_rows <- this_k()}
     if (ui_section() == "survey") {n_rows <- n_survey_questions}
     
     rv$task_responses <- rep("default", n_rows)
@@ -1071,7 +1071,7 @@ server <- function(input, output, session) {
     loggit("INFO", "Next page: ", 
            paste0("rv$pg_num: ", rv$pg_num, 
                   ". ui_section(): ", ui_section(),
-                  ". block_num(): ", block_num(),
+                  ". task_num(): ", task_num(),
                   ". rep_num(): ", rep_num(), 
                   "."))
   })
@@ -1125,12 +1125,12 @@ server <- function(input, output, session) {
   
   ### Obs timer -----
   observe({
-    block_time <- block_time()
+    task_time <- task_time()
     invalidateLater(1000, session)
     isolate({rv$timer <- rv$timer - 1})
     if(ui_section() == "task" & rv$timer_active == TRUE &
-       ((block_num() == 1 & block_time - rv$timer < 0) |
-        (block_num() == 2 & block_time - rv$timer < 0)) ){
+       ((task_num() == 1 & task_time - rv$timer < 0) |
+        (task_num() == 2 & task_time - rv$timer < 0)) ){
       rv$timer_active <- FALSE
       loggit("INFO", "timer elapsed.", 
              paste0("On rv$pg_num: ", rv$pg_num, "."))
@@ -1151,20 +1151,20 @@ server <- function(input, output, session) {
   output$pg_num     <- reactive(rv$pg_num)    # for hiding ui next_task button
   output$ui_section <- reactive(ui_section()) # for ui between sections
   output$factor     <- reactive(factor())     # for sidebar inputs
-  output$block_num  <- reactive(block_num())  # for  titles, and response inputs
+  output$task_num  <- reactive(task_num())  # for  titles, and response inputs
   output$rep_num    <- reactive(rep_num())    # for  training ui
   output$second_training <- reactive(rv$second_training) # for more training button
   outputOptions(output, "is_saved",   suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
   outputOptions(output, "pg_num",     suspendWhenHidden = FALSE) 
   outputOptions(output, "ui_section", suspendWhenHidden = FALSE) 
   outputOptions(output, "factor",     suspendWhenHidden = FALSE) 
-  outputOptions(output, "block_num",  suspendWhenHidden = FALSE) 
+  outputOptions(output, "task_num",  suspendWhenHidden = FALSE) 
   outputOptions(output, "rep_num",    suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
   outputOptions(output, "second_training", suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
   
   ### training outputs
-  output$training_header_text <- renderText(training_header_text[block_num()])
-  output$training_top_text    <- renderText(training_top_text[block_num()])
+  output$training_header_text <- renderText(training_header_text[task_num()])
+  output$training_top_text    <- renderText(training_top_text[task_num()])
   ### general task outputs
   output$pca_plot   <- renderPlot({pca_plot()}, height = pca_height) 
   output$gtour_plot <- renderPlotly({suppressWarnings(gtour_plot())})
@@ -1172,7 +1172,7 @@ server <- function(input, output, session) {
   output$ans_tbl    <- renderTable({rv$ans_tbl})
   
   # output$blk1_ans defined in global_*.r
-  ### Block 2 inputs, importance of var on cl seperation -----
+  ### task 2 inputs, importance of var on cl seperation -----
   output$blk2Inputs <- renderUI({
     dat <- task_dat()
     p <- ncol(dat)                                # num var
@@ -1201,7 +1201,7 @@ server <- function(input, output, session) {
                                     "ui_section()", ui_section(), "\n",
                                     "factor()", factor(), "\n",
                                     "rv$second_training", rv$second_training, "\n",
-                                    "block_num(): ", block_num(), "\n",
+                                    "task_num(): ", task_num(), "\n",
                                     "rv$timer: ", rv$timer, "\n",
                                     "rv$pg_num: ", rv$pg_num, "\n",
                                     "rep_num(): ", rep_num(), "\n",

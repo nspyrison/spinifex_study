@@ -40,9 +40,9 @@ while (file.exists(log_file)){ # Find an unused log number
 
 
 ### Required inputs -----
-# blocks
-s_block_id <- c("n", "d")
-s_block_questions <- c("How many clusters exist?",
+# tasks
+s_task_id <- c("n", "d")
+s_task_questions <- c("How many clusters exist?",
                        "Rate the importance of each variable in terms of 
                        distinugishing the given cluster.")
 # reps (simulations)
@@ -71,17 +71,17 @@ s_survey_questions <- c("What gender are you?",
 ### Variable initialization -----
 n_trainings        <- length(s_train)    # ~2
 n_factors          <- length(f_ls)       # ~3
-n_blocks           <- length(s_block_id) # ~2
-n_reps             <- 3 #length(s_dat) / (n_blocks * n_factors) # 18/(2*3) = 3
+n_tasks           <- length(s_task_id) # ~2
+n_reps             <- 3 #length(s_dat) / (n_tasks * n_factors) # 18/(2*3) = 3
 n_survey_questions <- length(s_survey_questions) # ~10
 
-s_blockrep_id  <- paste0(rep(s_block_id, each = n_reps), rep(1:n_reps, n_blocks))
+s_taskrep_id  <- paste0(rep(s_task_id, each = n_reps), rep(1:n_reps, n_tasks))
 # intro is pg 1; video intro is pg 2
 training_start <- 3
 # ~ 9, pg 2:8 is training; (start on ui, 2x2 for tasks, splash)
-task_start     <- (training_start + 2 * n_blocks + 1) + 1
+task_start     <- (training_start + 2 * n_tasks + 1) + 1
 # ~ 28, 9 + 3 * 3 * 2 + 1
-survey_start   <- (task_start + 3 * (n_reps * n_blocks)) + 1  
+survey_start   <- (task_start + 3 * (n_reps * n_tasks)) + 1  
 
 ### header_ui -----
 header_ui <- fluidPage(
@@ -120,14 +120,14 @@ sidebar_ui <- conditionalPanel(
                                  min = 0, max = 1, value = 0, step = .1)
     ),
     hr(), # horizontal line
-    conditionalPanel(condition = "output.block_num == 1",
-                     tags$b(s_block_questions[1]),
+    conditionalPanel(condition = "output.task_num == 1",
+                     tags$b(s_task_questions[1]),
                      tags$br(),
                      numericInput("blk1_ans", "",
                                   value = 0, min = 0, max = 10)
     ),
-    conditionalPanel(condition = "output.block_num == 2",
-                     tags$b(s_block_questions[2]),
+    conditionalPanel(condition = "output.task_num == 2",
+                     tags$b(s_task_questions[2]),
                      tags$br(), br(),
                      uiOutput("blk2Inputs")
     )
@@ -199,16 +199,16 @@ main_ui <- mainPanel(
           minutes to explore the data, responding as accurately and quickly 
           as possible.")
     ),
-    conditionalPanel( # training block 1, pg 1
-      condition = "output.block_num == 1",
+    conditionalPanel( # training task 1, pg 1
+      condition = "output.task_num == 1",
       tags$b("The first task is to estimate the number clusters in the data. 
           Click on the radio buttons on the sidebar to select different PC 
           combinations to better understand the clustering of the data. 
           When you are ready to enter the number of clusters on the sidebar then
           click the 'Next page' button below.")
     ),
-    conditionalPanel( # training block 1, pg 2 
-      condition = "output.block_num == 2",
+    conditionalPanel( # training task 1, pg 2 
+      condition = "output.task_num == 2",
       tags$b("The second task is to rate each variables importance for 
         distinguishing the listed cluster. The points have colored and shape 
         assigned by their cluster. The variable map (grey circle) on the display 
@@ -226,7 +226,7 @@ main_ui <- mainPanel(
       # contribute in separate directions. Continue to the next page 
       # when you are content
     ),
-    ##TODO: add text for block 2, task 1 and 2 here
+    ##TODO: add text for task 2, task 1 and 2 here
     conditionalPanel( # splash page
       condition = "output.rep_num == 6",
       h1(),h1(),h1(),
@@ -240,17 +240,17 @@ main_ui <- mainPanel(
   ### _Task mainPanel -----
   conditionalPanel(
     condition = "output.ui_section == 'task'",
-    conditionalPanel(condition = "output.block_num == 1 && output.factor == 'pca'",
+    conditionalPanel(condition = "output.task_num == 1 && output.factor == 'pca'",
                      h2("Evaluation -- task 1 (factor: pca)")),
-    conditionalPanel(condition = "output.block_num == 1 && output.factor == 'grand'",
+    conditionalPanel(condition = "output.task_num == 1 && output.factor == 'grand'",
                      h2("Evaluation -- task 1 (factor: grand tour)")),
-    conditionalPanel(condition = "output.block_num == 1 && output.factor == 'manual'",
+    conditionalPanel(condition = "output.task_num == 1 && output.factor == 'manual'",
                      h2("Evaluation -- task 1 (factor: manual tour)")),
-    conditionalPanel(condition = "output.block_num == 2 && output.factor == 'pca'",
+    conditionalPanel(condition = "output.task_num == 2 && output.factor == 'pca'",
                      h2("Evaluation -- task 2 (factor: pca)")),
-    conditionalPanel(condition = "output.block_num == 2 && output.factor == 'grand'",
+    conditionalPanel(condition = "output.task_num == 2 && output.factor == 'grand'",
                      h2("Evaluation -- task 2 (factor: grand tour)")),
-    conditionalPanel(condition = "output.block_num == 2 && output.factor == 'manual'",
+    conditionalPanel(condition = "output.task_num == 2 && output.factor == 'manual'",
                      h2("Evaluation -- task 2 (factor: manual tour)")),
     textOutput('timer_disp')
   ), # close task section conditional panel title text
