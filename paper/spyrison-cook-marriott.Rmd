@@ -12,7 +12,9 @@ bibliography: spyrison-cook-marriott.bib
 \bibliography{spyrison-cook-marriott}
 
 
+
 ```{r setup_paper, include=FALSE}
+# TODO: may need to proof read <!-- block difficulties --> and tasks as they have changed from reps and block respectively.
 # ---
 # author:
   # - name: Nicholas Spyrison
@@ -140,9 +142,9 @@ It was expected that the grand tour should excel in identifying the number of cl
 
 
 
-## Repetition {#sec:reps}
+## Block difficulty {#sec:blocks}
 
-Participants were randomly assigned to 1 of 3 even groups. Each group had a  different factor order containing all factors. Both tasks were performed in the same order. Each task had 3 repetitions performed on new simulations that were drawn from 3 parameterizations in increasing difficulty. Each participant went through the simulations in the same order, while the order of their factor varied. Fixing repetition order while varying factors should mitigate potential learning bais.  
+Participants were randomly assigned to 1 of 3 even groups. Each group had a  different factor order containing all factors. Both tasks were performed in the same order. Each task had 3 repetitions performed on new simulations that were drawn from 3 parameterizations in increasing difficulty. Each participant went through the simulations in the same order, while the order of their factor varied. Fixing block difficulty order while varying factors should mitigate potential learning bais.  
 
 
 ## Groups {#sec:groups}
@@ -151,12 +153,12 @@ Each participant was randomly split into one of three even factor groups. The fi
 
 
 
-```{r design, echo = F, out.width = '100%',                                     fig.cap = "Experimental design setup. Participants are assigned to one of 3 even groups controlling the factor order. Within each factor, users perform 3 repetitions of task 1 and then task 2 before proceeding to the next factor. Simulations are used in a fixed order (while factor order changes). Simulations for the first repetition are unique samples drawn from the same distribution. Similarly, the second and third repetitions are drawn from their own more complex distributions."}
+```{r design, echo = F, out.width = '100%',                                     fig.cap = "Experimental design setup. Participants are assigned to one of 3 even groups controlling the factor order. Within each factor, users perform 3 block difficulties of task 1 and then of task 2 before proceeding to the next factor. Simulations are used in a fixed order (while factor order changes). Simulations for the first block difficulty are unique samples drawn from the same distribution. Similarly, the second and third block difficulties are drawn from increasing complex distributions."}
 knitr::include_graphics("./figures/experimental_design.PNG")
 
 ```
 
-```{r designExample, echo = F, out.width = '100%',                             fig.cap = "Example case. Person `A` is assigned to group 2, where they will use factor 2 (`Grand tour`) for the first period. They perform 3 repetitions of task 1 on simulations of increasing difficulty. Then 3 repetitions of task 2 on unique simulations sampled from the same distributions of increasing difficulty. After this, they proceed to period 2, where they are use factor 3 (`Manual tour`) to perform 3 repetitions of each task. Lastly, in the third period they use factor 1 (`PCA`) to perform the tasks."}
+```{r designExample, echo = F, out.width = '100%',                             fig.cap = "Example case. Person `A` is assigned to group 2, where they will use factor 2 (`Grand tour`) for the first period. They perform 3 block difficulties of task 1 on simulations of increasing difficulty. Then 3 block difficulties of task 2 on unique simulations sampled from the same distributions of increasing difficulty. After this, they proceed to period 2, where they are use factor 3 (`Manual tour`) to perform 3 block difficulties of each task. Lastly, in the third period they use factor 1 (`PCA`) to perform the tasks."}
 knitr::include_graphics("./figures/experimental_design_personA.PNG")
 
 ```
@@ -179,13 +181,13 @@ Training was controled for all participants. The same ui,
 
 The data used for the study were sampled from 4 multivariate normal distributions. The distributions were parameterized with the number of clusters, the number of noise variables, and the number of variables. Each simulation contained either 3 or 4 clusters, with each cluster containing a random number of observations between 30 and 150. Each simulation contained 3 or 4 noise variables, which were distributed as $~ \mathcal{N}(0, \sigma^2)$. Non-noise variables were distributed $~ \mathcal{N}(\mu, \sigma^2)~|~\mu\in \{-3, -2, ... 3\}$. The variance-covariance matrix was constrained with non-diagonal elements selected between -0.1 to 0.7, before being constrained into a positive definitive matrix.
 
-Of the 4 sets of parameterizations, 20 simulations were drawn. The 2 most simple simulations were used during the training section of the study. All participants were exposed to the same training data sets, shown in the same order to standardize training. The remaining 18 simulations were drawn such that the remaining 3 parameterizations were sampled 6 times each. These correspond to the 3 repetitions of a given factor and task with increasing difficulty. Referring to the middle of figure \ref{fig:design}, a participant would perform each factor-task for 3 repetitions with increasing difficultly before proceeding. The next factor-task has 3 repetitions performed on new simulations but parameterized for the same order of increasing difficulty. All participants experience the same order of simulations while varying the order of the factor (visualization) as controlled by a partition into 3 even groups (top of the same figure).
+Of the 4 sets of parameterizations, 20 simulations were drawn. The 2 most simple simulations were used during the training section of the study. All participants were exposed to the same training data sets, shown in the same order to standardize training. The remaining 18 simulations were drawn such that the remaining 3 parameterizations were sampled 6 times each. These correspond to the 3 block difficulties of a given factor and task with increasing difficulty. Referring to the middle of figure \ref{fig:design}, a participant would perform each factor-task for 3 block difficulties with increasing difficultly before proceeding. The next factor-task has 3 new data sets but parameterized for the same order of increasing difficulty. All participants experience the same order of simulations while varying the order of the factor (visualization) as controlled by a partition into 3 even groups (top of the same figure).
 
 
 
 ## Response & measures {#sec:response}
 
-Each task was introduced and demonstrated directly preceding each task. During this introductory segment, each participant was given a written description of the task and instructions on how the factor visualization informed the answer, as illustrated with the same toy data set. Participants were free to ask questions and clarification from the proctor at this time. Questions were not allowed outside of the introductory segments. Participants received exactly __two__ minutes to explore each repetition's projection before responding to the given task. Responses came in the form of single integer input for the task asking to identify the number of clusters. The second task collected the top 3 ordered variables that distinguish clusters. The remaining task collected `p` (number of variables in the data) inputs grouped into zero to four groups.
+Each task was introduced and demonstrated directly preceding each task. During this introductory segment, each participant was given a written description of the task and instructions on how the factor visualization informed the answer, as illustrated with the same toy data set. Participants were free to ask questions and clarification from the invigilator at this time. Questions were not allowed outside of the introductory segments. Participants received exactly __two__ minutes to explore the data from each block difficulties before responding to the given task. Responses came in the form of single integer input for the task asking to identify the number of clusters. The second task collected the top 3 ordered variables that distinguish clusters. The remaining task collected `p` (number of variables in the data) inputs grouped into zero to four groups.
 
 After responses for each task were collected, participants were given a short survey of demographics, related experience, and subjective evaluation of each factor on a 7-point Likert scale. These questions covered familiarity and expertise with multivariate data, its visualization, as well as, ease of use, understandability, confidence, and likelihood to recommend the participant's factor visualization.
 

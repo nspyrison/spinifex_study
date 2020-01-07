@@ -143,7 +143,7 @@ main_ui <- mainPanel(
     , br()
     , p("This a completely voluntary study that will take approximately 45-50 
           minutes to complete. If at any point you would like to stop, 
-          please let the proctor know.")
+          please let the invigilator know.")
     , br()
     , p("You are helping to compare the effectiveness of different 
           multivariate data visualization techniques. 
@@ -165,7 +165,7 @@ main_ui <- mainPanel(
     , tags$ul(
       tags$li("Complete survey")
       , tags$li("Save and exit from app")
-      , tags$li("Collect a voucher for a free hot beverage on campus, from the proctor.")
+      , tags$li("Collect a voucher for a free hot beverage on campus, from the invigilator.")
     )
     , p("We really appreciate your participation in this study.")
   ), # close conditionPanel -- intro section text
@@ -337,7 +337,7 @@ main_ui <- mainPanel(
       condition = "output.is_saved == 1",
       h3("Thank you for participating!"),
       br(),
-      h4("Let the proctor know you have completed the study and have a good day.")
+      h4("Let the invigilator know you have completed the study and have a good day.")
     )
   ) # close survey condition panel 
   
