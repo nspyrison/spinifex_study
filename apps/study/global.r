@@ -42,10 +42,10 @@ while (file.exists(log_file)){ # Find an unused log number
 ### Required inputs -----
 # tasks
 s_task_id <- c("n", "d")
+s_difficulty <- c("easy", "medium", "hard")
 s_task_questions <- c("How many clusters exist?",
                        "Rate the importance of each variable in terms of 
                        distinugishing the given cluster.")
-# reps (simulations)
 s_sim_num  <- as.character(101:118)
 sim_train1 <- readRDS("../simulation/simulation_data119.rds") # p = 6, pnoise = 2, cl = 3 
 sim_train2 <- readRDS("../simulation/simulation_data120.rds") # p = 6, pnoise = 2, cl = 3 
@@ -69,19 +69,20 @@ s_survey_questions <- c("What gender are you?",
                         rep("I liked using this visualization.", 3))
 
 ### Variable initialization -----
-n_trainings        <- length(s_train)    # ~2
-n_factors          <- length(f_ls)       # ~3
-n_tasks           <- length(s_task_id) # ~2
-n_reps             <- 3 #length(s_dat) / (n_tasks * n_factors) # 18/(2*3) = 3
+n_trainings        <- length(s_train)      # ~2
+n_factors          <- length(f_ls)         # ~3
+n_tasks            <- length(s_task_id)    # ~2
+n_difficulty       <- length(s_difficulty) # ~3
+n_blocks           <- 3 #length(s_dat) / (n_tasks * n_factors) # 18/(2*3) = 3
 n_survey_questions <- length(s_survey_questions) # ~10
 
-s_taskrep_id  <- paste0(rep(s_task_id, each = n_reps), rep(1:n_reps, n_tasks))
+s_taskblock_id   <- paste0(rep(s_task_id, each = n_blocks), rep(1:n_blocks, n_tasks))
 # intro is pg 1; video intro is pg 2
 training_start <- 3
 # ~ 9, pg 2:8 is training; (start on ui, 2x2 for tasks, splash)
 task_start     <- (training_start + 2 * n_tasks + 1) + 1
 # ~ 28, 9 + 3 * 3 * 2 + 1
-survey_start   <- (task_start + 3 * (n_reps * n_tasks)) + 1  
+survey_start   <- (task_start + 3 * (n_blocks * n_tasks)) + 1  
 
 ### header_ui -----
 header_ui <- fluidPage(
@@ -119,14 +120,15 @@ sidebar_ui <- conditionalPanel(
                      sliderInput("manip_slider", "Contribution",
                                  min = 0, max = 1, value = 0, step = .1)
     ),
-    hr(), # horizontal line
     conditionalPanel(condition = "output.task_num == 1",
+                     hr(), # horizontal line
                      tags$b(s_task_questions[1]),
                      tags$br(),
                      numericInput("blk1_ans", "",
                                   value = 0, min = 0, max = 10)
     ),
     conditionalPanel(condition = "output.task_num == 2",
+                     hr(), # horizontal line
                      tags$b(s_task_questions[2]),
                      tags$br(), br(),
                      uiOutput("blk2Inputs")
@@ -139,57 +141,66 @@ main_ui <- mainPanel(
   ### _Intro mainPanel -----
   conditionalPanel(
     condition = "output.ui_section == 'intro'",
-    h3("Welcome to the study")
-    , br()
-    , p("This a completely voluntary study that will take approximately 45-50 
+    conditionalPanel(
+      condition = "output.pg_num == 1", # First page
+      h3("Welcome to the study")
+      , br()
+      , p("This a completely voluntary study that will take approximately 45-50 
           minutes to complete. If at any point you would like to stop, 
           please let the invigilator know.")
-    , br()
-    , p("You are helping to compare the effectiveness of different 
+      , br()
+      , p("You are helping to compare the effectiveness of different 
           multivariate data visualization techniques. 
           The study is structured as follows:")
-    , p("Training -- questions encouraged")
-    , tags$ul(
-      tags$li("Video training: you will first watch a five minute video 
+      , p("Training -- questions encouraged")
+      , tags$ul(
+        tags$li("Video training: you will first watch a five minute video 
               explaining the techniques")
-      , tags$li("Interface familiarity: you will get to explore the interface 
+        , tags$li("Interface familiarity: you will get to explore the interface 
                 for the different tasks, answer questions about the data, and 
                 receive feedback")
-    )
-    , p("Evaluation, for each of the 3 visuals -- independent effort with no questions")
-    , tags$ul(
-      tags$li("Task 1 (x3 reps, 60 sec)")
-      , tags$li("Task 2 (x3 reps, 180 sec)")
-    )
-    , p("Wrap up study")
-    , tags$ul(
-      tags$li("Complete survey")
-      , tags$li("Save and exit from app")
-      , tags$li("Collect a voucher for a free hot beverage on campus, from the invigilator.")
-    )
-    , p("We really appreciate your participation in this study.")
+      )
+      , p("Evaluation, for each of the 3 visuals -- independent effort with no questions")
+      , tags$ul(
+        tags$li("Task 1 (x3 difficulties, 60 sec)")
+        , tags$li("Task 2 (x3 difficulties, 180 sec)")
+      )
+      , p("Wrap up study")
+      , tags$ul(
+        tags$li("Complete survey")
+        , tags$li("Save and exit from app")
+        , tags$li("Collect a voucher for a free hot beverage on campus, from the invigilator.")
+      )
+      , p("We really appreciate your participation in this study.")
+    ), # end first page
+    conditionalPanel(
+      condition = "output.pg_num == 2", # Video, second page
+      h3("Place holder for video link!")
+    )  # end of video, second page
   ), # close conditionPanel -- intro section text
   
   ### _Training mainPanel -----
   conditionalPanel(
     condition = "output.ui_section == 'training'",
-    conditionalPanel(condition = "output.rep_num == 1", # ui intro 
+    conditionalPanel(condition = "output.block_num == 1", # ui intro 
                      h2("Training -- interface")
     ),
-    conditionalPanel(condition = "output.rep_num == 2",
+    conditionalPanel(condition = "output.block_num == 2",
                      h2("Training -- task 1")
     ),
-    conditionalPanel(condition = "output.rep_num == 3",
-                     h2("Training -- task 1 training 2")
+    conditionalPanel(condition = "output.block_num == 3",
+                     h2("Training -- task 1, set 2")
     ),
-    conditionalPanel(condition = "output.rep_num == 4",
+    conditionalPanel(condition = "output.block_num == 4",
                      h2("Training -- task 2")
     ),
-    conditionalPanel(condition = "output.rep_num == 5",
-                     h2("Training -- task 2 training 2")
+    conditionalPanel(condition = "output.block_num == 5",
+                     h2("Training -- task 2, set 2")
     ), # splash page is 6, no header
+    textOutput('stopwatch_disp'),
+    hr(),
     conditionalPanel( # interface familiarity 
-      condition = "output.rep_num == 1", # rep_num == 1 is ui familiarity
+      condition = "output.block_num == 1", # block_num == 1 is ui familiarity
       p("This data has 6 variables. Principal Component Analysis (PCA) defines 
         new axes components (as linear combinations of the original variable),
         ordered by the amount of variation they explain. The plot below displays
@@ -216,49 +227,29 @@ main_ui <- mainPanel(
         current axes. Use the variable map to identify the variables that 
         distinguish between clusters. Look at several components to rate
         the top four variables that help distinguish clusters.")
-      ##TODO: Move to answer text.
-      # Consider cluster 'a' (green circles). Variables 2, 4, and 6 have 
-      # relatively large magnitudes and are in directions that help distinguish
-      # the purple squares (V4) and the orange triangles (V2 and V6). 
-      # List V2, V4, and V6 as very important for distinguishing cluster 'a'.
-      # Remember the axes can be changed to look at the data from another 
-      # perspective. Look at the other variables and see if they 
-      # contribute in separate directions. Continue to the next page 
-      # when you are content
     ),
-    ##TODO: add text for task 2, task 1 and 2 here
     conditionalPanel( # splash page
-      condition = "output.rep_num == 6",
+      condition = "output.block_num == 6",
       h1(),h1(),h1(),
       h1("Training complete, Great job!"),
       h3("Ask any final clarification questions. Then continue on to the 
         evaluation section, each task is now limited to 2 minutes (time 
            displayed on top).")
     ),
-  ),# close training section main panel text
+  ), # close training section main panel text
   
   ### _Task mainPanel -----
   conditionalPanel(
     condition = "output.ui_section == 'task'",
-    conditionalPanel(condition = "output.task_num == 1 && output.factor == 'pca'",
-                     h2("Evaluation -- task 1 (factor: pca)")),
-    conditionalPanel(condition = "output.task_num == 1 && output.factor == 'grand'",
-                     h2("Evaluation -- task 1 (factor: grand tour)")),
-    conditionalPanel(condition = "output.task_num == 1 && output.factor == 'manual'",
-                     h2("Evaluation -- task 1 (factor: manual tour)")),
-    conditionalPanel(condition = "output.task_num == 2 && output.factor == 'pca'",
-                     h2("Evaluation -- task 2 (factor: pca)")),
-    conditionalPanel(condition = "output.task_num == 2 && output.factor == 'grand'",
-                     h2("Evaluation -- task 2 (factor: grand tour)")),
-    conditionalPanel(condition = "output.task_num == 2 && output.factor == 'manual'",
-                     h2("Evaluation -- task 2 (factor: manual tour)")),
-    textOutput('timer_disp')
+    h2(textOutput('task_header')),
+    textOutput('timer_disp'),
+    hr()
   ), # close task section conditional panel title text
   
   ### _Plot mainPanel ----
   conditionalPanel( 
-    condition = "(output.ui_section == 'training' && output.rep_num != 6)
-      || output.ui_section == 'task'", # rep_num == 6 is splash page.
+    condition = "(output.ui_section == 'training' && output.block_num != 6)
+      || output.ui_section == 'task'", # block_num == 6 is splash page.
     htmlOutput("plot_msg"),
     plotOutput("pca_plot", height = "auto"),
     plotOutput("mtour_plot", height = "auto"),
