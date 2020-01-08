@@ -44,7 +44,7 @@ while (file.exists(log_file)){ # Find an unused log number
 s_task_id <- c("n", "d")
 s_difficulty <- c("easy", "medium", "hard")
 s_task_questions <- c("How many clusters exist?",
-                       "Rate the importance of each variable in terms of 
+                      "Rate the importance of each variable in terms of 
                        distinugishing the given cluster.")
 s_sim_num  <- as.character(101:118)
 sim_train1 <- readRDS("../simulation/simulation_data119.rds") # p = 6, pnoise = 2, cl = 3 
@@ -120,7 +120,52 @@ sidebar_ui <- conditionalPanel(
                      selectInput('manip_var', 'Manip var', "<none>"),
                      sliderInput("manip_slider", "Contribution",
                                  min = 0, max = 1, value = 0, step = .1)
-    ), # Task 1
+    ), 
+    
+    ### _Training text -----
+    conditionalPanel(
+      condition = "output.ui_section == 'training'",
+      hr(),
+      conditionalPanel( # interface familiarity 
+        condition = "output.block_num == 1", # block_num == 1 is ui familiarity
+        p("In this study you will be working with 3 vizualization techniques of
+        multvariate data. Each one uses 2-dimensional projections created
+        from different combinations of variables. The variable map (grey circle)
+        shows the angle and magnitude that each variable contributes to the 
+        projection."),
+        p("Principal Component Analysis (PCA) is displayed first. Use the radio
+          buttons on the left sidebar panel to select new components to be 
+          displayed. Observer how the clusters and the variable line segments 
+          move."),
+        p("Now switch to the grand tour factor. Play the animation. Notice how 
+          different clusters move as the variable contributions change. Drag
+          the slider to select a different frame or pace."),
+        p("Now try the manual tour. You can select which components are on 
+          the axis. Using the drop-down, select the variable with the largest 
+          line segment. Use the slider to change the variable's contribution. 
+          Watch how the contributions and clusters move as a result."),
+      ),
+      conditionalPanel( # training task 1, pg 1
+        condition = "output.task_num == 1",
+        tags$b("Now the data points are not colored by their cluster. Guess how
+        many clusters exist in this training set. Make sure to use the controls
+        and different factors.")
+      ),
+      conditionalPanel( # training task 1, pg 2 
+        condition = "output.task_num == 2",
+        tags$b("The data points are now colored by their cluster again. The 
+               variable map (grey circle) shows the magnitude and direction
+               that each variable contributes. Variables that have a large 
+               contribution in line with two clusters are important to 
+               distinguish them. However, you cannot rule out that variables 
+               with a small contribution are unimportant.
+               Use this information to identify which variables distinguish 
+               the 2 clusters.")
+      )
+    ), ### end training text
+    
+    
+    # Task 1
     conditionalPanel(condition = "output.task_num == 1",
                      hr(), # horizontal line
                      tags$b(s_task_questions[1]),
@@ -133,35 +178,7 @@ sidebar_ui <- conditionalPanel(
                      tags$b(s_task_questions[2]),
                      tags$br(), br(),
                      uiOutput("blk2Inputs")
-    ),
-    
-    ### Training text
-    conditionalPanel(
-      condition = "output.ui_section == 'training'",
-      conditionalPanel( # interface familiarity 
-        condition = "output.block_num == 1", # block_num == 1 is ui familiarity
-        p("This data has 6 variables. Principal Component Analysis (PCA) defines 
-        new axes components (as linear combinations of the original variable),
-        ordered by the amount of variation they explain. The plot below displays
-        the data for the components selected on the sidebar to the left."),
-        p("Take time to familiarize yourself with the controls and feel free to 
-          ask any questions. During the evaluation section, you will have 2 
-          minutes to explore the data, responding as accurately and quickly 
-          as possible.")
-      ),
-      conditionalPanel( # training task 1, pg 1
-        condition = "output.task_num == 1",
-        tags$b("Now the data points are not colored by their cluster. Use the 
-               different visuals to find out how many cluster.")
-      ),
-      conditionalPanel( # training task 1, pg 2 
-        condition = "output.task_num == 2",
-        tags$b("The data points are now colored by their cluster again. The 
-               variable map (grey circle) shows the magnitude and direction
-               that each variable contributes. Use this information to identify
-               which variables distinguish 2 clusters.")
-      )
-    ) ### end training text
+    )
     
   )
 ) ### end sidebar_ui
@@ -206,7 +223,8 @@ main_ui <- mainPanel(
     ), # end first page
     conditionalPanel(
       condition = "output.pg_num == 2", # Video, second page
-      h3("Place holder for video link!")
+      h3("Video page"),
+      p("The place holder!")
     )  # end of video, second page
   ), # close conditionPanel -- intro section text
   
@@ -350,7 +368,6 @@ ui <- fluidPage(
 
 
 app_render_ <- function(slides, # paste over spinifex render to add size
-                        manip_col = "blue",
                         axes = "center",
                         alpha = 1,
                         cluster,
@@ -373,8 +390,10 @@ app_render_ <- function(slides, # paste over spinifex render to add size
                                basis_slides[, (d+1):ncol(basis_slides)])
   }
   ## manip var axes asethetics
-  axes_col <- "red"
-  axes_siz <- 0.3
+  axes_col <- rep("red", p)
+  axes_siz <- rep(0.3, p)
+  axes_col[manip_var] <- "blue"
+  axes_siz[manip_var] <- .6
   
   xy_min <- min(circ[, 1:2], data_slides[, 1:2]) - .1
   xy_max <- max(circ[, 1:2], data_slides[, 1:2]) + .1
