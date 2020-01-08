@@ -101,40 +101,71 @@ header_ui <- fluidPage(
 ### sidebar_ui ----
 sidebar_ui <- conditionalPanel(
   condition = "output.ui_section == 'training' || output.ui_section == 'task'",
-  sidebarPanel(
+  
+  sidebarPanel( # Factor selection
     conditionalPanel(condition = "output.ui_section == 'training'",
                      radioButtons(inputId = "factor", label = "Visual", 
                                   choices = this_factor_order, 
                                   selected = this_factor_order[1],
                                   inline = TRUE)
-    ),
+    ), # PCA axis selection
     conditionalPanel(condition = "output.factor != 'grand' || 
                        (output.ui_section == 'training' && input.factor != 'grand')",
                      fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
                               column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2"))
                      )
-    ),
+    ), # Manip var/ magnitude selection
     conditionalPanel(condition = "output.factor == 'manual' || 
                        (output.ui_section == 'training' && input.factor == 'manual')",
                      selectInput('manip_var', 'Manip var', "<none>"),
                      sliderInput("manip_slider", "Contribution",
                                  min = 0, max = 1, value = 0, step = .1)
-    ),
+    ), # Task 1
     conditionalPanel(condition = "output.task_num == 1",
                      hr(), # horizontal line
                      tags$b(s_task_questions[1]),
                      tags$br(),
                      numericInput("blk1_ans", "",
                                   value = 0, min = 0, max = 10)
-    ),
+    ), # Task 2
     conditionalPanel(condition = "output.task_num == 2",
                      hr(), # horizontal line
                      tags$b(s_task_questions[2]),
                      tags$br(), br(),
                      uiOutput("blk2Inputs")
-    )
+    ),
+    
+    ### Training text
+    conditionalPanel(
+      condition = "output.ui_section == 'training'",
+      conditionalPanel( # interface familiarity 
+        condition = "output.block_num == 1", # block_num == 1 is ui familiarity
+        p("This data has 6 variables. Principal Component Analysis (PCA) defines 
+        new axes components (as linear combinations of the original variable),
+        ordered by the amount of variation they explain. The plot below displays
+        the data for the components selected on the sidebar to the left."),
+        p("Take time to familiarize yourself with the controls and feel free to 
+          ask any questions. During the evaluation section, you will have 2 
+          minutes to explore the data, responding as accurately and quickly 
+          as possible.")
+      ),
+      conditionalPanel( # training task 1, pg 1
+        condition = "output.task_num == 1",
+        tags$b("Now the data points are not colored by their cluster. Use the 
+               different visuals to find out how many cluster.")
+      ),
+      conditionalPanel( # training task 1, pg 2 
+        condition = "output.task_num == 2",
+        tags$b("The data points are now colored by their cluster again. The 
+               variable map (grey circle) shows the magnitude and direction
+               that each variable contributes. Use this information to identify
+               which variables distinguish 2 clusters.")
+      )
+    ) ### end training text
+    
   )
 ) ### end sidebar_ui
+
 
 ##### main_ui -----
 main_ui <- mainPanel(
@@ -196,37 +227,6 @@ main_ui <- mainPanel(
     ),
     conditionalPanel(condition = "output.block_num == 5",
                      h2("Training -- task 2, set 2")
-    ), # splash page is 6, no header
-    textOutput('stopwatch_disp'),
-    hr(),
-    conditionalPanel( # interface familiarity 
-      condition = "output.block_num == 1", # block_num == 1 is ui familiarity
-      p("This data has 6 variables. Principal Component Analysis (PCA) defines 
-        new axes components (as linear combinations of the original variable),
-        ordered by the amount of variation they explain. The plot below displays
-        the data for the components selected on the sidebar to the left."),
-      p("Take time to familiarize yourself with the controls and feel free to 
-          ask any questions. During the evaluation section, you will have 2 
-          minutes to explore the data, responding as accurately and quickly 
-          as possible.")
-    ),
-    conditionalPanel( # training task 1, pg 1
-      condition = "output.task_num == 1",
-      tags$b("The first task is to estimate the number clusters in the data. 
-          Click on the radio buttons on the sidebar to select different PC 
-          combinations to better understand the clustering of the data. 
-          When you are ready to enter the number of clusters on the sidebar then
-          click the 'Next page' button below.")
-    ),
-    conditionalPanel( # training task 1, pg 2 
-      condition = "output.task_num == 2",
-      tags$b("The second task is to rate each variables importance for 
-        distinguishing the listed cluster. The points have colored and shape 
-        assigned by their cluster. The variable map (grey circle) on the display 
-        shows the direction and magnitude that each variable contributes to the 
-        current axes. Use the variable map to identify the variables that 
-        distinguish between clusters. Look at several components to rate
-        the top four variables that help distinguish clusters.")
     ),
     conditionalPanel( # splash page
       condition = "output.block_num == 6",
@@ -236,6 +236,8 @@ main_ui <- mainPanel(
         evaluation section, each task is now limited to 2 minutes (time 
            displayed on top).")
     ),
+    textOutput('stopwatch_disp'),
+    hr()
   ), # close training section main panel text
   
   ### _Task mainPanel -----
