@@ -13,24 +13,19 @@ library("GGally")
 library("lubridate") # For timer
 library("loggit")    # For logging
 
-### Logging
-## https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/
-## use: loggit("INFO", "<main msg>", "<detail>")
-## Uncomment the following line to apply logging
-# setLogFile(log_file)
-loggit("INFO", "app has started", "spinifex_study")
-
 this_factor_id <- 1 # between 1 and 3 ## SET GROUP HERE
 f_ls <- c("pca", "grand", "manual") # factor list
-latin_sq <- rbind(c(f_ls[1], f_ls[2], f_ls[3]), # ~ grp 1
-                  c(f_ls[2], f_ls[3], f_ls[1]), # ~ grp 2
-                  c(f_ls[3], f_ls[1], f_ls[2])  # ~ grp 2 
+num_latin_sq <- rbind(c(1, 2, 3), # ~ grp 1
+                      c(2, 3, 1), # ~ grp 2
+                      c(3, 1, 2)  # ~ grp 3
 )
-this_factor_order <- latin_sq[this_factor_id, ]
+this_factor_num_order <- num_latin_sq[this_factor_id, ]
+this_factor_order     <- f_ls[this_factor_num_order]
 
-log_base <- paste0("log_factorid", this_factor_id, "_")
+
+log_base <- paste("log", this_factor_id, Sys.info()[4], sep = "_")
 log_num  <- 1
-log_name <- sprintf(paste0(log_base, "%03d"), log_num)
+log_name <- sprintf(paste0(log_base, "_%03d"), log_num)
 log_file <- paste0(log_name, ".json")
 while (file.exists(log_file)){ # Find an unused log number
   log_name <- sprintf(paste0(log_base, "%03d"), log_num)
@@ -38,14 +33,25 @@ while (file.exists(log_file)){ # Find an unused log number
   log_num  <- log_num + 1
 }
 
+### Logging
+## https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/
+## use: loggit("INFO", "<main msg>", "<detail>")
+## Uncomment the following line to apply logging
+setLogFile(log_file)
+loggit("INFO", "app has started", "spinifex_study")
+
 
 ### Required inputs -----
 # tasks
-s_task_id <- c("n", "d")
+s_task_id <- c("n", "p")
 s_difficulty <- c("easy", "medium", "hard")
-s_task_questions <- c("How many clusters exist?",
-                      "Rate the importance of each variable in terms of 
-                       distinugishing the given cluster.")
+s_task_prompts <- c("How many clusters exist?",
+                    "Rate the relative importance of each variable in terms of 
+                    distinugishing between the given clusters.")
+s_task2_questions <- c("Very important distinguishing clusters 'a' from 'b'",
+                       "Somewhat important distinguishing clusters 'a' from 'b'",
+                       "Very important distinguishing clusters 'b' from 'c'",
+                       "Somewhat important distinguishing clusters 'b' from 'c'")
 s_sim_num  <- as.character(101:118)
 sim_train1 <- readRDS("../simulation/simulation_data119.rds") # p = 6, pnoise = 2, cl = 3 
 sim_train2 <- readRDS("../simulation/simulation_data120.rds") # p = 6, pnoise = 2, cl = 3 
@@ -63,26 +69,29 @@ s_survey_questions <- c("What gender are you?",
                         "What is your highest level of completed education?",
                         "I am experienced with data visualization.",
                         "I have education in multivariate statistical analysis.",
-                        rep("I was already familiar with this visualization.", 3),
-                        rep("I found this visualization easy to use.", 3),
-                        rep("I felt confident in my answer with this visualization.", 3),
-                        rep("I liked using this visualization.", 3))
+                        rep(c("I was already familiar with this visualization.",
+                              "I found this visualization easy to use.",
+                              "I felt confident in my answer with this visualization.",
+                              "I liked using this visualization."), 3)
+)
+
 
 ### Variable initialization -----
-n_trainings        <- length(s_train)      # ~2
-n_factors          <- length(f_ls)         # ~3
-n_tasks            <- length(s_task_id)    # ~2
-n_difficulty       <- length(s_difficulty) # ~3
+n_trainings        <- length(s_train)            # ~2
+n_factors          <- length(f_ls)               # ~3
+n_tasks            <- length(s_task_id)          # ~2
+n_task2_questions  <- length(s_task2_questions)  # ~4
+n_difficulty       <- length(s_difficulty)       # ~3
 n_blocks           <- 3 #length(s_dat) / (n_tasks * n_factors) # 18/(2*3) = 3
 n_survey_questions <- length(s_survey_questions) # ~10
 
-s_taskblock_id   <- paste0(rep(s_task_id, each = n_blocks), rep(1:n_blocks, n_tasks))
+s_taskblock_id <- paste0(rep(s_task_id, each = n_blocks), rep(1:n_blocks, n_tasks))
 # intro is pg 1; video intro is pg 2
 training_start <- 3
 # ~ 9, pg 2:8 is training; (start on ui, 2x2 for tasks, splash)
 task_start     <- (training_start + 2 * n_tasks + 1) + 1
 # ~ 28, 9 + 3 * 3 * 2 + 1
-survey_start   <- (task_start + 3 * (n_blocks * n_tasks)) + 1  
+survey_start   <- (task_start + 3 * (n_blocks * n_tasks)) + 1
 
 ### header_ui -----
 header_ui <- fluidPage(
@@ -105,8 +114,8 @@ sidebar_ui <- conditionalPanel(
   sidebarPanel( # Factor selection
     conditionalPanel(condition = "output.ui_section == 'training'",
                      radioButtons(inputId = "factor", label = "Visual", 
-                                  choices = this_factor_order, 
-                                  selected = this_factor_order[1],
+                                  choices = f_ls, 
+                                  selected = f_ls[1],
                                   inline = TRUE)
     ), # PCA axis selection
     conditionalPanel(condition = "output.factor != 'grand' || 
@@ -127,7 +136,7 @@ sidebar_ui <- conditionalPanel(
       condition = "output.ui_section == 'training'",
       hr(),
       conditionalPanel( # interface familiarity 
-        condition = "output.block_num == 1", # block_num == 1 is ui familiarity
+        condition = "output.section_pg_num == 1",
         p("In this study you will be working with 3 vizualization techniques of
         multvariate data. Each one uses 2-dimensional projections created
         from different combinations of variables. The variable map (grey circle)
@@ -166,23 +175,135 @@ sidebar_ui <- conditionalPanel(
     
     
     # Task 1
+    conditionalPanel(condition = "(output.task_num == 1 || output.task_num == 2) && 
+                                  output.factor != 'grand'", 
+                     hr()
+    ),
     conditionalPanel(condition = "output.task_num == 1",
-                     hr(), # horizontal line
-                     tags$b(s_task_questions[1]),
+                     tags$b(s_task_prompts[1]),
                      tags$br(),
-                     numericInput("blk1_ans", "",
+                     numericInput("tsk1_ans", "",
                                   value = 0, min = 0, max = 10)
     ), # Task 2
     conditionalPanel(condition = "output.task_num == 2",
-                     hr(), # horizontal line
-                     tags$b(s_task_questions[2]),
+                     tags$b(s_task_prompts[2]),
                      tags$br(), br(),
-                     uiOutput("blk2Inputs")
+                     checkboxGroupInput(
+                       inputId = "tsk2_ans_very_ab", #tsk2_ans_cla_very
+                       label   = s_task2_questions[1],
+                       choices = "V1",
+                       inline  = TRUE
+                     ),
+                     checkboxGroupInput(
+                       inputId = "tsk2_ans_some_ab", #tsk2_ans_cla_very
+                       label   = s_task2_questions[2],
+                       choices = "V1",
+                       inline  = TRUE
+                     ),
+                     hr(),
+                     checkboxGroupInput(
+                       inputId = "tsk2_ans_very_bc", #tsk2_ans_cla_very
+                       label   = s_task2_questions[3],
+                       choices = "V1",
+                       inline  = TRUE
+                     ),
+                     checkboxGroupInput(
+                       inputId = "tsk2_ans_some_bc", #tsk2_ans_cla_very
+                       label   = s_task2_questions[4],
+                       choices = "V1",
+                       inline  = TRUE
+                     )
     )
     
   )
 ) ### end sidebar_ui
 
+##### init survey columns -----
+col_pca <- column(4, 
+                  h3(this_factor_order[1]),
+                  hr(),
+                  h4(s_survey_questions[6]),
+                  sliderInput("survey6",
+                              label = div(style = 'width:300px;',
+                                          div(style = 'float:left;', 'strongly disagree'),
+                                          div(style = 'float:right;', 'strongly agree')),
+                              min = 1, max = 9, value = 5),
+                  h4(s_survey_questions[7]),
+                  sliderInput("survey7",
+                              label = div(style = 'width:300px;',
+                                          div(style = 'float:left;', 'strongly disagree'),
+                                          div(style = 'float:right;', 'strongly agree')),
+                              min = 1, max = 9, value = 5),
+                  h4(s_survey_questions[8]),
+                  sliderInput("survey8",
+                              label = div(style = 'width:300px;',
+                                          div(style = 'float:left;', 'strongly disagree'),
+                                          div(style = 'float:right;', 'strongly agree')),
+                              min = 1, max = 9, value = 5),
+                  h4(s_survey_questions[9]),
+                  sliderInput("survey9",
+                              label = div(style = 'width:300px;',
+                                          div(style = 'float:left;', 'strongly disagree'),
+                                          div(style = 'float:right;', 'strongly agree')),
+                              min = 1, max = 9, value = 5)
+)
+col_grand <- column(4, 
+                    h3(this_factor_order[2]),
+                    hr(),
+                    h4(s_survey_questions[10]),
+                    sliderInput("survey10",
+                                label = div(style = 'width:300px;',
+                                            div(style = 'float:left;', 'strongly disagree'),
+                                            div(style = 'float:right;', 'strongly agree')),
+                                min = 1, max = 9, value = 5),
+                    h4(s_survey_questions[11]),
+                    sliderInput("survey11",
+                                label = div(style = 'width:300px;',
+                                            div(style = 'float:left;', 'strongly disagree'),
+                                            div(style = 'float:right;', 'strongly agree')),
+                                min = 1, max = 9, value = 5),
+                    h4(s_survey_questions[12]),
+                    sliderInput("survey12",
+                                label = div(style = 'width:300px;',
+                                            div(style = 'float:left;', 'strongly disagree'),
+                                            div(style = 'float:right;', 'strongly agree')),
+                                min = 1, max = 9, value = 5),
+                    h4(s_survey_questions[13]),
+                    sliderInput("survey13",
+                                label = div(style = 'width:300px;',
+                                            div(style = 'float:left;', 'strongly disagree'),
+                                            div(style = 'float:right;', 'strongly agree')),
+                                min = 1, max = 9, value = 5)
+)
+col_manual <- column(4, 
+                     h3(this_factor_order[3]),
+                     hr(),
+                     h4(s_survey_questions[14]),
+                     sliderInput("survey14",
+                                 label = div(style = 'width:300px;',
+                                             div(style = 'float:left;', 'strongly disagree'),
+                                             div(style = 'float:right;', 'strongly agree')),
+                                 min = 1, max = 9, value = 5),
+                     h4(s_survey_questions[15]),
+                     sliderInput("survey15",
+                                 label = div(style = 'width:300px;',
+                                             div(style = 'float:left;', 'strongly disagree'),
+                                             div(style = 'float:right;', 'strongly agree')),
+                                 min = 1, max = 9, value = 5),
+                     h4(s_survey_questions[16]),
+                     sliderInput("survey16",
+                                 label = div(style = 'width:300px;',
+                                             div(style = 'float:left;', 'strongly disagree'),
+                                             div(style = 'float:right;', 'strongly agree')),
+                                 min = 1, max = 9, value = 5),
+                     h4(s_survey_questions[17]),
+                     sliderInput("survey17",
+                                 label = div(style = 'width:300px;',
+                                             div(style = 'float:left;', 'strongly disagree'),
+                                             div(style = 'float:right;', 'strongly agree')),
+                                 min = 1, max = 9, value = 5)
+)
+col_ls <- c(col_pca, col_grand, col_manual)
 
 ##### main_ui -----
 main_ui <- mainPanel(
@@ -231,23 +352,23 @@ main_ui <- mainPanel(
   ### _Training mainPanel -----
   conditionalPanel(
     condition = "output.ui_section == 'training'",
-    conditionalPanel(condition = "output.block_num == 1", # ui intro 
+    conditionalPanel(condition = "output.section_pg_num == 1", # ui intro 
                      h2("Training -- interface")
     ),
-    conditionalPanel(condition = "output.block_num == 2",
+    conditionalPanel(condition = "output.section_pg_num == 2",
                      h2("Training -- task 1")
     ),
-    conditionalPanel(condition = "output.block_num == 3",
+    conditionalPanel(condition = "output.section_pg_num == 3",
                      h2("Training -- task 1, set 2")
     ),
-    conditionalPanel(condition = "output.block_num == 4",
+    conditionalPanel(condition = "output.section_pg_num == 4",
                      h2("Training -- task 2")
     ),
-    conditionalPanel(condition = "output.block_num == 5",
+    conditionalPanel(condition = "output.section_pg_num == 5",
                      h2("Training -- task 2, set 2")
     ),
     conditionalPanel( # splash page
-      condition = "output.block_num == 6",
+      condition = "output.section_pg_num == 6",
       h1(),h1(),h1(),
       h1("Training complete, Great job!"),
       h3("Ask any final clarification questions. Then continue on to the 
@@ -268,7 +389,7 @@ main_ui <- mainPanel(
   
   ### _Plot mainPanel ----
   conditionalPanel( 
-    condition = "(output.ui_section == 'training' && output.block_num != 6)
+    condition = "(output.ui_section == 'training' && output.section_pg_num != 6)
       || output.ui_section == 'task'", # block_num == 6 is splash page.
     htmlOutput("plot_msg"),
     plotOutput("pca_plot", height = "auto"),
@@ -312,36 +433,7 @@ main_ui <- mainPanel(
                             div(style = 'float:left;', 'strongly disagree'),
                             div(style = 'float:right;', 'strongly agree')),
                 min = 1, max = 9, value = 5),
-    h4(s_survey_questions[6]),
-    sliderInput("survey6",
-                label = div(style = 'width:300px;',
-                            div(style = 'float:left;', 'strongly disagree'),
-                            div(style = 'float:right;', 'strongly agree')),
-                min = 1, max = 9, value = 5),
-    h4(s_survey_questions[7]),
-    sliderInput("survey7",
-                label = div(style = 'width:300px;',
-                            div(style = 'float:left;', 'strongly disagree'),
-                            div(style = 'float:right;', 'strongly agree')),
-                min = 1, max = 9, value = 5),
-    h4(s_survey_questions[8]),
-    sliderInput("survey8",
-                label = div(style = 'width:300px;',
-                            div(style = 'float:left;', 'strongly disagree'),
-                            div(style = 'float:right;', 'strongly agree')),
-                min = 1, max = 9, value = 5),
-    h4(s_survey_questions[9]),
-    sliderInput("survey9",
-                label = div(style = 'width:300px;',
-                            div(style = 'float:left;', 'strongly disagree'),
-                            div(style = 'float:right;', 'strongly agree')),
-                min = 1, max = 9, value = 5),
-    h4(s_survey_questions[10]),
-    sliderInput("ans_previous_knowledge",
-                label = div(style = 'width:300px;',
-                            div(style = 'float:left;', 'strongly disagree'),
-                            div(style = 'float:right;', 'strongly agree')),
-                min = 1, max = 9, value = 5),
+    col_ls[this_factor_num_order],
     actionButton("save_ans", "save responses"),
     htmlOutput("save_msg"),
     conditionalPanel(
@@ -355,7 +447,6 @@ main_ui <- mainPanel(
 ) # close mainPanel()
 
 
-
 ##### UI, combine panels -----
 ui <- fluidPage(
   header_ui,
@@ -366,11 +457,68 @@ ui <- fluidPage(
   , tableOutput("ans_tbl")
 )
 
+##### App local functions
+app_save_script <- function(
+  filebase = paste("responses_", this_factor_id, Sys.info()[4], sep = "_"), 
+  prefix = ""
+){
+  # Write survey responses to rv$ans_tbl
+  ins_row_start <- nrow(rv$ans_tbl) - n_survey_questions - 1
+  ins_row_end   <- nrow(rv$ans_tbl)
+  rv$ans_tbl$response[ins_row:ins_row_end] <- rv$task_responses
+  rv$ans_tbl$duration[ins_row:ins_row_end] <- rv$task_durations
+  
+  # Write rv$ans_tbl to .csv file.
+  df <- rv$ans_tbl
+  if (!is.null(rv$save_file)){ # if save already exists 
+    save_msg <- paste0("<h3><span style='color:red'>Reponses already saved as ", 
+                       rv$save_file, ".</span></h3>")
+    output$save_msg <- renderText(save_msg)
+    loggit("INFO", "Save button pressed (Previously saved).", 
+           paste0("save_msg: ", save_msg,  "."))
+    return()
+  }
+  
+  # Do the actual saving
+  save_base <- paste0(prefix, filebase)
+  save_num  <- 1
+  save_name <- sprintf(paste0(save_base, "_%03d"), save_num)
+  save_file <- paste0(save_name, ".csv")
+  while (file.exists(save_file)){ # set the correct file number to use
+    save_name <- sprintf(paste0(save_base, "_%03d"), save_num)
+    save_file <- paste0(save_name, ".csv")
+    save_num  <- save_num + 1
+  }
+  assign(save_name, df)
+  write.csv(get(save_name), file = save_file, row.names = FALSE)
+  rv$save_file <- save_file
+  
+  save_msg <- paste0("<h3><span style='color:red'>Reponses saved as ", save_file, 
+                     ". Thank you for participating!</span></h3>")
+  output$save_msg <- renderText(save_msg)
+  
+  if (prefix == "") {
+    loggit("INFO", "Save button pressed.", 
+           paste0("rv$save_file: ", rv$save_file, 
+                  ". save_msg: ", save_msg,
+                  "."))
+  }
+  if (prefix != "") {
+    loggit("INFO", paste0("NOTE: Prefixed save script run. Prefix was '", prefix, "'."), 
+           paste0("Save may not have been user initiated",
+                  ". PREFIX USED: ", prefix,
+                  ". rv$save_file: ", rv$save_file, 
+                  ". save_msg: ", save_msg, "."))
+  }
+  
+  return()
+}
+
 
 app_render_ <- function(slides, # paste over spinifex render to add size
                         axes = "center",
                         alpha = 1,
-                        cluster,
+                        cluster = NULL,
                         ...) {
   # Initialize
   if (length(slides) == 2)
@@ -502,5 +650,5 @@ app_oblique_frame <-
       ggplot2::coord_fixed() +
       theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
     
-    gg
+    return(gg)
   }
