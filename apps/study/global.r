@@ -38,7 +38,7 @@ is_logging <- FALSE
 ## https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## Uncomment the following line to apply logging
-# setLogFile(log_file); is_logging <- TRUE
+setLogFile(log_file); is_logging <- TRUE
 loggit("INFO", "app has started", "spinifex_study")
 
 
@@ -84,7 +84,7 @@ n_tasks            <- length(s_task_id)          # ~2
 n_task2_questions  <- length(s_task2_questions)  # ~4
 n_difficulty       <- length(s_difficulty)       # ~3
 n_blocks           <- 3 #length(s_dat) / (n_tasks * n_factors) # 18/(2*3) = 3
-n_survey_questions <- length(s_survey_questions) # ~10
+n_survey_questions <- length(s_survey_questions) # ~17
 
 s_taskblock_id <- paste0(rep(s_task_id, each = n_blocks), rep(1:n_blocks, n_tasks))
 # intro is pg 1; video intro is pg 2
@@ -450,14 +450,22 @@ main_ui <- mainPanel(
 
 
 ##### UI, combine panels -----
-ui <- fluidPage(
-  header_ui,
-  sidebar_ui,
-  main_ui
-  , verbatimTextOutput("dev_msg")
-  , actionButton("browser", "browser()")
-  , tableOutput("ans_tbl")
+ui <- fluidPage(header_ui,
+                sidebar_ui,
+                main_ui
+                # , verbatimTextOutput("dev_msg")
+                # , actionButton("browser", "browser()")
+                # , tableOutput("ans_tbl") 
 )
+
+### onStop -----
+onStop(function(){
+  cat("(onSessionEnded ran) \n")
+  loggit("INFO", "Spinifex study app has stopped.")
+  
+  ### Try to autosave if not saved and logging.
+  # rv$ is out of scope at this point.
+})
 
 ##### App local functions
 app_render_ <- function(slides, # paste over spinifex render to add size

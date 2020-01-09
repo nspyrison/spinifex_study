@@ -10,7 +10,7 @@ server <- function(input, output, session) {
   
   ### Initialization and reactives -----
   rv                 <- reactiveValues()
-  rv$pg_num          <- 8
+  rv$pg_num          <- 1
   rv$timer           <- 999
   rv$stopwatch       <- 0
   rv$timer_active    <- TRUE
@@ -119,7 +119,7 @@ server <- function(input, output, session) {
       USE_AXES <- TRUE
       USE_AES  <- TRUE
       if (task_num() == 1) {
-        USE_AXES <- FALSE
+        # USE_AXES <- FALSE # comments as manual may want this and consistency
         if(rv$training_aes == FALSE) { # During training
           USE_AES  <- FALSE
         } 
@@ -802,7 +802,7 @@ server <- function(input, output, session) {
   
   ### Obs next page button -----
   observeEvent(input$next_pg_button, {
-    if ((rv$stopwatch > 4 & is_logging == TRUE) |
+    if ((rv$stopwatch > 2 & is_logging == TRUE) |
         is_logging == FALSE){
       # Init rv$ans_tbl <- ans_tbl() first press
       if (is.null(rv$ans_tbl)){ rv$ans_tbl <- ans_tbl() }
@@ -994,10 +994,10 @@ server <- function(input, output, session) {
     prefix = ""
     
     # Write survey responses to rv$ans_tbl
-    ins_row_start <- nrow(rv$ans_tbl) - n_survey_questions - 1
+    ins_row_start <- nrow(rv$ans_tbl) - n_survey_questions + 1
     ins_row_end   <- nrow(rv$ans_tbl)
-    rv$ans_tbl$response[ins_row:ins_row_end] <- rv$task_responses
-    rv$ans_tbl$duration[ins_row:ins_row_end] <- rv$task_durations
+    rv$ans_tbl$response[ins_row_start:ins_row_end] <- rv$task_responses
+    rv$ans_tbl$duration[ins_row_start:ins_row_end] <- rv$task_durations
     
     # Write rv$ans_tbl to .csv file.
     df <- rv$ans_tbl
@@ -1113,65 +1113,6 @@ server <- function(input, output, session) {
                                     "rv$timer: ", rv$timer, "\n",
                                     sep = ""))
   
-  session$onSessionEnded(function(){
-    cat("(onSessionEnded ran) \n")
-    loggit("INFO", "Spinifex study app has stopped.")
-    
-    if (is.null(rv$save_file)) {
-      filebase = paste("responses_", this_factor_id, Sys.info()[4], sep = "_")
-      prefix = "AUTOSAVE"
-      
-      # Write survey responses to rv$ans_tbl
-      ins_row_start <- nrow(rv$ans_tbl) - n_survey_questions - 1
-      ins_row_end   <- nrow(rv$ans_tbl)
-      rv$ans_tbl$response[ins_row:ins_row_end] <- rv$task_responses
-      rv$ans_tbl$duration[ins_row:ins_row_end] <- rv$task_durations
-      
-      # Write rv$ans_tbl to .csv file.
-      df <- rv$ans_tbl
-      if (!is.null(rv$save_file)){ # if save already exists 
-        save_msg <- paste0("<h3><span style='color:red'>Reponses already saved as ", 
-                           rv$save_file, ".</span></h3>")
-        output$save_msg <- renderText(save_msg)
-        loggit("INFO", "Save button pressed (Previously saved).", 
-               paste0("save_msg: ", save_msg,  "."))
-        return()
-      }
-      
-      # Do the actual saving
-      save_base <- paste0(prefix, filebase, "_")
-      save_num  <- 1
-      save_name <- sprintf(paste0(save_base, "%03d"), save_num)
-      save_file <- paste0(save_name, ".csv")
-      while (file.exists(save_file)){ # set the correct file number to use
-        save_name <- sprintf(paste0(save_base, "%03d"), save_num)
-        save_file <- paste0(save_name, ".csv")
-        save_num  <- save_num + 1
-      }
-      assign(save_name, df)
-      write.csv(get(save_name), file = save_file, row.names = FALSE)
-      rv$save_file <- save_file
-      
-      save_msg <- paste0("<h3><span style='color:red'>Reponses saved as ", save_file, 
-                         ". Thank you for participating!</span></h3>")
-      output$save_msg <- renderText(save_msg)
-      
-      if (prefix == "") {
-        loggit("INFO", "Save button pressed.", 
-               paste0("rv$save_file: ", rv$save_file, 
-                      ". save_msg: ", save_msg,
-                      "."))
-      }
-      if (prefix != "") {
-        loggit("INFO", paste0("NOTE: Prefixed save script run. Prefix was '", prefix, "'."), 
-               paste0("Save may not have been user initiated",
-                      ". PREFIX USED: ", prefix,
-                      ". rv$save_file: ", rv$save_file, 
-                      ". save_msg: ", save_msg, "."))
-      }
-
-    }
-  })
 }
 
 ### Combine as shiny app.
