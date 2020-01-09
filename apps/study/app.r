@@ -10,7 +10,7 @@ server <- function(input, output, session) {
   
   ### Initialization and reactives -----
   rv                 <- reactiveValues()
-  rv$pg_num          <- 1
+  rv$pg_num          <- 8
   rv$timer           <- 999
   rv$stopwatch       <- 0
   rv$timer_active    <- TRUE
@@ -30,8 +30,7 @@ server <- function(input, output, session) {
     if (rv$pg_num %in% 1:(training_start - 1)) {return("intro")}
     if (rv$pg_num %in% training_start:(task_start - 1) ) {return("training")}
     if (rv$pg_num %in% task_start:(survey_start - 1) ) {return("task")}
-    if (rv$pg_num == survey_start) {return("survey")} 
-    return("passed survey, need to cap pg_num")
+    if (rv$pg_num >= survey_start - 1) {return("survey")} 
   })
   section_pg_num <- reactive({ # ~page num of this section.
     if (ui_section() == "intro") {return(rv$pg_num)}
@@ -41,7 +40,7 @@ server <- function(input, output, session) {
     if (ui_section() == "task"){
       return(rv$pg_num - (task_start - 1))
     }
-    if (ui_section() == "survey") {return(rv$pg_num)}
+    if (ui_section() == "survey") {return(1)}
   })
   period_num <- reactive({1 + ((section_pg_num() - 1) %/% (n_tasks * n_blocks))})
   factor <- reactive({ # ~ PCA, gtour, mtour
@@ -803,105 +802,107 @@ server <- function(input, output, session) {
   
   ### Obs next page button -----
   observeEvent(input$next_pg_button, {
-    # Init rv$ans_tbl <- ans_tbl() first press
-    if (is.null(rv$ans_tbl)){ rv$ans_tbl <- ans_tbl() }
-    # if <on last task> {<do nothing>}. Also shouldn't be visible
-    if (rv$pg_num >= survey_start){ return() }
-    
-    
-    ### _Training evaluation -----
-    # If training section, evaluate response
-    if (ui_section() == "training") {
-      # Evaluate training task 1 
-      if (task_num() == 1 & rv$training_aes == FALSE) {
-        rv$training_aes <- TRUE
-        response <- input$tsk1_ans
-        ans <- length(attr(task_dat(), "ncl"))
-        delta <- response - ans
-        
-        theme_start <- "<h3><span style='color:red'>"
-        this_msg <- ""
-        main_msg <- 
-          "For PCA make sure to plot several components. 
+    if ((rv$stopwatch > 4 & is_logging == TRUE) |
+        is_logging == FALSE){
+      # Init rv$ans_tbl <- ans_tbl() first press
+      if (is.null(rv$ans_tbl)){ rv$ans_tbl <- ans_tbl() }
+      # if <on last task> {<do nothing>}. Also shouldn't be visible
+      if (rv$pg_num >= survey_start){ return() }
+      
+      
+      ### _Training evaluation -----
+      # If training section, evaluate response
+      if (ui_section() == "training") {
+        # Evaluate training task 1 
+        if (task_num() == 1 & rv$training_aes == FALSE) {
+          rv$training_aes <- TRUE
+          response <- input$tsk1_ans
+          ans <- length(attr(task_dat(), "ncl"))
+          delta <- response - ans
+          
+          theme_start <- "<h3><span style='color:red'>"
+          this_msg <- ""
+          main_msg <- 
+            "For PCA make sure to plot several components. 
           Using the grand tour look for groups of points moving together. 
           In the manual tour choose the variables with the largest axes 
           sequentially to manipulate their contribution to the projection."
-        theme_end <- "</span></h3>"
-        
-        if (delta >= 2){ # >= 2 clusters too high, retry
-          rv$second_training <- TRUE
-          this_msg <- paste0("That is little high, this data has ", ans, " clusters. 
+          theme_end <- "</span></h3>"
+          
+          if (delta >= 2){ # >= 2 clusters too high, retry
+            rv$second_training <- TRUE
+            this_msg <- paste0("That is little high, this data has ", ans, " clusters. 
             Try again on another training set. ")
-        }
-        if (delta <= -2){ # <= 2 clusters too low, retry
-          rv$second_training <- TRUE
-          this_msg <- paste0("That is little low, this data has ", ans, " clusters. 
+          }
+          if (delta <= -2){ # <= 2 clusters too low, retry
+            rv$second_training <- TRUE
+            this_msg <- paste0("That is little low, this data has ", ans, " clusters. 
             Try again on another training set. ")
-        }
-        if (abs(delta) == 1){ # within 1 cluster, passes
-          rv$second_training <- "ask"
-          this_msg <- paste0("Close, this data has ", ans, " clusters. 
+          }
+          if (abs(delta) == 1){ # within 1 cluster, passes
+            rv$second_training <- "ask"
+            this_msg <- paste0("Close, this data has ", ans, " clusters. 
             You have the right idea. As a reminder, ")
-        }
-        if (delta == 0){ # exact answer, passes
-          rv$second_training <- "ask"
-          this_msg <- paste0("That's correct, this data has ", ans, " clusters.
+          }
+          if (delta == 0){ # exact answer, passes
+            rv$second_training <- "ask"
+            this_msg <- paste0("That's correct, this data has ", ans, " clusters.
             As a reminder, ")
-        }
-        output$plot_msg <- renderText(paste0(
-          theme_start, this_msg, main_msg, theme_end
-        ))
-        return()
-      }
-      
-      # Evaluation of the training for tasks 2.
-      if (task_num() == 2 & rv$training_aes == FALSE) {
-        rv$training_aes <- TRUE
-        # task 2 response
-        resp_cla_very <- input$tsk2_ans_cla_very # ~ c("V1", "V3") # row 1, col 1, 3 = 2
-        resp_cla_some <- input$tsk2_ans_cla_some # ~ c("V2", "V4", "V5") # row 1, col 2, 4, 5 = 1
-        resp_clb_very <- input$tsk2_ans_clb_very
-        resp_clb_some <- input$tsk2_ans_clb_some
-        
-        response_list <- list(resp_cla_very, resp_cla_some,
-                              resp_clb_very, resp_clb_some)
-        
-        p    <- p()
-        n_cl <- n_cl()
-        response <- matrix(0, nrow = n_cl, ncol = p) # cannot distinguish between 0 and NA
-        for (i in 1:2){
-          resp_i <- 2 * i - 1 
-          this_col_very <- as.integer(substr(response_list[[resp_i]], 2, 2))
-          this_col_some <- as.integer(substr(response_list[[resp_i + 1]], 2, 2))
-          if (length(this_col_very) >= 1) response[i, this_col_very] <- 2
-          if (length(this_col_some) >= 1) response[i, this_col_some] <- 1
-        }
-        
-        # task 2 answer
-        dat <- task_dat()
-        supervied_dat <- data.frame(dat, cluster = attr(dat, "cluster"))
-        this_lda <- MASS::lda(cluster ~ ., data = supervied_dat)
-        abs_lda_means <- abs(this_lda$means)
-        
-        abs_lda_means_rowptile <- matrix(NA, nrow = nrow(this_lda$means),
-                                         ncol = ncol(this_lda$means))
-        for (i in 1:nrow(abs_lda_means)){
-          abs_lda_means_rowptile[i, ] <- 
-            abs_lda_means[i, ] / max(abs_lda_means[i,])
-        }
-        ans <- dplyr::case_when(
-          abs_lda_means_rowptile >= .75 ~ 2, # very important is 2, > 75% ptile
-          abs_lda_means_rowptile >= .25 ~ 1, # some important is 2, > 25% ptile
-          abs_lda_means_rowptile >= 0 ~ 0
-        )
-        
-        score <- -1 * sum((response - ans)^2) # i got -3 for 1 cl,
-        bar <- -6 * (n_cl - 1)
-        
-        if (score < bar){ # score not passing
-          rv$second_training <- TRUE
+          }
           output$plot_msg <- renderText(paste0(
-            "<h3><span style='color:red'>
+            theme_start, this_msg, main_msg, theme_end
+          ))
+          return()
+        }
+        
+        # Evaluation of the training for tasks 2.
+        if (task_num() == 2 & rv$training_aes == FALSE) {
+          rv$training_aes <- TRUE
+          # task 2 response
+          resp_cla_very <- input$tsk2_ans_cla_very # ~ c("V1", "V3") # row 1, col 1, 3 = 2
+          resp_cla_some <- input$tsk2_ans_cla_some # ~ c("V2", "V4", "V5") # row 1, col 2, 4, 5 = 1
+          resp_clb_very <- input$tsk2_ans_clb_very
+          resp_clb_some <- input$tsk2_ans_clb_some
+          
+          response_list <- list(resp_cla_very, resp_cla_some,
+                                resp_clb_very, resp_clb_some)
+          
+          p    <- p()
+          n_cl <- n_cl()
+          response <- matrix(0, nrow = n_cl, ncol = p) # cannot distinguish between 0 and NA
+          for (i in 1:2){
+            resp_i <- 2 * i - 1 
+            this_col_very <- as.integer(substr(response_list[[resp_i]], 2, 2))
+            this_col_some <- as.integer(substr(response_list[[resp_i + 1]], 2, 2))
+            if (length(this_col_very) >= 1) response[i, this_col_very] <- 2
+            if (length(this_col_some) >= 1) response[i, this_col_some] <- 1
+          }
+          
+          # task 2 answer
+          dat <- task_dat()
+          supervied_dat <- data.frame(dat, cluster = attr(dat, "cluster"))
+          this_lda <- MASS::lda(cluster ~ ., data = supervied_dat)
+          abs_lda_means <- abs(this_lda$means)
+          
+          abs_lda_means_rowptile <- matrix(NA, nrow = nrow(this_lda$means),
+                                           ncol = ncol(this_lda$means))
+          for (i in 1:nrow(abs_lda_means)){
+            abs_lda_means_rowptile[i, ] <- 
+              abs_lda_means[i, ] / max(abs_lda_means[i,])
+          }
+          ans <- dplyr::case_when(
+            abs_lda_means_rowptile >= .75 ~ 2, # very important is 2, > 75% ptile
+            abs_lda_means_rowptile >= .25 ~ 1, # some important is 2, > 25% ptile
+            abs_lda_means_rowptile >= 0 ~ 0
+          )
+          
+          score <- -1 * sum((response - ans)^2) # i got -3 for 1 cl,
+          bar <- -6 * (n_cl - 1)
+          
+          if (score < bar){ # score not passing
+            rv$second_training <- TRUE
+            output$plot_msg <- renderText(paste0(
+              "<h3><span style='color:red'>
           That seems a little off. 
           Remember that the importance of a variable for
           distinguishing a group is related to variables in a separating 
@@ -909,12 +910,12 @@ server <- function(input, output, session) {
           small contributions cannot be ruled out, multiple projections most be 
           looked at.
           </span></h3>"))
-          return()
-        }
-        if (score >= bar){ # score is passing
-          rv$second_training <- "ask"
-          output$plot_msg <- renderText(paste0(
-            "<h3><span style='color:red'>
+            return()
+          }
+          if (score >= bar){ # score is passing
+            rv$second_training <- "ask"
+            output$plot_msg <- renderText(paste0(
+              "<h3><span style='color:red'>
             Very good! 
             As a reminder, the importance of a variable for
             distinguishing a group is related to variables in a separating 
@@ -922,71 +923,124 @@ server <- function(input, output, session) {
             small contributions cannot be ruled out, multiple projections most be 
             looked at.
             </span></h3>"))
-          return()
+            return()
+          }
+        }
+        
+      } # end of training section evaluation
+      
+      # If task section, write reponses and duration to ans_tbl
+      # _rv$ans_tbl -----
+      if (ui_section() == "task" |
+          (ui_section() == "training" & task_num() %in% 1:2)) {
+        ins_row_start <- which(rv$ans_tbl$factor == factor() &
+                                 rv$ans_tbl$taskblock == taskblock())[1] # first row of this taskblock.
+        ins_row_end <- ins_row_start + length(rv$task_responses) - 1
+        rv$ans_tbl$response[ins_row_start:ins_row_end] <- rv$task_responses
+        rv$ans_tbl$duration[ins_row_start:ins_row_end] <- rv$task_durations
+      }
+      
+      ### _New page ----
+      # if second training not needed, skip a page.
+      if (ui_section() == "training" & block_num() %in% c(2, 4) & # rep 1 of task 1 & 2
+          !(rv$second_training == TRUE | input$second_training == TRUE)) {
+        rv$pg_num <- rv$pg_num + 1
+      }
+      rv$pg_num <- rv$pg_num + 1
+      
+      # Reset responses, duration, and timer for next task
+      output$plot_msg <- renderText("")
+      rv$task_responses <- NULL
+      rv$task_durations <- NULL
+      rv$timer <- task_time()
+      rv$stopwatch <- 0
+      rv$timer_active <- TRUE
+      rv$training_aes <- FALSE
+      rv$second_training <- FALSE
+      updateCheckboxInput(session, "second_training", value = FALSE)
+      
+      # Clear task response
+      if (ui_section() == "task") {
+        if (task_num() == 1) { # reset to same settings.
+          updateNumericInput(session, "tsk1_ans", "",
+                             value = 0, min = 0, max = 10)
         }
       }
       
-    } # end of training section evaluation
-    
-    # If task section, write reponses and duration to ans_tbl
-    # _rv$ans_tbl -----
-    if (ui_section() == "task" |
-        (ui_section() == "training" & task_num() %in% 1:2)) {
-      ins_row_start <- which(rv$ans_tbl$factor == factor() &
-                               rv$ans_tbl$taskblock == taskblock())[1] # first row of this taskblock.
-      ins_row_end <- ins_row_start + length(rv$task_responses) - 1
-      rv$ans_tbl$response[ins_row_start:ins_row_end] <- rv$task_responses
-      rv$ans_tbl$duration[ins_row_start:ins_row_end] <- rv$task_durations
+      # Set structure for responses and durations
+      n_rows <- 0
+      if (task_num() == 1){n_rows <- 1} 
+      if (task_num() == 2){n_rows <- 4}
+      if (ui_section() == "survey") {n_rows <- n_survey_questions}
+      
+      rv$task_responses <- rep("default", n_rows)
+      rv$task_durations <- rep("default", n_rows)
+      loggit("INFO", paste0("Next page: section ", ui_section(), 
+                            ", section page ", section_pg_num()),
+             paste0("rv$pg_num: ", rv$pg_num, 
+                    ". ui_section(): ", ui_section(),
+                    ". period_num(): ", period_num(),
+                    ". factor(): ", factor(),
+                    ". task_num(): ", task_num(),
+                    ". block_num(): ", block_num(), 
+                    ". Wrote responses to rv$ans_tbl."))
     }
-    
-    ### _New page ----
-    # if second training not needed, skip a page.
-    if (ui_section() == "training" & block_num() %in% c(2, 4) & # rep 1 of task 1 & 2
-        !(rv$second_training == TRUE | input$second_training == TRUE)) {
-      rv$pg_num <- rv$pg_num + 1
-    }
-    rv$pg_num <- rv$pg_num + 1
-    # Reset responses, duration, and timer for next task
-    output$plot_msg <- renderText("")
-    rv$task_responses <- NULL
-    rv$task_durations <- NULL
-    rv$timer <- task_time()
-    rv$stopwatch <- 0
-    rv$timer_active <- TRUE
-    rv$training_aes <- FALSE
-    rv$second_training <- FALSE
-    updateCheckboxInput(session, "second_training", value = FALSE)
-    
-    # Clear task response
-    if (ui_section() == "task") {
-      if (task_num() == 1) { # reset to same settings.
-        updateNumericInput(session, "tsk1_ans", "",
-                           value = 0, min = 0, max = 10)
-      }
-    }
-    
-    # Set structure for responses and durations
-    n_rows <- 0
-    if (task_num() == 1){n_rows <- 1} 
-    if (task_num() == 2){n_rows <- 4}
-    if (ui_section() == "survey") {n_rows <- n_survey_questions}
-    
-    rv$task_responses <- rep("default", n_rows)
-    rv$task_durations <- rep("default", n_rows)
-    loggit("INFO", paste0("Next page: section ", ui_section(), 
-                          ", section page ", section_pg_num()),
-           paste0("rv$pg_num: ", rv$pg_num, 
-                  ". ui_section(): ", ui_section(),
-                  ". period_num(): ", period_num(),
-                  ". factor(): ", factor(),
-                  ". task_num(): ", task_num(),
-                  ". block_num(): ", block_num(), 
-                  ". Wrote responses to rv$ans_tbl."))
   })
+  
   
   ### Obs save reponses button -----
   observeEvent(input$save_ans, {
-    app_save_script()
+    filebase = paste("responses_", this_factor_id, Sys.info()[4], sep = "_")
+    prefix = ""
+    
+    # Write survey responses to rv$ans_tbl
+    ins_row_start <- nrow(rv$ans_tbl) - n_survey_questions - 1
+    ins_row_end   <- nrow(rv$ans_tbl)
+    rv$ans_tbl$response[ins_row:ins_row_end] <- rv$task_responses
+    rv$ans_tbl$duration[ins_row:ins_row_end] <- rv$task_durations
+    
+    # Write rv$ans_tbl to .csv file.
+    df <- rv$ans_tbl
+    if (!is.null(rv$save_file)){ # if save already exists 
+      save_msg <- paste0("<h3><span style='color:red'>Reponses already saved as ", 
+                         rv$save_file, ".</span></h3>")
+      output$save_msg <- renderText(save_msg)
+      loggit("INFO", "Save button pressed (Previously saved).", 
+             paste0("save_msg: ", save_msg,  "."))
+      return()
+    }
+    
+    # Do the actual saving
+    save_base <- paste0(prefix, filebase, "_")
+    save_num  <- 1
+    save_name <- sprintf(paste0(save_base, "%03d"), save_num)
+    save_file <- paste0(save_name, ".csv")
+    while (file.exists(save_file)){ # set the correct file number to use
+      save_name <- sprintf(paste0(save_base, "%03d"), save_num)
+      save_file <- paste0(save_name, ".csv")
+      save_num  <- save_num + 1
+    }
+    assign(save_name, df)
+    write.csv(get(save_name), file = save_file, row.names = FALSE)
+    rv$save_file <- save_file
+    
+    save_msg <- paste0("<h3><span style='color:red'>Reponses saved as ", save_file, 
+                       ". Thank you for participating!</span></h3>")
+    output$save_msg <- renderText(save_msg)
+    
+    if (prefix == "") {
+      loggit("INFO", "Save button pressed.", 
+             paste0("rv$save_file: ", rv$save_file, 
+                    ". save_msg: ", save_msg,
+                    "."))
+    }
+    if (prefix != "") {
+      loggit("INFO", paste0("NOTE: Prefixed save script run. Prefix was '", prefix, "'."), 
+             paste0("Save may not have been user initiated",
+                    ". PREFIX USED: ", prefix,
+                    ". rv$save_file: ", rv$save_file, 
+                    ". save_msg: ", save_msg, "."))
+    }
   })
   
   ### Obs browser -----
@@ -1064,7 +1118,58 @@ server <- function(input, output, session) {
     loggit("INFO", "Spinifex study app has stopped.")
     
     if (is.null(rv$save_file)) {
-      app_save_script(prefix = "AUTOSAVE")
+      filebase = paste("responses_", this_factor_id, Sys.info()[4], sep = "_")
+      prefix = "AUTOSAVE"
+      
+      # Write survey responses to rv$ans_tbl
+      ins_row_start <- nrow(rv$ans_tbl) - n_survey_questions - 1
+      ins_row_end   <- nrow(rv$ans_tbl)
+      rv$ans_tbl$response[ins_row:ins_row_end] <- rv$task_responses
+      rv$ans_tbl$duration[ins_row:ins_row_end] <- rv$task_durations
+      
+      # Write rv$ans_tbl to .csv file.
+      df <- rv$ans_tbl
+      if (!is.null(rv$save_file)){ # if save already exists 
+        save_msg <- paste0("<h3><span style='color:red'>Reponses already saved as ", 
+                           rv$save_file, ".</span></h3>")
+        output$save_msg <- renderText(save_msg)
+        loggit("INFO", "Save button pressed (Previously saved).", 
+               paste0("save_msg: ", save_msg,  "."))
+        return()
+      }
+      
+      # Do the actual saving
+      save_base <- paste0(prefix, filebase, "_")
+      save_num  <- 1
+      save_name <- sprintf(paste0(save_base, "%03d"), save_num)
+      save_file <- paste0(save_name, ".csv")
+      while (file.exists(save_file)){ # set the correct file number to use
+        save_name <- sprintf(paste0(save_base, "%03d"), save_num)
+        save_file <- paste0(save_name, ".csv")
+        save_num  <- save_num + 1
+      }
+      assign(save_name, df)
+      write.csv(get(save_name), file = save_file, row.names = FALSE)
+      rv$save_file <- save_file
+      
+      save_msg <- paste0("<h3><span style='color:red'>Reponses saved as ", save_file, 
+                         ". Thank you for participating!</span></h3>")
+      output$save_msg <- renderText(save_msg)
+      
+      if (prefix == "") {
+        loggit("INFO", "Save button pressed.", 
+               paste0("rv$save_file: ", rv$save_file, 
+                      ". save_msg: ", save_msg,
+                      "."))
+      }
+      if (prefix != "") {
+        loggit("INFO", paste0("NOTE: Prefixed save script run. Prefix was '", prefix, "'."), 
+               paste0("Save may not have been user initiated",
+                      ". PREFIX USED: ", prefix,
+                      ". rv$save_file: ", rv$save_file, 
+                      ". save_msg: ", save_msg, "."))
+      }
+
     }
   })
 }

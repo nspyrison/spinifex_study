@@ -23,9 +23,9 @@ this_factor_num_order <- num_latin_sq[this_factor_id, ]
 this_factor_order     <- f_ls[this_factor_num_order]
 
 
-log_base <- paste("log", this_factor_id, Sys.info()[4], sep = "_")
+log_base <- paste0("log_", this_factor_id, "_", Sys.info()[4], "_")
 log_num  <- 1
-log_name <- sprintf(paste0(log_base, "_%03d"), log_num)
+log_name <- sprintf(paste0(log_base, "%03d"), log_num)
 log_file <- paste0(log_name, ".json")
 while (file.exists(log_file)){ # Find an unused log number
   log_name <- sprintf(paste0(log_base, "%03d"), log_num)
@@ -33,11 +33,12 @@ while (file.exists(log_file)){ # Find an unused log number
   log_num  <- log_num + 1
 }
 
+is_logging <- FALSE
 ### Logging
 ## https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## Uncomment the following line to apply logging
-setLogFile(log_file)
+# setLogFile(log_file); is_logging <- TRUE
 loggit("INFO", "app has started", "spinifex_study")
 
 
@@ -89,9 +90,9 @@ s_taskblock_id <- paste0(rep(s_task_id, each = n_blocks), rep(1:n_blocks, n_task
 # intro is pg 1; video intro is pg 2
 training_start <- 3
 # ~ 9, pg 2:8 is training; (start on ui, 2x2 for tasks, splash)
-task_start     <- (training_start + 2 * n_tasks + 1) + 1
-# ~ 28, 9 + 3 * 3 * 2 + 1
-survey_start   <- (task_start + 3 * (n_blocks * n_tasks)) + 1
+task_start     <- (training_start + n_trainings * n_tasks + 1) + 1
+# ~ 27, 9 + 3 * 3 * 2
+survey_start   <- task_start + n_factors * n_blocks * n_tasks
 
 ### header_ui -----
 header_ui <- fluidPage(
@@ -434,6 +435,7 @@ main_ui <- mainPanel(
                             div(style = 'float:right;', 'strongly agree')),
                 min = 1, max = 9, value = 5),
     col_ls[this_factor_num_order],
+    hr(),
     actionButton("save_ans", "save responses"),
     htmlOutput("save_msg"),
     conditionalPanel(
@@ -458,63 +460,6 @@ ui <- fluidPage(
 )
 
 ##### App local functions
-app_save_script <- function(
-  filebase = paste("responses_", this_factor_id, Sys.info()[4], sep = "_"), 
-  prefix = ""
-){
-  # Write survey responses to rv$ans_tbl
-  ins_row_start <- nrow(rv$ans_tbl) - n_survey_questions - 1
-  ins_row_end   <- nrow(rv$ans_tbl)
-  rv$ans_tbl$response[ins_row:ins_row_end] <- rv$task_responses
-  rv$ans_tbl$duration[ins_row:ins_row_end] <- rv$task_durations
-  
-  # Write rv$ans_tbl to .csv file.
-  df <- rv$ans_tbl
-  if (!is.null(rv$save_file)){ # if save already exists 
-    save_msg <- paste0("<h3><span style='color:red'>Reponses already saved as ", 
-                       rv$save_file, ".</span></h3>")
-    output$save_msg <- renderText(save_msg)
-    loggit("INFO", "Save button pressed (Previously saved).", 
-           paste0("save_msg: ", save_msg,  "."))
-    return()
-  }
-  
-  # Do the actual saving
-  save_base <- paste0(prefix, filebase)
-  save_num  <- 1
-  save_name <- sprintf(paste0(save_base, "_%03d"), save_num)
-  save_file <- paste0(save_name, ".csv")
-  while (file.exists(save_file)){ # set the correct file number to use
-    save_name <- sprintf(paste0(save_base, "_%03d"), save_num)
-    save_file <- paste0(save_name, ".csv")
-    save_num  <- save_num + 1
-  }
-  assign(save_name, df)
-  write.csv(get(save_name), file = save_file, row.names = FALSE)
-  rv$save_file <- save_file
-  
-  save_msg <- paste0("<h3><span style='color:red'>Reponses saved as ", save_file, 
-                     ". Thank you for participating!</span></h3>")
-  output$save_msg <- renderText(save_msg)
-  
-  if (prefix == "") {
-    loggit("INFO", "Save button pressed.", 
-           paste0("rv$save_file: ", rv$save_file, 
-                  ". save_msg: ", save_msg,
-                  "."))
-  }
-  if (prefix != "") {
-    loggit("INFO", paste0("NOTE: Prefixed save script run. Prefix was '", prefix, "'."), 
-           paste0("Save may not have been user initiated",
-                  ". PREFIX USED: ", prefix,
-                  ". rv$save_file: ", rv$save_file, 
-                  ". save_msg: ", save_msg, "."))
-  }
-  
-  return()
-}
-
-
 app_render_ <- function(slides, # paste over spinifex render to add size
                         axes = "center",
                         alpha = 1,
