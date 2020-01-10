@@ -96,8 +96,9 @@ server <- function(input, output, session) {
     } else return(FALSE)
   })
   task_header <- reactive({
-    paste0("Evaluation -- factor: ", factor(), ", task ", task_num(), 
-           ", difficulty: ", s_difficulty[block_num()])
+    paste0("Evaluation -- factor: ", factor(), ", task ", task_num() 
+           # , ", difficulty: ", s_difficulty[block_num()]
+    )
   })
   
   ### PCA plot reactive -----
@@ -120,6 +121,7 @@ server <- function(input, output, session) {
       USE_AES  <- TRUE
       if (task_num() == 1) {
         # USE_AXES <- FALSE # comments as manual may want this and consistency
+        axes_position <- "bottomleft"
         if(rv$training_aes == FALSE) { # During training
           USE_AES  <- FALSE
         } 
@@ -236,7 +238,8 @@ server <- function(input, output, session) {
       USE_AXES <- TRUE
       USE_AES  <- TRUE
       if (task_num() == 1) {
-        USE_AXES <- FALSE
+        # USE_AXES <- FALSE # comments as manual may want this and consistency
+        axes_position <- "bottomleft"
         if(rv$training_aes == FALSE) { # During training
           USE_AES  <- FALSE
         } 
@@ -336,7 +339,6 @@ server <- function(input, output, session) {
   }
   mtour_plot <- reactive({
     if (manual_active()) {
-      if (is.null(rv$curr_basis)) {stop("rv$curr_basis not found while calling mtour_plot()")}
       # data init
       dat <- task_dat()
       dat_std <- tourr::rescale(dat)
@@ -344,15 +346,22 @@ server <- function(input, output, session) {
       m_var <- NULL
       if (input$manip_var == "<none>") {m_var <- 1
       } else {m_var <- which(colnames(dat) == input$manip_var)}
-      
+      if (is.null(rv$curr_basis)) {
+        dat <- task_dat()
+        dat_std <- tourr::rescale(dat)
+        pca <- prcomp(dat_std)
+        rv$curr_basis <- pca$rotation[, c(1, 2)]
+        # updateRadioButtons(session, "x_axis", selected = "PC1")
+        # updateRadioButtons(session, "y_axis", selected = "PC2")
+      }
       # render init
       pal <- "Dark2"
       axes_position <- "center"
       USE_AXES <- TRUE
       USE_AES  <- TRUE
       if (task_num() == 1) {
-        USE_AXES <- FALSE
-        axes_position <- "off"
+        # USE_AXES <- FALSE # comments as manual may want this and consistency
+        axes_position <- "bottomleft"
         if(rv$training_aes == FALSE) { # During training
           USE_AES  <- FALSE
         } 
@@ -459,7 +468,7 @@ server <- function(input, output, session) {
   
   
   ##### Start observes
-  ### Obs update axis choices and task 2 choices -----
+  ### Obs update axis/task2 choices -----
   observeEvent(task_dat(), { # Init axis choices when data changes
     p <- p()
     if (pca_active() == TRUE | manual_active() == TRUE) {
@@ -543,6 +552,12 @@ server <- function(input, output, session) {
                            theta = theta, phi = phi)
       row.names(ret) <- colnames(task_dat())
       
+      if(abs(phi) < (pi/18) & rv$stopwatch > 5) {
+        prev_theta <- theta
+        print(theta)
+        browser()
+      }
+      
       rv$curr_basis <- ret
       loggit("INFO", paste0("Slider value changed: ", input$manip_slider),
              paste0("rv$curr_basis updated: ",
@@ -551,7 +566,11 @@ server <- function(input, output, session) {
   })
   
   ### Obs mtour update manip_var choices -----
-  observeEvent(task_dat(), { # Init manip_var choices on data change.
+  observeEvent({
+    task_dat()
+    input$factor
+  }, 
+  { # Init manip_var choices on data change.
     if (manual_active() == TRUE) {
       these_colnames <- colnames(task_dat())
       updateSelectInput(session, "manip_var", choices = these_colnames, 
@@ -562,19 +581,20 @@ server <- function(input, output, session) {
   
   ### Obs mtour update slider value -----
   observeEvent(
-    {manip_var_num()
+    {
+      manip_var_num()
       task_dat()
+      input$factor
       input$x_axis
       input$y_axis
-    },
-    {
+    }, {
       if (manual_active() == TRUE) {
         mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
         phi_i <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
         this_val <- round(cos(phi_i), 1) # Rad
         updateSliderInput(session, "manip_slider", value = this_val)
         loggit("INFO", 
-               paste0("New manip slider value (from task_dat/axes)."), 
+               paste0("New manip slider value (from task_dat/axes/manip_var)."), 
                paste0("manip_slider: ", this_val))
       }
     })

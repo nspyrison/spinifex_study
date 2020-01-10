@@ -38,7 +38,7 @@ is_logging <- FALSE
 ## https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## Uncomment the following line to apply logging
-setLogFile(log_file); is_logging <- TRUE
+# setLogFile(log_file); is_logging <- TRUE
 loggit("INFO", "app has started", "spinifex_study")
 
 
@@ -46,7 +46,7 @@ loggit("INFO", "app has started", "spinifex_study")
 # tasks
 s_task_id <- c("n", "p")
 s_difficulty <- c("easy", "medium", "hard")
-s_task_prompts <- c("How many clusters exist?",
+s_task_prompts <- c("How many clusters do you see?",
                     "Rate the relative importance of each variable in terms of 
                     distinugishing between the given clusters.")
 s_task2_questions <- c("Very important distinguishing clusters 'a' from 'b'",
@@ -103,7 +103,7 @@ header_ui <- fluidPage(
                   value = FALSE)
   ),
   conditionalPanel(
-    condition = "output.pg_num < 28",
+    condition = "output.pg_num < 27",
     actionButton("next_pg_button", "Next page")
   )
 )
@@ -119,11 +119,12 @@ sidebar_ui <- conditionalPanel(
                                   selected = f_ls[1],
                                   inline = TRUE)
     ), # PCA axis selection
-    conditionalPanel(condition = "output.factor != 'grand' || 
-                       (output.ui_section == 'training' && input.factor != 'grand')",
-                     fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
-                              column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2"))
-                     )
+    conditionalPanel(
+      condition = "(output.factor == 'pca' || output.factor == 'manual') || 
+                  (output.ui_section == 'training' && input.factor != 'grand')",
+      fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
+               column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2"))
+      )
     ), # Manip var/ magnitude selection
     conditionalPanel(condition = "output.factor == 'manual' || 
                        (output.ui_section == 'training' && input.factor == 'manual')",
@@ -138,8 +139,8 @@ sidebar_ui <- conditionalPanel(
       hr(),
       conditionalPanel( # interface familiarity 
         condition = "output.section_pg_num == 1",
-        p("In this study you will be working with 3 vizualization techniques of
-        multvariate data. Each one uses 2-dimensional projections created
+        p("In this study, you will be working with 3 visualization techniques of
+        multivariate data. Each one uses 2-dimensional projections created
         from different combinations of variables. The variable map (grey circle)
         shows the angle and magnitude that each variable contributes to the 
         projection."),
@@ -157,9 +158,9 @@ sidebar_ui <- conditionalPanel(
       ),
       conditionalPanel( # training task 1, pg 1
         condition = "output.task_num == 1",
-        tags$b("Now the data points are not colored by their cluster. Guess how
-        many clusters exist in this training set. Make sure to use the controls
-        and different factors.")
+        tags$b("Now the data points are not colored by their cluster. How
+        many clusters do you see in this training set? 
+        Make sure to use the controls and different factors.")
       ),
       conditionalPanel( # training task 1, pg 2 
         condition = "output.task_num == 2",
@@ -453,9 +454,9 @@ main_ui <- mainPanel(
 ui <- fluidPage(header_ui,
                 sidebar_ui,
                 main_ui
-                # , verbatimTextOutput("dev_msg")
-                # , actionButton("browser", "browser()")
-                # , tableOutput("ans_tbl") 
+                , verbatimTextOutput("dev_msg")
+                , actionButton("browser", "browser()")
+                , tableOutput("ans_tbl")
 )
 
 ### onStop -----
