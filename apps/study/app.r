@@ -21,6 +21,7 @@ server <- function(input, output, session) {
   rv$training_aes    <- FALSE
   rv$second_training <- FALSE
   rv$curr_basis      <- NULL
+  rv$this_theta      <- NULL
   
   ##### Start reactives
   p <- reactive({ ncol(task_dat()) })
@@ -470,6 +471,7 @@ server <- function(input, output, session) {
   ##### Start observes
   ### Obs update axis/task2 choices -----
   observeEvent(task_dat(), { # Init axis choices when data changes
+    rv$this_theta <- NULL
     p <- p()
     if (pca_active() == TRUE | manual_active() == TRUE) {
       choices <- paste0("PC", 1:p)
@@ -493,6 +495,7 @@ server <- function(input, output, session) {
   # Bump x_axis when set to the same as y_axis
   observeEvent(input$x_axis, { 
     if (input$x_axis == input$y_axis) {
+      rv$this_theta <- NULL
       p <- ncol(task_dat())
       choices <- paste0("PC", 1:p)
       opts <- choices[!choices %in% input$x_axis]
@@ -505,6 +508,7 @@ server <- function(input, output, session) {
   # Bump y_axis when set to the same as x_axis
   observeEvent(input$y_axis, {
     if (input$x_axis == input$y_axis) {
+      rv$this_theta <- NULL
       p <- ncol(task_dat())
       choices <- paste0("PC", 1:p)
       opts <- choices[!choices %in% input$x_axis]
@@ -523,6 +527,7 @@ server <- function(input, output, session) {
   },
   {
     if (manual_active() == TRUE){
+      rv$this_theta <- NULL
       dat <- task_dat()
       dat_std <- tourr::rescale(dat)
       pca <- prcomp(dat_std)
@@ -543,20 +548,16 @@ server <- function(input, output, session) {
     if (manual_active() == TRUE & input$manip_var != "<none>") {
       theta <- phi <- NULL
       mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
-      if ("Radial" == "Radial") { # Fixed to "Radial" # input$manip_type == "Radial"
-        theta <- atan(mv_sp[2] / mv_sp[1])
+      if ("Radial" == "Radial" & !is.null(input$manip_slider)) { # Fixed to "Radial" # input$manip_type == "Radial"
+        if (is.null(rv$this_theta)) {theta <- atan(mv_sp[2] / mv_sp[1])
+        } else {theta <- rv$this_theta}
+        if (input$manip_slider == 0) rv$this_theta <- theta
         phi_start <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
         phi <- (acos(input$manip_slider) - phi_start) * - sign(mv_sp[1])
       }
       ret <- oblique_basis(basis = rv$curr_basis, manip_var = manip_var_num(),
                            theta = theta, phi = phi)
       row.names(ret) <- colnames(task_dat())
-      
-      if(abs(phi) < (pi/18) & rv$stopwatch > 5) {
-        prev_theta <- theta
-        print(theta)
-        browser()
-      }
       
       rv$curr_basis <- ret
       loggit("INFO", paste0("Slider value changed: ", input$manip_slider),
@@ -572,6 +573,7 @@ server <- function(input, output, session) {
   }, 
   { # Init manip_var choices on data change.
     if (manual_active() == TRUE) {
+      rv$this_theta <- NULL
       these_colnames <- colnames(task_dat())
       updateSelectInput(session, "manip_var", choices = these_colnames, 
                         selected = these_colnames[1])
