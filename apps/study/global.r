@@ -54,14 +54,23 @@ s_task2_questions <- c("Very important distinguishing clusters 'a' from 'b'",
                        "Very important distinguishing clusters 'b' from 'c'",
                        "Somewhat important distinguishing clusters 'b' from 'c'")
 s_sim_num  <- as.character(101:118)
-sim_train1 <- readRDS("../simulation/simulation_data119.rds") # p = 6, pnoise = 2, cl = 3 
-sim_train2 <- readRDS("../simulation/simulation_data120.rds") # p = 6, pnoise = 2, cl = 3
-
+sim_train1 <- readRDS("../simulation/simulation_data_train1.rds") # p = 6, pnoise = 2, cl = 3 
+sim_train2 <- readRDS("../simulation/simulation_data_train2.rds") # p = 6, pnoise = 2, cl = 3
 s_train <- list(sim_train1, sim_train2)
 s_dat <- list()
 for (i in 1:length(s_sim_num)) {
   s_dat[[i]] <- readRDS(
     paste0("../simulation/simulation_data", s_sim_num[i], ".rds")
+  )
+}
+
+tpath_train1 <- readRDS("../simulation/grand_tpath_train1.rds") # p = 6, pnoise = 2, cl = 3 
+tpath_train2 <- readRDS("../simulation/grand_tpath_train2.rds") # p = 6, pnoise = 2, cl = 3
+s_tpath_train <- list(tpath_train1, tpath_train2)
+s_tpath <- list()
+for (i in 1:length(s_sim_num)) {
+  s_tpath[[i]] <- readRDS(
+    paste0("../simulation/grand_tpath_", s_sim_num[i], ".rds")
   )
 }
 
@@ -222,91 +231,90 @@ sidebar_ui <- conditionalPanel(
 ) ### end sidebar_ui
 
 ##### init survey columns -----
-col_pca <- column(4, 
-                  h3(this_factor_order[1]),
-                  hr(),
-                  h4(s_survey_questions[6]),
-                  sliderInput("survey6",
-                              label = div(style = 'width:300px;',
-                                          div(style = 'float:left;', 'strongly disagree'),
-                                          div(style = 'float:right;', 'strongly agree')),
-                              min = 1, max = 9, value = 5),
-                  h4(s_survey_questions[7]),
-                  sliderInput("survey7",
-                              label = div(style = 'width:300px;',
-                                          div(style = 'float:left;', 'strongly disagree'),
-                                          div(style = 'float:right;', 'strongly agree')),
-                              min = 1, max = 9, value = 5),
-                  h4(s_survey_questions[8]),
-                  sliderInput("survey8",
-                              label = div(style = 'width:300px;',
-                                          div(style = 'float:left;', 'strongly disagree'),
-                                          div(style = 'float:right;', 'strongly agree')),
-                              min = 1, max = 9, value = 5),
-                  h4(s_survey_questions[9]),
-                  sliderInput("survey9",
-                              label = div(style = 'width:300px;',
-                                          div(style = 'float:left;', 'strongly disagree'),
-                                          div(style = 'float:right;', 'strongly agree')),
-                              min = 1, max = 9, value = 5)
+col_p1 <- column(4, 
+                 h3(this_factor_order[1]),
+                 hr(),
+                 h4(s_survey_questions[6]),
+                 sliderInput("survey6",
+                             label = div(style = 'width:300px;',
+                                         div(style = 'float:left;', 'strongly disagree'),
+                                         div(style = 'float:right;', 'strongly agree')),
+                             min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[7]),
+                 sliderInput("survey7",
+                             label = div(style = 'width:300px;',
+                                         div(style = 'float:left;', 'strongly disagree'),
+                                         div(style = 'float:right;', 'strongly agree')),
+                             min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[8]),
+                 sliderInput("survey8",
+                             label = div(style = 'width:300px;',
+                                         div(style = 'float:left;', 'strongly disagree'),
+                                         div(style = 'float:right;', 'strongly agree')),
+                             min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[9]),
+                 sliderInput("survey9",
+                             label = div(style = 'width:300px;',
+                                         div(style = 'float:left;', 'strongly disagree'),
+                                         div(style = 'float:right;', 'strongly agree')),
+                             min = 1, max = 9, value = 5)
 )
-col_grand <- column(4, 
-                    h3(this_factor_order[2]),
-                    hr(),
-                    h4(s_survey_questions[10]),
-                    sliderInput("survey10",
-                                label = div(style = 'width:300px;',
-                                            div(style = 'float:left;', 'strongly disagree'),
-                                            div(style = 'float:right;', 'strongly agree')),
-                                min = 1, max = 9, value = 5),
-                    h4(s_survey_questions[11]),
-                    sliderInput("survey11",
-                                label = div(style = 'width:300px;',
-                                            div(style = 'float:left;', 'strongly disagree'),
-                                            div(style = 'float:right;', 'strongly agree')),
-                                min = 1, max = 9, value = 5),
-                    h4(s_survey_questions[12]),
-                    sliderInput("survey12",
-                                label = div(style = 'width:300px;',
-                                            div(style = 'float:left;', 'strongly disagree'),
-                                            div(style = 'float:right;', 'strongly agree')),
-                                min = 1, max = 9, value = 5),
-                    h4(s_survey_questions[13]),
-                    sliderInput("survey13",
-                                label = div(style = 'width:300px;',
-                                            div(style = 'float:left;', 'strongly disagree'),
-                                            div(style = 'float:right;', 'strongly agree')),
-                                min = 1, max = 9, value = 5)
+col_p2 <- column(4, 
+                 h3(this_factor_order[2]),
+                 hr(),
+                 h4(s_survey_questions[10]),
+                 sliderInput("survey10",
+                             label = div(style = 'width:300px;',
+                                         div(style = 'float:left;', 'strongly disagree'),
+                                         div(style = 'float:right;', 'strongly agree')),
+                             min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[11]),
+                 sliderInput("survey11",
+                             label = div(style = 'width:300px;',
+                                         div(style = 'float:left;', 'strongly disagree'),
+                                         div(style = 'float:right;', 'strongly agree')),
+                             min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[12]),
+                 sliderInput("survey12",
+                             label = div(style = 'width:300px;',
+                                         div(style = 'float:left;', 'strongly disagree'),
+                                         div(style = 'float:right;', 'strongly agree')),
+                             min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[13]),
+                 sliderInput("survey13",
+                             label = div(style = 'width:300px;',
+                                         div(style = 'float:left;', 'strongly disagree'),
+                                         div(style = 'float:right;', 'strongly agree')),
+                             min = 1, max = 9, value = 5)
 )
-col_manual <- column(4, 
-                     h3(this_factor_order[3]),
-                     hr(),
-                     h4(s_survey_questions[14]),
-                     sliderInput("survey14",
-                                 label = div(style = 'width:300px;',
-                                             div(style = 'float:left;', 'strongly disagree'),
-                                             div(style = 'float:right;', 'strongly agree')),
-                                 min = 1, max = 9, value = 5),
-                     h4(s_survey_questions[15]),
-                     sliderInput("survey15",
-                                 label = div(style = 'width:300px;',
-                                             div(style = 'float:left;', 'strongly disagree'),
-                                             div(style = 'float:right;', 'strongly agree')),
-                                 min = 1, max = 9, value = 5),
-                     h4(s_survey_questions[16]),
-                     sliderInput("survey16",
-                                 label = div(style = 'width:300px;',
-                                             div(style = 'float:left;', 'strongly disagree'),
-                                             div(style = 'float:right;', 'strongly agree')),
-                                 min = 1, max = 9, value = 5),
-                     h4(s_survey_questions[17]),
-                     sliderInput("survey17",
-                                 label = div(style = 'width:300px;',
-                                             div(style = 'float:left;', 'strongly disagree'),
-                                             div(style = 'float:right;', 'strongly agree')),
-                                 min = 1, max = 9, value = 5)
+col_p3 <- column(4, 
+                 h3(this_factor_order[3]),
+                 hr(),
+                 h4(s_survey_questions[14]),
+                 sliderInput("survey14",
+                             label = div(style = 'width:300px;',
+                                         div(style = 'float:left;', 'strongly disagree'),
+                                         div(style = 'float:right;', 'strongly agree')),
+                             min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[15]),
+                 sliderInput("survey15",
+                             label = div(style = 'width:300px;',
+                                         div(style = 'float:left;', 'strongly disagree'),
+                                         div(style = 'float:right;', 'strongly agree')),
+                             min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[16]),
+                 sliderInput("survey16",
+                             label = div(style = 'width:300px;',
+                                         div(style = 'float:left;', 'strongly disagree'),
+                                         div(style = 'float:right;', 'strongly agree')),
+                             min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[17]),
+                 sliderInput("survey17",
+                             label = div(style = 'width:300px;',
+                                         div(style = 'float:left;', 'strongly disagree'),
+                                         div(style = 'float:right;', 'strongly agree')),
+                             min = 1, max = 9, value = 5)
 )
-col_ls <- c(col_pca, col_grand, col_manual)
 
 ##### main_ui -----
 main_ui <- mainPanel(
@@ -427,7 +435,7 @@ main_ui <- mainPanel(
                             "Honors, masters, mba", 
                             "Doctorate")
     ),
-    h3("How much do you agree with the following statments?"),
+    h3("How much do you agree with the following statements?"),
     h4(s_survey_questions[4]),
     sliderInput("survey4",
                 label = div(style = 'width:300px;',
@@ -440,7 +448,7 @@ main_ui <- mainPanel(
                             div(style = 'float:left;', 'strongly disagree'),
                             div(style = 'float:right;', 'strongly agree')),
                 min = 1, max = 9, value = 5),
-    col_ls[this_factor_num_order],
+    fluidRow(col_p1, col_p2, col_p3),
     hr(),
     actionButton("save_ans", "save responses"),
     htmlOutput("save_msg"),

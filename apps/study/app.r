@@ -58,6 +58,9 @@ server <- function(input, output, session) {
     return((section_pg_num() - (n_blocks * (task_num() - 1))) %% (n_tasks * n_blocks))
   })
   taskblock <- reactive({ return(paste0(s_task_id[task_num()], block_num())) })
+  sim_num <- reactive({
+    return( (period_num() - 1) * 6 + (task_num() - 1) * 3 + block_num() )
+  })
   task_time <- reactive({
     if (factor() == "grand") {adj <- 1
     } else adj <- 0
@@ -71,7 +74,15 @@ server <- function(input, output, session) {
       if (section_pg_num() %in% c(3, 5)) {return(s_train[[2]])
       } else return(s_train[[1]])
     } else {
-      return(s_dat[[block_num()]]) 
+      return(s_dat[[sim_num()]]) 
+    }
+  })
+  task_tpath <- reactive({
+    if (ui_section() == "training") {
+      if (section_pg_num() %in% c(3, 5)) {return(s_tpath_train[[2]])
+      } else return(s_tpath_train[[1]])
+    } else {
+      return(s_tpath[[sim_num()]]) 
     }
   })
   manip_var_num <- reactive({ 
@@ -224,10 +235,8 @@ server <- function(input, output, session) {
       max_frames <- 90 # 90 frame for 15 sec @ fps = 6
       set.seed(123) # if tourr starts using seeds
       
-      tpath <- save_history(dat_std, tour_path = grand_tour(), max = 8)
-      browser()
-      # saveRDS(tpath, file = "../simulation/grand_tpath_train1.rds")
-      
+      # tpath <- save_history(dat_std, tour_path = grand_tour(), max = 8) # create 
+      tpath <- task_tpath()
       
       full_path <- tourr::interpolate(basis_set = tpath, angle = angle)
       attr(full_path, "class") <- "array"
@@ -404,21 +413,27 @@ server <- function(input, output, session) {
         rep(this_factor_order[1], n_blocks + n_task2_questions * n_blocks), # tasks across factor
         rep(this_factor_order[2], n_blocks + n_task2_questions * n_blocks),
         rep(this_factor_order[3], n_blocks + n_task2_questions * n_blocks),
-        rep("survey", n_survey_questions)                                   # survey
+        rep("survey", 5),                                                   # survey
+        rep(paste0("survey_", this_factor_order[1]), 4),
+        rep(paste0("survey_", this_factor_order[2]), 4),
+        rep(paste0("survey_", this_factor_order[3]), 4)
       )
     col_taskblock <- 
       c(paste0(s_task_id[1], 1:2),                       # training
         rep(paste0(s_task_id[2], 1), n_task2_questions),
         rep(paste0(s_task_id[2], 2), n_task2_questions),
         rep(
-          c(s_taskblock_id[1:3],                                  # task 1
-            rep(s_taskblock_id[4], n_task2_questions),            # task 2
+          c(s_taskblock_id[1:3],                         # task 1
+            rep(s_taskblock_id[4], n_task2_questions),   # task 2
             rep(s_taskblock_id[5], n_task2_questions),
             rep(s_taskblock_id[6], n_task2_questions)
           ),
-          n_factors                                               # across factors
+          n_factors                                      # across factors
         ),      
-        paste0("survey", 1:n_survey_questions)                    # survey
+        paste0("survey", 1:5),                           # survey
+        paste0("survey_", this_factor_order[1], 1:4),
+        paste0("survey_", this_factor_order[2], 1:4),
+        paste0("survey_", this_factor_order[3], 1:4)
       )
     sim_set <- c(101, 107, 113,                 # task 1
                  rep(102, n_task2_questions),   # task 2
