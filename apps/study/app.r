@@ -69,7 +69,7 @@ server <- function(input, output, session) {
   task_dat <- reactive({ # simulation df with attachments.
     if (ui_section() == "training") {
       if (section_pg_num() %in% c(3, 5)) {return(s_train[[2]])
-        } else return(s_train[[1]])
+      } else return(s_train[[1]])
     } else {
       return(s_dat[[block_num()]]) 
     }
@@ -145,7 +145,7 @@ server <- function(input, output, session) {
       
       angle <- seq(0, 2 * pi, length = 360)
       circ  <- set_axes_position(data.frame(x = cos(angle), y = sin(angle)),
-                                axes_position)
+                                 axes_position)
       zero  <- set_axes_position(0, axes_position)
       
       ### ggplot2
@@ -225,6 +225,9 @@ server <- function(input, output, session) {
       set.seed(123) # if tourr starts using seeds
       
       tpath <- save_history(dat_std, tour_path = grand_tour(), max = 8)
+      browser()
+      # saveRDS(tpath, file = "../simulation/grand_tpath_train1.rds")
+      
       
       full_path <- tourr::interpolate(basis_set = tpath, angle = angle)
       attr(full_path, "class") <- "array"
@@ -928,7 +931,7 @@ server <- function(input, output, session) {
           That seems a little off. 
           Remember that the importance of a variable for
           distinguishing a group is related to variables in a separating 
-          direction with large magnidutes in the projection, but variables with
+          direction with large magnitudes in the projection, but variables with
           small contributions cannot be ruled out, multiple projections most be 
           looked at.
           </span></h3>"))

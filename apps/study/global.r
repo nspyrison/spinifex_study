@@ -55,7 +55,8 @@ s_task2_questions <- c("Very important distinguishing clusters 'a' from 'b'",
                        "Somewhat important distinguishing clusters 'b' from 'c'")
 s_sim_num  <- as.character(101:118)
 sim_train1 <- readRDS("../simulation/simulation_data119.rds") # p = 6, pnoise = 2, cl = 3 
-sim_train2 <- readRDS("../simulation/simulation_data120.rds") # p = 6, pnoise = 2, cl = 3 
+sim_train2 <- readRDS("../simulation/simulation_data120.rds") # p = 6, pnoise = 2, cl = 3
+
 s_train <- list(sim_train1, sim_train2)
 s_dat <- list()
 for (i in 1:length(s_sim_num)) {
@@ -346,8 +347,12 @@ main_ui <- mainPanel(
     ), # end first page
     conditionalPanel(
       condition = "output.pg_num == 2", # Video, second page
-      h3("Video page"),
-      p("The place holder!")
+      h2("Video training"), tags$br(), tags$br(),
+      p("Watch the following video before proceeding:"), tags$br(), 
+      # Adding the 'a' tag to the sidebar linking external file
+      tags$a(href='training.mp4', target='blank', 'training video (3:37)'), 
+      tags$br(), tags$br(), 
+      p("If this link only contains audio let the invigilator know.")
     )  # end of video, second page
   ), # close conditionPanel -- intro section text
   
