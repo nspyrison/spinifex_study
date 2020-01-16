@@ -38,8 +38,7 @@ is_logging <- FALSE
 ## https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## Uncomment the following line to apply logging
-# setLogFile(log_file); is_logging <- TRUE
-loggit("INFO", "app has started", "spinifex_study")
+setLogFile(log_file); is_logging <- TRUE
 
 
 ### Required inputs -----
@@ -124,7 +123,7 @@ sidebar_ui <- conditionalPanel(
   
   sidebarPanel( # Factor selection
     conditionalPanel(condition = "output.ui_section == 'training'",
-                     radioButtons(inputId = "factor", label = "Visual", 
+                     radioButtons(inputId = "factor", label = "Factor", 
                                   choices = f_ls, 
                                   selected = f_ls[1],
                                   inline = TRUE)
@@ -156,7 +155,7 @@ sidebar_ui <- conditionalPanel(
         projection."),
         p("Principal Component Analysis (PCA) is displayed first. Use the radio
           buttons on the left sidebar panel to select new components to be 
-          displayed. Observer how the clusters and the variable line segments 
+          displayed. Observe how the clusters and the variable line segments 
           move."),
         p("Now switch to the grand tour factor. Play the animation. Notice how 
           different clusters move as the variable contributions change. Drag
@@ -164,7 +163,8 @@ sidebar_ui <- conditionalPanel(
         p("Now try the manual tour. You can select which components are on 
           the axis. Using the drop-down, select the variable with the largest 
           line segment. Use the slider to change the variable's contribution. 
-          Watch how the contributions and clusters move as a result."),
+          Watch how the contributions and clusters move as a result. Select a 
+          new pair of PC to reset the values."),
       ),
       conditionalPanel( # training task 1, pg 1
         condition = "output.task_num == 1",
@@ -467,9 +467,9 @@ main_ui <- mainPanel(
 ui <- fluidPage(header_ui,
                 sidebar_ui,
                 main_ui
-                , verbatimTextOutput("dev_msg")
-                , actionButton("browser", "browser()")
-                , tableOutput("ans_tbl")
+                # , verbatimTextOutput("dev_msg")
+                # , actionButton("browser", "browser()")
+                # , tableOutput("ans_tbl")
 )
 
 ### onStop -----

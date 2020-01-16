@@ -3,10 +3,12 @@ source('global.r', local = TRUE)
 
 ##### Server function, for shiny app
 server <- function(input, output, session) {
-  loggit("INFO", "Spinifex study app has started.")
-  loggit("INFO", paste0("Computer name (Sys.info nodename):", Sys.info()[4]) )
-  loggit("INFO", paste0("Factor id is ", as.character(this_factor_id), 
-                        "; factor order: ", paste0(this_factor_order, collapse = ", "), ".") )
+  loggit("INFO", "Spinifex study app has started.",
+         paste0("Computer name (Sys.info nodename):", Sys.info()[4],
+                ", Factor id is ", as.character(this_factor_id), 
+                "; factor order: ", paste0(this_factor_order, collapse = ", "), "."
+         )
+  )
   
   ### Initialization and reactives -----
   rv                 <- reactiveValues()
@@ -128,12 +130,10 @@ server <- function(input, output, session) {
       
       # render init
       pal <- "Dark2"
-      axes_position <- "center"
+      axes_position <- "bottomleft"
       USE_AXES <- TRUE
       USE_AES  <- TRUE
       if (task_num() == 1) {
-        # USE_AXES <- FALSE # comments as manual may want this and consistency
-        axes_position <- "bottomleft"
         if(rv$training_aes == FALSE) { # During training
           USE_AES  <- FALSE
         } 
@@ -247,12 +247,10 @@ server <- function(input, output, session) {
       
       # render init
       pal <- "Dark2"
-      axes_position <- "center"
+      axes_position <- "bottomleft"
       USE_AXES <- TRUE
       USE_AES  <- TRUE
       if (task_num() == 1) {
-        # USE_AXES <- FALSE # comments as manual may want this and consistency
-        axes_position <- "bottomleft"
         if(rv$training_aes == FALSE) { # During training
           USE_AES  <- FALSE
         } 
@@ -369,12 +367,10 @@ server <- function(input, output, session) {
       }
       # render init
       pal <- "Dark2"
-      axes_position <- "center"
+      axes_position <- "bottomleft"
       USE_AXES <- TRUE
       USE_AES  <- TRUE
       if (task_num() == 1) {
-        # USE_AXES <- FALSE # comments as manual may want this and consistency
-        axes_position <- "bottomleft"
         if(rv$training_aes == FALSE) { # During training
           USE_AES  <- FALSE
         } 
@@ -512,28 +508,42 @@ server <- function(input, output, session) {
   })
   # Bump x_axis when set to the same as y_axis
   observeEvent(input$x_axis, { 
+    output$plot_msg <- renderText("")
     if (input$x_axis == input$y_axis) {
       rv$this_theta <- NULL
       p <- ncol(task_dat())
       choices <- paste0("PC", 1:p)
       opts <- choices[!choices %in% input$x_axis]
       x_axis_out <- sample(opts, 1)
+      
       updateRadioButtons(session, "x_axis", choices = choices, selected = x_axis_out)
       loggit("INFO", paste0("x_axis set to ", input$x_axis, 
                             ", same as y_axis; x_axis bumped to ", x_axis_out, "."))
+      
+      output$plot_msg <- renderText(paste0(
+        "<h3><span style='color:red'>
+          Please select different principal components. X axis randomed selected to ", x_axis_out, ".", 
+          "</span></h3>"))
     }
   })
   # Bump y_axis when set to the same as x_axis
   observeEvent(input$y_axis, {
+    output$plot_msg <- renderText("")
     if (input$x_axis == input$y_axis) {
       rv$this_theta <- NULL
       p <- ncol(task_dat())
       choices <- paste0("PC", 1:p)
       opts <- choices[!choices %in% input$x_axis]
       y_axis_out <- sample(opts, 1)
+      
       updateRadioButtons(session, "y_axis", choices = choices, selected = sample(opts, 1))
       loggit("INFO", paste0("y_axis set to ", input$y_axis, 
                             ", same as x_axis; y_axis bumped to ", y_axis_out, "."))
+      
+      output$plot_msg <- renderText(paste0(
+        "<h3><span style='color:red'>
+          Please select different principal components. Y axis randomed selected to ", y_axis_out, ".", 
+        "</span></h3>"))
     }
   })
   
@@ -609,6 +619,7 @@ server <- function(input, output, session) {
       input$y_axis
     }, {
       if (manual_active() == TRUE) {
+        rv$this_theta <- NULL
         mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
         phi_i <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
         this_val <- round(cos(phi_i), 1) # Rad
@@ -1023,7 +1034,7 @@ server <- function(input, output, session) {
                     ". factor(): ", factor(),
                     ". task_num(): ", task_num(),
                     ". block_num(): ", block_num(), 
-                    ". Wrote responses to rv$ans_tbl."))
+                    ". Wrote previous responses to rv$ans_tbl."))
     }
   })
   
