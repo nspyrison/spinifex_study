@@ -15,9 +15,9 @@ library("loggit")    # For logging
 
 this_factor_id <- 1 # between 1 and 3 ## SET GROUP HERE
 f_ls <- c("pca", "grand", "manual") # factor list
-num_latin_sq <- rbind(c(1, 2, 3), # ~ grp 1
-                      c(2, 3, 1), # ~ grp 2
-                      c(3, 1, 2)  # ~ grp 3
+num_latin_sq <- rbind(c(1, 2, 3), # ~ grp 1; "pca", "grand", "manual"
+                      c(2, 3, 1), # ~ grp 2; "grand", "manual", "pca"
+                      c(3, 1, 2)  # ~ grp 3; "manual", "pca", "grand"
 )
 this_factor_num_order <- num_latin_sq[this_factor_id, ]
 this_factor_order     <- f_ls[this_factor_num_order]
@@ -384,11 +384,16 @@ main_ui <- mainPanel(
     ),
     conditionalPanel( # splash page
       condition = "output.section_pg_num == 6",
-      h1(),h1(),h1(),
+      h1(), h1(), h1(),
       h1("Training complete, Great job!"),
-      h3("Ask any final clarification questions. Then continue on to the 
-        evaluation section, each task is now limited to 2 minutes (time 
-           displayed on top).")
+      h4("Take a break and strech if you feel like it."),
+      HTML("<h3><span style='color:red'>
+          Keep in mind that we are evaluating the factors not your performance. 
+          Don't worry if you don't fully understand a factor or find a task difficult.
+           </span></h3>"),
+      h4("Ask any final clarification questions. Then continue on to the 
+        evaluation section. Task 1 is limited to 1 minute, and task 2 is limited
+        to 3 minutes  (time displayed on top).")
     ),
     textOutput('stopwatch_disp'),
     hr()

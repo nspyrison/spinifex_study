@@ -491,7 +491,7 @@ server <- function(input, output, session) {
       choices <- paste0("PC", 1:p)
       updateRadioButtons(session, "x_axis", choices = choices, selected = "PC1")
       updateRadioButtons(session, "y_axis", choices = choices, selected = "PC2")
-      loggit("INFO", "Task data changed while axes active; updated axes choices.")
+      loggit("INFO", "Task data changed while axes active; updated PC axes choices.")
     }
     if (task_num() == 2) {
       choices <- paste0("V", 1:p)
@@ -503,7 +503,7 @@ server <- function(input, output, session) {
                                choices = choices, inline  = TRUE)
       updateCheckboxGroupInput(session, "tsk2_ans_some_bc",
                                choices = choices, inline  = TRUE)
-      loggit("INFO", "Task data changed on task 2; updated responce choices.")
+      loggit("INFO", "Task data changed; updated task 2 responce choices.")
     }
   })
   # Bump x_axis when set to the same as y_axis
@@ -518,7 +518,9 @@ server <- function(input, output, session) {
       
       updateRadioButtons(session, "x_axis", choices = choices, selected = x_axis_out)
       loggit("INFO", paste0("x_axis set to ", input$x_axis, 
-                            ", same as y_axis; x_axis bumped to ", x_axis_out, "."))
+                            ", same as y_axis; x_axis bumped to ", x_axis_out, "."),
+             paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+      )
       
       output$plot_msg <- renderText(paste0(
         "<h3><span style='color:red'>
@@ -538,12 +540,14 @@ server <- function(input, output, session) {
       
       updateRadioButtons(session, "y_axis", choices = choices, selected = sample(opts, 1))
       loggit("INFO", paste0("y_axis set to ", input$y_axis, 
-                            ", same as x_axis; y_axis bumped to ", y_axis_out, "."))
+                            ", same as x_axis; y_axis bumped to ", y_axis_out, "."),
+             paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+      )
       
       output$plot_msg <- renderText(paste0(
         "<h3><span style='color:red'>
-          Please select different principal components. Y axis randomed selected to ", y_axis_out, ".", 
-        "</span></h3>"))
+          Must select different principal components. 
+        </span></h3>"))
     }
   })
   
@@ -567,7 +571,10 @@ server <- function(input, output, session) {
       loggit("INFO", 
              paste0("New basis set (from task_dat/axes) "), 
              paste0("x_axis: ", x, ", y_axis: ", y, ". rv$curr_basis: ",
-                    paste0(round(rv$curr_basis, 2), collapse = ", ")))
+                    paste0(round(rv$curr_basis, 2), collapse = ", "),
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   
@@ -590,7 +597,10 @@ server <- function(input, output, session) {
       rv$curr_basis <- ret
       loggit("INFO", paste0("Slider value changed: ", input$manip_slider),
              paste0("rv$curr_basis updated: ",
-                    paste0(round(rv$curr_basis, 2), collapse = ", ")))
+                    paste0(round(rv$curr_basis, 2), collapse = ", "), 
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   
@@ -605,7 +615,7 @@ server <- function(input, output, session) {
       these_colnames <- colnames(task_dat())
       updateSelectInput(session, "manip_var", choices = these_colnames, 
                         selected = these_colnames[1])
-      loggit("INFO", paste0("Task data changed; input$manip_var choices updated."))
+      loggit("INFO", paste0("Task data or training factor changed; input$manip_var choices updated."))
     }
   })
   
@@ -626,7 +636,10 @@ server <- function(input, output, session) {
         updateSliderInput(session, "manip_slider", value = this_val)
         loggit("INFO", 
                paste0("New manip slider value (from task_dat/axes/manip_var)."), 
-               paste0("manip_slider: ", this_val))
+               paste0("manip_slider: ", this_val, 
+                      paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+               )
+        )
       }
     })
   
@@ -638,7 +651,10 @@ server <- function(input, output, session) {
       rv$task_durations[1] <- time_elapsed()
       loggit("INFO", "Task 1 entered.", 
              paste0("Response: ", rv$task_responses[1], 
-                    ". Duration: ", rv$task_durations[1], "."))
+                    ". Duration: ", rv$task_durations[1], ".",
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   ### task 2 responses & duration
@@ -648,7 +664,10 @@ server <- function(input, output, session) {
       rv$task_durations[1] <- time_elapsed()
       loggit("INFO", "Task 2, very important, clusters ab response entered.", 
              paste0("Response: ", rv$task_responses[1], 
-                    ". Duration: ", rv$task_durations[1], "."))
+                    ". Duration: ", rv$task_durations[1], ".",
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   observeEvent(input$tsk2_ans_some_ab, {
@@ -657,7 +676,10 @@ server <- function(input, output, session) {
       rv$task_durations[2] <- time_elapsed()
       loggit("INFO", "Task 2, somewhat important clusters ab response entered.", 
              paste0("Response: ", rv$task_responses[2], 
-                    ". Duration: ", rv$task_durations[2], "."))
+                    ". Duration: ", rv$task_durations[2], ".",
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   observeEvent(input$tsk2_ans_very_bc, {
@@ -666,7 +688,10 @@ server <- function(input, output, session) {
       rv$task_durations[3] <- time_elapsed()
       loggit("INFO", "Task 2, very important, clusters bc response entered.", 
              paste0("Response: ", rv$task_responses[3], 
-                    ". Duration: ", rv$task_durations[3], "."))
+                    ". Duration: ", rv$task_durations[3], ".",
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   observeEvent(input$tsk2_ans_some_bc, {
@@ -675,7 +700,10 @@ server <- function(input, output, session) {
       rv$task_durations[4] <- time_elapsed()
       loggit("INFO", "Task 2, somewhat important, clusters bc response entered.", 
              paste0("Response: ", rv$task_responses[4], 
-                    ". Duration: ", rv$task_durations[4], "."))
+                    ". Duration: ", rv$task_durations[4], ".",
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   
@@ -687,7 +715,10 @@ server <- function(input, output, session) {
       rv$task_durations[i] <- time_elapsed()
       loggit("INFO", "Survey 1 entered.", 
              paste0("Response: ", rv$task_responses[i], 
-                    ". Duration: ", rv$task_durations[i], "."))
+                    ". Duration: ", rv$task_durations[i], ".",
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   observeEvent(input$survey2, {
@@ -697,7 +728,10 @@ server <- function(input, output, session) {
       rv$task_durations[i] <- time_elapsed()
       loggit("INFO", "Survey 2 entered.", 
              paste0("Response: ", rv$task_responses[i], 
-                    ". Duration: ", rv$task_durations[i], "."))
+                    ". Duration: ", rv$task_durations[i], ".",
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   observeEvent(input$survey3, {
@@ -707,7 +741,10 @@ server <- function(input, output, session) {
       rv$task_durations[i] <- time_elapsed()
       loggit("INFO", "Survey 3 entered.", 
              paste0("Response: ", rv$task_responses[i], 
-                    ". Duration: ", rv$task_durations[i], "."))
+                    ". Duration: ", rv$task_durations[i], ".",
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   observeEvent(input$survey4, {
@@ -717,7 +754,10 @@ server <- function(input, output, session) {
       rv$task_durations[i] <- time_elapsed()
       loggit("INFO", "Survey 4 entered.", 
              paste0("Response: ", rv$task_responses[i], 
-                    ". Duration: ", rv$task_durations[i], "."))
+                    ". Duration: ", rv$task_durations[i], ".",
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   observeEvent(input$survey5, {
@@ -727,7 +767,10 @@ server <- function(input, output, session) {
       rv$task_durations[i] <- time_elapsed()
       loggit("INFO", "Survey 5 entered.", 
              paste0("Response: ", rv$task_responses[i], 
-                    ". Duration: ", rv$task_durations[i], "."))
+                    ". Duration: ", rv$task_durations[i], ".",
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   observeEvent(input$survey6, {
@@ -737,7 +780,10 @@ server <- function(input, output, session) {
       rv$task_durations[i] <- time_elapsed()
       loggit("INFO", "Survey 6 entered.", 
              paste0("Response: ", rv$task_responses[i], 
-                    ". Duration: ", rv$task_durations[i], "."))
+                    ". Duration: ", rv$task_durations[i], ".",
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   observeEvent(input$survey7, {
@@ -747,7 +793,10 @@ server <- function(input, output, session) {
       rv$task_durations[i] <- time_elapsed()
       loggit("INFO", "Survey 7 entered.", 
              paste0("Response: ", rv$task_responses[i], 
-                    ". Duration: ", rv$task_durations[i], "."))
+                    ". Duration: ", rv$task_durations[i], ".",
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   observeEvent(input$survey8, {
@@ -757,7 +806,10 @@ server <- function(input, output, session) {
       rv$task_durations[i] <- time_elapsed()
       loggit("INFO", "Survey 8 entered.", 
              paste0("Response: ", rv$task_responses[i], 
-                    ". Duration: ", rv$task_durations[i], "."))
+                    ". Duration: ", rv$task_durations[i], ".",
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   observeEvent(input$survey9, {
@@ -767,7 +819,10 @@ server <- function(input, output, session) {
       rv$task_durations[i] <- time_elapsed()
       loggit("INFO", "Survey 9 entered.", 
              paste0("Response: ", rv$task_responses[i], 
-                    ". Duration: ", rv$task_durations[i], "."))
+                    ". Duration: ", rv$task_durations[i], ".",
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   observeEvent(input$survey10, {
@@ -777,7 +832,10 @@ server <- function(input, output, session) {
       rv$task_durations[i] <- time_elapsed()
       loggit("INFO", "Survey 10 entered.", 
              paste0("Response: ", rv$task_responses[i], 
-                    ". Duration: ", rv$task_durations[i], "."))
+                    ". Duration: ", rv$task_durations[i], ".",
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   observeEvent(input$survey11, {
@@ -787,7 +845,10 @@ server <- function(input, output, session) {
       rv$task_durations[i] <- time_elapsed()
       loggit("INFO", "Survey 11 entered.", 
              paste0("Response: ", rv$task_responses[i], 
-                    ". Duration: ", rv$task_durations[i], "."))
+                    ". Duration: ", rv$task_durations[i], ".",
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   observeEvent(input$survey12, {
@@ -797,7 +858,10 @@ server <- function(input, output, session) {
       rv$task_durations[i] <- time_elapsed()
       loggit("INFO", "Survey 12 entered.", 
              paste0("Response: ", rv$task_responses[i], 
-                    ". Duration: ", rv$task_durations[i], "."))
+                    ". Duration: ", rv$task_durations[i], ".",
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   observeEvent(input$survey13, {
@@ -807,7 +871,10 @@ server <- function(input, output, session) {
       rv$task_durations[i] <- time_elapsed()
       loggit("INFO", "Survey 13 entered.", 
              paste0("Response: ", rv$task_responses[i], 
-                    ". Duration: ", rv$task_durations[i], "."))
+                    ". Duration: ", rv$task_durations[i], ".",
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   observeEvent(input$survey14, {
@@ -817,7 +884,10 @@ server <- function(input, output, session) {
       rv$task_durations[i] <- time_elapsed()
       loggit("INFO", "Survey 14 entered.", 
              paste0("Response: ", rv$task_responses[i], 
-                    ". Duration: ", rv$task_durations[i], "."))
+                    ". Duration: ", rv$task_durations[i], ".",
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   observeEvent(input$survey15, {
@@ -827,7 +897,10 @@ server <- function(input, output, session) {
       rv$task_durations[i] <- time_elapsed()
       loggit("INFO", "Survey 15 entered.", 
              paste0("Response: ", rv$task_responses[i], 
-                    ". Duration: ", rv$task_durations[i], "."))
+                    ". Duration: ", rv$task_durations[i], ".",
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   observeEvent(input$survey16, {
@@ -837,7 +910,10 @@ server <- function(input, output, session) {
       rv$task_durations[i] <- time_elapsed()
       loggit("INFO", "Survey 16 entered.", 
              paste0("Response: ", rv$task_responses[i], 
-                    ". Duration: ", rv$task_durations[i], "."))
+                    ". Duration: ", rv$task_durations[i], ".",
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   observeEvent(input$survey17, {
@@ -847,7 +923,10 @@ server <- function(input, output, session) {
       rv$task_durations[i] <- time_elapsed()
       loggit("INFO", "Survey 17 entered.", 
              paste0("Response: ", rv$task_responses[i], 
-                    ". Duration: ", rv$task_durations[i], "."))
+                    ". Duration: ", rv$task_durations[i], ".",
+                    paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
+             )
+      )
     }
   })
   
@@ -1108,7 +1187,7 @@ server <- function(input, output, session) {
     if(rv$timer < 0 & ui_section() == "task" & rv$timer_active == TRUE){
       rv$timer_active <- FALSE
       loggit("INFO", "Timer elapsed.", 
-             paste0("On factor: ", factor(), ", task-block:", taskblock(), "."))
+             paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", "))
     }
   })
   
