@@ -362,8 +362,6 @@ server <- function(input, output, session) {
         dat_std <- tourr::rescale(dat)
         pca <- prcomp(dat_std)
         rv$curr_basis <- pca$rotation[, c(1, 2)]
-        # updateRadioButtons(session, "x_axis", selected = "PC1")
-        # updateRadioButtons(session, "y_axis", selected = "PC2")
       }
       # render init
       pal <- "Dark2"
@@ -486,14 +484,14 @@ server <- function(input, output, session) {
   ### Obs update axis/task2 choices -----
   observeEvent(task_dat(), { # Init axis choices when data changes
     rv$this_theta <- NULL
-    p <- p()
     if (pca_active() == TRUE | manual_active() == TRUE) {
-      choices <- paste0("PC", 1:p)
+      choices <- paste0("PC", 1:PC_cap)
       updateRadioButtons(session, "x_axis", choices = choices, selected = "PC1")
       updateRadioButtons(session, "y_axis", choices = choices, selected = "PC2")
       loggit("INFO", "Task data changed while axes active; updated PC axes choices.")
     }
     if (task_num() == 2) {
+      p <- p()
       choices <- paste0("V", 1:p)
       updateCheckboxGroupInput(session, "tsk2_ans_very_ab",
                                choices = choices, inline  = TRUE)
@@ -511,10 +509,11 @@ server <- function(input, output, session) {
     output$plot_msg <- renderText("")
     if (input$x_axis == input$y_axis) {
       rv$this_theta <- NULL
-      p <- ncol(task_dat())
-      choices <- paste0("PC", 1:p)
-      opts <- choices[!choices %in% input$x_axis]
-      x_axis_out <- sample(opts, 1)
+      x_axis_out <- NULL
+      choices <- paste0("PC", 1:PC_cap)
+      x_axis_num <- as.integer(substr(input$x_axis, 3, 3))
+      if(x_axis_num <= 3) {x_axis_out <- paste0("PC", x_axis_num + 1)
+      } else {x_axis_out <- paste0("PC", x_axis_num - 1)}
       
       updateRadioButtons(session, "x_axis", choices = choices, selected = x_axis_out)
       loggit("INFO", paste0("x_axis set to ", input$x_axis, 
@@ -533,12 +532,13 @@ server <- function(input, output, session) {
     output$plot_msg <- renderText("")
     if (input$x_axis == input$y_axis) {
       rv$this_theta <- NULL
-      p <- ncol(task_dat())
-      choices <- paste0("PC", 1:p)
-      opts <- choices[!choices %in% input$x_axis]
-      y_axis_out <- sample(opts, 1)
+      y_axis_out <- NULL
+      choices <- paste0("PC", 1:PC_cap)
+      y_axis_num <- as.integer(substr(input$x_axis, 3, 3))
+      if(y_axis_num <= 3) {y_axis_out <- paste0("PC", y_axis_num + 1)
+      } else {y_axis_out <- paste0("PC", y_axis_num - 1)}
       
-      updateRadioButtons(session, "y_axis", choices = choices, selected = sample(opts, 1))
+      updateRadioButtons(session, "y_axis", choices = choices, selected = y_axis_out)
       loggit("INFO", paste0("y_axis set to ", input$y_axis, 
                             ", same as x_axis; y_axis bumped to ", y_axis_out, "."),
              paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")

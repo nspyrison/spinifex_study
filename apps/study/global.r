@@ -95,6 +95,8 @@ n_difficulty       <- length(s_difficulty)       # ~3
 n_blocks           <- 3 #length(s_dat) / (n_tasks * n_factors) # 18/(2*3) = 3
 n_survey_questions <- length(s_survey_questions) # ~17
 
+PC_cap <- 4
+
 s_taskblock_id <- paste0(rep(s_task_id, each = n_blocks), rep(1:n_blocks, n_tasks))
 # intro is pg 1; video intro is pg 2
 training_start <- 3
@@ -131,8 +133,10 @@ sidebar_ui <- conditionalPanel(
     conditionalPanel(
       condition = "(output.factor == 'pca' || output.factor == 'manual') || 
                   (output.ui_section == 'training' && input.factor != 'grand')",
-      fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", choices = "PC1")),
-               column(6, radioButtons(inputId = "y_axis", label = "y axis", choices = "PC2"))
+      fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", 
+                                      choices = paste0("PC", 1:4), selected = "PC1")),
+               column(6, radioButtons(inputId = "y_axis", label = "y axis", 
+                                      choices = paste0("PC", 1:4), selected = "PC2"))
       )
     ), # Manip var/ magnitude selection
     conditionalPanel(condition = "output.factor == 'manual' || 
@@ -358,7 +362,8 @@ main_ui <- mainPanel(
       h2("Video training"), tags$br(), tags$br(),
       p("Watch the following video before proceeding:"), tags$br(), 
       # Adding the 'a' tag to the sidebar linking external file
-      tags$a(href='training.mp4', target='blank', 'training video (3:37)'), 
+      p("Minimize the study and watch the training video."),
+      #tags$a(href='training.mp4', target='blank', 'training video (3:37)'), 
       tags$br(), tags$br(), 
       p("If this link only contains audio let the invigilator know.")
     )  # end of video, second page
@@ -389,7 +394,7 @@ main_ui <- mainPanel(
       h4("Take a break and strech if you feel like it."),
       HTML("<h3><span style='color:red'>
           Keep in mind that we are evaluating the factors not your performance. 
-          Don't worry if you don't fully understand a factor or find a task difficult.
+          Don't worry if you don't fully understand the theory or find a task difficult.
            </span></h3>"),
       h4("Ask any final clarification questions. Then continue on to the 
         evaluation section. Task 1 is limited to 1 minute, and task 2 is limited
