@@ -72,3 +72,17 @@ play_manual_tour(basis = f_pc_bas, data = dat, manip_var = 5,
 
 gganimate::anim_save("./apps/study/www/training_manual.gif") # can't find a good way to change resolution 
 
+##### GRAND Tour training .gif
+
+rb <- tourr::basis_random(n = ncol(dat))
+tpath <- save_history(dat, tour_path = grand_tour(), max = 7)
+
+play_tour_path(tour_path = tpath, data = dat, angle = .08, fps = 5,
+               render_type = render_gganimate, col = col, pch = pch, 
+               axes = "center")
+
+
+gganimate::anim_save("./apps/study/www/training_grand.gif") # can't find a good way to change resolution 
+
+
+

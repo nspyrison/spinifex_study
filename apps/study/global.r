@@ -363,7 +363,7 @@ main_ui <- mainPanel(
       p("Watch the following video before proceeding:"), tags$br(), 
       # Adding the 'a' tag to the sidebar linking external file
       p("Minimize the study and watch the training video."),
-      #tags$a(href='training.mp4', target='blank', 'training video (3:37)'), 
+      #tags$a(href='training.mp4', target='blank', 'training video (4:17)'), 
       tags$br(), tags$br(), 
       p("If this link only contains audio let the invigilator know.")
     )  # end of video, second page
