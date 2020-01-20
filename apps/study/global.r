@@ -33,12 +33,12 @@ while (file.exists(log_file)){ # Find an unused log number
   log_num  <- log_num + 1
 }
 
-is_logging <- FALSE
+is_logging <- FALSE # init
 ### Logging
 ## https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## Uncomment the following line to apply logging
-setLogFile(log_file); is_logging <- TRUE
+# setLogFile(log_file); is_logging <- TRUE
 
 
 ### Required inputs -----
@@ -122,34 +122,11 @@ header_ui <- fluidPage(
 ### sidebar_ui ----
 sidebar_ui <- conditionalPanel(
   condition = "output.ui_section == 'training' || output.ui_section == 'task'",
-  
-  sidebarPanel( # Factor selection
-    conditionalPanel(condition = "output.ui_section == 'training'",
-                     radioButtons(inputId = "factor", label = "Factor", 
-                                  choices = f_ls, 
-                                  selected = f_ls[1],
-                                  inline = TRUE)
-    ), # PCA axis selection
-    conditionalPanel(
-      condition = "(output.factor == 'pca' || output.factor == 'manual') || 
-                  (output.ui_section == 'training' && input.factor != 'grand')",
-      fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", 
-                                      choices = paste0("PC", 1:4), selected = "PC1")),
-               column(6, radioButtons(inputId = "y_axis", label = "y axis", 
-                                      choices = paste0("PC", 1:4), selected = "PC2"))
-      )
-    ), # Manip var/ magnitude selection
-    conditionalPanel(condition = "output.factor == 'manual' || 
-                       (output.ui_section == 'training' && input.factor == 'manual')",
-                     selectInput('manip_var', 'Manip var', "<none>"),
-                     sliderInput("manip_slider", "Contribution",
-                                 min = 0, max = 1, value = 0, step = .1)
-    ), 
+  sidebarPanel( 
     
     ### _Training text -----
     conditionalPanel(
       condition = "output.ui_section == 'training'",
-      hr(),
       conditionalPanel( # interface familiarity 
         condition = "output.section_pg_num == 1",
         p("In this study, you will be working with 3 visualization techniques of
@@ -186,10 +163,37 @@ sidebar_ui <- conditionalPanel(
                with a small contribution are unimportant.
                Use this information to identify which variables distinguish 
                the 2 clusters.")
-      )
+      ),
+      hr()
     ), ### end training text
     
+    ### _Training control inputs -----
+    # Factor selection
+    conditionalPanel(condition = "output.ui_section == 'training'",
+                     radioButtons(inputId = "factor", label = "Factor", 
+                                  choices = f_ls, 
+                                  selected = f_ls[1],
+                                  inline = TRUE)
+    ), # PCA axis selection
+    conditionalPanel(
+      condition = "(output.factor == 'pca' || output.factor == 'manual') || 
+                  (output.ui_section == 'training' && input.factor != 'grand')",
+      fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", 
+                                      choices = paste0("PC", 1:4), selected = "PC1")),
+               column(6, radioButtons(inputId = "y_axis", label = "y axis", 
+                                      choices = paste0("PC", 1:4), selected = "PC2"))
+      )
+    ), # Manip var/ magnitude selection
+    conditionalPanel(condition = "output.factor == 'manual' || 
+                       (output.ui_section == 'training' && input.factor == 'manual')",
+                     selectInput('manip_var', 'Manip var', "<none>"),
+                     sliderInput("manip_slider", "Contribution",
+                                 min = 0, max = 1, value = 0, step = .1)
+    ), 
     
+    
+    
+    ### _Task response input -----
     # Task 1
     conditionalPanel(condition = "(output.task_num == 1 || output.task_num == 2) && 
                                   output.factor != 'grand'", 
@@ -477,9 +481,9 @@ main_ui <- mainPanel(
 ui <- fluidPage(header_ui,
                 sidebar_ui,
                 main_ui
-                # , verbatimTextOutput("dev_msg")
-                # , actionButton("browser", "browser()")
-                # , tableOutput("ans_tbl")
+                , verbatimTextOutput("dev_msg")
+                , actionButton("browser", "browser()")
+                , tableOutput("ans_tbl")
 )
 
 ### onStop -----

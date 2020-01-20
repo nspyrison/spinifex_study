@@ -114,6 +114,9 @@ server <- function(input, output, session) {
            # , ", difficulty: ", s_difficulty[block_num()]
     )
   })
+  ### Throttle manip_slider -----
+  manip_slider   <- reactive(input$manip_slider)
+  manip_slider_t <- throttle(manip_slider, 10)
   
   ### PCA plot reactive -----
   pca_height <- function(){
@@ -140,22 +143,19 @@ server <- function(input, output, session) {
         } 
       }
       
-      pca <- prcomp(dat_std)
-      pca_x <- data.frame(2 * (tourr::rescale(pca$x) - .5))
-      bas <- data.frame(t(pca$rotation))[, 1:2]
-      colnames(bas) <- paste0("V", 1:2)
-      pca_rotation <- app_set_axes_position(bas, axes_position)
+      # x_axis <- "PC1"; y_axis <- "PC2"
+      x_axis <- input$x_axis
+      y_axis <- input$y_axis
+      x_num  <- as.integer(substr(x_axis, 3, 3))
+      y_num  <- as.integer(substr(y_axis, 3, 3))
+      x_lab <- paste0(x_axis, " (", pca_pct_var[x_num], "% Var)")
+      y_lab <- paste0(y_axis, " (", pca_pct_var[y_num], "% Var)")
       
+      pca     <- prcomp(dat_std)
+      pca_x   <- 2 * data.frame(tourr::rescale(pca$x[ , c(x_num, y_num)])) - .5
+      pca_rot <- data.frame(pca$rotation[ , c(x_num, y_num)])
+      pca_rot <- app_set_axes_position(pca_rot, axes_position)
       pca_pct_var <- round(100 * pca$sdev^2 / sum(pca$sdev^2), 1)
-      pca_x_axis <- input$x_axis
-      pca_y_axis <- input$y_axis 
-      # pca_x_axis <- "PC1"; pca_y_axis <- "PC2"
-      v_x_axis <- paste0("V", substr(pca_x_axis,3,3))
-      v_y_axis <- paste0("V", substr(pca_y_axis,3,3))
-      x_lab <- paste0(pca_x_axis, " (",
-                      pca_pct_var[as.integer(substr(pca_x_axis,3,3))], "% Var)")
-      y_lab <- paste0(pca_y_axis, " (",
-                      pca_pct_var[as.integer(substr(pca_y_axis,3,3))], "% Var)")
       
       angle <- seq(0, 2 * pi, length = 360)
       circ  <- app_set_axes_position(data.frame(x = cos(angle), y = sin(angle)),
@@ -169,12 +169,12 @@ server <- function(input, output, session) {
         # data points
         gg <- gg + 
           geom_point(pca_x, 
-                     mapping = aes(x = get(pca_x_axis), y = get(pca_y_axis)), 
+                     mapping = aes(x = get(x_axis), y = get(y_axis)), 
                      size = 3)
       } else { # if USE_AES == TRUE then apply more aes.
         gg <- gg +
           geom_point(pca_x, 
-                     mapping = aes(x = get(pca_x_axis), y = get(pca_y_axis),
+                     mapping = aes(x = get(x_axis), y = get(y_axis),
                                    color = cluster, 
                                    fill  = cluster, 
                                    shape = cluster), 
@@ -183,20 +183,19 @@ server <- function(input, output, session) {
       if (USE_AXES == TRUE) { # if USE_AXES == TRUE then draw axes
         # axis segments
         gg <- gg +
-          geom_segment(pca_rotation,
-                       mapping = aes(x = get(v_x_axis), xend = zero[, 1],
-                                     y = get(v_y_axis), yend = zero[, 2]),
+          geom_segment(pca_rot,
+                       mapping = aes(x = get(x_axis), xend = zero[, 1],
+                                     y = get(y_axis), yend = zero[, 2]),
                        size = .3, colour = "red") +
           # axis label text
-          geom_text(pca_rotation,
-                    mapping = aes(x = get(v_x_axis),
-                                  y = get(v_y_axis),
+          geom_text(pca_rot,
+                    mapping = aes(x = get(x_axis),
+                                  y = get(y_axis),
                                   label = colnames(dat_std)),
                     size = 6, colour = "red", fontface = "bold",
                     vjust = "outward", hjust = "outward") +
           # Cirle path
-          geom_path(circ,
-                    mapping = aes(x = x, y = y),
+          geom_path(circ, mapping = aes(x = x, y = y),
                     color = "grey80", size = .3, inherit.aes = F)
       }
       
@@ -587,23 +586,23 @@ server <- function(input, output, session) {
   })
   
   ### Obs mtour slider ----
-  observeEvent(input$manip_slider, {
+  observeEvent(manip_slider_t(), {
     if (manual_active() == TRUE & input$manip_var != "<none>") {
       theta <- phi <- NULL
       mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
-      if ("Radial" == "Radial" & !is.null(input$manip_slider)) { # Fixed to "Radial" # input$manip_type == "Radial"
+      if ("Radial" == "Radial" & !is.null(manip_slider_t())) { # Fixed to "Radial" # input$manip_type == "Radial"
         if (is.null(rv$this_theta)) {theta <- atan(mv_sp[2] / mv_sp[1])
         } else {theta <- rv$this_theta}
-        if (input$manip_slider == 0) rv$this_theta <- theta
+        if (manip_slider_t() == 0) rv$this_theta <- theta
         phi_start <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
-        phi <- (acos(input$manip_slider) - phi_start) * - sign(mv_sp[1])
+        phi <- (acos(manip_slider_t()) - phi_start) * - sign(mv_sp[1])
       }
       ret <- oblique_basis(basis = rv$curr_basis, manip_var = manip_var_num(),
                            theta = theta, phi = phi)
       row.names(ret) <- colnames(task_dat())
       
       rv$curr_basis <- ret
-      loggit("INFO", paste0("Slider value changed: ", input$manip_slider),
+      loggit("INFO", paste0("Slider value changed: ", manip_slider_t()),
              paste0("rv$curr_basis updated: ",
                     paste0(round(rv$curr_basis, 2), collapse = ", "), 
                     paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
@@ -1249,6 +1248,7 @@ server <- function(input, output, session) {
                                     "task_num(): ", task_num(), "\n",
                                     "block_num(): ", block_num(), "\n",
                                     "rv$timer: ", rv$timer, "\n",
+                                    "rv$this_theta: ", rv$this_theta, "\n",
                                     sep = ""))
   
 }
