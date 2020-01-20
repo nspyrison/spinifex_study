@@ -493,7 +493,7 @@ onStop(function(){
 
 ##### App local functions
 app_render_ <- function(slides, # paste over spinifex render to add size
-                        axes = "center",
+                        axes = "left",
                         alpha = 1,
                         cluster = NULL,
                         ...) {
@@ -509,9 +509,9 @@ app_render_ <- function(slides, # paste over spinifex render to add size
   circ          <- data.frame(x = cos(angle), y = sin(angle))
   ## Scale basis axes
   if (axes != "off"){
-    zero         <- set_axes_position(0, axes)
-    circ         <- set_axes_position(circ, axes)
-    basis_slides <- data.frame(set_axes_position(basis_slides[, 1:d], axes), 
+    zero         <- app_set_axes_position(0, axes)
+    circ         <- app_set_axes_position(circ, axes)
+    basis_slides <- data.frame(app_set_axes_position(basis_slides[, 1:2], axes), 
                                basis_slides[, (d+1):ncol(basis_slides)])
   }
   ## manip var axes asethetics
@@ -520,8 +520,13 @@ app_render_ <- function(slides, # paste over spinifex render to add size
   axes_col[manip_var] <- "blue"
   axes_siz[manip_var] <- .6
   
-  xy_min <- min(circ[, 1:2], data_slides[, 1:2]) - .1
-  xy_max <- max(circ[, 1:2], data_slides[, 1:2]) + .1
+  x_max <- max(data_slides[, 1], circ[, 1])
+  x_min <- min(data_slides[, 1], circ[, 1])
+  y_max <- max(data_slides[, 2], circ[, 2])
+  y_min <- min(data_slides[, 2], circ[, 2])
+  x_range <- x_max - x_min
+  y_range <- y_max - y_min
+  
   gg <- 
     ## ggplot settings
     ggplot2::ggplot() +
@@ -532,12 +537,13 @@ app_render_ <- function(slides, # paste over spinifex render to add size
                    axis.text.y = element_blank(),      # no axis marks
                    axis.title.x = element_blank(),     # no axis titles for gtour
                    axis.title.y = element_blank(),     # no axis titles for gtour
+                   aspect.ratio = y_range / x_range, 
                    legend.box.background = element_rect(),
                    legend.title = element_text(size = 18, face = "bold"),
                    legend.text  = element_text(size = 18, face = "bold")) +
     ggplot2::scale_color_brewer(palette = "Dark2") +
-    ggplot2::xlim(xy_min, xy_max) +
-    ggplot2::ylim(xy_min, xy_max) +
+    ggplot2::xlim(x_min, x_max) +
+    ggplot2::ylim(y_min, y_max) +
     ## Projected data points
     suppressWarnings( # Suppress for unused aes "frame".
       ggplot2::geom_point( 
@@ -562,7 +568,7 @@ app_render_ <- function(slides, # paste over spinifex render to add size
           data = basis_slides, size = axes_siz, colour = axes_col,
           mapping = ggplot2::aes(x = x,
                                  y = y, 
-                                 xend = zero, yend = zero, 
+                                 xend = zero[, 1], yend = zero[, 2], 
                                  frame = slide)
         )
       ) +
@@ -629,3 +635,27 @@ app_oblique_frame <-
     
     return(gg)
   }
+
+app_set_axes_position <- function(x, axes) {
+  if (length(x) == 1) {x <- data.frame(x = x, y = x)}
+  if (ncol(x) != 2) browser()
+  #stopifnot(ncol(x) == 2)
+  position <- match.arg(axes, c("center", "bottomleft", "off", "left"))
+  if (position == "off") return()
+  if (position == "center") {
+    scale <- 2 / 3
+    x_off <- y_off <- 0
+  } else if (position == "bottomleft") {
+    scale <- 1 / 4
+    x_off <- y_off <- -2 / 3
+  } else if (position == "left") {
+    scale <- 2 / 3
+    x_off <- -5 / 3 
+    y_off <- 0
+  }
+  
+  ret <- as.data.frame(scale * x)
+  ret[, 1] <- ret[, 1] + x_off
+  ret[, 2] <- ret[, 2] + y_off
+  return(ret)
+}

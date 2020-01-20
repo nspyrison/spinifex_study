@@ -118,7 +118,7 @@ server <- function(input, output, session) {
   ### PCA plot reactive -----
   pca_height <- function(){
     if (pca_active() == TRUE) {
-      return(640)
+      return(600)
     } else return(1) 
   }
   pca_plot <- reactive({
@@ -127,10 +127,11 @@ server <- function(input, output, session) {
       dat <- task_dat()
       dat_std <- tourr::rescale(dat)
       cluster <- attributes(dat)$cluster
+      # dat_std <- tourr::rescale(flea[,2:7]); cluster <- flea$species; colnames(dat_std) <- paste("V", 1:6)
       
       # render init
       pal <- "Dark2"
-      axes_position <- "bottomleft"
+      axes_position <- "left"
       USE_AXES <- TRUE
       USE_AES  <- TRUE
       if (task_num() == 1) {
@@ -141,23 +142,26 @@ server <- function(input, output, session) {
       
       pca <- prcomp(dat_std)
       pca_x <- data.frame(2 * (tourr::rescale(pca$x) - .5))
-      pca_rotation <- set_axes_position(data.frame(t(pca$rotation)),
-                                        axes_position)
+      bas <- data.frame(t(pca$rotation))[, 1:2]
+      colnames(bas) <- paste0("V", 1:2)
+      pca_rotation <- app_set_axes_position(bas, axes_position)
       
       pca_pct_var <- round(100 * pca$sdev^2 / sum(pca$sdev^2), 1)
       pca_x_axis <- input$x_axis
-      pca_y_axis <- input$y_axis
+      pca_y_axis <- input$y_axis 
+      # pca_x_axis <- "PC1"; pca_y_axis <- "PC2"
       v_x_axis <- paste0("V", substr(pca_x_axis,3,3))
       v_y_axis <- paste0("V", substr(pca_y_axis,3,3))
-      x_lab <- paste0(input$x_axis, " (",
+      x_lab <- paste0(pca_x_axis, " (",
                       pca_pct_var[as.integer(substr(pca_x_axis,3,3))], "% Var)")
-      y_lab <- paste0(input$y_axis, " (",
+      y_lab <- paste0(pca_y_axis, " (",
                       pca_pct_var[as.integer(substr(pca_y_axis,3,3))], "% Var)")
       
       angle <- seq(0, 2 * pi, length = 360)
-      circ  <- set_axes_position(data.frame(x = cos(angle), y = sin(angle)),
+      circ  <- app_set_axes_position(data.frame(x = cos(angle), y = sin(angle)),
                                  axes_position)
-      zero  <- set_axes_position(0, axes_position)
+      zero  <- app_set_axes_position(0, axes_position)
+      #browser()
       
       ### ggplot2
       gg <- ggplot()
@@ -180,14 +184,14 @@ server <- function(input, output, session) {
         # axis segments
         gg <- gg +
           geom_segment(pca_rotation,
-                       mapping = aes(x = get(v_x_axis), xend = zero,
-                                     y = get(v_y_axis), yend = zero),
+                       mapping = aes(x = get(v_x_axis), xend = zero[, 1],
+                                     y = get(v_y_axis), yend = zero[, 2]),
                        size = .3, colour = "red") +
           # axis label text
           geom_text(pca_rotation,
                     mapping = aes(x = get(v_x_axis),
                                   y = get(v_y_axis),
-                                  label = colnames(pca_rotation)),
+                                  label = colnames(dat_std)),
                     size = 6, colour = "red", fontface = "bold",
                     vjust = "outward", hjust = "outward") +
           # Cirle path
@@ -196,16 +200,18 @@ server <- function(input, output, session) {
                     color = "grey80", size = .3, inherit.aes = F)
       }
       
+      x_range <- max(pca_x[, 1], circ[, 1]) - min(pca_x[, 1], circ[, 1])
+      y_range <- max(pca_x[, 2], circ[, 2]) - min(pca_x[, 2], circ[, 2])
       # Options 
       gg <- gg + theme_minimal() +
-        theme(aspect.ratio = 1) +
         scale_color_brewer(palette = pal) +
         theme(panel.grid.major = element_blank(), # no grid lines
               panel.grid.minor = element_blank(), # no grid lines
-              axis.text.x = element_blank(),      # no axis marks
-              axis.text.y = element_blank(),      # no axis marks
+              axis.text.x  = element_blank(),     # no axis marks
+              axis.text.y  = element_blank(),     # no axis marks
               axis.title.x = element_text(size = 22, face = "bold"),
               axis.title.y = element_text(size = 22, face = "bold"),
+              aspect.ratio = y_range / x_range,
               legend.box.background = element_rect(),
               legend.title = element_text(size = 18, face = "bold"),
               legend.text  = element_text(size = 18, face = "bold")
@@ -219,7 +225,7 @@ server <- function(input, output, session) {
   ### Grand tour plot reactive -----
   gtour_height <- function(){
     if (grand_active() == TRUE) {
-      return(640)
+      return(600)
     } else return(1) 
   }
   gtour_plot <- reactive({ 
@@ -247,7 +253,7 @@ server <- function(input, output, session) {
       
       # render init
       pal <- "Dark2"
-      axes_position <- "bottomleft"
+      axes_position <- "left"
       USE_AXES <- TRUE
       USE_AES  <- TRUE
       if (task_num() == 1) {
@@ -257,13 +263,13 @@ server <- function(input, output, session) {
       }
       if (USE_AXES == FALSE) {axes_position = "off"}
       angle <- seq(0, 2 * pi, length = 360)
-      circ  <- set_axes_position(data.frame(x = cos(angle), y = sin(angle)),
+      circ  <- app_set_axes_position(data.frame(x = cos(angle), y = sin(angle)),
                                  axes_position)
-      zero  <- set_axes_position(0, axes_position)
+      zero  <- app_set_axes_position(0, axes_position)
       
       ### ggplot2
       basis_df <- tour_df$basis_slides
-      basis_df[, 1:2] <- set_axes_position(tour_df$basis_slides[, 1:2], axes_position)
+      basis_df[, 1:2] <- app_set_axes_position(tour_df$basis_slides[, 1:2], axes_position)
       data_df  <- tour_df$data_slides
       ## scaling in array2df not applying here...
       data_df[, 1:2] <- 2 * (tourr::rescale(data_df[, 1:2]) - .5)
@@ -289,8 +295,8 @@ server <- function(input, output, session) {
         # axis segments
         gg <- gg +
           geom_segment(basis_df,
-                       mapping = aes(x = x, xend = zero,
-                                     y = y, yend = zero,
+                       mapping = aes(x = x, xend = zero[, 1],
+                                     y = y, yend = zero[, 2],
                                      frame = slide),
                        size = .3, colour = "red") +
           # axis label text
@@ -307,9 +313,10 @@ server <- function(input, output, session) {
                     color = "grey80", size = .3, inherit.aes = F)
       }
       
+      x_range <- max(data_df[, 1], circ[, 1]) - min(data_df[, 1], circ[, 1])
+      y_range <- max(data_df[, 2], circ[, 2]) - min(data_df[, 2], circ[, 2])
       # Options 
       gg <- gg + theme_minimal() +
-        theme(aspect.ratio = 1) +
         scale_color_brewer(palette = pal) +
         scale_fill_brewer(palette = pal) +
         theme(panel.grid.major = element_blank(), # no grid lines
@@ -318,6 +325,7 @@ server <- function(input, output, session) {
               axis.text.y = element_blank(),      # no axis marks
               axis.title.x = element_blank(),     # no axis titles for gtour
               axis.title.y = element_blank(),     # no axis titles for gtour
+              aspect.ratio = y_range / x_range, 
               legend.box.background = element_rect(),
               legend.title = element_text(size = 18, face = "bold"),
               legend.text  = element_text(size = 18, face = "bold")
@@ -345,7 +353,7 @@ server <- function(input, output, session) {
   ### Manual tour plot reactive -----
   mtour_height <- function() {
     if (manual_active()) {
-      return(800)
+      return(600)
     } else return(1) 
   }
   mtour_plot <- reactive({
@@ -365,7 +373,7 @@ server <- function(input, output, session) {
       }
       # render init
       pal <- "Dark2"
-      axes_position <- "bottomleft"
+      axes_position <- "left"
       USE_AXES <- TRUE
       USE_AES  <- TRUE
       if (task_num() == 1) {
