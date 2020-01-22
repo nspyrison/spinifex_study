@@ -65,11 +65,12 @@ for (i in 1:length(s_sim_num)) {
 
 tpath_train1 <- readRDS("../simulation/grand_tpath_train1.rds") # p = 6, pnoise = 2, cl = 3 
 tpath_train2 <- readRDS("../simulation/grand_tpath_train2.rds") # p = 6, pnoise = 2, cl = 3
+s_tpath_num  <- as.character(1:6)
 s_tpath_train <- list(tpath_train1, tpath_train2)
 s_tpath <- list()
-for (i in 1:length(s_sim_num)) {
+for (i in 1:length(s_tpath_num)) {
   s_tpath[[i]] <- readRDS(
-    paste0("../simulation/grand_tpath_", s_sim_num[i], ".rds")
+    paste0("../simulation/grand_tpath", s_tpath_num[i], ".rds")
   )
 }
 

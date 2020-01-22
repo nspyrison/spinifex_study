@@ -23,7 +23,7 @@ server <- function(input, output, session) {
   rv$training_aes    <- FALSE
   rv$second_training <- FALSE
   rv$curr_basis      <- NULL
-  rv$this_theta      <- NULL
+  rv$this_sign       <- NULL
   
   ##### Start reactives
   p <- reactive({ ncol(task_dat()) })
@@ -84,7 +84,7 @@ server <- function(input, output, session) {
       if (section_pg_num() %in% c(3, 5)) {return(s_tpath_train[[2]])
       } else return(s_tpath_train[[1]])
     } else {
-      return(s_tpath[[sim_num()]]) 
+      return(s_tpath[[sim_num() %% (n_factors * n_tasks)]]) 
     }
   })
   manip_var_num <- reactive({ 
@@ -148,14 +148,14 @@ server <- function(input, output, session) {
       y_axis <- input$y_axis
       x_num  <- as.integer(substr(x_axis, 3, 3))
       y_num  <- as.integer(substr(y_axis, 3, 3))
-      x_lab <- paste0(x_axis, " (", pca_pct_var[x_num], "% Var)")
-      y_lab <- paste0(y_axis, " (", pca_pct_var[y_num], "% Var)")
       
       pca     <- prcomp(dat_std)
-      pca_x   <- 2 * data.frame(tourr::rescale(pca$x[ , c(x_num, y_num)])) - .5
+      pca_x   <- 2 * (data.frame(tourr::rescale(pca$x[ , c(x_num, y_num)])) - .5)
       pca_rot <- data.frame(pca$rotation[ , c(x_num, y_num)])
       pca_rot <- app_set_axes_position(pca_rot, axes_position)
       pca_pct_var <- round(100 * pca$sdev^2 / sum(pca$sdev^2), 1)
+      x_lab <- paste0(x_axis, " (", pca_pct_var[x_num], "% Var)")
+      y_lab <- paste0(y_axis, " (", pca_pct_var[y_num], "% Var)")
       
       angle <- seq(0, 2 * pi, length = 360)
       circ  <- app_set_axes_position(data.frame(x = cos(angle), y = sin(angle)),
@@ -490,7 +490,7 @@ server <- function(input, output, session) {
   ##### Start observes
   ### Obs update axis/task2 choices -----
   observeEvent(task_dat(), { # Init axis choices when data changes
-    rv$this_theta <- NULL
+    rv$this_sign <- NULL
     if (pca_active() == TRUE | manual_active() == TRUE) {
       choices <- paste0("PC", 1:PC_cap)
       updateRadioButtons(session, "x_axis", choices = choices, selected = "PC1")
@@ -515,7 +515,7 @@ server <- function(input, output, session) {
   observeEvent(input$x_axis, { 
     output$plot_msg <- renderText("")
     if (input$x_axis == input$y_axis) {
-      rv$this_theta <- NULL
+      rv$this_sign <- NULL
       x_axis_out <- NULL
       choices <- paste0("PC", 1:PC_cap)
       x_axis_num <- as.integer(substr(input$x_axis, 3, 3))
@@ -538,7 +538,7 @@ server <- function(input, output, session) {
   observeEvent(input$y_axis, {
     output$plot_msg <- renderText("")
     if (input$x_axis == input$y_axis) {
-      rv$this_theta <- NULL
+      rv$this_sign <- NULL
       y_axis_out <- NULL
       choices <- paste0("PC", 1:PC_cap)
       y_axis_num <- as.integer(substr(input$x_axis, 3, 3))
@@ -566,7 +566,7 @@ server <- function(input, output, session) {
   },
   {
     if (manual_active() == TRUE){
-      rv$this_theta <- NULL
+      rv$this_sign <- NULL
       dat <- task_dat()
       dat_std <- tourr::rescale(dat)
       pca <- prcomp(dat_std)
@@ -591,11 +591,13 @@ server <- function(input, output, session) {
       theta <- phi <- NULL
       mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
       if ("Radial" == "Radial" & !is.null(manip_slider_t())) { # Fixed to "Radial" # input$manip_type == "Radial"
-        if (is.null(rv$this_theta)) {theta <- atan(mv_sp[2] / mv_sp[1])
-        } else {theta <- rv$this_theta}
-        if (manip_slider_t() == 0) rv$this_theta <- theta
+        theta <- atan(mv_sp[2] / mv_sp[1])
+        # if(is.null(rv$this_sign)) rv$this_sign <- sign(mv_sp[1]) 
+        #TODO rv$this_sign is even worse behavior than sign(x)...
         phi_start <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
-        phi <- (acos(manip_slider_t()) - phi_start) * - sign(mv_sp[1])
+        phi <- (acos(manip_slider_t()) - phi_start) * - sign(mv_sp[1]) 
+        cat("phi_start-phi: ", phi_start-phi, ", phi_start: ", phi_start, ", phi: ", phi, "\n")
+        cat("sign(x):", sign(mv_sp[1]))
       }
       ret <- oblique_basis(basis = rv$curr_basis, manip_var = manip_var_num(),
                            theta = theta, phi = phi)
@@ -618,7 +620,7 @@ server <- function(input, output, session) {
   }, 
   { # Init manip_var choices on data change.
     if (manual_active() == TRUE) {
-      rv$this_theta <- NULL
+      rv$this_sign <- NULL
       these_colnames <- colnames(task_dat())
       updateSelectInput(session, "manip_var", choices = these_colnames, 
                         selected = these_colnames[1])
@@ -636,7 +638,7 @@ server <- function(input, output, session) {
       input$y_axis
     }, {
       if (manual_active() == TRUE) {
-        rv$this_theta <- NULL
+        rv$this_sign <- NULL
         mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
         phi_i <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
         this_val <- round(cos(phi_i), 1) # Rad
@@ -946,7 +948,6 @@ server <- function(input, output, session) {
       # if <on last task> {<do nothing>}. Also shouldn't be visible
       if (rv$pg_num >= survey_start){ return() }
       
-      
       ### _Training evaluation -----
       # If training section, evaluate response
       if (ui_section() == "training") {
@@ -1240,6 +1241,7 @@ server <- function(input, output, session) {
   
   ### Dev msg -----
   output$dev_msg <- renderPrint(cat("dev msg -- ", "\n",
+                                    "rv$this_sign: ", rv$this_sign, "\n",
                                     "this ans_tbl row: ", factor(), "|", taskblock(), "\n",
                                     "rv$pg_num: ", rv$pg_num, "\n",
                                     "ui_section() ", ui_section(), "\n",
@@ -1248,7 +1250,6 @@ server <- function(input, output, session) {
                                     "task_num(): ", task_num(), "\n",
                                     "block_num(): ", block_num(), "\n",
                                     "rv$timer: ", rv$timer, "\n",
-                                    "rv$this_theta: ", rv$this_theta, "\n",
                                     sep = ""))
   
 }
