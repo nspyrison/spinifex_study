@@ -361,9 +361,7 @@ server <- function(input, output, session) {
       dat <- task_dat()
       dat_std <- tourr::rescale(dat)
       cluster <- attributes(dat)$cluster
-      m_var <- NULL
-      if (input$manip_var == "<none>") {m_var <- 1
-      } else {m_var <- which(colnames(dat) == input$manip_var)}
+      m_var   <- manip_var_num()
       if (is.null(rv$curr_basis)) {
         dat <- task_dat()
         dat_std <- tourr::rescale(dat)
@@ -587,10 +585,10 @@ server <- function(input, output, session) {
   
   ### Obs mtour slider ----
   observeEvent(manip_slider_t(), {
-    if (manual_active() == TRUE & input$manip_var != "<none>") {
+    if (manual_active() == TRUE) {
       theta <- phi <- NULL
       mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
-      if ("Radial" == "Radial" & !is.null(manip_slider_t())) { # Fixed to "Radial" # input$manip_type == "Radial"
+      if ("Radial" == "Radial") { # Fixed to "Radial" # input$manip_type == "Radial"
         theta <- atan(mv_sp[2] / mv_sp[1])
         # if(is.null(rv$this_sign)) rv$this_sign <- sign(mv_sp[1]) 
         #TODO rv$this_sign is even worse behavior than sign(x)...
