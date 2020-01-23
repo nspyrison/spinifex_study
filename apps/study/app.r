@@ -23,7 +23,8 @@ server <- function(input, output, session) {
   rv$training_aes    <- FALSE
   rv$second_training <- FALSE
   rv$curr_basis      <- NULL
-  rv$this_sign       <- NULL
+  rv$manual_ls       <- list()
+  rv$basis_ls        <- list()
   
   ##### Start reactives
   p <- reactive({ ncol(task_dat()) })
@@ -159,9 +160,8 @@ server <- function(input, output, session) {
       
       angle <- seq(0, 2 * pi, length = 360)
       circ  <- app_set_axes_position(data.frame(x = cos(angle), y = sin(angle)),
-                                 axes_position)
+                                     axes_position)
       zero  <- app_set_axes_position(0, axes_position)
-      #browser()
       
       ### ggplot2
       gg <- ggplot()
@@ -357,48 +357,75 @@ server <- function(input, output, session) {
   }
   mtour_plot <- reactive({
     if (manual_active()) {
-      # data init
-      dat <- task_dat()
-      dat_std <- tourr::rescale(dat)
-      cluster <- attributes(dat)$cluster
-      m_var   <- manip_var_num()
-      if (is.null(rv$curr_basis)) {
+      ### Make rv$manual_ls
+      if(length(rv$manual_ls) == 0){
+        # data init
         dat <- task_dat()
         dat_std <- tourr::rescale(dat)
-        pca <- prcomp(dat_std)
-        rv$curr_basis <- pca$rotation[, c(1, 2)]
-      }
-      # render init
-      pal <- "Dark2"
-      axes_position <- "left"
-      USE_AXES <- TRUE
-      USE_AES  <- TRUE
-      if (task_num() == 1) {
-        if(rv$training_aes == FALSE) { # During training
-          USE_AES  <- FALSE
+        cluster <- attributes(dat)$cluster
+        m_var   <- manip_var_num()
+        
+        # set rv$curr_basis if needed
+        if (is.null(rv$curr_basis)) {
+          x <- input$x_axis
+          y <- input$y_axis
+          x_num <- as.integer(substr(x, nchar(x), nchar(x)))
+          y_num <- as.integer(substr(y, nchar(y), nchar(y)))
+          pca <- prcomp(dat_std)
+          rv$curr_basis <- pca$rotation[, c(x_num, y_num)]
+        }
+        
+        # slider to phi/theta
+        theta <- phi <- NULL
+        mv_sp <- create_manip_space(rv$curr_basis, m_var)[m_var, ]
+        theta <- atan(mv_sp[2] / mv_sp[1]) # Radial
+        phi_start <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
+        phi_pts <- acos((0:10)/10) # possible angles changes from manip_slider.
+        phi_vect <- (phi_pts - phi_start) * - sign(mv_sp[1]) 
+        
+        for (i in 1:length(phi_vect)){
+          rv$basis_ls[[i]] <- oblique_basis(basis = rv$curr_basis, manip_var = manip_var_num(),
+                                            theta = theta, phi = phi_vect[i])
+          row.names(rv$basis_ls[[i]]) <- colnames(task_dat())
+        }
+        
+        # render init
+        pal <- "Dark2"
+        axes_position <- "left"
+        USE_AXES <- TRUE
+        USE_AES  <- TRUE
+        if (task_num() == 1) {
+          if(rv$training_aes == FALSE) { # During training
+            USE_AES  <- FALSE
+          } 
+        }
+        
+        for (i in 1:length(rv$basis_ls)){
+          if (USE_AES == TRUE) {
+            rv$manual_ls[[i]] <- app_oblique_frame(data      = dat_std,
+                                                   basis     = rv$basis_ls[[i]],
+                                                   manip_var = m_var,
+                                                   theta     = 0, 
+                                                   phi       = 0,
+                                                   cluster   = cluster,
+                                                   axes      = axes_position
+            )
+          } else { # when USE_AES == FALSE
+            rv$manual_ls[[i]] <- app_oblique_frame(data      = dat_std,
+                                                   basis     = rv$basis_ls[[i]],
+                                                   manip_var = m_var,
+                                                   theta     = 0, 
+                                                   phi       = 0,
+                                                   axes      = axes_position
+            )
+          }
         } 
-      }
+      } # end of for creating rv$manual_ls
       
-      if (USE_AES == TRUE) {
-        ret <- app_oblique_frame(data      = dat_std,
-                                 basis     = rv$curr_basis,
-                                 manip_var = m_var,
-                                 theta     = 0, 
-                                 phi       = 0,
-                                 cluster   = cluster,
-                                 axes      = axes_position
-        )
-      } else { # when USE_AES == FALSE
-        ret <- app_oblique_frame(data      = dat_std,
-                                 basis     = rv$curr_basis,
-                                 manip_var = m_var,
-                                 theta     = 0, 
-                                 phi       = 0,
-                                 axes      = axes_position
-        )
-      }
+      j <- manip_slider_t() * 10 + 1
+      rv$curr_basis <- rv$basis_ls[[j]]
       
-      return(ret)
+      rv$manual_ls[[j]]
     } # non-display conditions return nothing.
   })
   
@@ -487,7 +514,6 @@ server <- function(input, output, session) {
   ##### Start observes
   ### Obs update axis/task2 choices -----
   observeEvent(task_dat(), { # Init axis choices when data changes
-    rv$this_sign <- NULL
     if (pca_active() == TRUE | manual_active() == TRUE) {
       choices <- paste0("PC", 1:PC_cap)
       updateRadioButtons(session, "x_axis", choices = choices, selected = "PC1")
@@ -509,10 +535,9 @@ server <- function(input, output, session) {
     }
   })
   # Bump x_axis when set to the same as y_axis
-  observeEvent(input$x_axis, { 
+  observeEvent(input$x_axis, {
     output$plot_msg <- renderText("")
     if (input$x_axis == input$y_axis) {
-      rv$this_sign <- NULL
       x_axis_out <- NULL
       choices <- paste0("PC", 1:PC_cap)
       x_axis_num <- as.integer(substr(input$x_axis, 3, 3))
@@ -535,7 +560,6 @@ server <- function(input, output, session) {
   observeEvent(input$y_axis, {
     output$plot_msg <- renderText("")
     if (input$x_axis == input$y_axis) {
-      rv$this_sign <- NULL
       y_axis_out <- NULL
       choices <- paste0("PC", 1:PC_cap)
       y_axis_num <- as.integer(substr(input$x_axis, 3, 3))
@@ -563,9 +587,8 @@ server <- function(input, output, session) {
   },
   {
     if (manual_active() == TRUE){
-      rv$this_sign <- NULL
-      dat <- task_dat()
-      dat_std <- tourr::rescale(dat)
+      rv$manual_ls <- list()
+      dat_std <- tourr::rescale(task_dat())
       pca <- prcomp(dat_std)
       x <- input$x_axis
       y <- input$y_axis
@@ -585,22 +608,6 @@ server <- function(input, output, session) {
   ### Obs mtour slider ----
   observeEvent(manip_slider_t(), {
     if (manual_active() == TRUE) {
-      theta <- phi <- NULL
-      mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
-      if ("Radial" == "Radial") { # Fixed to "Radial" # input$manip_type == "Radial"
-        theta <- atan(mv_sp[2] / mv_sp[1])
-        # if(is.null(rv$this_sign)) rv$this_sign <- sign(mv_sp[1]) 
-        #TODO rv$this_sign is even worse behavior than sign(x)...
-        phi_start <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
-        phi <- (acos(manip_slider_t()) - phi_start) * - sign(mv_sp[1]) 
-        cat("phi_start-phi: ", phi_start-phi, ", phi_start: ", phi_start, ", phi: ", phi, "\n")
-        cat("sign(x):", sign(mv_sp[1]))
-      }
-      ret <- oblique_basis(basis = rv$curr_basis, manip_var = manip_var_num(),
-                           theta = theta, phi = phi)
-      row.names(ret) <- colnames(task_dat())
-      
-      rv$curr_basis <- ret
       loggit("INFO", paste0("Slider value changed: ", manip_slider_t()),
              paste0("rv$curr_basis updated: ",
                     paste0(round(rv$curr_basis, 2), collapse = ", "), 
@@ -617,7 +624,6 @@ server <- function(input, output, session) {
   }, 
   { # Init manip_var choices on data change.
     if (manual_active() == TRUE) {
-      rv$this_sign <- NULL
       these_colnames <- colnames(task_dat())
       updateSelectInput(session, "manip_var", choices = these_colnames, 
                         selected = these_colnames[1])
@@ -634,11 +640,11 @@ server <- function(input, output, session) {
       input$x_axis
       input$y_axis
     }, {
-      if (manual_active() == TRUE) {
-        rv$this_sign <- NULL
+      if (manual_active() == TRUE & !is.null(rv$curr_basis)) {
+        rv$manual_ls <- list()
         mv_sp <- create_manip_space(rv$curr_basis, manip_var_num())[manip_var_num(), ]
         phi_i <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
-        this_val <- round(cos(phi_i), 1) # Rad
+        this_val <- cos(phi_i) #round(cos(phi_i), 1)
         updateSliderInput(session, "manip_slider", value = this_val)
         loggit("INFO", 
                paste0("New manip slider value (from task_dat/axes/manip_var)."), 
@@ -1008,7 +1014,7 @@ server <- function(input, output, session) {
           n_cl <- n_cl()
           response <- matrix(0, nrow = n_cl, ncol = p) # cannot distinguish between 0 and NA
           for (i in 1:2){
-            resp_i <- 2 * i - 1 
+            resp_i <- 2 * i - 1
             this_col_very <- as.integer(substr(response_list[[resp_i]], 2, 2))
             this_col_some <- as.integer(substr(response_list[[resp_i + 1]], 2, 2))
             if (length(this_col_very) >= 1) response[i, this_col_very] <- 2
@@ -1024,7 +1030,7 @@ server <- function(input, output, session) {
           abs_lda_means_rowptile <- matrix(NA, nrow = nrow(this_lda$means),
                                            ncol = ncol(this_lda$means))
           for (i in 1:nrow(abs_lda_means)){
-            abs_lda_means_rowptile[i, ] <- 
+            abs_lda_means_rowptile[i, ] <-
               abs_lda_means[i, ] / max(abs_lda_means[i,])
           }
           ans <- dplyr::case_when(
@@ -1071,7 +1077,7 @@ server <- function(input, output, session) {
       if (ui_section() == "task" |
           (ui_section() == "training" & task_num() %in% 1:2)) {
         ins_row_start <- which(rv$ans_tbl$factor == factor() &
-                                 rv$ans_tbl$taskblock == taskblock())[1] # first row of this taskblock.
+                                 rv$ans_tbl$taskblock == taskblock())[1]
         ins_row_end <- ins_row_start + length(rv$task_responses) - 1
         rv$ans_tbl$response[ins_row_start:ins_row_end] <- rv$task_responses
         rv$ans_tbl$duration[ins_row_start:ins_row_end] <- rv$task_durations
@@ -1079,7 +1085,7 @@ server <- function(input, output, session) {
       
       ### _New page ----
       # if second training not needed, skip a page.
-      if (ui_section() == "training" & block_num() %in% c(2, 4) & # rep 1 of task 1 & 2
+      if (ui_section() == "training" & block_num() %in% c(2, 4) &
           !(rv$second_training == TRUE | input$second_training == TRUE)) {
         rv$pg_num <- rv$pg_num + 1
       }

@@ -38,7 +38,7 @@ is_logging <- FALSE # init
 ## https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## Uncomment the following line to apply logging
-# setLogFile(log_file); is_logging <- TRUE
+setLogFile(log_file); is_logging <- TRUE
 
 
 ### Required inputs -----
@@ -483,9 +483,9 @@ main_ui <- mainPanel(
 ui <- fluidPage(header_ui,
                 sidebar_ui,
                 main_ui
-                , verbatimTextOutput("dev_msg")
-                , actionButton("browser", "browser()")
-                , tableOutput("ans_tbl")
+                # , verbatimTextOutput("dev_msg")
+                # , actionButton("browser", "browser()")
+                # , tableOutput("ans_tbl")
 )
 
 ### onStop -----
