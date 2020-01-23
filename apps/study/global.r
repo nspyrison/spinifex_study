@@ -52,7 +52,7 @@ s_task2_questions <- c("Very important distinguishing clusters 'a' from 'b'",
                        "Somewhat important distinguishing clusters 'a' from 'b'",
                        "Very important distinguishing clusters 'b' from 'c'",
                        "Somewhat important distinguishing clusters 'b' from 'c'")
-s_sim_num  <- as.character(101:118)
+s_sim_num  <- as.character(201:218)
 sim_train1 <- readRDS("../simulation/simulation_data_train1.rds") # p = 6, pnoise = 2, cl = 3 
 sim_train2 <- readRDS("../simulation/simulation_data_train2.rds") # p = 6, pnoise = 2, cl = 3
 s_train <- list(sim_train1, sim_train2)
@@ -137,16 +137,17 @@ sidebar_ui <- conditionalPanel(
         projection."),
         p("Principal Component Analysis (PCA) is displayed first. Use the radio
           buttons on the left sidebar panel to select new components to be 
-          displayed. Observe how the clusters and the variable line segments 
-          move."),
+          displayed. Observe how the clusters and the variable contributions 
+          change."),
         p("Now switch to the grand tour factor. Play the animation. Notice how 
           different clusters move as the variable contributions change. Drag
-          the slider to select a different frame or pace."),
-        p("Now try the manual tour. You can select which components are on 
-          the axis. Using the drop-down, select the variable with the largest 
+          the slider to select a different frame or animate at your own pace."),
+        p("Change to the manual tour. You can select which components are on 
+          the axes. Using the drop-down, select the variable with the largest 
           line segment. Use the slider to change the variable's contribution. 
           Watch how the contributions and clusters move as a result. Select a 
-          new pair of PC to reset the values."),
+          change the y axis to PC3 and back, notice that this resets the 
+          projection."),
       ),
       conditionalPanel( # training task 1, pg 1
         condition = "output.task_num == 1",
@@ -465,14 +466,14 @@ main_ui <- mainPanel(
                 min = 1, max = 9, value = 5),
     fluidRow(col_p1, col_p2, col_p3),
     hr(),
-    actionButton("save_ans", "save responses"),
     htmlOutput("save_msg"),
     conditionalPanel(
       condition = "output.is_saved == 1",
       h3("Thank you for participating!"),
       br(),
       h4("Let the invigilator know you have completed the study and have a good day.")
-    )
+    ),
+    actionButton("save_ans", "save responses")
   ) # close survey condition panel 
   
 ) # close mainPanel()

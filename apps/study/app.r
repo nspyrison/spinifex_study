@@ -430,25 +430,24 @@ server <- function(input, output, session) {
           n_factors                                      # across factors
         ),      
         paste0("survey", 1:5),                           # survey
-        paste0("survey_", this_factor_order[1], 1:4),
-        paste0("survey_", this_factor_order[2], 1:4),
-        paste0("survey_", this_factor_order[3], 1:4)
+        paste0("survey", 6:9, "_", this_factor_order[1]),
+        paste0("survey", 6:9, "_", this_factor_order[2]),
+        paste0("survey", 6:9, "_", this_factor_order[3])
       )
-    sim_set <- c(101, 107, 113,                 # task 1
-                 rep(102, n_task2_questions),   # task 2
-                 rep(108, n_task2_questions),
-                 rep(114, n_task2_questions)
+    sim_set <- c(201, 207, 213,               # task 1
+                 rep(202, n_task2_questions), # task 2
+                 rep(208, n_task2_questions),
+                 rep(214, n_task2_questions)
     )
     col_sim_id <- 
       as.character(
-        c(
-          119:120,                     # training 1 
-          rep(119, n_task2_questions), # training 2
-          rep(120, n_task2_questions),
-          sim_set,                     # tasks across factors
+        c("t1","t2",
+          rep("t1", n_task2_questions), # training 1 
+          rep("t2", n_task2_questions), # training 2
+          sim_set,                      # tasks across factors
           sim_set + 2,
           sim_set + n_task2_questions,
-          rep(NA, n_survey_questions)  # survey
+          rep(NA, n_survey_questions)   # survey
         )
       )
     col_question <- 
@@ -667,7 +666,7 @@ server <- function(input, output, session) {
   ### task 2 responses & duration
   observeEvent(input$tsk2_ans_very_ab, {
     if(time_elapsed() > 1) {
-      rv$task_responses[1] <- paste(input$tsk2_ans_cla_very, collapse = ",")
+      rv$task_responses[1] <- paste(input$tsk2_ans_very_ab, collapse = ",")
       rv$task_durations[1] <- time_elapsed()
       loggit("INFO", "Task 2, very important, clusters ab response entered.", 
              paste0("Response: ", rv$task_responses[1], 
@@ -679,7 +678,7 @@ server <- function(input, output, session) {
   })
   observeEvent(input$tsk2_ans_some_ab, {
     if(time_elapsed() > 1) {
-      rv$task_responses[2] <- paste(input$tsk2_ans_cla_some, collapse = ",")
+      rv$task_responses[2] <- paste(input$tsk2_ans_some_ab, collapse = ",")
       rv$task_durations[2] <- time_elapsed()
       loggit("INFO", "Task 2, somewhat important clusters ab response entered.", 
              paste0("Response: ", rv$task_responses[2], 
@@ -691,7 +690,7 @@ server <- function(input, output, session) {
   })
   observeEvent(input$tsk2_ans_very_bc, {
     if(time_elapsed() > 1) {
-      rv$task_responses[3] <- paste(input$tsk2_ans_clb_very, collapse = ",")
+      rv$task_responses[3] <- paste(input$tsk2_ans_very_bc, collapse = ",")
       rv$task_durations[3] <- time_elapsed()
       loggit("INFO", "Task 2, very important, clusters bc response entered.", 
              paste0("Response: ", rv$task_responses[3], 
@@ -703,7 +702,7 @@ server <- function(input, output, session) {
   })
   observeEvent(input$tsk2_ans_some_bc, {
     if(time_elapsed() > 1) {
-      rv$task_responses[4] <- paste(input$tsk2_ans_clb_some, collapse = ",")
+      rv$task_responses[4] <- paste(input$tsk2_ans_some_bc, collapse = ",")
       rv$task_durations[4] <- time_elapsed()
       loggit("INFO", "Task 2, somewhat important, clusters bc response entered.", 
              paste0("Response: ", rv$task_responses[4], 
@@ -967,21 +966,23 @@ server <- function(input, output, session) {
           
           if (delta >= 2){ # >= 2 clusters too high, retry
             rv$second_training <- TRUE
-            this_msg <- paste0("That is little high, this data has ", ans, " clusters. 
-            Try again on another training set. ")
+            this_msg <- paste0("That is little high, this data has ", ans, " clusters. ")
+            if(section_pg_num() %in% c(2, 4)) {this_msg <- 
+              paste0(this_msg, "Try again on another training set. ")}
           }
           if (delta <= -2){ # <= 2 clusters too low, retry
             rv$second_training <- TRUE
-            this_msg <- paste0("That is little low, this data has ", ans, " clusters. 
-            Try again on another training set. ")
+            this_msg <- paste0("That is little low, this data has ", ans, " clusters. ")
+            if(section_pg_num() %in% c(2, 4)) {this_msg <- 
+              paste0(this_msg, "Try again on another training set. ")}
           }
           if (abs(delta) == 1){ # within 1 cluster, passes
-            rv$second_training <- "ask"
+            if (section_pg_num() %in% c(2, 4)) rv$second_training <- "ask"
             this_msg <- paste0("Close, this data has ", ans, " clusters. 
             You have the right idea. As a reminder, ")
           }
           if (delta == 0){ # exact answer, passes
-            rv$second_training <- "ask"
+            if (section_pg_num() %in% c(2, 4))  rv$second_training <- "ask"
             this_msg <- paste0("That's correct, this data has ", ans, " clusters.
             As a reminder, ")
           }
@@ -1108,8 +1109,12 @@ server <- function(input, output, session) {
       if (task_num() == 1){n_rows <- 1} 
       if (task_num() == 2){n_rows <- 4}
       if (ui_section() == "survey") {n_rows <- n_survey_questions}
-      
-      rv$task_responses <- rep("default", n_rows)
+      def <- "default"
+      if (task_num() == 1){def <- "0 (default)"} 
+      if (task_num() == 2){def <- "none (default)"}
+      if (ui_section() == "survey") {def <- c(rep("decline to answer (default)", 3),
+                                              rep("5 (default)", n_survey_questions - 3))}
+      rv$task_responses <- rep(def, n_rows)
       rv$task_durations <- rep("default", n_rows)
       loggit("INFO", paste0("Next page: section ", ui_section(), 
                             ", section page ", section_pg_num()),
@@ -1126,7 +1131,7 @@ server <- function(input, output, session) {
   
   ### Obs save reponses button -----
   observeEvent(input$save_ans, {
-    filebase = paste("responses_", this_factor_id, Sys.info()[4], sep = "_")
+    filebase = paste("responses", this_factor_id, Sys.info()[4], sep = "_")
     prefix = ""
     
     # Write survey responses to rv$ans_tbl
