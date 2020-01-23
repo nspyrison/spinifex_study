@@ -284,7 +284,6 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                     "sim_pnoise: ", input$sim_pnoise, "\n",
                                     "sim_cl: ", input$sim_cl, "\n",
                                     "head(loaded_sim_names): ", head(loaded_sim_names), "\n",
-                                    "load_num:", load_num, "\n",
                                     "input$load_x_axis: ", input$load_x_axis, "\n",
                                     "input$load_y_axis: ", input$load_y_axis, "\n",
                                     "rv$curr_basis: ", rv$curr_basis, "\n",

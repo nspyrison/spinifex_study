@@ -99,7 +99,7 @@ panel_review_manual <- tabPanel(
 
 ##### UI, combine panels -----
 ui <- fluidPage(
-  navbarPage("Multivariate data visualization study"
+  navbarPage("Multivariate simulation generation"
              , panel_generate
              , panel_review
              , panel_review_manual
@@ -118,12 +118,12 @@ APP_simulate_clusters <- function(p = 10, pnoise = 4, cl = 4){
   vc <- NULL
   for (i in 1:cl) {
     n <- sample(30:150, 1)
-    vc <- matrix(sample(seq(-.1, 0.7, by = 0.1), p * p, replace = T), nrow = p) 
+    vc <- matrix(sample(seq(-.1, 0.6, by = 0.1), p * p, replace = T), nrow = p) 
     ind <- lower.tri(vc) 
     vc[ind] <- t(vc)[ind] 
     vc <- lqmm::make.positive.definite(vc) # Variance-covariance matrix
     diag(vc) <- 1
-    mn <- c(sample(seq(-3, 3, 1), p - pnoise, replace = T), rep(0, pnoise))
+    mn <- c(sample(seq(-9, 9, 1), p - pnoise, replace = T), rep(0, pnoise))
     x <- rbind(x, rmvnorm(n = n, mean = mn, vc))
     ncl <- c(ncl, n)
     mncl <- rbind(mncl, mn)
@@ -160,22 +160,19 @@ APP_simulate_clusters <- function(p = 10, pnoise = 4, cl = 4){
 APP_pca_plot <- function(dat, class, in_x, in_y){
   col <- col_of(class)
   pch <- pch_of(class)
+  axes <- "bottomleft"
   
   pca <- prcomp(dat)
   pca_x <- data.frame(pca$x)
-  pca_rotation <- set_axes_position(data.frame(t(pca$rotation)), 
-                                    "bottomleft")
-  rot_x_axis <- paste0("V", substr(in_x, 3, 3))
-  rot_y_axis <- paste0("V", substr(in_y, 3, 3))
+  pca_rotation <- data.frame(pca$rotation)
+  x_axis_num <- as.integer(substr(in_x, 3, 3))
+  y_axis_num <- as.integer(substr(in_y, 3, 3))
+  basis <- set_axes_position(pca_rotation[, c(x_axis_num, y_axis_num)], axes)
   
   angle <- seq(0, 2 * pi, length = 360)
-  circ <- set_axes_position(data.frame(x = cos(angle), y = sin(angle)), 
-                            "bottomleft")
-  zero  <- set_axes_position(0, "bottomleft")
-  #x_range <- max(x) - min(x)
-  #y_range <- max(y) - min(y)
-  #a_ratio <- x_range / y_range
-
+  circ <- set_axes_position(data.frame(x = cos(angle), y = sin(angle)), axes)
+  zero  <- set_axes_position(0, axes)
+ 
   
   ggplot() + 
     # data points
@@ -185,15 +182,15 @@ APP_pca_plot <- function(dat, class, in_x, in_y){
                                     fill = class,
                                     shape = class)) +
     # axis segments
-    geom_segment(pca_rotation, 
-                 mapping = aes(x = get(rot_x_axis), xend = zero,
-                               y = get(rot_y_axis), yend = zero),
+    geom_segment(basis, 
+                 mapping = aes(x = get(in_x), xend = zero[, 1],
+                               y = get(in_y), yend = zero[, 2]),
                  size = .3, colour = "grey80") +
     # axis label text
-    geom_text(pca_rotation, 
-              mapping = aes(x = get(rot_x_axis), 
-                            y = get(rot_y_axis), 
-                            label = colnames(pca_rotation)), 
+    geom_text(basis, 
+              mapping = aes(x = get(in_x), 
+                            y = get(in_y), 
+                            label = rownames(pca_rotation)), 
               size = 4, colour = "grey50", 
               vjust = "outward", hjust = "outward") +
     # Cirle path
