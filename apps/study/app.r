@@ -240,7 +240,6 @@ server <- function(input, output, session) {
       max_frames <- 90 # 90 frame for 15 sec @ fps = 6
       set.seed(123) # if tourr starts using seeds
       
-      # tpath <- save_history(dat_std, tour_path = grand_tour(), max = 8) # create 
       tpath <- task_tpath()
       
       full_path <- tourr::interpolate(basis_set = tpath, angle = angle)
@@ -1001,46 +1000,42 @@ server <- function(input, output, session) {
         # Evaluation of the training for tasks 2.
         if (task_num() == 2 & rv$training_aes == FALSE) {
           rv$training_aes <- TRUE
+          
           # task 2 response
-          resp_cla_very <- input$tsk2_ans_cla_very # ~ c("V1", "V3") # row 1, col 1, 3 = 2
-          resp_cla_some <- input$tsk2_ans_cla_some # ~ c("V2", "V4", "V5") # row 1, col 2, 4, 5 = 1
-          resp_clb_very <- input$tsk2_ans_clb_very
-          resp_clb_some <- input$tsk2_ans_clb_some
+          p <- p()
+          response_set <- list(input$tsk2_ans_very_ab,
+                               input$tsk2_ans_some_ab,
+                               input$tsk2_ans_very_bc,
+                               input$tsk2_ans_some_bc)
           
-          response_list <- list(resp_cla_very, resp_cla_some,
-                                resp_clb_very, resp_clb_some)
-          
-          p    <- p()
-          n_cl <- n_cl()
-          response <- matrix(0, nrow = n_cl, ncol = p) # cannot distinguish between 0 and NA
-          for (i in 1:2){
-            resp_i <- 2 * i - 1
-            this_col_very <- as.integer(substr(response_list[[resp_i]], 2, 2))
-            this_col_some <- as.integer(substr(response_list[[resp_i + 1]], 2, 2))
-            if (length(this_col_very) >= 1) response[i, this_col_very] <- 2
-            if (length(this_col_some) >= 1) response[i, this_col_some] <- 1
+          response <- matrix(0, nrow = 2, ncol = p())
+          for(i in 1:2){
+             this_vect_very <- as.integer(gsub(' |V', '', response_set[[i]]))   # Removes 'V's
+             this_vect_some <- as.integer(gsub(' |V', '', response_set[[i+1]])) # Removes 'V's
+             response[i, this_vect_very] <- 2
+             response[i, this_vect_some] <- 1
           }
           
           # task 2 answer
           dat <- task_dat()
           supervied_dat <- data.frame(dat, cluster = attr(dat, "cluster"))
-          this_lda <- MASS::lda(cluster ~ ., data = supervied_dat)
-          abs_lda_means <- abs(this_lda$means)
+          lda_means <- MASS::lda(cluster ~ ., data = supervied_dat)$means
           
-          abs_lda_means_rowptile <- matrix(NA, nrow = nrow(this_lda$means),
-                                           ncol = ncol(this_lda$means))
-          for (i in 1:nrow(abs_lda_means)){
-            abs_lda_means_rowptile[i, ] <-
-              abs_lda_means[i, ] / max(abs_lda_means[i,])
+          abs_lda_means <- matrix(NA, nrow = 2, ncol = p())
+          abs_lda_means[1, ] <- abs(lda_means[1, ] - lda_means[2, ])
+          abs_lda_means[2, ] <- abs(lda_means[2, ] - lda_means[3, ])
+          
+          ans <- matrix(NA, nrow = 2, ncol = p)
+          for (i in 1:2){
+            this_row_ptile <- abs_lda_means[i, ] / max(abs_lda_means[i, ])
+            this_row_ans   <- dplyr::case_when(this_row_ptile >= .75 ~ 2, # very
+                                               this_row_ptile >= .25 ~ 1, # some
+                                               this_row_ptile >=   0 ~ 0)
+            ans[i, ] <- this_row_ans
           }
-          ans <- dplyr::case_when(
-            abs_lda_means_rowptile >= .75 ~ 2, # very important is 2, > 75% ptile
-            abs_lda_means_rowptile >= .25 ~ 1, # some important is 2, > 25% ptile
-            abs_lda_means_rowptile >= 0 ~ 0
-          )
           
           score <- -1 * sum((response - ans)^2) # i got -3 for 1 cl,
-          bar <- -6 * (n_cl - 1)
+          bar   <- -6
           
           if (score < bar){ # score not passing
             rv$second_training <- TRUE
@@ -1229,7 +1224,7 @@ server <- function(input, output, session) {
   output$factor     <- reactive(factor())     # for sidebar inputs
   output$task_num   <- reactive(task_num())   # for titles, and response inputs
   output$block_num  <- reactive(block_num())  # for training ui
-  output$section_pg_num <- reactive(section_pg_num()) # For navigating training
+  output$section_pg_num  <- reactive(section_pg_num())   # for navigating training
   output$second_training <- reactive(rv$second_training) # for more training button
   
   outputOptions(output, "is_saved",        suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
