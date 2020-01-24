@@ -17,7 +17,7 @@ while (file.exists(load_file)){
 }
 loaded_sim_names <- ls()[grepl("simulation_data", ls())]
 
-
+id_nums <- (load_num - length(loaded_sim_names)):load_num
 ### CREATE SIM_CL_MEANS.CSV -----
 # grain: sim*cluster, cl
 sim_cl_means <- NULL
@@ -29,7 +29,7 @@ for (i in 1:length(loaded_sim_names)) {
   }
   colnames(this_mncl) <- paste0("V", 1:12)
   this_id <- as.integer(substr(loaded_sim_names[i], 16, 18))
-  this_mncl <- data.frame(id = i, cluster = letters[1:nrow(this_mncl)], this_mncl)
+  this_mncl <- data.frame(id = id_nums[i], cluster = letters[1:nrow(this_mncl)], this_mncl)
   sim_cl_means <- rbind(sim_cl_means, this_mncl)
 }
 rownames(sim_cl_means) <- NULL
@@ -88,34 +88,31 @@ sim_parameters
 
 
 ### CREATE SIM_TASK2_ANS_SCORE.CSV -----
-sim_task2_ans_score <- NULL
+sim_task2_ans <- NULL
 for (i in 1:length(loaded_sim_names)) {
   # init
   this_sim <- get(loaded_sim_names[i])
   colnames(this_sim) <- paste0("V", 1:ncol(this_sim))
   
   this_supervied_sim <- data.frame(this_sim, cluster = attr(this_sim, "cluster"))
-  this_lda <- MASS::lda(cluster~., data = this_supervied_sim)
-  this_cl_means <- attr(this_sim, "mncl")
-  (this_row <- this_lda$means[1,]) ### BUT THIS DISTINGUISHES 1 CLUST, not One clust from another.
-  # this_row_abs <- abs(this_lda$means[1,])
-  # (this_row_ptile <- this_row_abs / max(this_row_abs))
-  # dplyr::case_when(this_row_ptile >= .75 ~ "very",
-  #                  this_row_ptile >= .25 ~ "somewhat",
-  #                  this_row_ptile >= 0 ~ "not"
-  # )
-  # (ans <- dplyr::case_when(this_row_ptile >= .75 ~ 2,
-  #                          this_row_ptile >= .25 ~ 1,
-  #                          this_row_ptile >= 0 ~ 0
-  # ))
-  # 
-  # colnames(this_lda_df) <- paste0("LD", 1:3)
-  # 
-  # this_covar_lda <- data.frame(this_covar, this_lda_df)
-  # sim_task2_ans_score <- rbind(sim_task2_ans_score, this_covar_lda)
+  lda_means <- MASS::lda(cluster~., data = this_supervied_sim)$means
+  
+  abs_lda_means <- matrix(NA, nrow = 2, ncol = p())
+  abs_lda_means[1, ] <- abs(lda_means[1, ] - lda_means[2, ])
+  abs_lda_means[2, ] <- abs(lda_means[2, ] - lda_means[3, ])
+  
+  ans <- matrix(NA, nrow = 2, ncol = p)
+  for (i in 1:2){
+    this_row_ptile <- abs_lda_means[i, ] / max(abs_lda_means[i, ])
+    this_row_ans   <- dplyr::case_when(this_row_ptile >= .75 ~ 2, # very
+                                       this_row_ptile >= .25 ~ 1, # some
+                                       this_row_ptile >=   0 ~ 0)
+    ans[i, ] <- this_row_ans
+  }
+
 }
-rownames(sim_task2_ans_score) <- NULL
-sim_task2_ans_score
+rownames(sim_task2_ans) <- NULL
+sim_task2_ans
 #write.csv(sim_task2_ans_score, "./apps/simulation/sim_task2_ans_score.csv", row.names = F)
 
 
