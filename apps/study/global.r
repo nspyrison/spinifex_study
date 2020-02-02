@@ -484,7 +484,9 @@ ui <- fluidPage(header_ui,
                 sidebar_ui,
                 main_ui
                 # , verbatimTextOutput("dev_msg")
-                # , actionButton("browser", "browser()")
+                , h4("task2 ans:"),   verbatimTextOutput("task2_ans")
+                , h4("task2 score:"), verbatimTextOutput("task2_score")
+                , actionButton("browser", "browser()")
                 # , tableOutput("ans_tbl")
 )
 

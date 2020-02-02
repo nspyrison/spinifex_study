@@ -57,6 +57,7 @@ panel_review <- tabPanel(
                                       label = "y axis", choices = "PC2"))
     )
     , hr() # horizontal line
+    , tableOutput("load_curr_basis")
     , verbatimTextOutput("load_dat_attr")
     , verbatimTextOutput("str_load_dat")
   ),
@@ -66,6 +67,8 @@ panel_review <- tabPanel(
             , verbatimTextOutput("load_mncl_reord")
             , h4("variance-covariance, display order")
             , verbatimTextOutput("load_vc_reord")
+            , h4("Task 2 ans a/b")
+            , verbatimTextOutput("load_task2_ptile")
   )
 )
 
@@ -93,6 +96,8 @@ panel_review_manual <- tabPanel(
             , verbatimTextOutput("load2_mncl_reord")
             , h4("variance-covariance, display order")
             , verbatimTextOutput("load2_vc_reord")
+            , h4("Task 2 ans a/b")
+            , verbatimTextOutput("load2_task2_ptile")
   )
 )
 

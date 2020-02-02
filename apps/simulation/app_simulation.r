@@ -85,13 +85,32 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     n_cl <- length(attr(d, "ncl"))
     sum(colSums(attr(d, "mncl") == 0) == n_cl)
   })
-  load_mncl_reord <- reactive({
+  load_mncl <- reactive({
     d <- load_dat()
-    attr(d, "mncl") # already reordered after 17/12/2019
+    attr(d, "mncl")
   })
-  load_vc_reord <- reactive({
+  load_vc <- reactive({
     d <- load_dat()
-    round(attr(d, "vc"), 1) # already reordered after 17/12/2019
+    round(attr(d, "vc"), 1)
+  })
+  load_task2_ptile <- reactive({
+    d <- load_dat()
+    # LDA
+    this_supervied_sim <- data.frame(d, cluster = attr(d, "cluster"))
+    this_lda <- MASS::lda(cluster~., data = this_supervied_sim)
+    (this_abs_mean_diff_ab <- abs(this_lda$means[1,] - this_lda$means[2,]))
+    (this_ab_ptile <- this_abs_mean_diff_ab / max(this_abs_mean_diff_ab))
+    dplyr::case_when(
+      this_row_ptile >= .75 ~ "very",
+      this_row_ptile >= .25 ~ "somewhat",
+      this_row_ptile >= 0 ~ "not"
+    )
+    (ans <- dplyr::case_when(
+      this_row_ptile >= .75 ~ 2,
+      this_row_ptile >= .25 ~ 1,
+      this_row_ptile >= 0 ~ 0
+    ))
+    ans
   })
   
   # PCA plot, loaded sims.
@@ -146,15 +165,34 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
     n_cl <- length(attr(d, "ncl"))
     sum(colSums(attr(d, "mncl") == 0) == n_cl)
   })
-  load2_mncl_reord <- reactive({
+  load2_mncl <- reactive({
     d <- load2_dat()
     attr(d, "mncl") # already reordered after 17/12/2019
   })
-  load2_vc_reord <- reactive({
+  load2_vc <- reactive({
     d <- load2_dat()
     round(attr(d, "vc"), 1) # already reordered after 17/12/2019
   })
-
+  load2_task2_ptile <- reactive({
+    d <- load2_dat()
+    # LDA
+    this_supervied_sim <- data.frame(d, cluster = attr(d, "cluster"))
+    this_lda <- MASS::lda(cluster~., data = this_supervied_sim)
+    (this_abs_mean_diff_ab <- abs(this_lda$means[1,] - this_lda$means[2,]))
+    (this_ab_ptile <- this_abs_mean_diff_ab / max(this_abs_mean_diff_ab))
+    dplyr::case_when(
+      this_row_ptile >= .75 ~ "very",
+      this_row_ptile >= .25 ~ "somewhat",
+      this_row_ptile >= 0 ~ "not"
+    )
+    (ans <- dplyr::case_when(
+      this_row_ptile >= .75 ~ 2,
+      this_row_ptile >= .25 ~ 1,
+      this_row_ptile >= 0 ~ 0
+    ))
+    ans
+  })
+  
   # Manual plot (obl_frame()), load2 sims.
   load2_manual <- reactive({
     if (is.null(rv$curr_basis)) {stop("rv$curr_basis is null")}
@@ -263,8 +301,10 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                             "pnoise: ", load_pnoise(), "\n",
                                             "cl: ", length(attr(load_dat(), "ncl")), "\n",
                                             sep = ""))
-  output$load_mncl_reord  <- renderPrint(load_mncl_reord())
-  output$load_vc_reord    <- renderPrint(load_vc_reord())
+  output$load_mncl        <- renderPrint(load_mncl())
+  output$load_vc          <- renderPrint(load_vc())
+  output$load_task2_ptile <- renderPrint(load_task2_ptile())
+  output$load_curr_basis  <- renderTable(rv$curr_basis)
   # Review (manual):
   output$load2_manual     <- renderPlot({load2_manual()}) 
   output$str_load2_dat    <- renderPrint({str(load2_dat())})
@@ -273,9 +313,10 @@ server <- function(input, output, session) {  ### INPUT, need to size to number 
                                           "pnoise: ", load2_pnoise(), "\n",
                                           "cl: ", length(attr(load2_dat(), "ncl")), "\n",
                                           sep = ""))
-  output$load2_mncl_reord <- renderPrint(load2_mncl_reord())
-  output$load2_vc_reord   <- renderPrint(load2_vc_reord())
-  output$load2_curr_basis <- renderTable(rv$curr_basis)
+  output$load2_mncl        <- renderPrint(load2_mncl())
+  output$load2_vc          <- renderPrint(load2_vc())
+  output$load2_task2_ptile <- renderPrint(load2_task2_ptile())
+  output$load2_curr_basis  <- renderTable(rv$curr_basis)
   
   
   ### Dev msg -----

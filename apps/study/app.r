@@ -10,7 +10,7 @@ server <- function(input, output, session) {
          )
   )
   
-  ### Initialization and reactives -----
+  ### Reavtive value initialization -----
   rv                 <- reactiveValues()
   rv$pg_num          <- 1
   rv$timer           <- 999
@@ -26,7 +26,7 @@ server <- function(input, output, session) {
   rv$manual_ls       <- list()
   rv$basis_ls        <- list()
   
-  ##### Start reactives
+  ##### Reactives -----
   p <- reactive({ ncol(task_dat()) })
   n_cl <- reactive({ length(unique(attributes(s_dat[[block_num()]])$cluster)) })
   
@@ -115,9 +115,59 @@ server <- function(input, output, session) {
            # , ", difficulty: ", s_difficulty[block_num()]
     )
   })
-  ### Throttle manip_slider -----
+  ### Throttle manip_slider
   manip_slider   <- reactive(input$manip_slider)
   manip_slider_t <- throttle(manip_slider, 10)
+  
+  ### Task 2 answer -----
+  task2_ans <- reactive({
+    if (task_num() == 2){
+      dat <- task_dat()
+      # LDA
+      this_supervied_sim <- data.frame(dat, cluster = attr(dat, "cluster"))
+      this_lda <- MASS::lda(cluster~., data = this_supervied_sim)
+      
+      this_abs_mean_diff_ab <- abs(this_lda$means[1,] - this_lda$means[2,])
+      this_abs_mean_diff_bc <- abs(this_lda$means[2,] - this_lda$means[3,])
+      this_ab_ptile <- this_abs_mean_diff_ab / max(this_abs_mean_diff_ab)
+      this_bc_ptile <- this_abs_mean_diff_bc / max(this_abs_mean_diff_bc)
+      this_ptile_mat <- matrix(c(this_ab_ptile, this_bc_ptile), 
+                               ncol = 2, nrow = p())
+      
+      dplyr::case_when(
+        this_ptile_mat >= .75 ~ 2, # very
+        this_ptile_mat >= .25 ~ 1, # somewhat
+        this_ptile_mat >= 0 ~ 0
+      )
+    }
+  })
+  
+  task2_resp <- reactive({
+    if (task_num() == 2){
+      resp <- matrix(0, nrow = 2, ncol = p())
+      row.names(resp) <- c("ab", "bc")
+      task2_very_ab <- as.integer(gsub(' |V', '', paste(input$tsk2_ans_very_ab, collapse = ",")))
+      task2_some_ab <- as.integer(gsub(' |V', '', paste(input$tsk2_ans_some_ab, collapse = ",")))
+      task2_very_bc <- as.integer(gsub(' |V', '', paste(input$tsk2_ans_very_bc, collapse = ",")))
+      task2_some_bc <- as.integer(gsub(' |V', '', paste(input$tsk2_ans_some_bc, collapse = ",")))
+      
+      resp[task2_very_ab, 1] <- 2
+      resp[task2_some_ab, 1] <- 1
+      resp[task2_very_bc, 2] <- 2
+      resp[task2_some_bc, 2] <- 1
+      
+      resp
+    }
+  })
+  
+  task2_score <- reactive({
+    if (task_num() == 2){
+      ans  <- task2_ans()
+      resp <- task2_resp()
+      
+      -sum((ans - resp)^2)
+    }
+  })
   
   ### PCA plot reactive -----
   pca_height <- function(){
@@ -1034,7 +1084,7 @@ server <- function(input, output, session) {
             ans[i, ] <- this_row_ans
           }
           
-          score <- -1 * sum((response - ans)^2) # i got -3 for 1 cl,
+          score <- -sum((response - ans)^2) # i got -3 for 1 cl,
           bar   <- -6
           
           if (score < bar){ # score not passing
@@ -1242,6 +1292,8 @@ server <- function(input, output, session) {
   output$gtour_plot  <- renderPlotly({suppressWarnings(gtour_plot())})
   output$mtour_plot  <- renderPlot({mtour_plot()}, height = mtour_height)
   output$ans_tbl     <- renderTable({rv$ans_tbl})
+  output$task2_ans   <- renderPrint({task2_ans()})
+  output$task2_score <- renderPrint({task2_score()})
   
   ### Dev msg -----
   output$dev_msg <- renderPrint(cat("dev msg -- ", "\n",

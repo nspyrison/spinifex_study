@@ -17,7 +17,8 @@ while (file.exists(load_file)){
 }
 loaded_sim_names <- ls()[grepl("simulation_data", ls())]
 
-id_nums <- (load_num - length(loaded_sim_names)):load_num
+
+ <- (load_num - length(loaded_sim_names)):load_num
 ### CREATE SIM_CL_MEANS.CSV -----
 # grain: sim*cluster, cl
 sim_cl_means <- NULL
@@ -164,26 +165,15 @@ sim_task2_ans
 ex <- readRDS("./apps/simulation/simulation_data101.rds")
 
 this_sim <- ex #get(loaded_sim_names[i])
-colnames(this_sim) <- paste0("V", 1:ncol(this_sim))
-# covar
-this_covar <- attr(this_sim, "vc")
-while (ncol(this_covar) < 14) { # force columns to 14, max(p)
-  this_covar <- cbind(this_covar, NA)
-}
-colnames(this_covar) <- paste0("V", 1:14)
-this_covar <- data.frame(id = "ex", var = paste0("V", 1:nrow(this_covar)), this_covar)
 # LDA
 this_supervied_sim <- data.frame(this_sim, cluster = attr(this_sim, "cluster"))
 this_lda <- MASS::lda(cluster~., data = this_supervied_sim)
-this_lda$scaling
-this_lda$means
-this_cl_means <- attr(this_sim, "mncl")[, attr(this_sim, "col_reorder")]
-#print("scaling (var grain) is on a different grainularity from means (cluster grain), cannot combine.")
+this_lda$means # actual
+# (this_cl_means <- attr(this_sim, "mncl")) # empirical
 print("manually looking at sim 021: cluster a -- v important: V3, somewhat important: 2, 4, 6, 1")
 response <- c(1, 1, 2, 1, 0, 1)
-(this_row <- this_lda$means[1,])
-this_row_abs <- abs(this_lda$means[1,])
-(this_row_ptile <- this_row_abs / max(this_row_abs))
+(this_abs_mean_diff_ab <- abs(this_lda$means[1,] - this_lda$means[2,]))
+(this_ab_ptile <- this_abs_mean_diff_ab / max(this_abs_mean_diff_ab))
 print("this makes sense, but seems like the lda means are a fair bit off from the parameter.")
 dplyr::case_when(
   this_row_ptile >= .75 ~ "very",
