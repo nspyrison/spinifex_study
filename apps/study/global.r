@@ -484,10 +484,11 @@ ui <- fluidPage(header_ui,
                 sidebar_ui,
                 main_ui
                 # , verbatimTextOutput("dev_msg")
+                , h4("task2 ans ptile:"),   verbatimTextOutput("task2_ans_ptile")
                 , h4("task2 ans:"),   verbatimTextOutput("task2_ans")
                 , h4("task2 score:"), verbatimTextOutput("task2_score")
                 , actionButton("browser", "browser()")
-                # , tableOutput("ans_tbl")
+                , tableOutput("ans_tbl")
 )
 
 ### onStop -----
@@ -666,4 +667,10 @@ app_set_axes_position <- function(x, axes) {
   ret[, 1] <- ret[, 1] + x_off
   ret[, 2] <- ret[, 2] + y_off
   return(ret)
+}
+
+
+app_vect2str <- function(vect){
+  .vect <- paste("V", vect)
+  paste0(.vect,  collapse = ", ")
 }
