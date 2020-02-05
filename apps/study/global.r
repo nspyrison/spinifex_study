@@ -38,7 +38,7 @@ is_logging <- FALSE # init
 ## https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## Uncomment the following line to apply logging
-# setLogFile(log_file); is_logging <- TRUE
+setLogFile(log_file); is_logging <- TRUE
 
 
 ### Required inputs -----
@@ -93,7 +93,7 @@ n_factors          <- length(f_ls)               # ~3
 n_tasks            <- length(s_task_id)          # ~2
 n_task2_questions  <- length(s_task2_questions)  # ~4
 n_difficulty       <- length(s_difficulty)       # ~3
-n_blocks           <- 3 #length(s_dat) / (n_tasks * n_factors) # 18/(2*3) = 3
+n_blocks           <- 3 # length(s_dat) / (n_tasks * n_factors) # 18/(2*3) = 3
 n_survey_questions <- length(s_survey_questions) # ~17
 
 PC_cap <- 4
@@ -122,9 +122,9 @@ header_ui <- fluidPage(
 
 ### sidebar_ui ----
 sidebar_ui <- conditionalPanel(
-  condition = "output.ui_section == 'training' || output.ui_section == 'task'",
+  condition = "(output.ui_section == 'training' && output.section_pg_num < 6) 
+              || output.ui_section == 'task'",
   sidebarPanel( 
-    
     ### _Training text -----
     conditionalPanel(
       condition = "output.ui_section == 'training'",
@@ -171,7 +171,7 @@ sidebar_ui <- conditionalPanel(
     
     ### _Training control inputs -----
     # Factor selection
-    conditionalPanel(condition = "output.ui_section == 'training'",
+    conditionalPanel(condition = "output.ui_section == 'training' && output.section_pg_num < 6",
                      radioButtons(inputId = "factor", label = "Factor", 
                                   choices = f_ls, 
                                   selected = f_ls[1],
@@ -179,7 +179,8 @@ sidebar_ui <- conditionalPanel(
     ), # PCA axis selection
     conditionalPanel(
       condition = "(output.factor == 'pca' || output.factor == 'manual') || 
-                  (output.ui_section == 'training' && input.factor != 'grand')",
+                  (output.ui_section == 'training' && input.factor != 'grand'
+                  && output.section_pg_num < 6)",
       fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", 
                                       choices = paste0("PC", 1:4), selected = "PC1")),
                column(6, radioButtons(inputId = "y_axis", label = "y axis", 
@@ -197,8 +198,8 @@ sidebar_ui <- conditionalPanel(
     
     ### _Task response input -----
     # Task 1
-    conditionalPanel(condition = "(output.task_num == 1 || output.task_num == 2) && 
-                                  output.factor != 'grand'", 
+    conditionalPanel(condition = "(output.task_num == 1 || output.task_num == 2)
+                                 && output.factor != 'grand'", 
                      hr()
     ),
     conditionalPanel(condition = "output.task_num == 1",
@@ -431,51 +432,53 @@ main_ui <- mainPanel(
   ### _Survey mainPanel -----
   conditionalPanel(
     condition = "output.ui_section == 'survey'",
-    selectInput("survey1", label = s_survey_questions[1], 
-                choices = c("decline to answer",
-                            "female",
-                            "male",
-                            "intergender/other")
+    conditionalPanel(
+      condition = "output.is_saved == 0",
+      selectInput("survey1", label = s_survey_questions[1], 
+                  choices = c("decline to answer",
+                              "female",
+                              "male",
+                              "intergender/other")
+      ),
+      selectInput("survey2", label = s_survey_questions[2], 
+                  choices = c("decline to answer",
+                              "19 or younger",
+                              "20 to 29",
+                              "30 to 39",
+                              "40 or older")
+      ),
+      selectInput("survey3", label = s_survey_questions[3], 
+                  choices = c("decline to answer",
+                              "High school",
+                              "Undergraduate",
+                              "Honors, masters, mba", 
+                              "Doctorate")
+      ),
+      h3("How much do you agree with the following statements?"),
+      h4(s_survey_questions[4]),
+      sliderInput("survey4",
+                  label = div(style = 'width:300px;',
+                              div(style = 'float:left;', 'strongly disagree'),
+                              div(style = 'float:right;', 'strongly agree')),
+                  min = 1, max = 9, value = 5),
+      h4(s_survey_questions[5]),
+      sliderInput("survey5",
+                  label = div(style = 'width:300px;',
+                              div(style = 'float:left;', 'strongly disagree'),
+                              div(style = 'float:right;', 'strongly agree')),
+                  min = 1, max = 9, value = 5),
+      fluidRow(col_p1, col_p2, col_p3),
+      hr(),
+      actionButton("save_ans", "save responses")
     ),
-    selectInput("survey2", label = s_survey_questions[2], 
-                choices = c("decline to answer",
-                            "19 or younger",
-                            "20 to 29",
-                            "30 to 39",
-                            "40 or older")
-    ),
-    selectInput("survey3", label = s_survey_questions[3], 
-                choices = c("decline to answer",
-                            "High school",
-                            "Undergraduate",
-                            "Honors, masters, mba", 
-                            "Doctorate")
-    ),
-    h3("How much do you agree with the following statements?"),
-    h4(s_survey_questions[4]),
-    sliderInput("survey4",
-                label = div(style = 'width:300px;',
-                            div(style = 'float:left;', 'strongly disagree'),
-                            div(style = 'float:right;', 'strongly agree')),
-                min = 1, max = 9, value = 5),
-    h4(s_survey_questions[5]),
-    sliderInput("survey5",
-                label = div(style = 'width:300px;',
-                            div(style = 'float:left;', 'strongly disagree'),
-                            div(style = 'float:right;', 'strongly agree')),
-                min = 1, max = 9, value = 5),
-    fluidRow(col_p1, col_p2, col_p3),
-    hr(),
     htmlOutput("save_msg"),
     conditionalPanel(
       condition = "output.is_saved == 1",
       h3("Thank you for participating!"),
       br(),
       h4("Let the invigilator know you have completed the study and have a good day.")
-    ),
-    actionButton("save_ans", "save responses")
-  ) # close survey condition panel 
-  
+    )
+  ) # close survey condition panel
 ) # close mainPanel()
 
 
@@ -484,11 +487,11 @@ ui <- fluidPage(header_ui,
                 sidebar_ui,
                 main_ui
                 # , verbatimTextOutput("dev_msg")
-                , h4("task2 ans ptile:"),   verbatimTextOutput("task2_ans_ptile")
-                , h4("task2 ans:"),   verbatimTextOutput("task2_ans")
-                , h4("task2 score:"), verbatimTextOutput("task2_score")
+                # , h4("task2 ans ptile:"),   verbatimTextOutput("task2_ans_ptile")
+                # , h4("task2 ans:"),   verbatimTextOutput("task2_ans")
+                # , h4("task2 score:"), verbatimTextOutput("task2_score")
                 , actionButton("browser", "browser()")
-                , tableOutput("ans_tbl")
+                # , tableOutput("ans_tbl")
 )
 
 ### onStop -----

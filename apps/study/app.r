@@ -11,20 +11,23 @@ server <- function(input, output, session) {
   )
   
   ### Reavtive value initialization -----
-  rv                   <- reactiveValues()
-  rv$pg_num            <- 1
-  rv$timer             <- 999
-  rv$stopwatch         <- 0
-  rv$timer_active      <- TRUE
-  rv$task_duration     <- NULL
-  rv$task_response     <- NULL
-  rv$task_answer       <- NULL
-  rv$task_score        <- NULL
-  rv$save_file         <- NULL
-  rv$ans_tbl           <- NULL
-  rv$training_aes      <- FALSE
-  rv$second_training   <- FALSE
-  rv$curr_basis        <- NULL
+  rv                  <- reactiveValues()
+  rv$pg_num           <- 1L
+  rv$timer            <- 999
+  rv$stopwatch        <- 0
+  rv$timer_active     <- TRUE
+  rv$task_interaction <- 1L
+  rv$task_duration    <- NULL
+  rv$task_response    <- NULL
+  rv$task_answer      <- NULL
+  rv$task_score       <- NULL
+  rv$save_file        <- NULL
+  rv$ans_tbl          <- NULL
+  rv$training_aes     <- FALSE
+  rv$second_training  <- FALSE
+  rv$curr_basis       <- NULL
+  rv$manual_ls        <- list()
+  rv$basis_ls         <- list()
   
   ##### Reactives -----
   p <- reactive({ ncol(task_dat()) })
@@ -85,7 +88,7 @@ server <- function(input, output, session) {
       if (section_pg_num() %in% c(3, 5)) {return(s_tpath_train[[2]])
       } else return(s_tpath_train[[1]])
     } else {
-      return(s_tpath[[sim_num() %% (n_factors * n_tasks)]]) 
+      return(s_tpath[[sim_num()]]) 
     }
   })
   manip_var_num <- reactive({ 
@@ -128,7 +131,7 @@ server <- function(input, output, session) {
   })
   task1_score <- reactive({
     if (task_num() == 1){
-      delta <- -abs(input$tsk1_ans - task1_ans())
+      delta <- abs(input$tsk1_ans - task1_ans())
     }
   })  
   
@@ -443,7 +446,7 @@ server <- function(input, output, session) {
         ) # end of ggplot2 work 
       
       ### plotly
-      ggp <- plotly::ggplotly(p = gg) #, tooltip = "none") 
+      ggp <- plotly::ggplotly(p = gg, tooltip = "none") 
       ggp <- plotly::animation_opts(p = ggp, frame = 1 / fps * 1000, 
                                     transition = 0, redraw = FALSE)
       ggp <- plotly::layout(
@@ -603,14 +606,17 @@ server <- function(input, output, session) {
         rep(NA, n_survey_questions)                             # survey
       )
     
-    data.frame(factor       = col_factor,
-               taskblock    = col_taskblock,
-               sim_id       = col_sim_id,
-               question     = col_question,
-               duration     = col_NA,
-               response     = col_NA,
-               answer       = col_NA,
-               score        = col_NA
+    data.frame(user_id     = substr(log_name, 5, nchar(log_name)),
+               factor      = col_factor,
+               taskblock   = col_taskblock,
+               sim_id      = col_sim_id,
+               question    = col_question,
+               interaction = col_NA,
+               duration    = col_NA,
+               response    = col_NA,
+               answer      = col_NA,
+               score       = col_NA,
+               concern     = col_NA
     )
   })
   ##### End of reactives
@@ -826,6 +832,19 @@ server <- function(input, output, session) {
       )
     }
   })
+  
+  ### Obs task_interaction count -----
+  observeEvent(
+    {
+      input$factor
+      input$x_axis
+      input$y_axis
+      input$manip_var
+      input$manip_var
+    }, {
+      rv$task_interaction <- rv$task_interaction + 1L
+    }
+  )
   
   ##### Obs survey answers -----
   observeEvent(input$survey1, {
@@ -1069,9 +1088,9 @@ server <- function(input, output, session) {
           delta <- task1_score()
           main_msg <- 
             "For PCA make sure to plot several components. 
-          Using the grand tour look for groups of points moving together. 
-          In the manual tour choose the variables with the largest axes 
-          sequentially to manipulate their contribution to the projection."
+            Using the grand tour look for groups of points moving together. 
+            In the manual tour choose the variables with the largest axes 
+            sequentially to manipulate their contribution to the projection."
           
           if (delta >= 2){ # >= 2 clusters too high, retry
             rv$second_training <- TRUE
@@ -1155,11 +1174,27 @@ server <- function(input, output, session) {
             rv$task_score[i]  <- .score_ls[[i]]
           }
         }
+        # Is response concerning?
+        rv$task_concern <- "no"
+        if (NA %in% rv$task_duration){
+          rv$task_concern <- "YES, duration contains NA. REMOVE."}
+        if (min(rv$task_duration) == "(default)" & !is.na(time_elapsed())){
+          rv$task_concern <- "Yes, duration defaulted. Consider removing."}
+        if (max(rv$task_duration) > task_time() + 30 & 
+            !is.na(time_elapsed()) & factor() == "task"){
+          rv$task_concern <- "YES, time elaspsed. REMOVE."}
+        if (task_num() == 2 & !is.na(time_elapsed())){
+          ab_inter_len <- length(intersect(input$tsk2_ans_very_ab, input$tsk2_ans_some_ab))
+          bc_inter_len <- length(intersect(input$tsk2_ans_very_bc, input$tsk2_ans_very_bc))
+          if (ab_inter_len + bc_inter_len > 0){rv$task_concern <- "Some, task2 ab or bc contains same var."}
+        }
         
-        rv$ans_tbl$duration[ins_row_start:ins_row_end]     <- rv$task_duration
-        rv$ans_tbl$response[ins_row_start:ins_row_end]     <- rv$task_response
-        rv$ans_tbl$answer[ins_row_start:ins_row_end]       <- rv$task_answer
-        rv$ans_tbl$score[ins_row_start:ins_row_end]        <- rv$task_score
+        rv$ans_tbl$interaction[ins_row_start:ins_row_end] <- rv$task_interaction
+        rv$ans_tbl$duration[ins_row_start:ins_row_end]    <- rv$task_duration
+        rv$ans_tbl$response[ins_row_start:ins_row_end]    <- rv$task_response
+        rv$ans_tbl$answer[ins_row_start:ins_row_end]      <- rv$task_answer
+        rv$ans_tbl$score[ins_row_start:ins_row_end]       <- rv$task_score
+        rv$ans_tbl$concern[ins_row_start:ins_row_end]     <- rv$task_concern
       } # End of writing to ans_tbl
       
       ### _New page ----
@@ -1171,16 +1206,17 @@ server <- function(input, output, session) {
       rv$pg_num <- rv$pg_num + 1
       
       # Reset responses, duration, and timer for next task
-      output$plot_msg      <- renderText("")
-      rv$task_response     <- NULL
-      rv$task_duration     <- NULL
-      rv$task_answer       <- NULL
-      rv$task_score        <- NULL
-      rv$timer             <- task_time()
-      rv$stopwatch         <- 0
-      rv$timer_active      <- TRUE
-      rv$training_aes      <- FALSE
-      rv$second_training   <- FALSE
+      output$plot_msg     <- renderText("")
+      rv$task_interaction <- 1L
+      rv$task_response    <- NULL
+      rv$task_duration    <- NULL
+      rv$task_answer      <- NULL
+      rv$task_score       <- NULL
+      rv$timer            <- task_time()
+      rv$stopwatch        <- 0
+      rv$timer_active     <- TRUE
+      rv$training_aes     <- FALSE
+      rv$second_training  <- FALSE
       updateCheckboxInput(session, "second_training", value = FALSE)
       
       # Clear task 1 response
@@ -1193,7 +1229,7 @@ server <- function(input, output, session) {
       n_rows <- 0
       if (task_num() == 1){n_rows <- 1} 
       if (task_num() == 2){n_rows <- 4}
-      if (ui_section() == "survey") {n_rows <- n_survey_questions}
+      if (ui_section() == "survey") {n_rows <- 1}
       def <- "default"
       if (task_num() == 1){def <- "0 (default)"}
       if (task_num() == 2){def <- "none (default)"}
@@ -1272,7 +1308,6 @@ server <- function(input, output, session) {
   
   ### Obs timer -----
   observe({
-    task_time <- task_time()
     invalidateLater(1000, session)
     isolate({
       rv$timer     <- rv$timer - 1
@@ -1318,7 +1353,7 @@ server <- function(input, output, session) {
   outputOptions(output, "section_pg_num",  suspendWhenHidden = FALSE)
   outputOptions(output, "second_training", suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
   
-  ### general task outputs
+  ### General task outputs
   output$task_header     <- renderText(task_header())
   output$pca_plot        <- renderPlot({pca_plot()}, height = pca_height)
   output$gtour_plot      <- renderPlotly({suppressWarnings(gtour_plot())})
@@ -1341,10 +1376,8 @@ server <- function(input, output, session) {
                                     "block_num(): ", block_num(), "\n",
                                     "rv$timer: ", rv$timer, "\n",
                                     sep = ""))
-  
   }
   
   ### Combine as shiny app.
   shinyApp(ui = ui, server = server)
-  
   
