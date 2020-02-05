@@ -6,7 +6,8 @@ str(ex)
 
 
 ### LOAD ALL SIM -----
-load_num <- 201
+rm(list = ls(pattern = "^simulation_data"))
+load_num  <- start_num <- 201
 load_name <- sprintf("simulation_data%03d", load_num)
 load_file <- paste0("./apps/simulation/", load_name, ".rds")
 while (file.exists(load_file)){
@@ -16,7 +17,7 @@ while (file.exists(load_file)){
   load_file <- paste0("./apps/simulation/", load_name, ".rds")
 }
 loaded_sim_names <- ls()[grepl("simulation_data", ls())]
-id_nums <- (load_num - length(loaded_sim_names)):load_num
+id_nums <- start_num:(load_num - 1)
 
 
 ### SIM_PARAMETERS.CSV (& task1_ans) -----
@@ -72,5 +73,24 @@ sim_task2_ans
 #write.csv(sim_task2_ans_score, "./apps/simulation/sim_task2_ans.csv", row.names = F)
 
 ### SAVING GRAND TPATHS -----
-
-
+# tour paths for the 18 simulations 
+for (i in 1:length(loaded_sim_names)) {
+  .sim    <- get(loaded_sim_names[i])
+  .bas    <- prcomp(.sim)$rotation[, 1:2]
+  .tpath  <- save_history(data = .sim, tour_path = grand_tour(), max_bases = 8, start = .bas)
+  .obj_nm <- paste0("grand_tpath", id_nums[i])
+  assign(.obj_nm, .tpath)
+  saveRDS(object = get(.obj_nm), paste0("./apps/simulation/", .obj_nm, ".rds"))
+}
+# Add training
+simulation_data_train1 <- readRDS("./apps/simulation/simulation_data_train1.rds")
+simulation_data_train2 <- readRDS("./apps/simulation/simulation_data_train2.rds")
+loaded_train_names <- ls()[grepl("simulation_data_train", ls())]
+for (i in 1:length(loaded_train_names)) {
+  .sim    <- get(loaded_train_names[i])
+  .bas    <- prcomp(.sim)$rotation[, 1:2]
+  .tpath  <- save_history(data = .sim, tour_path = grand_tour(), max_bases = 8, start = .bas)
+  .obj_nm <- paste0("grand_tpath_train", i)
+  assign(.obj_nm, .tpath)
+  saveRDS(object = get(.obj_nm), paste0("./apps/simulation/", .obj_nm, ".rds"))
+}

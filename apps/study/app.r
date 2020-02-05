@@ -114,7 +114,7 @@ server <- function(input, output, session) {
   })
   task_header <- reactive({
     paste0("Evaluation -- factor: ", factor(), ", task ", task_num() 
-           # , ", difficulty: ", s_difficulty[block_num()]
+           # , ", difficulty: ", s_difficulty[block_num()] # don't show difficulty
     )
   })
   ### Throttle manip_slider
@@ -242,6 +242,7 @@ server <- function(input, output, session) {
   }
   pca_plot <- reactive({
     if (pca_active() == TRUE) {
+      rv$task_interactions <- rv$task_interactions + 1
       # data init
       dat <- task_dat()
       dat_std <- tourr::rescale(dat)
@@ -1152,15 +1153,15 @@ server <- function(input, output, session) {
           (ui_section() == "training" & task_num() %in% 1:2)) {
         ins_row_start <- which(rv$ans_tbl$factor == factor() &
                                  rv$ans_tbl$taskblock == taskblock())[1]
-        ins_row_end <- ins_row_start + length(rv$task_response) - 1
+        ins_row_end   <- ins_row_start + length(rv$task_response) - 1
         
         if(task_num() == 1){
           rv$task_answer[1] <- task1_ans()
           rv$task_score[1]  <- task1_score()
         } 
         if(task_num() == 2){
-          .vars_ls <- list(task2_vars_very_ab(), task2_vars_some_ab(),
-                           task2_vars_very_bc(), task2_vars_some_bc())
+          .vars_ls  <- list(task2_vars_very_ab(), task2_vars_some_ab(),
+                            task2_vars_very_bc(), task2_vars_some_bc())
           .score_ls <- list(task2_score_very_ab(), task2_score_some_ab(),
                             task2_score_very_bc(), task2_score_some_bc())
           for (i in 1:4) {
@@ -1188,28 +1189,21 @@ server <- function(input, output, session) {
       rv$task_response <- NULL
       rv$task_duration <- NULL
       rv$task_answer   <- NULL
-      rv$task_scroe    <- NULL
-      rv$timer <- task_time()
+      rv$task_answer       <- NULL
+      rv$task_score        <- NULL
       rv$stopwatch <- 0
       rv$timer_active <- TRUE
       rv$training_aes <- FALSE
       rv$second_training <- FALSE
       updateCheckboxInput(session, "second_training", value = FALSE)
       
-      # Clear task response
-      if (ui_section() == "task" |
-          (ui_section() == "training" & task_num() %in% 1:2)) {
-        if (task_num() == 1) { # reset to same settings.
+      # Clear task 1 response
+      if (ui_section() %in% c("task", "training") & task_num() == 1) {
           updateNumericInput(session, "tsk1_ans", "",
                              value = 0, min = 0, max = 10)
-        }
-        # if (task_num() == 1) { # reset to same settings.
-        #   updateNumericInput(session, "tsk1_ans", "",
-        #                      value = 0, min = 0, max = 10)
-        # }
       }
       
-      # Set structure for responses and durations
+      # Set structure for writeing to ans_tbl
       n_rows <- 0
       if (task_num() == 1){n_rows <- 1} 
       if (task_num() == 2){n_rows <- 4}
@@ -1220,7 +1214,7 @@ server <- function(input, output, session) {
       if (ui_section() == "survey") {def <- c(rep("decline to answer (default)", 3),
                                               rep("5 (default)", n_survey_questions - 3))}
       rv$task_response <- rep(def, n_rows)
-      rv$task_duration <- rep("default", n_rows)
+      rv$task_duration <- rep("(default)", n_rows)
       loggit("INFO", paste0("Next page: section ", ui_section(), 
                             ", section page ", section_pg_num()),
              paste0("rv$pg_num: ", rv$pg_num, 
@@ -1297,7 +1291,7 @@ server <- function(input, output, session) {
     task_time <- task_time()
     invalidateLater(1000, session)
     isolate({
-      rv$timer <- rv$timer - 1
+      rv$timer     <- rv$timer - 1
       rv$stopwatch <- rv$stopwatch + 1
     })
     if(rv$timer < 0 & ui_section() == "task" & rv$timer_active == TRUE){
