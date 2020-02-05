@@ -11,22 +11,20 @@ server <- function(input, output, session) {
   )
   
   ### Reavtive value initialization -----
-  rv                 <- reactiveValues()
-  rv$pg_num          <- 1
-  rv$timer           <- 999
-  rv$stopwatch       <- 0
-  rv$timer_active    <- TRUE
-  rv$task_duration   <- NULL
-  rv$task_response   <- NULL
-  rv$task_answer     <- NULL
-  rv$task_score      <- NULL
-  rv$save_file       <- NULL
-  rv$ans_tbl         <- NULL
-  rv$training_aes    <- FALSE
-  rv$second_training <- FALSE
-  rv$curr_basis      <- NULL
-  rv$manual_ls       <- list()
-  rv$basis_ls        <- list()
+  rv                   <- reactiveValues()
+  rv$pg_num            <- 1
+  rv$timer             <- 999
+  rv$stopwatch         <- 0
+  rv$timer_active      <- TRUE
+  rv$task_duration     <- NULL
+  rv$task_response     <- NULL
+  rv$task_answer       <- NULL
+  rv$task_score        <- NULL
+  rv$save_file         <- NULL
+  rv$ans_tbl           <- NULL
+  rv$training_aes      <- FALSE
+  rv$second_training   <- FALSE
+  rv$curr_basis        <- NULL
   
   ##### Reactives -----
   p <- reactive({ ncol(task_dat()) })
@@ -242,7 +240,6 @@ server <- function(input, output, session) {
   }
   pca_plot <- reactive({
     if (pca_active() == TRUE) {
-      rv$task_interactions <- rv$task_interactions + 1
       # data init
       dat <- task_dat()
       dat_std <- tourr::rescale(dat)
@@ -606,15 +603,14 @@ server <- function(input, output, session) {
         rep(NA, n_survey_questions)                             # survey
       )
     
-    
-    data.frame(factor    = col_factor,
-               taskblock = col_taskblock,
-               sim_id    = col_sim_id,
-               question  = col_question,
-               duration  = col_NA,
-               response  = col_NA,
-               answer    = col_NA,
-               score     = col_NA
+    data.frame(factor       = col_factor,
+               taskblock    = col_taskblock,
+               sim_id       = col_sim_id,
+               question     = col_question,
+               duration     = col_NA,
+               response     = col_NA,
+               answer       = col_NA,
+               score        = col_NA
     )
   })
   ##### End of reactives
@@ -1056,8 +1052,7 @@ server <- function(input, output, session) {
   
   ### Obs next page button -----
   observeEvent(input$next_pg_button, {
-    if ((rv$stopwatch > 2 & is_logging == TRUE) |
-        is_logging == FALSE){
+    if ((rv$stopwatch > 2 & is_logging == TRUE) | is_logging == FALSE){
       # Init rv$ans_tbl <- ans_tbl() first press
       if (is.null(rv$ans_tbl)){ rv$ans_tbl <- ans_tbl() }
       # if <on last task> {<do nothing>}. Also shouldn't be visible
@@ -1161,10 +1156,10 @@ server <- function(input, output, session) {
           }
         }
         
-        rv$ans_tbl$duration[ins_row_start:ins_row_end] <- rv$task_duration
-        rv$ans_tbl$response[ins_row_start:ins_row_end] <- rv$task_response
-        rv$ans_tbl$answer[ins_row_start:ins_row_end]   <- rv$task_answer
-        rv$ans_tbl$score[ins_row_start:ins_row_end]    <- rv$task_score
+        rv$ans_tbl$duration[ins_row_start:ins_row_end]     <- rv$task_duration
+        rv$ans_tbl$response[ins_row_start:ins_row_end]     <- rv$task_response
+        rv$ans_tbl$answer[ins_row_start:ins_row_end]       <- rv$task_answer
+        rv$ans_tbl$score[ins_row_start:ins_row_end]        <- rv$task_score
       } # End of writing to ans_tbl
       
       ### _New page ----
@@ -1177,15 +1172,15 @@ server <- function(input, output, session) {
       
       # Reset responses, duration, and timer for next task
       output$plot_msg      <- renderText("")
-      rv$task_response <- NULL
-      rv$task_duration <- NULL
-      rv$task_answer   <- NULL
+      rv$task_response     <- NULL
+      rv$task_duration     <- NULL
       rv$task_answer       <- NULL
       rv$task_score        <- NULL
-      rv$stopwatch <- 0
-      rv$timer_active <- TRUE
-      rv$training_aes <- FALSE
-      rv$second_training <- FALSE
+      rv$timer             <- task_time()
+      rv$stopwatch         <- 0
+      rv$timer_active      <- TRUE
+      rv$training_aes      <- FALSE
+      rv$second_training   <- FALSE
       updateCheckboxInput(session, "second_training", value = FALSE)
       
       # Clear task 1 response
