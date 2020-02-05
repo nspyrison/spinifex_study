@@ -75,7 +75,7 @@ sim_task2_ans
 ### SAVING GRAND TPATHS -----
 # tour paths for the 18 simulations 
 for (i in 1:length(loaded_sim_names)) {
-  .sim    <- get(loaded_sim_names[i])
+  .sim    <- as.matrix(get(loaded_sim_names[i]))
   .bas    <- prcomp(.sim)$rotation[, 1:2]
   .tpath  <- save_history(data = .sim, tour_path = grand_tour(), max_bases = 8, start = .bas)
   .obj_nm <- paste0("grand_tpath", id_nums[i])
@@ -87,8 +87,9 @@ simulation_data_train1 <- readRDS("./apps/simulation/simulation_data_train1.rds"
 simulation_data_train2 <- readRDS("./apps/simulation/simulation_data_train2.rds")
 loaded_train_names <- ls()[grepl("simulation_data_train", ls())]
 for (i in 1:length(loaded_train_names)) {
-  .sim    <- get(loaded_train_names[i])
+  .sim    <- as.matrix(get(loaded_train_names[i]))
   .bas    <- prcomp(.sim)$rotation[, 1:2]
+  
   .tpath  <- save_history(data = .sim, tour_path = grand_tour(), max_bases = 8, start = .bas)
   .obj_nm <- paste0("grand_tpath_train", i)
   assign(.obj_nm, .tpath)

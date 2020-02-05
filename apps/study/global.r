@@ -674,3 +674,7 @@ app_vect2str <- function(vect){
   .vect <- paste("V", vect)
   paste0(.vect,  collapse = ", ")
 }
+
+app_html_red <- function(string){
+  paste0("<h3><span style='color:red'>", string, "</span></h3>")
+}

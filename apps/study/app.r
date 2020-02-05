@@ -659,10 +659,10 @@ server <- function(input, output, session) {
              paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
       )
       
-      output$plot_msg <- renderText(paste0(
-        "<h3><span style='color:red'>
-          Please select different principal components. X axis randomed selected to ", x_axis_out, ".", 
-        "</span></h3>"))
+      output$plot_msg <- renderText(
+        app_html_red(paste0("Please select different principal components. 
+                            X axis randomed selected to ", x_axis_out, "."))
+      )
     }
   })
   # Bump y_axis when set to the same as x_axis
@@ -681,10 +681,9 @@ server <- function(input, output, session) {
              paste("factor,taskblock,period:@", factor(), taskblock(), period_num(), sep = ", ")
       )
       
-      output$plot_msg <- renderText(paste0(
-        "<h3><span style='color:red'>
-          Must select different principal components. 
-        </span></h3>"))
+      output$plot_msg <- renderText(
+        app_html_red(paste0("Must select different principal components."))
+      )
     }
   })
   
@@ -1067,20 +1066,17 @@ server <- function(input, output, session) {
       ### _Training evaluation -----
       # If training section, evaluate response
       if (ui_section() == "training") {
+        this_msg <- ""
         # Evaluate training task 1 
         if (task_num() == 1 & rv$training_aes == FALSE) {
           rv$training_aes <- TRUE
-          ans <- task1_ans()
+          ans   <- task1_ans()
           delta <- task1_score()
-          
-          theme_start <- "<h3><span style='color:red'>"
-          this_msg <- ""
           main_msg <- 
             "For PCA make sure to plot several components. 
           Using the grand tour look for groups of points moving together. 
           In the manual tour choose the variables with the largest axes 
           sequentially to manipulate their contribution to the projection."
-          theme_end <- "</span></h3>"
           
           if (delta >= 2){ # >= 2 clusters too high, retry
             rv$second_training <- TRUE
@@ -1104,46 +1100,41 @@ server <- function(input, output, session) {
             this_msg <- paste0("That's correct, this data has ", ans, " clusters.
             As a reminder, ")
           }
-          output$plot_msg <- renderText(paste0(
-            theme_start, this_msg, main_msg, theme_end
-          ))
+          output$plot_msg <- renderText(
+            app_html_red(paste0(this_msg, main_msg))
+          )
           return()
         }
         
         # Evaluation of the training for tasks 2.
         if (task_num() == 2 & rv$training_aes == FALSE) {
           rv$training_aes <- TRUE
-          
-          # task 2 score
           score <- task2_score()
           bar   <- -6
           
           if (score < bar){ # score not passing
             rv$second_training <- TRUE
-            output$plot_msg <- renderText(paste0(
-              "<h3><span style='color:red'>
-          That seems a little off. 
-          Remember that the importance of a variable for
-          distinguishing a group is related to variables in a separating 
-          direction with large magnitudes in the projection, but variables with
-          small contributions cannot be ruled out, multiple projections most be 
-          looked at.
-          </span></h3>"))
-            return()
+            this_msg <- 
+              "That seems a little off. Remember that the importance of a 
+              variable for distinguishing a group is related to variables in a 
+              separating direction with large magnitudes in the projection, but 
+              variables with small contributions cannot be ruled out, multiple 
+              projections most be looked at."
           }
           if (score >= bar){ # score is passing
             rv$second_training <- "ask"
-            output$plot_msg <- renderText(paste0(
-              "<h3><span style='color:red'>
-            Very good! 
-            As a reminder, the importance of a variable for
-            distinguishing a group is related to variables in a separating 
-            direction with large magnidutes in the projection, but variables with
-            small contributions cannot be ruled out, multiple projections most be 
-            looked at.
-            </span></h3>"))
-            return()
+            this_msg <- 
+              "Very good! As a reminder, the importance of a variable for
+              distinguishing a group is related to variables in a separating 
+              direction with large magnidutes in the projection, but variables 
+              with small contributions cannot be ruled out, multiple 
+              projections most be looked at."
           }
+          output$plot_msg <- renderText(
+            app_html_red(this_msg)
+          )
+          return()
+            
         }
       } # end of training section evaluation
       
@@ -1185,7 +1176,7 @@ server <- function(input, output, session) {
       rv$pg_num <- rv$pg_num + 1
       
       # Reset responses, duration, and timer for next task
-      output$plot_msg <- renderText("")
+      output$plot_msg      <- renderText("")
       rv$task_response <- NULL
       rv$task_duration <- NULL
       rv$task_answer   <- NULL
@@ -1242,9 +1233,8 @@ server <- function(input, output, session) {
     # Write rv$ans_tbl to .csv file.
     df <- rv$ans_tbl
     if (!is.null(rv$save_file)){ # if save already exists 
-      save_msg <- paste0("<h3><span style='color:red'>Reponses already saved as ", 
-                         rv$save_file, ".</span></h3>")
-      output$save_msg <- renderText(save_msg)
+      save_msg <- paste0("Reponses already saved as ", rv$save_file)
+      output$save_msg <- renderText(app_html_red(save_msg))
       loggit("INFO", "Save button pressed (Previously saved).", 
              paste0("save_msg: ", save_msg,  "."))
       return()
@@ -1264,9 +1254,8 @@ server <- function(input, output, session) {
     write.csv(get(save_name), file = save_file, row.names = FALSE)
     rv$save_file <- save_file
     
-    save_msg <- paste0("<h3><span style='color:red'>Reponses saved as ", save_file, 
-                       ". Thank you for participating!</span></h3>")
-    output$save_msg <- renderText(save_msg)
+    save_msg <- paste0("Reponses saved as ", save_file, ". Thank you for participating!")
+    output$save_msg <- renderText(app_html_red(save_msg))
     
     if (prefix == "") {
       loggit("INFO", "Save button pressed.", 
