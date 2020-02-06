@@ -632,8 +632,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Task data changed while axes active; updated PC axes choices.")
     }
     if (task_num() == 2) {
-      p <- p()
-      choices <- paste0("V", 1:p)
+      choices <- paste0("V", 1:p())
       updateCheckboxGroupInput(session, "tsk2_ans_very_ab",
                                choices = choices, inline  = TRUE)
       updateCheckboxGroupInput(session, "tsk2_ans_some_ab",
@@ -1160,6 +1159,39 @@ server <- function(input, output, session) {
                                  rv$ans_tbl$taskblock == taskblock())[1]
         ins_row_end   <- ins_row_start + length(rv$task_response) - 1
         
+        # Is response concerning?
+        rv$task_concern <- "no"
+        if (NA %in% rv$task_duration){
+          rv$task_concern <- "YES, duration contains NA. REMOVE."}
+        if (min(rv$task_duration) == "(default)" & !is.na(time_elapsed())){
+          rv$task_concern <- "Yes, duration defaulted. Consider removing."}
+        if (max(rv$task_duration) > task_time() + 30 & 
+            !is.na(time_elapsed()) & factor() == "task"){
+          rv$task_concern <- "YES, time elaspsed. REMOVE."}
+        if (task_num() == 2 & !is.na(time_elapsed())){
+          ab_inter <- intersect(input$tsk2_ans_very_ab, input$tsk2_ans_some_ab)
+          ab_inter_len <- length(ab_inter)
+          if (ab_inter_len > 0){
+            rv$task_concern <- "Some, task2 ab contains same var. 'somewhat' unselected by default"
+            ab_orig <- input$tsk2_ans_some_ab
+            ab_update <- ab_orig[!ab_orig %in% ab_inter]
+            .choices <- paste0("V", 1:p())
+            updateCheckboxGroupInput(session, "tsk2_ans_some_ab", 
+                                     choices = .choices, selected = ab_update)
+          }
+          bc_inter <- intersect(input$tsk2_ans_very_bc, input$tsk2_ans_very_bc)
+          bc_inter_len <- length(bc_inter)
+          if (bc_inter_len > 0){
+            rv$task_concern <- "Some, task2 bc contains same var. 'somewhat' unselected by default"
+            bc_orig <- input$tsk2_ans_some_ab
+            bc_update <- bc_orig[!bc_orig %in% bc_inter]
+            .choices <- paste0("V", 1:p())
+            updateCheckboxGroupInput(session, "tsk2_ans_some_ab", 
+                                     choices = .choices, selected = bc_update)
+          }
+        }
+        
+        # write response
         if(task_num() == 1){
           rv$task_answer[1] <- task1_ans()
           rv$task_score[1]  <- task1_score()
@@ -1173,20 +1205,6 @@ server <- function(input, output, session) {
             rv$task_answer[i] <- app_vect2str(.vars_ls[[i]])
             rv$task_score[i]  <- .score_ls[[i]]
           }
-        }
-        # Is response concerning?
-        rv$task_concern <- "no"
-        if (NA %in% rv$task_duration){
-          rv$task_concern <- "YES, duration contains NA. REMOVE."}
-        if (min(rv$task_duration) == "(default)" & !is.na(time_elapsed())){
-          rv$task_concern <- "Yes, duration defaulted. Consider removing."}
-        if (max(rv$task_duration) > task_time() + 30 & 
-            !is.na(time_elapsed()) & factor() == "task"){
-          rv$task_concern <- "YES, time elaspsed. REMOVE."}
-        if (task_num() == 2 & !is.na(time_elapsed())){
-          ab_inter_len <- length(intersect(input$tsk2_ans_very_ab, input$tsk2_ans_some_ab))
-          bc_inter_len <- length(intersect(input$tsk2_ans_very_bc, input$tsk2_ans_very_bc))
-          if (ab_inter_len + bc_inter_len > 0){rv$task_concern <- "Some, task2 ab or bc contains same var."}
         }
         
         rv$ans_tbl$interaction[ins_row_start:ins_row_end] <- rv$task_interaction
@@ -1261,16 +1279,6 @@ server <- function(input, output, session) {
     rv$ans_tbl$response[ins_row_start:ins_row_end] <- rv$task_response
     rv$ans_tbl$duration[ins_row_start:ins_row_end] <- rv$task_duration
     
-    # Write rv$ans_tbl to .csv file.
-    df <- rv$ans_tbl
-    if (!is.null(rv$save_file)){ # if save already exists 
-      save_msg <- paste0("Reponses already saved as ", rv$save_file)
-      output$save_msg <- renderText(app_html_red(save_msg))
-      loggit("INFO", "Save button pressed (Previously saved).", 
-             paste0("save_msg: ", save_msg,  "."))
-      return()
-    }
-    
     # Do the actual saving
     save_base <- paste0(prefix, filebase, "_")
     save_num  <- 1
@@ -1281,11 +1289,11 @@ server <- function(input, output, session) {
       save_file <- paste0(save_name, ".csv")
       save_num  <- save_num + 1
     }
-    assign(save_name, df)
+    assign(save_name, rv$ans_tbl)
     write.csv(get(save_name), file = save_file, row.names = FALSE)
     rv$save_file <- save_file
     
-    save_msg <- paste0("Reponses saved as ", save_file, ". Thank you for participating!")
+    save_msg <- paste0("Reponses saved as ", save_file, " (log file: ", log_file, "). Thank you for participating!")
     output$save_msg <- renderText(app_html_red(save_msg))
     
     if (prefix == "") {

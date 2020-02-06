@@ -46,7 +46,7 @@ setLogFile(log_file); is_logging <- TRUE
 s_task_id <- c("n", "p")
 s_difficulty <- c("easy", "medium", "hard")
 s_task_prompts <- c("How many clusters do you see?",
-                    "Rate the relative importance of each variable in terms of 
+                    "Rate the relative importance of ANY/ALL variables in terms of 
                     distinugishing between the given clusters.")
 s_task2_questions <- c("Very important distinguishing clusters 'a' from 'b'",
                        "Somewhat important distinguishing clusters 'a' from 'b'",
@@ -486,11 +486,12 @@ main_ui <- mainPanel(
 ui <- fluidPage(header_ui,
                 sidebar_ui,
                 main_ui
+                ### DEV helping displays:
+                , actionButton("browser", "browser()")
                 # , verbatimTextOutput("dev_msg")
                 # , h4("task2 ans ptile:"),   verbatimTextOutput("task2_ans_ptile")
                 # , h4("task2 ans:"),   verbatimTextOutput("task2_ans")
                 # , h4("task2 score:"), verbatimTextOutput("task2_score")
-                , actionButton("browser", "browser()")
                 # , tableOutput("ans_tbl")
 )
 
