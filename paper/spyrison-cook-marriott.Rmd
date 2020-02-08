@@ -3,9 +3,9 @@ output: pdf_document
 title: >
   The effect of interaction on understanding variable contributions on linear projections 
 author:
-  Nicholas Spyrison, Dianne Cook, Kim Marriott
+  Nicholas Spyrison, Dianne Cook, Kimbal Marriott
 abstract: >
-  Principal Component Analysis (PCA) and related eigenvalue techniques are the traditional standard for viewing prosections of multivariate spaces. However, the full story of the data is rarely portrayed accurately in a few projections. More recently, grand tours offer an animation of random walks offering many angles to view embedded spaces. A manual tour provides a means of controlling the contribution of individual variables to a projected subspace. We have developed an application to facilitate the exploration of multivariate data though the use of various tour methods. To explore the efficacy of this tool we performed a comparative user study. Participants in our study performed several high-level analysis tasks across the three factors and provide subjective ratings. Accuracy, speed, and qualitative feedback are used to compare and rate analysts' ability to understand the importance of individual variables' contribution to distinguishing clustering with the data. User feedback suggests that...
+  Principal component analysis is the classical standard for viewing projections of multivariate spaces. However, the full story of the data is rarely portrayed accurately in a few projections. More recently, grand tours offer an animation of random walks offering many angles to view embedded spaces. A manual tour provides a means of controlling the contribution of individual variables to a projected subspace. We have developed an application to facilitate the exploration of multivariate data though the use of various tour methods. To explore the efficacy of this tool we performed a comparative user study. Participants in our study performed several high-level analysis tasks across the three factors and provide subjective ratings. Accuracy, speed, and qualitative feedback are used to compare and rate analysts' ability to understand the importance of individual variables' contribution to distinguishing clustering with the data. User feedback suggests that...
 keywords: exploratory data analysis, projection pursuit, high dimensional data, data visualization, cluster analysis, dimension reduction,  statistical graphics, data science, user study, between users,
 bibliography: spyrison-cook-marriott.bib
 ---
@@ -14,7 +14,7 @@ bibliography: spyrison-cook-marriott.bib
 
 
 ```{r setup_paper, include=FALSE}
-# TODO: may need to proof read <!-- block difficulties --> and tasks as they have changed from reps and block respectively.
+
 # ---
 # author:
   # - name: Nicholas Spyrison
@@ -74,72 +74,71 @@ library(dplyr)
 
 # Introduction
 
-<!-- Mutivarite spaces and EDA  -->
-Multivariate data is ubiquitus. Yet exploratory data [@tukey_exploratory_1977] analysis of such spaces becomes difficult, increasingly so as dimension increases. Numeric statistic summarization of data often doesn't explain the full complexity of the data or worse, can be downright deseptive [@anscombe_graphs_1973; @matejka_same_2017]. For these reasons it's important to use visualization of data spaces and extend the diversity of it's application. However, visualizing data containing more than a handful of variables is not trivial. 
-
-<!-- scope of tasks -->
-<!-- DEFINE SCOPE OF INTERSTED TASKS HERE?? -->
-<!-- There are many several facets of interest in exploring multivariate spaces.  -->
+<!-- Multivariate spaces and EDA  -->
+Multivariate data is ubiquitous. Yet exploratory data [@tukey_exploratory_1977] analysis of such spaces becomes difficult, increasingly so as dimension increases. Numeric statistic summarization of data often doesn't explain the full complexity of the data or worse, can be downright deceptive [@anscombe_graphs_1973; @matejka_same_2017]. For these reasons, it is important to use visualizations of data spaces and extend the diversity of its application. However, visualizing data containing more than a handful of variables is not trivial. 
 
 <!-- PCA  -->
-For over a century Principal component analysis (PCA) [@pearson_liii._1901] has been used to explore such spaces. PCA redefines the axes basis as linear combinations of the orginal variables into principal components ordered by decreasing variation explained. Viewing several of the first such componments is sufficent for macro summarization data from a single distribution, but doesn't reveal finer stuctural features or differing structure between classes. 
+For over a century principal component analysis (PCA) [@pearson_liii._1901] has been used to explore such spaces. PCA redefines the axes basis as linear combinations of the original variables into principal components ordered by decreasing variation explained. This suggests several _discrete_ pairs of components to view. This is sufficient for macro summarization of variance, however, it does not reveal finer structural features or classes-specific structure. 
 
-<!-- SPLOM -->
-Alternatively, scatterplot matrices are common to explore scatterplots of all pairs of variables. This is performant for quickly exploring all variable distributions. Both of these techniques only allow for a relatively small amount of the posible phase space and thus data structure to be explored.
+<!-- SPLOM, LDA, PDA -->
+Alternatively, there are many techniques that identify one or more _discrete_ projection bases. For instance, scatterplot matrices [@chambers_graphical_1983] quickly view the supports of all variables. Linear discriminant analysis [@fisher_use_1936] and penalized discriminant analysis [@hastie_penalized_1995] both suggest projection bases that can be used for unsupervised classification. 
 
 <!-- tours intro -->
-Later, Asimov [@asimov_grand_1985], coined `tour`, an animation of many projections across small changes in the basis. Exploring mutivariate spaces this way offers a number of desireable features including more depth visual cues and extensible phase space exploration.
+Later, Asimov [@asimov_grand_1985], coined _tour_, an animation of many projections across _continuous_ changes in the basis. Exploring multivariate spaces this way offers a number of desirable features including more depth visual cues and extensible phase space exploration.
 
 <!-- Grand tour -->
-The various types of tours are disintuished by the method defining the path the basis animates. The originial, and widest know, is the `grand` tour [@asimov_grand_1985]. In a grand tour several target bases are identified by constrained random walk. These target bases are then interpolated into many interim frames to be viewed as a more coninuous animation.
+The various types of tours are distinguished by the method defining the path the basis animates. The original, and widest know, is the _grand_ tour [@asimov_grand_1985]. In a grand tour, several target bases are identified by a constrained random walk. These target bases are then interpolated into many interim frames to be viewed as a more continuous animation.
 
 <!-- Manual tour -->
-The `manual` tour [@cook_manual_1997] defines its basis path by manipulating the basis contribution of a selected variable. Many such manipulations may be predefined and animated. Alternatively, these parameterized steps can allow human-in-the-loop [@karwowski_international_2006] interactive use.
+The _manual_ tour [@cook_manual_1997; ] defines its basis path by manipulating the basis contribution of a selected variable. Many such manipulations may be predefined and animated. Alternatively, these parameterized steps can allow human-in-the-loop [@karwowski_international_2006] interactive use.
 
 <!-- Research gap -->
-Exploring and understanding finer structural details is an undersurviced aspect of multivariate data analysis. This work contained below performs an within-participant exploratory study to shed light on techniques that may be most suited for such a task.
+Exploring and understanding the finer structural details is an under-serviced aspect of multivariate data analysis. This work contained below performs a within-participant exploratory study to shed light on techniques that may be most suited for such a task.
 
 <!-- structure of the paper -->
 Section \ref{sec:hypothesis} formalizes the hypothesis statement. Section \ref{sec:design} explains the experimental deign, with sections \ref{sec:factors} and \ref{sec:tasks} explaining the design factors and tasks. The results of the study are found in section \ref{sec:results}. An accompanying tool is discussed in section \ref{sec:spinifex}. Disscussion is covered in section \ref{sec:discussion}.
 
-__Note: section refs not working in this format, specific to `rticles`?__
+__#TODO__
+__DEV NOTE: section refs not working in this format, specific to `rticles`?__
 
 # Hypothesis {#sec:hypothesis}
 
 <!-- PCA as control -->
 Supporting and extending the applicability of data visualization is an important endeavor. There exist various linear projection techniques to explore multivariate data spaces. 
 
-
 <!-- Grand as control phase space, no fine control. -->
 
 <!-- hypothesis statement -->
-Does the finer control afforded by the manual tour improve the ability of the analyst to understand the importance of variables contributing to the structure?
+_Does the finer control afforded by the manual tour improve the ability of the analyst to understand the importance of variables contributing to the structure?_
 
 
-<!-- non linear projections;; TO hypothesis? -->
-More recently there has been advances and fanfare in non-linear projections such as self-organizing maps, and T-SNE. Because of the use of non-affine transformations they offer arbitrary model spaces, with no clear interoperability back to variable space. This precludes them as canidates for exploratory data analysis of the multivariate data in question. They can be useful for rapid identification of possible outliers or classes. 
+<!-- nonlinear projections precluded -->
+More recently there have been advances and fanfare in non-linear projections such as self-organizing maps [@kohonen_self-organizing_1990], and t-SNE [@maaten_visualizing_2008]. Because of the use of non-affine transformations, they offer arbitrary model spaces, without interoperability back to variable space. This precludes them as candidates for exploratory data analysis of the multivariate data in question. They can be useful for the rapid identification of possible candidates for outliers or classifications. However they can suffer from overfitting, and crucially cannot be interpreted in terms of the original variables.  
 
 
 # Experimental design {#sec:design}
 
+Below we dicuss the __n = XX__ within-participant exploratory study across 3 factors, 
+
+## Training {#sec:training}
+
+The training was controlled for all participants as much as possible. All participants received the same written interface instructions and watched the same training video introducing the methods and the same task prompts were displayed for their respective tasks. The factor-, interface-, and task- training took place in a continuous block where questions were invited. Questions were disallowed once the formal evaluation section started. 
+
+
 ## Factors {#sec:factors}
 
-We explored performance across three factors. The first factor is Principal Component Analysis (`PCA`). The second factor is an animated walk of interpolation frames between target bases, called a `grand tour`. The third factor allows for the manual control of the individual variable's contribution to the projection, performing a `manual tour`.
+<!-- factors: PCA, grand, manual -->
+We explored performance across three factors. The first factor is Principal Component Analysis (PCA). The second factor is an animated walk of interpolation frames between target bases, called a _grand_ tour. The third factor allows for the manual control of the individual variable's contribution to the projection, performing a _manual_ tour.
 
-<!-- PCA as Standard for  -->
-
-
-<!-- explian tours, asimov, grand, manual -->
-User interface was kept the same whenever possible, but control interface did change slightly to accomadate differneces between factors. PCA had two side-by-side radio button selections that control which prinicipal components were displayed on the x- and y-axes. The manual tour had same axes selection, with the the addition of a drop-down bar and slider control. The drop-down selects the variable to manipulate the contribution of, while the slider controled the magnitude [0-1] of the contribution of that variable on the projection. Performing this manipulation does require the contributions of the other variables to change if they are to keep their orthogonal relationship.
+<!-- interface differences -->
+The user interface was kept the same whenever possible, but the control inputs did change slightly to accommodate the differences between factors. PCA had two side-by-side radio button selections that control which principal components were displayed on the x- and y-axes. The manual tour had the same axes selection, with the addition of a drop-down bar and slider control. The drop-down selects the variable to manipulate the contribution of, while the slider controlled the magnitude [0-1] of the contribution of that variable on the projection. Performing this manipulation does require the contributions of the other variables to change if they are to keep their orthogonal relationship.
 
 
 ## Tasks {#sec:tasks}
 
-Within each factor, participants performed 2 tasks in a fixed order. The first task asked participants to identify the number of clusters present in the data. In this task, clusters were unsupervised, where all observations appeared as black circles and the basis variable map was omitted. This task also served as a control for assessing the general aptitude for this sort of high dimensional analysis as it was simpler. A second task asked participants to identify any/all variables that were very important and somewhat important for distinguishing a given cluster from the others. For instance, which variables are very important for distinguishing cluster `b`. This task was supervised by cluster; observations were assigned shape and (color-blind friendly) color according to their cluster. A basis variable map was provided demonstrating the magnitude and direction of the variable contribution for the given linear projection.
+Within each factor, participants performed 2 tasks in a fixed order. The first task asked participants to identify the number of clusters present in the data. In this task, clusters were unsupervised, where all observations appeared as black circles and the basis variable map was omitted. This task does not give insight to the hypothesis, but rather served as a standard for assessing the general aptitude for this sort of high dimensional analysis as it was simpler. In application, linear discriminant analysis [@fisher_use_1936] or penalized discriminant analysis [@hastie_penalized_1995] are better suited for classifying such unsupervised data. 
 
-The first task is a ubiquitous task for unsupervised data but was included as more of a validation task rather than directly addressing the hypothesis.  
-It was expected that the grand tour should excel in identifying the number of clusters. This is because the grand tour shows many bases across all variables viewed in quick succession. This makes for a more cohesive parallax-like movement between clusters, making them relatively easy to identify. In contrast, PCA offers the fewest bases with the most discrete changes. The manual tour explores one dimension at a time. This exploration views a smaller variable-space than the grand tour, providing fewer visual cues between clusters. 
-
+The second task is focused on the hypothesis of the study, it asked participants to identify any/all variables that were very important and somewhat important for distinguishing a given cluster from the others. For instance, which variables are very- and somewhat- important for distinguishing clusters 'A' and  'B'. This task was supervised by cluster; observations were assigned shape and (color-blind friendly) color according to their cluster. A basis variable map was provided indicating the magnitude and direction of the variable contribution for the given linear projection.
 
 
 ## Block difficulty {#sec:blocks}
@@ -149,8 +148,7 @@ Participants were randomly assigned to 1 of 3 even groups. Each group had a  dif
 
 ## Groups {#sec:groups}
 
-Each participant was randomly split into one of three even factor groups. The first group was given a biplot -- a scatterplot matrix coupled with a variable mapping back to original variable space. Users were allowed to freely choose which two components to view initialized to PC1 and PC2. The second group was given the same animation, the first 30 seconds of random walk (typically spanning 6 or 7 bases interpolated into 90 frames viewed at 3 frames per second) of a grand tour with the ability to freely control the location and speed of the animation. The third group was provided with the ability to control the magnitude of an individual variable contributes to the projection with a manual tour. Doing so performs a constrained rotation on the data object resulting in a change of the other variables to preserve orthogonality between dimensions. Participants could freely change which dimension to manipulate.
-
+Each participant was randomly split into one of three even groups. The group controls the order of the factors that the participant was evaluated in for a latin square of the 3 factors. For instance, the order of the first group was PCA, grand, manual. Group only impacts the order the factors are displayed while task, block, and simulation order remained the same. 
 
 
 ```{r design, echo = F, out.width = '100%',                                     fig.cap = "Experimental design setup. Participants are assigned to one of 3 even groups controlling the factor order. Within each factor, users perform 3 block difficulties of task 1 and then of task 2 before proceeding to the next factor. Simulations are used in a fixed order (while factor order changes). Simulations for the first block difficulty are unique samples drawn from the same distribution. Similarly, the second and third block difficulties are drawn from increasing complex distributions."}
@@ -158,10 +156,40 @@ knitr::include_graphics("./figures/experimental_design.PNG")
 
 ```
 
-```{r designExample, echo = F, out.width = '100%',                             fig.cap = "Example case. Person `A` is assigned to group 2, where they will use factor 2 (`Grand tour`) for the first period. They perform 3 block difficulties of task 1 on simulations of increasing difficulty. Then 3 block difficulties of task 2 on unique simulations sampled from the same distributions of increasing difficulty. After this, they proceed to period 2, where they are use factor 3 (`Manual tour`) to perform 3 block difficulties of each task. Lastly, in the third period they use factor 1 (`PCA`) to perform the tasks."}
+
+```{r designExample, echo = F, out.width = '100%',                             fig.cap = "Example case. Person 'A' is assigned to group 2, where they will use factor 2 (grand tour) for the first period. They perform 3 block difficulties of task 1 on simulations of increasing difficulty. Then 3 block difficulties of task 2 on unique simulations sampled from the same distributions of increasing difficulty. After this, they proceed to period 2, where they are use factor 3 (manual tour) to perform 3 block difficulties of each task. Lastly, in the third period, they use factor 1 (PCA) to perform the tasks."}
 knitr::include_graphics("./figures/experimental_design_personA.PNG")
 
 ```
+
+
+## Data simulations {#sec:sim}
+
+The data used for the study were sampled from 4 multivariate normal distributions. The distributions were parameterized with the number of clusters, the number of noise variables, and the number of variables. Each simulation contained either 3 or 4 clusters, with each cluster containing a random number of observations between 30 and 150. Each simulation contained 3 or 4 noise variables, which were distributed as $~ \mathcal{N}(0, \sigma^2)$. Non-noise variables were distributed $~ \mathcal{N}(\mu, \sigma^2)~|~\mu\in \{-3, -2, ... 3\}$ __#TODO: DOUBLE CHECK THIS DIST__. The variance-covariance matrix was constrained with non-diagonal elements selected between -0.1 to 0.7, before being constrained into a positive definitive matrix.
+
+From the 4 sets of parameterizations, 20 simulations were drawn. The 2 most simple simulations were used during the training section of the study. All participants were exposed to the same training data sets, shown in the same order to standardize training. The remaining 18 simulations were drawn such that the remaining 3 parameterizations were sampled 6 times each. These correspond to the 3 block difficulties of a given factor and task with increasing difficulty. Referring to the middle of figure \ref{fig:design}, a participant would perform each factor-task for 3 block difficulties with increasing difficultly before proceeding. The next factor-task has 3 new data sets but parameterized for the same order of increasing difficulty. All participants experience the same order of simulations while the order of the factor (visualization) was changed as controlled by a partition into 3 even groups (top of the same figure).
+
+
+## Responses, measures, and survey {#sec:response}
+
+The plot display of the first task was limited to 1 minute and 3 minutes on the second task. Responses we available during and after the timer was running. The value and time of each response were captured in a temporary variable that was written to the response table once the user proceeded to the next page. The number of plot manipulations and response entries was also captured for each page including training. 
+
+After responses for each task were collected, participants were given a short survey containing questions gauging demographics, experience, and subjective evaluation of each factor on a 9-point Likert scale. The questions and possible responses as follows:
+
+* What gender are you? [decline, F, M, Intergender/other]
+* What age are you? [decline, 19 or younger, 20 to 29, 30 to 39, 40 or older]
+* What is your highest completed education? [decline, highschool, undergraduate, honors/masters/mba, doctorate]
+* I am experienced with data visualization. [likert 1-9]
+* educated in multivariate statistical analysis [likert 1-9]
+* previous familiar with visualization [likert 1-9] x3 factors
+* I was already familiar with this visualization. [likert 1-9] x3 factors
+* I found this visualization easy to use. [likert 1-9] x3 factors
+* I felt confident in my answers with this visualization. [likert 1-9] x3 factors
+* I liked using this visualization. [likert 1-9] x3 factors
+
+Log files were kept where all inputs were tracked with corresponding timestamps allowing for reproduction if need. Log files, response files, their analyses, and study application are made publicly available at on GitHub at [github.com/nspyrison/spinifex_study](https://github.com/nspyrison/spinifex_study)
+
+<!-- see Tory 2006 for example of ease/confidence/likeability -->
 
 
 ## Participant population {#sec:population}
@@ -169,52 +197,15 @@ knitr::include_graphics("./figures/experimental_design_personA.PNG")
 A sample of convenience was taken from postgraduate students in the department of econometrics and business statistics and the faculty of information technology at Monash University, based in Melbourne, Australia. Participants were required to have prior knowledge of multivariate data visualizations.
 
 
-
-## Training {#sec:training}
-
-Training was controled for all participants. The same ui,  
-
-
-
-
-## Data simulations {#sec:sim}
-
-The data used for the study were sampled from 4 multivariate normal distributions. The distributions were parameterized with the number of clusters, the number of noise variables, and the number of variables. Each simulation contained either 3 or 4 clusters, with each cluster containing a random number of observations between 30 and 150. Each simulation contained 3 or 4 noise variables, which were distributed as $~ \mathcal{N}(0, \sigma^2)$. Non-noise variables were distributed $~ \mathcal{N}(\mu, \sigma^2)~|~\mu\in \{-3, -2, ... 3\}$. The variance-covariance matrix was constrained with non-diagonal elements selected between -0.1 to 0.7, before being constrained into a positive definitive matrix.
-
-Of the 4 sets of parameterizations, 20 simulations were drawn. The 2 most simple simulations were used during the training section of the study. All participants were exposed to the same training data sets, shown in the same order to standardize training. The remaining 18 simulations were drawn such that the remaining 3 parameterizations were sampled 6 times each. These correspond to the 3 block difficulties of a given factor and task with increasing difficulty. Referring to the middle of figure \ref{fig:design}, a participant would perform each factor-task for 3 block difficulties with increasing difficultly before proceeding. The next factor-task has 3 new data sets but parameterized for the same order of increasing difficulty. All participants experience the same order of simulations while varying the order of the factor (visualization) as controlled by a partition into 3 even groups (top of the same figure).
-
-
-
-## Response & measures {#sec:response}
-
-Each task was introduced and demonstrated directly preceding each task. During this introductory segment, each participant was given a written description of the task and instructions on how the factor visualization informed the answer, as illustrated with the same toy data set. Participants were free to ask questions and clarification from the invigilator at this time. Questions were not allowed outside of the introductory segments. Participants received exactly __two__ minutes to explore the data from each block difficulties before responding to the given task. Responses came in the form of single integer input for the task asking to identify the number of clusters. The second task collected the top 3 ordered variables that distinguish clusters. The remaining task collected `p` (number of variables in the data) inputs grouped into zero to four groups.
-
-After responses for each task were collected, participants were given a short survey of demographics, related experience, and subjective evaluation of each factor on a 7-point Likert scale. These questions covered familiarity and expertise with multivariate data, its visualization, as well as, ease of use, understandability, confidence, and likelihood to recommend the participant's factor visualization.
-
-
-
-## Post-study survey {#sec:survey}
-
-* gender [decline, F, M, Intergender/other]
-* age [decline, 19 or younger, 20 to 29, 30 to 39, 40 or older]
-* completed education [decline, highschool, undergraduate, honors/masters/mba, doctorate]
-* experience with data vizualization [likert 1-7]
-* educated in multivarate statistical analysis [likert 1-7]
-* previous familiar with vizualization [likert 1-7] x3 factors
-* ease [likert 1-7] x3 factors
-* confidence [likert 1-7] x3 factors
-* likeability [likert 1-7] x3 factors
-<!-- see Tory 2006 for example of ease/confidence/likeability -->
-
-
-
 # Results {#sec:results}
+
+__#TODO: Need to run study and add results here.__
 
 # Accompanying tool: spinifex application {#sec:spinifex}
 
-To accompany this study we have produced a more general use tool to perform such exploratory analysis of high dimensional data. The `spinifex`{@CITE} R package (version 0.2.0 and up) contains a free, open-source version of a `shiny` [@chang_shiny:_2018] application. The application features traditional static visualizations including PCA, with biplots and scree plots, and scatterplot matrices. The application also implements various tours, including manual tours, projection pursuit, and limited versions of grand, little, and local tours. Data can be imported in .csv and .rda format, and projections can be saved as .png, .gif, and .csv formats where applicable. Run the following R code for help getting started.
+To accompany this study we have produced a more general use tool to perform such exploratory analysis of high dimensional data. The R package, `spinifex`, {@spyrison_spinifex_2019} R package (version 0.2.0 and up) contains a free, open-source version of a `shiny` [@chang_shiny:_2018] application. The application allows users to explore their own data with either interactive or predefined manual tours without the need for any coding. Limited implementations of grand, little, and local tours are also made available. Data can be imported in .csv and .rda format, and projections or animations can be saved as .png, .gif, and .csv formats where applicable. Run the following R code for help getting started.
 ```{r getting_started, eval = F}
-install.packages("spinifex")
+install.packages("spinifex", dependencies = TRUE)
 spinifex::run_app("intro")
 spinifex::run_app("primary")
 ```
@@ -224,8 +215,7 @@ spinifex::run_app("primary")
 
 # Acknowledgments {#sec:acknowledgments}
 
-This article was created in R [@r_core_team_r:_2019], using \_CRANpkg{knitr} [@stodden_knitr:_2014] and \_CRANpkg{rmarkdown} [@xie_r_2018], with code generating the examples inline. The source files for this article be found at [github.com/nspyrison/spinifex_study/](https://github.com/nspyrison/spinifex_paper/). The source code for the \_pkg{spinifex} package and accompanying shiny application can be found at [github.com/nspyrison/spinifex/](https://github.com/nspyrison/spinifex/).
+This article was created in R [@r_core_team_r:_2019], using `knitr` [@stodden_knitr:_2014] and `rmarkdown` [@xie_r_2018], with code generating the examples inline. The source files for this article be found at [github.com/nspyrison/spinifex_study/](https://github.com/nspyrison/spinifex_paper/). The source code for the `spinifex` package and accompanying shiny application can be found at [github.com/nspyrison/spinifex/](https://github.com/nspyrison/spinifex/).
 
-__Note: that \\_CRANpkg{} refs don't work in the format yet either__
 
 # Bibliography {#sec:bib}

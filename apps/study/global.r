@@ -77,12 +77,12 @@ for (i in 1:length(s_tpath_num)) {
 # survey
 s_survey_questions <- c("What gender are you?",
                         "What age are you?",
-                        "What is your highest level of completed education?",
+                        "What is your highest completed education?",
                         "I am experienced with data visualization.",
                         "I have education in multivariate statistical analysis.",
                         rep(c("I was already familiar with this visualization.",
                               "I found this visualization easy to use.",
-                              "I felt confident in my answer with this visualization.",
+                              "I felt confident in my answers with this visualization.",
                               "I liked using this visualization."), 3)
 )
 
@@ -146,7 +146,7 @@ sidebar_ui <- conditionalPanel(
           the axes. Using the drop-down, select the variable with the largest 
           line segment. Use the slider to change the variable's contribution. 
           Watch how the contributions and clusters move as a result. Select a 
-          change the y axis to PC3 and back, notice that this resets the 
+          change the y-axis to PC3 and back, notice that this resets the 
           projection."),
       ),
       conditionalPanel( # training task 1, pg 1
@@ -400,7 +400,7 @@ main_ui <- mainPanel(
       h1("Training complete, Great job!"),
       h4("Take a break and strech if you feel like it."),
       HTML("<h3><span style='color:red'>
-          Keep in mind that we are evaluating the factors not your performance. 
+          Keep in mind that we are evaluating the factors, not your performance. 
           Don't worry if you don't fully understand the theory or find a task difficult.
            </span></h3>"),
       h4("Ask any final clarification questions. Then continue on to the 

@@ -43,6 +43,7 @@ str(task2)
 OUT_FIG <- gridExtra::grid.arrange(g1_t1, g2_t1, g1_t2, g2_t2, ncol=2)
 ### SURVEY
 survey <- filter(df, factor %in% c("survey_pca", "survey_grand", "survey_manual"))
+##TODO: RESUME HERE <<<<<<
 survey <- mutate(survey, response = as.integer(substr(response, 1,1)),
                  aspect = if(question == "I felt confident in my answer with this visualization.") confidence)
 

@@ -566,6 +566,20 @@ server <- function(input, output, session) {
         paste0("survey", 6:9, "_", this_factor_order[2]),
         paste0("survey", 6:9, "_", this_factor_order[3])
       )
+    col_block <- 
+      c(rep(1:2, 2), # training
+        rep(c(1:3,                         # task 1
+              rep(1, n_task2_questions),   # task 2
+              rep(2, n_task2_questions),
+              rep(3, n_task2_questions)
+          ),
+          n_factors                                      # across factors
+        ),      
+        paste0("survey", 1:5),                           # survey
+        paste0("survey", 6:9, "_", this_factor_order[1]),
+        paste0("survey", 6:9, "_", this_factor_order[2]),
+        paste0("survey", 6:9, "_", this_factor_order[3])
+      )
     sim_set <- c(201, 207, 213,               # task 1
                  rep(202, n_task2_questions), # task 2
                  rep(208, n_task2_questions),
