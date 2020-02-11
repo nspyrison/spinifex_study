@@ -14,13 +14,13 @@ library("lubridate") # For timer
 library("loggit")    # For logging
 
 this_factor_id <- 1 # between 1 and 3 ## SET GROUP HERE
-f_ls <- c("pca", "grand", "manual") # factor list
+f_nm_ls <- c("pca", "grand", "manual") # factor list
 num_latin_sq <- rbind(c(1, 2, 3), # ~ grp 1; "pca", "grand", "manual"
                       c(2, 3, 1), # ~ grp 2; "grand", "manual", "pca"
                       c(3, 1, 2)  # ~ grp 3; "manual", "pca", "grand"
 )
-this_factor_num_order <- num_latin_sq[this_factor_id, ]
-this_factor_order     <- f_ls[this_factor_num_order]
+this_factor_order <- num_latin_sq[this_factor_id, ]
+this_factor_nm_order     <- f_nm_ls[this_factor_order]
 
 
 log_base <- paste0("log_", this_factor_id, "_", Sys.info()[4], "_")
@@ -38,12 +38,11 @@ is_logging <- FALSE # init
 ## https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## Uncomment the following line to apply logging
-setLogFile(log_file); is_logging <- TRUE
+#setLogFile(log_file); is_logging <- TRUE
 
 
 ### Required inputs -----
 # tasks
-s_task_id <- c("n", "p")
 s_difficulty <- c("easy", "medium", "hard")
 s_task_prompts <- c("How many clusters do you see?",
                     "Rate the relative importance of ANY/ALL variables in terms of 
@@ -52,25 +51,25 @@ s_task2_questions <- c("Very important distinguishing clusters 'a' from 'b'",
                        "Somewhat important distinguishing clusters 'a' from 'b'",
                        "Very important distinguishing clusters 'b' from 'c'",
                        "Somewhat important distinguishing clusters 'b' from 'c'")
-s_sim_num  <- as.character(201:218)
+s_sim_id  <- as.character(201:218)
 sim_train1 <- readRDS("../simulation/simulation_data_train1.rds") # p = 6, pnoise = 2, cl = 3 
 sim_train2 <- readRDS("../simulation/simulation_data_train2.rds") # p = 6, pnoise = 2, cl = 3
 s_train <- list(sim_train1, sim_train2)
 s_dat <- list()
-for (i in 1:length(s_sim_num)) {
+for (i in 1:length(s_sim_id)) {
   s_dat[[i]] <- readRDS(
-    paste0("../simulation/simulation_data", s_sim_num[i], ".rds")
+    paste0("../simulation/simulation_data", s_sim_id[i], ".rds")
   )
 }
 
 tpath_train1 <- readRDS("../simulation/grand_tpath_train1.rds") # p = 6, pnoise = 2, cl = 3 
 tpath_train2 <- readRDS("../simulation/grand_tpath_train2.rds") # p = 6, pnoise = 2, cl = 3
-s_tpath_num  <- as.character(201:218)
+s_tpath_id  <- as.character(201:218)
 s_tpath_train <- list(tpath_train1, tpath_train2)
 s_tpath <- list()
-for (i in 1:length(s_tpath_num)) {
+for (i in 1:length(s_tpath_id)) {
   s_tpath[[i]] <- readRDS(
-    paste0("../simulation/grand_tpath", s_tpath_num[i], ".rds")
+    paste0("../simulation/grand_tpath", s_tpath_id[i], ".rds")
   )
 }
 
@@ -89,8 +88,8 @@ s_survey_questions <- c("What gender are you?",
 
 ### Variable initialization -----
 n_trainings        <- length(s_train)            # ~2
-n_factors          <- length(f_ls)               # ~3
-n_tasks            <- length(s_task_id)          # ~2
+n_factors          <- length(f_nm_ls)               # ~3
+n_tasks            <- 2 # length(s_task_id)      # ~2
 n_task2_questions  <- length(s_task2_questions)  # ~4
 n_difficulty       <- length(s_difficulty)       # ~3
 n_blocks           <- 3 # length(s_dat) / (n_tasks * n_factors) # 18/(2*3) = 3
@@ -98,7 +97,6 @@ n_survey_questions <- length(s_survey_questions) # ~17
 
 PC_cap <- 4
 
-s_taskblock_id <- paste0(rep(s_task_id, each = n_blocks), rep(1:n_blocks, n_tasks))
 # intro is pg 1; video intro is pg 2
 training_start <- 3
 # ~ 9, pg 2:8 is training; (start on ui, 2x2 for tasks, splash)
@@ -110,26 +108,26 @@ survey_start   <- task_start + n_factors * n_blocks * n_tasks
 header_ui <- fluidPage(
   titlePanel("Multivariate data visualization study"),
   conditionalPanel( 
-    condition = "output.ui_section == 'training' && output.second_training == 'ask'",
+    condition = "output.section == 'training' && output.second_training == 'ask'",
     checkboxInput("second_training", "Do you want another training set?", 
                   value = FALSE)
   ),
   conditionalPanel(
-    condition = "output.pg_num < 27",
+    condition = "output.pg < 27",
     actionButton("next_pg_button", "Next page")
   )
 )
 
 ### sidebar_ui ----
 sidebar_ui <- conditionalPanel(
-  condition = "(output.ui_section == 'training' && output.section_pg_num < 6) 
-              || output.ui_section == 'task'",
+  condition = "(output.section == 'training' && output.section_pg < 6) 
+              || output.section == 'task'",
   sidebarPanel( 
     ### _Training text -----
     conditionalPanel(
-      condition = "output.ui_section == 'training'",
+      condition = "output.section == 'training'",
       conditionalPanel( # interface familiarity 
-        condition = "output.section_pg_num == 1",
+        condition = "output.section_pg == 1",
         p("In this study, you will be working with 3 visualization techniques of
         multivariate data. Each one uses 2-dimensional projections created
         from different combinations of variables. The variable map (grey circle)
@@ -150,13 +148,13 @@ sidebar_ui <- conditionalPanel(
           projection."),
       ),
       conditionalPanel( # training task 1, pg 1
-        condition = "output.task_num == 1",
+        condition = "output.task == 1",
         tags$b("Now the data points are not colored by their cluster. How
         many clusters do you see in this training set? 
         Make sure to use the controls and different factors.")
       ),
       conditionalPanel( # training task 1, pg 2 
-        condition = "output.task_num == 2",
+        condition = "output.task == 2",
         tags$b("The data points are now colored by their cluster again. The 
                variable map (grey circle) shows the magnitude and direction
                that each variable contributes. Variables that have a large 
@@ -171,16 +169,16 @@ sidebar_ui <- conditionalPanel(
     
     ### _Training control inputs -----
     # Factor selection
-    conditionalPanel(condition = "output.ui_section == 'training' && output.section_pg_num < 6",
+    conditionalPanel(condition = "output.section == 'training' && output.section_pg < 6",
                      radioButtons(inputId = "factor", label = "Factor", 
-                                  choices = f_ls, 
-                                  selected = f_ls[1],
+                                  choices = f_nm_ls, 
+                                  selected = f_nm_ls[1],
                                   inline = TRUE)
     ), # PCA axis selection
     conditionalPanel(
       condition = "(output.factor == 'pca' || output.factor == 'manual') || 
-                  (output.ui_section == 'training' && input.factor != 'grand'
-                  && output.section_pg_num < 6)",
+                  (output.section == 'training' && input.factor != 'grand'
+                  && output.section_pg < 6)",
       fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", 
                                       choices = paste0("PC", 1:4), selected = "PC1")),
                column(6, radioButtons(inputId = "y_axis", label = "y axis", 
@@ -188,8 +186,8 @@ sidebar_ui <- conditionalPanel(
       )
     ), # Manip var/ magnitude selection
     conditionalPanel(condition = "output.factor == 'manual' || 
-                       (output.ui_section == 'training' && input.factor == 'manual')",
-                     selectInput('manip_var', 'Manip var', "<none>"),
+                       (output.section == 'training' && input.factor == 'manual')",
+                     selectInput("manip_var_nm", "Manip var", "<none>"),
                      sliderInput("manip_slider", "Contribution",
                                  min = 0, max = 1, value = 0, step = .1)
     ), 
@@ -198,17 +196,17 @@ sidebar_ui <- conditionalPanel(
     
     ### _Task response input -----
     # Task 1
-    conditionalPanel(condition = "(output.task_num == 1 || output.task_num == 2)
+    conditionalPanel(condition = "(output.task == 1 || output.task == 2)
                                  && output.factor != 'grand'", 
                      hr()
     ),
-    conditionalPanel(condition = "output.task_num == 1",
+    conditionalPanel(condition = "output.task == 1",
                      tags$b(s_task_prompts[1]),
                      tags$br(),
                      numericInput("tsk1_ans", "",
                                   value = 0, min = 0, max = 10)
     ), # Task 2
-    conditionalPanel(condition = "output.task_num == 2",
+    conditionalPanel(condition = "output.task == 2",
                      tags$b(s_task_prompts[2]),
                      tags$br(), br(),
                      checkboxGroupInput(
@@ -243,7 +241,7 @@ sidebar_ui <- conditionalPanel(
 
 ##### init survey columns -----
 col_p1 <- column(4, 
-                 h3(this_factor_order[1]),
+                 h3(this_factor_nm_order[1]),
                  hr(),
                  h4(s_survey_questions[6]),
                  sliderInput("survey6",
@@ -271,7 +269,7 @@ col_p1 <- column(4,
                              min = 1, max = 9, value = 5)
 )
 col_p2 <- column(4, 
-                 h3(this_factor_order[2]),
+                 h3(this_factor_nm_order[2]),
                  hr(),
                  h4(s_survey_questions[10]),
                  sliderInput("survey10",
@@ -299,7 +297,7 @@ col_p2 <- column(4,
                              min = 1, max = 9, value = 5)
 )
 col_p3 <- column(4, 
-                 h3(this_factor_order[3]),
+                 h3(this_factor_nm_order[3]),
                  hr(),
                  h4(s_survey_questions[14]),
                  sliderInput("survey14",
@@ -331,9 +329,9 @@ col_p3 <- column(4,
 main_ui <- mainPanel(
   ### _Intro mainPanel -----
   conditionalPanel(
-    condition = "output.ui_section == 'intro'",
+    condition = "output.section == 'intro'",
     conditionalPanel(
-      condition = "output.pg_num == 1", # First page
+      condition = "output.pg == 1", # First page
       h3("Welcome to the study")
       , br()
       , p("This a completely voluntary study that will take approximately 45-50 
@@ -365,7 +363,7 @@ main_ui <- mainPanel(
       , p("We really appreciate your participation in this study.")
     ), # end first page
     conditionalPanel(
-      condition = "output.pg_num == 2", # Video, second page
+      condition = "output.pg == 2", # Video, second page
       h2("Video training"), tags$br(), tags$br(),
       p("Watch the following video before proceeding:"), tags$br(), 
       # Adding the 'a' tag to the sidebar linking external file
@@ -378,24 +376,24 @@ main_ui <- mainPanel(
   
   ### _Training mainPanel -----
   conditionalPanel(
-    condition = "output.ui_section == 'training'",
-    conditionalPanel(condition = "output.section_pg_num == 1", # ui intro 
+    condition = "output.section == 'training'",
+    conditionalPanel(condition = "output.section_pg == 1", # ui intro 
                      h2("Training -- interface")
     ),
-    conditionalPanel(condition = "output.section_pg_num == 2",
+    conditionalPanel(condition = "output.section_pg == 2",
                      h2("Training -- task 1")
     ),
-    conditionalPanel(condition = "output.section_pg_num == 3",
+    conditionalPanel(condition = "output.section_pg == 3",
                      h2("Training -- task 1, set 2")
     ),
-    conditionalPanel(condition = "output.section_pg_num == 4",
+    conditionalPanel(condition = "output.section_pg == 4",
                      h2("Training -- task 2")
     ),
-    conditionalPanel(condition = "output.section_pg_num == 5",
+    conditionalPanel(condition = "output.section_pg == 5",
                      h2("Training -- task 2, set 2")
     ),
     conditionalPanel( # splash page
-      condition = "output.section_pg_num == 6",
+      condition = "output.section_pg == 6",
       h1(), h1(), h1(),
       h1("Training complete, Great job!"),
       h4("Take a break and strech if you feel like it."),
@@ -413,7 +411,7 @@ main_ui <- mainPanel(
   
   ### _Task mainPanel -----
   conditionalPanel(
-    condition = "output.ui_section == 'task'",
+    condition = "output.section == 'task'",
     h2(textOutput('task_header')),
     textOutput('timer_disp'),
     hr()
@@ -421,8 +419,8 @@ main_ui <- mainPanel(
   
   ### _Plot mainPanel ----
   conditionalPanel( 
-    condition = "(output.ui_section == 'training' && output.section_pg_num != 6)
-      || output.ui_section == 'task'", # block_num == 6 is splash page.
+    condition = "(output.section == 'training' && output.section_pg != 6)
+      || output.section == 'task'", # block == 6 is splash page.
     htmlOutput("plot_msg"),
     plotOutput("pca_plot", height = "auto"),
     plotOutput("mtour_plot", height = "auto"),
@@ -431,7 +429,7 @@ main_ui <- mainPanel(
   
   ### _Survey mainPanel -----
   conditionalPanel(
-    condition = "output.ui_section == 'survey'",
+    condition = "output.section == 'survey'",
     conditionalPanel(
       condition = "output.is_saved == 0",
       selectInput("survey1", label = s_survey_questions[1], 
