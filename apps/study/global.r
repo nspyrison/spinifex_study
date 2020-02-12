@@ -13,17 +13,16 @@ library("GGally")
 library("lubridate") # For timer
 library("loggit")    # For logging
 
-this_factor_id <- 1 # between 1 and 3 ## SET GROUP HERE
+this_group <- 1 # between 1 and 3 ## SET GROUP HERE
 f_nm_ls <- c("pca", "grand", "manual") # factor list
 num_latin_sq <- rbind(c(1, 2, 3), # ~ grp 1; "pca", "grand", "manual"
                       c(2, 3, 1), # ~ grp 2; "grand", "manual", "pca"
                       c(3, 1, 2)  # ~ grp 3; "manual", "pca", "grand"
 )
-this_factor_order <- num_latin_sq[this_factor_id, ]
-this_factor_nm_order     <- f_nm_ls[this_factor_order]
+this_factor_order    <- num_latin_sq[this_group, ]
+this_factor_nm_order <- f_nm_ls[this_factor_order]
 
-
-log_base <- paste0("log_", this_factor_id, "_", Sys.info()[4], "_")
+log_base <- paste0("log_", this_group, "_", Sys.info()[4], "_")
 log_num  <- 1
 log_name <- sprintf(paste0(log_base, "%03d"), log_num)
 log_file <- paste0(log_name, ".json")
@@ -43,10 +42,10 @@ is_logging <- FALSE # init
 
 ### Required inputs -----
 # tasks
-s_difficulty <- c("easy", "medium", "hard")
-s_task_prompts <- c("How many clusters do you see?",
-                    "Rate the relative importance of ANY/ALL variables in terms of 
-                    distinugishing between the given clusters.")
+s_difficulty      <- c("easy", "medium", "hard")
+s_task_prompts    <- c("How many clusters do you see?",
+                       "Rate the relative importance of ANY/ALL variables in terms of 
+                       distinugishing between the given clusters.")
 s_task2_questions <- c("Very important distinguishing clusters 'a' from 'b'",
                        "Somewhat important distinguishing clusters 'a' from 'b'",
                        "Very important distinguishing clusters 'b' from 'c'",
@@ -64,7 +63,7 @@ for (i in 1:length(s_sim_id)) {
 
 tpath_train1 <- readRDS("../simulation/grand_tpath_train1.rds") # p = 6, pnoise = 2, cl = 3 
 tpath_train2 <- readRDS("../simulation/grand_tpath_train2.rds") # p = 6, pnoise = 2, cl = 3
-s_tpath_id  <- as.character(201:218)
+s_tpath_id    <- as.character(201:218)
 s_tpath_train <- list(tpath_train1, tpath_train2)
 s_tpath <- list()
 for (i in 1:length(s_tpath_id)) {
@@ -76,6 +75,7 @@ for (i in 1:length(s_tpath_id)) {
 # survey
 s_survey_questions <- c("What gender are you?",
                         "What age are you?",
+                        "Is english is your primary language?",
                         "What is your highest completed education?",
                         "I am experienced with data visualization.",
                         "I have education in multivariate statistical analysis.",
@@ -88,14 +88,13 @@ s_survey_questions <- c("What gender are you?",
 
 ### Variable initialization -----
 n_trainings        <- length(s_train)            # ~2
-n_factors          <- length(f_nm_ls)               # ~3
+n_factors          <- length(f_nm_ls)            # ~3
 n_tasks            <- 2 # length(s_task_id)      # ~2
 n_task2_questions  <- length(s_task2_questions)  # ~4
 n_difficulty       <- length(s_difficulty)       # ~3
 n_blocks           <- 3 # length(s_dat) / (n_tasks * n_factors) # 18/(2*3) = 3
-n_survey_questions <- length(s_survey_questions) # ~17
-
-PC_cap <- 4
+n_survey_questions <- length(s_survey_questions) # ~18
+PC_cap <- 4 # caps the number of principal components selectable.
 
 # intro is pg 1; video intro is pg 2
 training_start <- 3
@@ -155,9 +154,8 @@ sidebar_ui <- conditionalPanel(
       ),
       conditionalPanel( # training task 1, pg 2 
         condition = "output.task == 2",
-        tags$b("The data points are now colored by their cluster again. The 
-               variable map (grey circle) shows the magnitude and direction
-               that each variable contributes. Variables that have a large 
+        tags$b("The data points are now colored by their cluster again. 
+               Variables that have a large 
                contribution in line with two clusters are important to 
                distinguish them. However, you cannot rule out that variables 
                with a small contribution are unimportant.
@@ -243,12 +241,6 @@ sidebar_ui <- conditionalPanel(
 col_p1 <- column(4, 
                  h3(this_factor_nm_order[1]),
                  hr(),
-                 h4(s_survey_questions[6]),
-                 sliderInput("survey6",
-                             label = div(style = 'width:300px;',
-                                         div(style = 'float:left;', 'strongly disagree'),
-                                         div(style = 'float:right;', 'strongly agree')),
-                             min = 1, max = 9, value = 5),
                  h4(s_survey_questions[7]),
                  sliderInput("survey7",
                              label = div(style = 'width:300px;',
@@ -266,17 +258,17 @@ col_p1 <- column(4,
                              label = div(style = 'width:300px;',
                                          div(style = 'float:left;', 'strongly disagree'),
                                          div(style = 'float:right;', 'strongly agree')),
-                             min = 1, max = 9, value = 5)
-)
-col_p2 <- column(4, 
-                 h3(this_factor_nm_order[2]),
-                 hr(),
+                             min = 1, max = 9, value = 5),
                  h4(s_survey_questions[10]),
                  sliderInput("survey10",
                              label = div(style = 'width:300px;',
                                          div(style = 'float:left;', 'strongly disagree'),
                                          div(style = 'float:right;', 'strongly agree')),
-                             min = 1, max = 9, value = 5),
+                             min = 1, max = 9, value = 5)
+)
+col_p2 <- column(4, 
+                 h3(this_factor_nm_order[2]),
+                 hr(),
                  h4(s_survey_questions[11]),
                  sliderInput("survey11",
                              label = div(style = 'width:300px;',
@@ -294,17 +286,17 @@ col_p2 <- column(4,
                              label = div(style = 'width:300px;',
                                          div(style = 'float:left;', 'strongly disagree'),
                                          div(style = 'float:right;', 'strongly agree')),
-                             min = 1, max = 9, value = 5)
-)
-col_p3 <- column(4, 
-                 h3(this_factor_nm_order[3]),
-                 hr(),
+                             min = 1, max = 9, value = 5),
                  h4(s_survey_questions[14]),
                  sliderInput("survey14",
                              label = div(style = 'width:300px;',
                                          div(style = 'float:left;', 'strongly disagree'),
                                          div(style = 'float:right;', 'strongly agree')),
-                             min = 1, max = 9, value = 5),
+                             min = 1, max = 9, value = 5)
+)
+col_p3 <- column(4, 
+                 h3(this_factor_nm_order[3]),
+                 hr(),
                  h4(s_survey_questions[15]),
                  sliderInput("survey15",
                              label = div(style = 'width:300px;',
@@ -319,6 +311,12 @@ col_p3 <- column(4,
                              min = 1, max = 9, value = 5),
                  h4(s_survey_questions[17]),
                  sliderInput("survey17",
+                             label = div(style = 'width:300px;',
+                                         div(style = 'float:left;', 'strongly disagree'),
+                                         div(style = 'float:right;', 'strongly agree')),
+                             min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[18]),
+                 sliderInput("survey18",
                              label = div(style = 'width:300px;',
                                          div(style = 'float:left;', 'strongly disagree'),
                                          div(style = 'float:right;', 'strongly agree')),
@@ -403,7 +401,7 @@ main_ui <- mainPanel(
            </span></h3>"),
       h4("Ask any final clarification questions. Then continue on to the 
         evaluation section. Task 1 is limited to 1 minute, and task 2 is limited
-        to 3 minutes  (time displayed on top).")
+        to 3 minutes (time displayed on top).")
     ),
     textOutput('stopwatch_disp'),
     hr()
@@ -445,7 +443,12 @@ main_ui <- mainPanel(
                               "30 to 39",
                               "40 or older")
       ),
-      selectInput("survey3", label = s_survey_questions[3], 
+      selectInput("survey2", label = s_survey_questions[3], 
+                  choices = c("decline to answer",
+                              "English first language",
+                              "English not first language")
+      ),
+      selectInput("survey3", label = s_survey_questions[4], 
                   choices = c("decline to answer",
                               "High school",
                               "Undergraduate",
@@ -453,13 +456,13 @@ main_ui <- mainPanel(
                               "Doctorate")
       ),
       h3("How much do you agree with the following statements?"),
-      h4(s_survey_questions[4]),
+      h4(s_survey_questions[5]),
       sliderInput("survey4",
                   label = div(style = 'width:300px;',
                               div(style = 'float:left;', 'strongly disagree'),
                               div(style = 'float:right;', 'strongly agree')),
                   min = 1, max = 9, value = 5),
-      h4(s_survey_questions[5]),
+      h4(s_survey_questions[6]),
       sliderInput("survey5",
                   label = div(style = 'width:300px;',
                               div(style = 'float:left;', 'strongly disagree'),
