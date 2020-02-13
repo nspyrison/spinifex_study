@@ -49,8 +49,8 @@ task2_tsk <- task2_ln %>%
     labs(title = "Task2 Task grain (v3pilot)") + theme_minimal() + 
     scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2"))
 
-(FIG1 <- gridExtra::grid.arrange(g1_t1, g2_t1, g1_t2, g2_t2, ncol=2))
-ggsave("./paper/figures/v3pilot.png", width = 6, height = 6, units = "in")
+(FIG1 <- gridExtra::arrangeGrob(g1_t1, g2_t1, g1_t2, g2_t2, ncol=2))
+ggsave("./paper/figures/v3pilot.png", plot = FIG1, width = 6, height = 6, units = "in")
 
 ### SURVEY
 ##TODO: RESUME HERE <<<<<<
