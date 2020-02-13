@@ -527,7 +527,8 @@ server <- function(input, output, session) {
       } # end of for creating rv$manual_ls
       
       j <- manip_slider_t() * 10 + 1
-      rv$curr_basis <- rv$basis_ls[[j]]
+      if (time_elapsed() > 1)
+        rv$curr_basis <- rv$basis_ls[[j]]
       
       rv$manual_ls[[j]]
     } # non-display conditions return nothing.
@@ -751,11 +752,15 @@ server <- function(input, output, session) {
       input$x_axis
       input$y_axis
     }, {
-      if(manual_active() == TRUE & time_elapsed() > 1) {
+      if(manual_active() == TRUE 
+         #& time_elapsed() > 1
+         ) {
         rv$manual_ls <- list()
+        cat(rv$curr_basis)
         mv_sp <- create_manip_space(rv$curr_basis, manip_var())[manip_var(), ]
         phi_i <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
-        .val <- cos(phi_i) #round(cos(phi_i), 1)
+        .val <- round(cos(phi_i), 1)
+        cat(paste0("slider set to :", .val,". \n"))
         updateSliderInput(session, "manip_slider", value = .val)
         loggit("INFO", 
                paste0("New manip slider value (from dat/axes/manip_var)."), 
@@ -1230,7 +1235,7 @@ server <- function(input, output, session) {
             .clust_score[i]      <- .line_score[2 * i - 1] + .line_score[2 * i]
             .intensity_score[i]  <- .line_score[i] + .line_score[i + 2]
           }
-            .task_score <- sum(.line_score[i])
+            .task_score <- sum(.line_score)
         }
         
         # Did task time run out
@@ -1250,8 +1255,8 @@ server <- function(input, output, session) {
         rv$ans_tbl$answer[.rows]          <- .task_answer
         rv$ans_tbl$score[.rows]           <- .task_score
         rv$ans_tbl$line_score[.rows]      <- .line_score
-        rv$ans_tbl$clust_score[.rows]     <- .clust_score
-        rv$ans_tbl$intensity_score[.rows] <- .intensity_score
+        rv$ans_tbl$clust_score[.rows]     <- "dont trust" #.clust_score
+        rv$ans_tbl$intensity_score[.rows] <- "dont trust" #.intensity_score
         rv$ans_tbl$concern[.rows]         <- .task_concern
       } # End of writing to ans_tbl
       

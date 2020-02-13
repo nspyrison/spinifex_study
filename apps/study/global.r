@@ -13,7 +13,7 @@ library("GGally")
 library("lubridate") # For timer
 library("loggit")    # For logging
 
-this_group <- 1 # between 1 and 3 ## SET GROUP HERE
+this_group <- 1 #sample(1:1, 1) #1 # between 1 and 3 ## SET GROUP HERE
 f_nm_ls <- c("pca", "grand", "manual") # factor list
 num_latin_sq <- rbind(c(1, 2, 3), # ~ grp 1; "pca", "grand", "manual"
                       c(2, 3, 1), # ~ grp 2; "grand", "manual", "pca"
@@ -37,7 +37,7 @@ is_logging <- FALSE # init
 ## https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## Uncomment the following line to apply logging
-#setLogFile(log_file); is_logging <- TRUE
+setLogFile(log_file); is_logging <- TRUE
 
 
 ### Required inputs -----
