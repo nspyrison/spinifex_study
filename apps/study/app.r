@@ -553,9 +553,9 @@ server <- function(input, output, session) {
             n_factors                                      # across factors
         ),
         paste0("survey", 1:6),                             # survey
-        paste0("survey", 7:10, "_", this_factor_order[1]),
-        paste0("survey", 7:10, "_", this_factor_order[2]),
-        paste0("survey", 7:10, "_", this_factor_order[3])
+        paste0("survey", 7:10, "_", this_factor_nm_order[1]),
+        paste0("survey", 7:10, "_", this_factor_nm_order[2]),
+        paste0("survey", 7:10, "_", this_factor_nm_order[3])
       )
     col_block <- 
       c("t", "t",                                  # training
@@ -1244,7 +1244,7 @@ server <- function(input, output, session) {
           if (time_elapsed() >  task_time()) .plot_elapsed <- 1
           if (time_elapsed() <= task_time()) .plot_elapsed <- 0
         }
-
+        
         
         rv$ans_tbl$pca_inter[.rows]       <- rv$pca_inter
         rv$ans_tbl$manual_inter[.rows]    <- rv$manual_inter
