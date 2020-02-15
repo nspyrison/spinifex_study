@@ -1,7 +1,7 @@
 ---
 output: pdf_document
 title: >
-  The effect of interaction on understanding variable contributions on linear projections 
+  The effect of user interaction for understanding variable contributions to structure in linear projections 
 author:
   Nicholas Spyrison, Dianne Cook, Kimbal Marriott
 abstract: >
@@ -124,10 +124,10 @@ Below we dicuss the __n = XX__ within-participant exploratory study across 3 fac
 Each participant was randomly split into one of three even groups. The group controls the order of the factors that the participant was evaluated in for a latin square of the 3 factors. For instance, the order of the first group was PCA, grand, manual. Group level only impacts the order the factors are displayed while task, block, and simulation order remained the same. 
 
 
-```{r design, echo = F, out.width = '100%',                                     fig.cap = "Experimental design setup. Participants are assigned to one of 3 even groups controlling the factor order. Within each factor, users perform 3 difficulty blocks of task 1 and then of task 2 before proceeding to the next factor. Simulations are used in a fixed order (while factor order changes). Simulations for the first block difficulty are unique samples drawn from the same distribution. Similarly, the second and third block difficulties are drawn from increasing complex distributions."}
-knitr::include_graphics("./figures/experimental_design.PNG")
-
-```
+<!-- # ```{r design, echo = F, out.width = '100%',                                     fig.cap = "Experimental design setup. Participants are assigned to one of 3 even groups controlling the factor order. Within each factor, users perform 3 difficulty blocks of task 1 and then of task 2 before proceeding to the next factor. Simulations are used in a fixed order (while factor order changes). Simulations for the first block difficulty are unique samples drawn from the same distribution. Similarly, the second and third block difficulties are drawn from increasing complex distributions."} -->
+<!-- # knitr::include_graphics("./figures/experimental_design.PNG") -->
+<!-- #  -->
+<!-- # ``` -->
 
 
 ```{r designExample, echo = F, out.width = '100%',                             fig.cap = "Example case. Person 'A' is assigned to group 2, where they will use factor 2 (grand tour) for the first period. They perform 3 block difficulties of task 1 on simulations of increasing difficulty. Then 3 block difficulties of task 2 on unique simulations sampled from the same distributions of increasing difficulty. After this, they proceed to period 2, where they are use factor 3 (manual tour) to perform 3 block difficulties of each task. Lastly, in the third period, they use factor 1 (PCA) to perform the tasks."}
@@ -145,7 +145,7 @@ We explored performance across three factors. The first factor is Principal Comp
 All factors are shown as a scatterplot. The basis axes projection was also illustrated to the left of the plot. They are shown in a unit circle and show the magnitude and direction each variable contributes to the projection.
 
 <!-- interface differences -->
-The user interface was kept the same whenever possible, but the control inputs did change slightly to accommodate the differences between factors. PCA had two side-by-side radio button inputs that select principal components to display on the x- and y-axes. The manual tour had the same axes selection, with the addition of a drop-down bar and slider control. The drop-down selects the variable to manipulate the contribution of, while the slider controlled the magnitude [0-1] of the contribution of that variable on the projection. Performing this manipulation does require the contributions of the other variables to change if they are to keep their orthogonal relationship.  The grand tour comes precompiled as an animation of a 15 second showing 90 frames at 6 frames per second. The user can control the location or play/pause the animation at will. Each frame is a geodesic interpolation that is close to 0.1 radians away from the previous frame. These frames will typically include 6 or 7 bases identified randomly.
+The user interface was kept the same whenever possible, but the control inputs did change slightly to accommodate the differences between factors. PCA had 2 side-by-side radio button inputs that select principal components to display on the x- and y-axes. The manual tour had the same axes selection, with the addition of a drop-down bar and slider control. The drop-down selects the variable to manipulate the contribution of, while the slider controlled the magnitude [0-1] of the contribution of that variable on the projection. Performing this manipulation does require the contributions of the other variables to change if they are to keep their orthogonal relationship. The grand tour has no axis or variable inputs and comes precompiled as an animation of a 15 second showing 90 frames at 6 frames per second. The user can control the location or play/pause the animation at will. Each frame is a geodesic interpolation that is close to 0.1 radians away from the previous frame. These frames will typically include 6 or 7 bases identified randomly.
 
 
 ## Tasks {#sec:tasks}
@@ -174,8 +174,9 @@ The plot display of the first task was limited to 1 minute and 3 minutes on the 
 
 After responses for each task were collected, participants were given a short survey containing questions gauging demographics, experience, and subjective evaluation of each factor on a 9-point Likert scale. The questions and possible responses as follows:
 
-* What gender are you? [decline, F, M, Intergender/other]
+* What gender are you? [ecline to answer, female, male, intergender/other]
 * What age are you? [decline, 19 or younger, 20 to 29, 30 to 39, 40 or older]
+* Is english is your primary language?, [decline to answer, English first language, English not first language]
 * What is your highest completed education? [decline, highschool, undergraduate, honors/masters/mba, doctorate]
 * I am experienced with data visualization. [likert 1-9]
 * educated in multivariate statistical analysis [likert 1-9]
