@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/W32TeX) (preloaded format=pdflatex 2020.2.10)  15 FEB 2020 16:46
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/W32TeX) (preloaded format=pdflatex 2020.2.10)  17 FEB 2020 15:51
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -643,42 +643,42 @@ Package hyperref Warning: Suppressing empty link on input line 186.
 
 Package hyperref Warning: Suppressing empty link on input line 187.
 
-<./figures/experimental_design_personA.png, id=82, 531.1845pt x 357.13425pt>
+<./figures/experimental_design_personA.png, id=82, 622.12425pt x 237.88875pt>
 File: ./figures/experimental_design_personA.png Graphic file (type png)
 <use ./figures/experimental_design_personA.png>
 Package pdftex.def Info: ./figures/experimental_design_personA.png  used on inp
 ut line 229.
-(pdftex.def)             Requested size: 469.77809pt x 315.84854pt.
-[2] [3 <./figures/experimental_design_personA.PNG>]
+(pdftex.def)             Requested size: 469.77214pt x 179.63213pt.
+[2]
 LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <10> on input line 310.
 LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <7> on input line 310.
 LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <5> on input line 310.
+[3 <./figures/experimental_design_personA.PNG>]
 
 LaTeX Warning: Reference `fig:design' on page 4 undefined on input line 323.
 
-[4]
 LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 3
 49.
 
 (c:/Users/Nicholas Spyrison/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/lm/ts1
 lmr.fd
 File: ts1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
-)
+) [4]
 LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 4
 14.
 
 (c:/Users/Nicholas Spyrison/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/lm/t1l
 mtt.fd
 File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
-) [5]
+)
 LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <10> not available
 (Font)              Font shape `T1/lmtt/b/n' tried instead on input line 426.
-[6]
+[5]
 Package atveryend Info: Empty hook `BeforeClearDocument' on input line 524.
-[7]
+[6]
 Package atveryend Info: Empty hook `AfterLastShipout' on input line 524.
 (./spyrison-cook-marriott.aux)
 Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 524.
@@ -692,13 +692,13 @@ LaTeX Warning: There were undefined references.
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 524.
  ) 
 Here is how much of TeX's memory you used:
- 12689 strings out of 483167
- 192523 string characters out of 5962602
+ 12688 strings out of 483167
+ 192517 string characters out of 5962602
  468205 words of memory out of 5000000
  27330 multiletter control sequences out of 15000+600000
  593723 words of font info for 120 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 34i,6n,42p,679b,351s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 34i,6n,42p,679b,333s stack positions out of 5000i,500n,10000p,200000b,80000s
 {c:/Users/Nicholas Spyrison/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvip
 s/lm/lm-ec.enc}{c:/Users/Nicholas Spyrison/AppData/Roaming/TinyTeX/texmf-dist/f
 onts/enc/dvips/lm/lm-ts1.enc}{c:/Users/Nicholas Spyrison/AppData/Roaming/TinyTe
@@ -721,10 +721,10 @@ as Spyrison/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmri10.pfb
 lic/lm/lmsy10.pfb><c:/Users/Nicholas Spyrison/AppData/Roaming/TinyTeX/texmf-dis
 t/fonts/type1/public/lm/lmtk10.pfb><c:/Users/Nicholas Spyrison/AppData/Roaming/
 TinyTeX/texmf-dist/fonts/type1/public/lm/lmtt10.pfb>
-Output written on spyrison-cook-marriott.pdf (7 pages, 350450 bytes).
+Output written on spyrison-cook-marriott.pdf (6 pages, 341526 bytes).
 PDF statistics:
- 225 PDF objects out of 1000 (max. 8388607)
- 199 compressed objects within 2 object streams
- 56 named destinations out of 1000 (max. 500000)
+ 219 PDF objects out of 1000 (max. 8388607)
+ 194 compressed objects within 2 object streams
+ 55 named destinations out of 1000 (max. 500000)
  14470 words of extra memory for PDF output out of 17280 (max. 10000000)
 
