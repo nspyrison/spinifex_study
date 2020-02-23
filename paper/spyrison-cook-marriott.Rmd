@@ -181,7 +181,6 @@ After responses for each task were collected, participants were given a short su
 * I am experienced with data visualization. [likert 1-9]
 * educated in multivariate statistical analysis [likert 1-9]
 * previous familiar with visualization [likert 1-9] x3 factors
-* I was already familiar with this visualization. [likert 1-9] x3 factors
 * I found this visualization easy to use. [likert 1-9] x3 factors
 * I felt confident in my answers with this visualization. [likert 1-9] x3 factors
 * I liked using this visualization. [likert 1-9] x3 factors
