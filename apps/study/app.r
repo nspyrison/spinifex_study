@@ -383,8 +383,8 @@ server <- function(input, output, session) {
       ### ggplot2
       basis_df <- tour_df$basis_slides
       basis_df[, 1:2] <- app_set_axes_position(tour_df$basis_slides[, 1:2], axes_position)
+      colnames(basis_df) <- c("x", "y", "slide", "lab")
       data_df  <- tour_df$data_slides
-      ## scaling in array2df not applying here...
       data_df[, 1:2] <- 2 * (tourr::rescale(data_df[, 1:2]) - .5)
       cluster <- rep(cluster, max_frames)
       

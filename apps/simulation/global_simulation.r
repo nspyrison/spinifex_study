@@ -104,7 +104,7 @@ panel_review_manual <- tabPanel(
 
 ##### UI, combine panels -----
 ui <- fluidPage(
-  navbarPage("Multivariate simulation generation"
+  navbarPage("Multivariate simulation generation -- !!!THIS APP IS BEING DEPRICATED!!!"
              , panel_generate
              , panel_review
              , panel_review_manual
