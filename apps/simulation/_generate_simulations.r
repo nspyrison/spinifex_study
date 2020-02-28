@@ -2,10 +2,16 @@ library("mvtnorm")
 library("lqmm")
 set.seed(20200228)
 
-#easy defaults: p = sample(5:7, 1); pnoise = p - 1; cl = sample(3:4, 1); vc_vect = seq(-.1, 0.6, by = 0.1); mn_vect = seq(2, 3, .1);
+easy <- function(){
+  p = sample(5:7, 1); p_signal = 1; cl = sample(3:4, 1); vc_vect = seq(-.1, 0.6, by = 0.1); mn_vect = seq(2, 3, .1);
+}
+cat("HARD STILL NEEDS TO CHANGE SHAPE OF SIMULATIONS")
+hard <- function(){
+  p = sample(7:9, 1); p_signal = sample(3:5, 1); cl = sample(3:4, 1); vc_vect = seq(-.1, 0.8, by = 0.1); mn_vect = seq(2, 2.5, .1);
+}
 ###### Simulate clusters
 simulate_clusters <- function(p = sample(5:7, 1), 
-                              pnoise = p - 1, 
+                              p_signal = 1, 
                               cl = sample(3:4, 1),
                               vc_vect = seq(-.1, 0.6, 0.1),
                               mn_vect = seq(2, 3, .1) 
@@ -21,7 +27,7 @@ simulate_clusters <- function(p = sample(5:7, 1),
     vc[ind] <- t(vc)[ind] 
     vc <- lqmm::make.positive.definite(vc)
     diag(vc) <- 1
-    mn <- c(sample(mn_vect * sample(c(-1, 1), 1), p - pnoise, replace = T), rep(0, pnoise))
+    mn <- c(sample(mn_vect * sample(c(-1, 1), 1), p_signal, replace = T), rep(0, p - p_signal))
     x <- rbind(x, mvtnorm::rmvnorm(n = n, mean = mn, vc))
     cl_n <- c(cl_n, n)
     cl_mn <- rbind(cl_mn, mn)
@@ -43,7 +49,7 @@ simulate_clusters <- function(p = sample(5:7, 1),
   vc_reord <- vc[y.indx, y.indx]
   cl_lvl_reord <- factor(rep(letters[1:cl], cl_n))
   cl_lvl_reord <- cl_lvl_reord[x.indx]
-  params <- list(p = p, pnoise = pnoise, cl = cl, 
+  params <- list(p = p, p_signal = p_signal, cl = cl, 
                        vc_vect = vc_vect, mn_vect = mn_vect)
   
   # Record attributes; AFTER REORDER
@@ -51,12 +57,18 @@ simulate_clusters <- function(p = sample(5:7, 1),
   attr(x, "cl_lvl") <- cl_lvl_reord # Cluster levels
   attr(x, "cl_mn")  <- cl_mn_reord  # Mean of each cluster*variable
   attr(x, "vc")     <- vc_reord     # Variance-covariance matrix
-
   # attr(x, "col_reorder") <- y.indx # order variables were scrambled in
-  # attr(x, "row_reorder") <- x.indx # order rows were scrambled in 
+  # attr(x, "row_reorder") <- x.indx # order rows were scrambled in
+  
   return(x)
 }
 
+### Test run
+p <-  pnoise <- cl <- vc_vect <- mn_vect <- NULL
+easy()
+simulate_clusters()
+
+hard()
 simulate_clusters()
 
 

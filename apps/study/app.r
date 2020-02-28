@@ -31,7 +31,7 @@ server <- function(input, output, session) {
   
   ##### Reactives -----
   p <- reactive({ ncol(dat()) })
-  n_cl <- reactive({ length(unique(attributes(s_dat[[block()]])$cluster)) })
+  n_cl <- reactive({ length(unique(attributes(s_dat[[block()]])$cl_lvl)) })
   
   section <- reactive({ # text name of section
     if (rv$pg %in% 1:(training_start - 1)) {return("intro")}
@@ -245,7 +245,7 @@ server <- function(input, output, session) {
       # data init
       dat <- dat()
       dat_std <- tourr::rescale(dat)
-      cluster <- attributes(dat)$cluster
+      cluster <- attributes(dat)$cl_lvl
       # dat_std <- tourr::rescale(flea[,2:7]); cluster <- flea$species; colnames(dat_std) <- paste("V", 1:6)
       
       # render init
@@ -347,7 +347,7 @@ server <- function(input, output, session) {
       # data init
       dat <- dat()
       dat_std <- tourr::rescale(dat)
-      cluster <- attributes(dat)$cluster
+      cluster <- attributes(dat)$cl_lvl
       
       # tour init
       angle <- .1
@@ -476,7 +476,7 @@ server <- function(input, output, session) {
         # data init
         dat <- dat()
         dat_std <- tourr::rescale(dat)
-        cluster <- attributes(dat)$cluster
+        cluster <- attributes(dat)$cl_lvl
         m_var   <- manip_var()
         
         # slider to phi/theta
