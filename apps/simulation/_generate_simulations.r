@@ -3,33 +3,32 @@ library("lqmm")
 set.seed(20200228)
 
 easy <- function(){
-  p = sample(5:7, 1); p_signal = 1; cl = sample(3:4, 1); 
-  vc_vect = seq(-.1, 0.6, by = 0.1); mn_vect = seq(2, 3, .1); 
-  n_cl_complexshape = 0
+  p <<- sample(5:7, 1); p_signal <<- 1; cl <<- sample(3:4, 1); 
+  vc_vect <<- seq(-.1, 0.6, by = 0.1); mn_vect <<- seq(2, 3, .1); 
+  n_cl_complexshape <<- 0
 }
 cat("HARD STILL NEEDS TO CHANGE SHAPE OF SIMULATIONS")
 hard <- function(){
-  p = sample(7:9, 1); p_signal = sample(3:5, 1); cl = sample(3:4, 1); 
-  vc_vect = seq(-.1, 0.8, by = 0.1); mn_vect = seq(2, 2.5, .1);
-  n_cl_complexshape = sample(1:2, 1)
+  p <<- sample(7:9, 1); p_signal <<- sample(3:5, 1); cl <<- sample(3:4, 1); 
+  vc_vect <<- seq(-.1, 0.8, by = 0.1); mn_vect <<- seq(2, 2.5, .1);
+  n_cl_complexshape <<- sample(1:2, 1)
 }
 ###### Simulate clusters
-simulate_clusters <- function(p = sample(5:7, 1),     ## numebr of columns
-                              p_signal = 1,           ## number of signal columns (difference in mean)
-                              cl = sample(3:4, 1),    ## number of clusters
+simulate_clusters <- function(p = sample(5:7, 1),      ## Numbbr of columns
+                              p_signal = 1,            ## Number of signal columns (difference in mean)
+                              cl = sample(3:4, 1),     ## Number of clusters
                               vc_vect = seq(-.1, 0.6, 0.1), ## Posible values of var-covar (cormat) elemets
                               mn_vect = seq(2, 3, .1), ## Posible values of for column mean (strength of signal)
-                              n_cl_complexshape = 0 # sample(1:2, 1) ## Number of clusters to make into 3d cresent shape.
+                              n_cl_complexshape = 0    ## Sample(1:2, 1) ## Number of clusters to make into 3d cresent shape.
 ){
   x <- NULL
   cl_n <- NULL
   cl_mn <- NULL
   vc <- NULL
   for (i in 1:cl) {
-    ## Set sample size and partician if complex shape
-    full_samp_n <- sample(30:150, 1)
-    if (i <= n_cl_complexshape){n <- full_samp_n / 3
-    } else {n <- full_samp_n}
+    ## Set sample size and partician sample if complex shape
+    n <- full_samp_n <- sample(30:150, 1)
+    if (i <= n_cl_complexshape){n <- full_samp_n / 3}
     
     ## Make a cluster 
     vc <- matrix(sample(vc_vect, p * p, replace = T), nrow = p) 
@@ -43,12 +42,9 @@ simulate_clusters <- function(p = sample(5:7, 1),     ## numebr of columns
     ## Make complex shape if specified
     if (i <= n_cl_complexshape){
       for (i in 1:n_cl_complexshape) {
-        ## MAKE RANDOM CL INTO 3D CRESENT
-        # TODO: Continue here.
-        reord <- rep(1:p, each)
-        dimension_vect <- c(rep(1, 2), rep(0, p - 2))
-        dimension
-        new_shape <- mvtnorm::rmvnorm(n = n, mean = mn + , vc
+        reord <- sample(1:p, p)
+        cl_mnshift <- c(sample(seq(1, 2, .1), 2), rep(0, p - 2))[reord]
+        new_shape <- mvtnorm::rmvnorm(n = n, mean = mn + cl_mnshift, vc)
         this_x <- rbind(this_x, new_shape)
       }
     }
@@ -91,11 +87,19 @@ simulate_clusters <- function(p = sample(5:7, 1),     ## numebr of columns
 }
 
 ### Test run
-p <-  pnoise <- cl <- vc_vect <- mn_vect <- NULL
+p <-  pnoise <- cl <- vc_vect <- mn_vect <- n_cl_complexshape <- NULL
 easy()
 simulate_clusters()
 
 hard()
 simulate_clusters()
+
+library("spinifex")
+dat <- tourr::rescale(tourr::flea[, 1:6])
+pca1_loading <- prcomp(dat)$rotation
+pca2_loading <- princomp(dat)$loadings
+
+spinifex::view_basis(pca1_loading[,1:2])
+spinifex::
 
 
