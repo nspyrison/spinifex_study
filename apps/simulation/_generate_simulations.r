@@ -28,7 +28,7 @@ simulate_clusters <- function(p = sample(5:7, 1),      ## Numbbr of columns
   for (i in 1:cl) {
     ## Set sample size and partician sample if complex shape
     n <- full_samp_n <- sample(30:150, 1)
-    if (i <= n_cl_complexshape){n <- full_samp_n / 3}
+    if (i <= n_cl_complexshape){n <- round(full_samp_n / 3)}
     
     ## Make a cluster 
     vc <- matrix(sample(vc_vect, p * p, replace = T), nrow = p) 
