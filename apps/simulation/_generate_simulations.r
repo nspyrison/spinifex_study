@@ -2,12 +2,12 @@ library("mvtnorm")
 library("lqmm")
 set.seed(20200228)
 
+### trivial funcs; set global evn variables.
 easy <- function(){
   p <<- sample(5:7, 1); p_signal <<- 1; cl <<- sample(3:4, 1); 
   vc_vect <<- seq(-.1, 0.6, by = 0.1); mn_vect <<- seq(2, 3, .1); 
   n_cl_complexshape <<- 0
 }
-cat("HARD STILL NEEDS TO CHANGE SHAPE OF SIMULATIONS")
 hard <- function(){
   p <<- sample(7:9, 1); p_signal <<- sample(3:5, 1); cl <<- sample(3:4, 1); 
   vc_vect <<- seq(-.1, 0.8, by = 0.1); mn_vect <<- seq(2, 2.5, .1);
@@ -94,12 +94,32 @@ simulate_clusters()
 hard()
 simulate_clusters()
 
+
+### Sanity check
 library("spinifex")
 dat <- tourr::rescale(tourr::flea[, 1:6])
 pca1_loading <- prcomp(dat)$rotation
 pca2_loading <- princomp(dat)$loadings
 
 spinifex::view_basis(pca1_loading[,1:2])
-spinifex::
 
+
+### Save off
+sim_series <- 300
+for (i in 1:12){
+  if((i %% 2) == 1) {easy()} # Odd sims are easy
+  if((i %% 2) == 0) {hard()} # Even sims are hard
+  sim_nm <- paste0("simulation_data", (sim_series + i))
+  assign(sim_nm, simulate_clusters())
+  filepath_nm = paste0("./apps/study/data/", sim_nm,".rds")
+  saveRDS(object = get(sim_nm), file = filepath_nm)
+  
+  if (file.exists(filepath_nm)) {
+    cat(paste0("Saved ", sim_nm, ". \n"))
+    } else {cat(paste0("warning: file not found for ", sim_nm, ". \n"))}
+  
+}
+
+  
+  
 
