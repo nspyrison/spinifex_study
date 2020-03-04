@@ -3,6 +3,11 @@ library("lqmm")
 set.seed(20200228)
 
 ### trivial funcs; set global evn variables.
+train <- function(){
+  p <<- sample(4:5, 1); p_signal <<- 1; cl <<- sample(3:4, 1); 
+  vc_vect <<- seq(-.1, 0.4, by = 0.1); mn_vect <<- seq(3, 4, .1); 
+  n_cl_complexshape <<- 0
+}
 easy <- function(){
   p <<- sample(5:7, 1); p_signal <<- 1; cl <<- sample(3:4, 1); 
   vc_vect <<- seq(-.1, 0.6, by = 0.1); mn_vect <<- seq(2, 3, .1); 
@@ -25,6 +30,7 @@ simulate_clusters <- function(p = sample(5:7, 1),      ## Numbbr of columns
   cl_n <- NULL
   cl_mn <- NULL
   vc <- NULL
+  ## Create each cluster
   for (i in 1:cl) {
     ## Set sample size and partician sample if complex shape
     n <- full_samp_n <- sample(30:150, 1)
@@ -54,16 +60,17 @@ simulate_clusters <- function(p = sample(5:7, 1),      ## Numbbr of columns
     cl_n <- c(cl_n, n)
     cl_mn <- rbind(cl_mn, mn)
   }
-
+  
+  ## Format data
   x <- scale(x)
   x <- as.data.frame(x)
   
-  # Reorder rows and columns
+  ## Reorder rows and columns
   x.indx <- sample(1:nrow(x))
   y.indx <- sample(1:ncol(x))
   x <- x[x.indx, y.indx]
   
-  # Mask output after reorder
+  ## Mask output after reorder
   rownames(x) <- 1:nrow(x)
   colnames(x) <- paste0("V", 1:ncol(x))
   cl_mn_reord <- cl_mn[, y.indx]
@@ -75,26 +82,53 @@ simulate_clusters <- function(p = sample(5:7, 1),      ## Numbbr of columns
   params <- list(p = p, p_signal = p_signal, cl = cl, 
                        vc_vect = vc_vect, mn_vect = mn_vect)
   
-  # Record attributes; AFTER REORDER
-  attr(x, "params") <- params       # List of parameters
-  attr(x, "cl_lvl") <- cl_lvl_reord # Cluster levels
-  attr(x, "cl_mn")  <- cl_mn_reord  # Mean of each cluster*variable
-  attr(x, "vc")     <- vc_reord     # Variance-covariance matrix
-  # attr(x, "col_reorder") <- y.indx # order variables were scrambled in
-  # attr(x, "row_reorder") <- x.indx # order rows were scrambled in
+  ## Record attributes; AFTER REORDER
+  attr(x, "params") <- params       ## List of parameters
+  attr(x, "cl_lvl") <- cl_lvl_reord ## Cluster levels
+  attr(x, "cl_mn")  <- cl_mn_reord  ## Mean of each cluster*variable
+  attr(x, "vc")     <- vc_reord     ## Variance-covariance matrix
+  # attr(x, "col_reorder") <- y.indx ## Order variables were scrambled in
+  # attr(x, "row_reorder") <- x.indx ## Order rows were scrambled in
   
   return(x)
 }
 
-### Test run
-p <-  pnoise <- cl <- vc_vect <- mn_vect <- n_cl_complexshape <- NULL
-easy()
-simulate_clusters()
+##### EXPORT SIMULATIONS ------ 
+### Simulate and export evaluation section simulations
+if(F){ ## Don't run
+  sim_series <- 300
+  for (i in 1:12){
+    if((i %% 2) == 1) {easy()} ## Odd sims are easy
+    if((i %% 2) == 0) {hard()} ## Even sims are hard
+    sim_nm <- paste0("simulation_data", (sim_series + i))
+    assign(sim_nm, simulate_clusters())
+    filepath_nm = paste0("./apps/study/data/", sim_nm,".rds")
+    saveRDS(object = get(sim_nm), file = filepath_nm)
+    
+    if (file.exists(filepath_nm)) {
+      cat(paste0("Saved ", sim_nm, ". \n"))
+    } else {cat(paste0("warning: file not found for ", sim_nm, ". \n"))}
+  }
+}
 
-hard()
-simulate_clusters()
+### Simulate and export training section simulations
+if(F){ ## Don't run
+  sim_series <- "_t"
+  for (i in 1:4){
+    train() ## Using training parameters
+    sim_nm <- paste0("simulation_data", sim_series, i)
+    assign(sim_nm, simulate_clusters())
+    filepath_nm = paste0("./apps/study/data/", sim_nm,".rds")
+    saveRDS(object = get(sim_nm), file = filepath_nm)
+    
+    if (file.exists(filepath_nm)) {
+      cat(paste0("Saved ", sim_nm, ". \n"))
+    } else {cat(paste0("warning: file not found for ", sim_nm, ". \n"))}
+  }
+}
 
 
+##### Other -----
 ### Sanity check
 library("spinifex")
 dat <- tourr::rescale(tourr::flea[, 1:6])
@@ -104,22 +138,4 @@ pca2_loading <- princomp(dat)$loadings
 spinifex::view_basis(pca1_loading[,1:2])
 
 
-### Save off
-sim_series <- 300
-for (i in 1:12){
-  if((i %% 2) == 1) {easy()} # Odd sims are easy
-  if((i %% 2) == 0) {hard()} # Even sims are hard
-  sim_nm <- paste0("simulation_data", (sim_series + i))
-  assign(sim_nm, simulate_clusters())
-  filepath_nm = paste0("./apps/study/data/", sim_nm,".rds")
-  saveRDS(object = get(sim_nm), file = filepath_nm)
-  
-  if (file.exists(filepath_nm)) {
-    cat(paste0("Saved ", sim_nm, ". \n"))
-    } else {cat(paste0("warning: file not found for ", sim_nm, ". \n"))}
-  
-}
-
-  
-  
 
