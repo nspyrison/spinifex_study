@@ -34,18 +34,18 @@ server <- function(input, output, session) {
   n_cl <- reactive({ length(unique(attributes(s_dat[[block()]])$cl_lvl)) })
   
   section <- reactive({ # text name of section
-    if (rv$pg %in% 1:(training_start - 1)) {return("intro")}
-    if (rv$pg %in% training_start:(task_start - 1) ) {return("training")}
-    if (rv$pg %in% task_start:(survey_start - 1) ) {return("task")}
-    if (rv$pg >= survey_start - 1) {return("survey")} 
+    if (rv$pg %in% 1:(training_start_pg - 1)) {return("intro")}
+    if (rv$pg %in% training_start_pg:(task_start_pg - 1) ) {return("training")}
+    if (rv$pg %in% task_start_pg:(survey_start_pg - 1) ) {return("task")}
+    if (rv$pg >= survey_start_pg - 1) {return("survey")} 
   })
   section_pg <- reactive({ # ~page num of this section.
     if (section() == "intro") {return(rv$pg)}
     if (section() == "training"){
-      return(rv$pg - (training_start - 1))
+      return(rv$pg - (training_start_pg - 1))
     }
     if (section() == "task"){
-      return(rv$pg - (task_start - 1))
+      return(rv$pg - (task_start_pg - 1))
     }
     if (section() == "survey") {return(1)}
   })
@@ -57,6 +57,7 @@ server <- function(input, output, session) {
   })
   task <- reactive({ # 1:2
     if (section() == "training") return(c(0, 1, 1, 2, 2, 0)[section_pg()])
+    if (!is.numeric(1 + ((section_pg() - 1) %/% n_blocks) - 2 * (period() - 1))) browser()
     return(1 + ((section_pg() - 1) %/% n_blocks) - 2 * (period() - 1))
   })
   block <- reactive({ # 1:3
@@ -114,7 +115,7 @@ server <- function(input, output, session) {
   })
   task_header <- reactive({
     paste0("Evaluation -- factor: ", factor(), ", task ", task() 
-           # , ", difficulty: ", s_difficulty[block()] # don't show difficulty
+           # , ", difficulty: ", s_difficulty[block()] ## Don't show difficulty to participants.
     )
   })
   ### Throttle manip_slider
@@ -138,13 +139,14 @@ server <- function(input, output, session) {
   task2_ans_ptile <- reactive({
     if (task() == 2){
       .dat <- dat()
-      .supervied_sim <- data.frame(.dat, cluster = attr(.dat, "cluster"))
-      .lda <- MASS::lda(cluster~., data = .supervied_sim)
+      .supervied_dat <- data.frame(.dat, cluster = attr(.dat, "cl_lvl"))
+      .lda <- MASS::lda(cluster~., data = .supervied_dat)
       
       .abs_mean_diff_ab <- abs(.lda$means[1, ] - .lda$means[2, ])
       .abs_mean_diff_bc <- abs(.lda$means[2, ] - .lda$means[3, ])
       .ab_ptile <- .abs_mean_diff_ab / max(.abs_mean_diff_ab)
       .bc_ptile <- .abs_mean_diff_bc / max(.abs_mean_diff_bc)
+      
       matrix(c(.ab_ptile, .bc_ptile), 
              nrow = 2, ncol = p(), byrow = T)
     }
@@ -539,20 +541,20 @@ server <- function(input, output, session) {
   ans_tbl <- reactive({
     # init columns
     col_factor <- 
-      c(rep("training", n_trainings + n_task2_questions * n_trainings),        # training
+      c(rep("training", n_blocks + n_task2_questions * n_blocks),              # training
         rep(this_factor_nm_order[1], n_blocks + n_task2_questions * n_blocks), # tasks across factor
         rep(this_factor_nm_order[2], n_blocks + n_task2_questions * n_blocks),
         rep(this_factor_nm_order[3], n_blocks + n_task2_questions * n_blocks),
         rep("survey", n_survey_questions)                                      # survey
       )
     col_task <- 
-      c(rep(1, n_tasks),                                   # training
+      c(rep(1, n_tasks),                             # training
         rep(2, n_tasks * n_task2_questions),
-        rep(c(rep(1, n_blocks ),                           # task 1
-              rep(2, n_blocks * n_task2_questions)),       # task 2
-            n_factors                                      # across factors
+        rep(c(rep(1, n_blocks ),                     # task 1
+              rep(2, n_blocks * n_task2_questions)), # task 2
+            n_factors                                # across factors
         ),
-        paste0("survey", 1:6),                             # survey
+        paste0("survey", 1:6),                       # survey
         paste0("survey", 7:10, "_", this_factor_nm_order[1]),
         paste0("survey", 7:10, "_", this_factor_nm_order[2]),
         paste0("survey", 7:10, "_", this_factor_nm_order[3])
@@ -566,26 +568,27 @@ server <- function(input, output, session) {
         ),
         rep(NA, n_survey_questions)                # survey
       )
-    sim_set <- c(201, 207, 213,               # task 1
-                 rep(202, n_task2_questions), # task 2
-                 rep(208, n_task2_questions),
-                 rep(214, n_task2_questions)
+    st  <- sim_series + 1
+    gap <- n_blocks * n_tasks # ~4
+    sim_set <- c(st, st + 1,                     # task 1
+                 rep(st + 2, n_task2_questions), # task 2
+                 rep(st + 3, n_task2_questions)
     )
     col_sim_id <- 
       as.character(
         c("t1", "t2",
-          rep("t1", n_task2_questions), # training 1 
-          rep("t2", n_task2_questions), # training 2
+          rep("t3", n_task2_questions), # training 1 
+          rep("t4", n_task2_questions), # training 2
           sim_set,                      # tasks across factors
-          sim_set + 2,
-          sim_set + n_task2_questions,
+          sim_set + gap,
+          sim_set + 2 * gap,
           rep(NA, n_survey_questions)   # survey
         )
       )
     col_question <-
       c(
-        rep(s_task_prompts[1], n_trainings),
-        rep(s_task2_questions, n_trainings),  # training
+        rep(s_task_prompts[1], n_blocks),
+        rep(s_task2_questions, n_blocks),     # training
         rep(
           c(rep(s_task_prompts[1], n_blocks), # task 1
             rep(s_task2_questions, n_blocks)  # task 2
@@ -1096,7 +1099,7 @@ server <- function(input, output, session) {
       # Init rv$ans_tbl <- ans_tbl() first press
       if (is.null(rv$ans_tbl)){ rv$ans_tbl <- ans_tbl() }
       # if <on last task> {<do nothing>}. Also shouldn't be visible
-      if (rv$pg >= survey_start){ return() }
+      if (rv$pg >= survey_start_pg){ return() }
       
       ### _Training evaluation -----
       # If training section, evaluate response

@@ -50,25 +50,30 @@ s_task2_questions <- c("Very important distinguishing clusters 'a' from 'b'",
                        "Somewhat important distinguishing clusters 'a' from 'b'",
                        "Very important distinguishing clusters 'b' from 'c'",
                        "Somewhat important distinguishing clusters 'b' from 'c'")
-s_sim_id  <- as.character(201:218)
-sim_train1 <- readRDS("../simulation/simulation_data_train1.rds") # p = 6, pnoise = 2, cl = 3 
-sim_train2 <- readRDS("../simulation/simulation_data_train2.rds") # p = 6, pnoise = 2, cl = 3
-s_train <- list(sim_train1, sim_train2)
+sim_series <- 300
+s_sim_id   <- as.character((sim_series + 1):(sim_series + 12))
+sim_t1 <- readRDS("./data/simulation_data_t1.rds")
+sim_t2 <- readRDS("./data/simulation_data_t2.rds")
+sim_t3 <- readRDS("./data/simulation_data_t3.rds")
+sim_t4 <- readRDS("./data/simulation_data_t4.rds")
+s_train <- list(sim_t1, sim_t2, sim_t3, sim_t4)
 s_dat <- list()
 for (i in 1:length(s_sim_id)) {
   s_dat[[i]] <- readRDS(
-    paste0("../simulation/simulation_data", s_sim_id[i], ".rds")
+    paste0("./data/simulation_data", s_sim_id[i], ".rds")
   )
 }
 
-tpath_train1 <- readRDS("../simulation/grand_tpath_train1.rds") # p = 6, pnoise = 2, cl = 3 
-tpath_train2 <- readRDS("../simulation/grand_tpath_train2.rds") # p = 6, pnoise = 2, cl = 3
-s_tpath_id    <- as.character(201:218)
+tpath_train1 <- readRDS("./data/grand_tpath_t1.rds") 
+tpath_train2 <- readRDS("./data/grand_tpath_t2.rds")
+tpath_train1 <- readRDS("./data/grand_tpath_t3.rds") 
+tpath_train2 <- readRDS("./data/grand_tpath_t4.rds")
+s_tpath_id   <- s_sim_id
 s_tpath_train <- list(tpath_train1, tpath_train2)
 s_tpath <- list()
 for (i in 1:length(s_tpath_id)) {
   s_tpath[[i]] <- readRDS(
-    paste0("../simulation/grand_tpath", s_tpath_id[i], ".rds")
+    paste0("./data/grand_tpath", s_tpath_id[i], ".rds")
   )
 }
 
@@ -89,27 +94,30 @@ s_survey_questions <- c("What gender are you?",
 ### Variable initialization -----
 n_trainings        <- length(s_train)            # ~2
 n_factors          <- length(f_nm_ls)            # ~3
-n_tasks            <- 2 # length(s_task_id)      # ~2
+n_tasks            <- 2                          # ~2
 n_task2_questions  <- length(s_task2_questions)  # ~4
 n_difficulty       <- length(s_difficulty)       # ~3
-n_blocks           <- 3 # length(s_dat) / (n_tasks * n_factors) # 18/(2*3) = 3
+n_blocks           <- 2                          # ~2
 n_survey_questions <- length(s_survey_questions) # ~18
-PC_cap <- 4 # caps the number of principal components selectable.
+PC_cap <- 4 # Caps the number of principal components selectable.
 
-# intro is pg 1; video intro is pg 2
-training_start <- 3
+## Define section start pages
+## intro is pg 1; video intro is pg 2
+training_start_pg <- 3
 # ~ 9, pg 2:8 is training; (start on ui, 2x2 for tasks, splash)
-task_start     <- (training_start + n_trainings * n_tasks + 1) + 1
+task_start_pg     <- (training_start_pg + n_trainings * n_tasks + 1) + 1
 # ~ 27, 9 + 3 * 3 * 2
-survey_start   <- task_start + n_factors * n_blocks * n_tasks
+survey_start_pg   <- task_start_pg + n_factors * n_blocks * n_tasks
 
 ### header_ui -----
 header_ui <- fluidPage(
   titlePanel("Multivariate data visualization study"),
   conditionalPanel( 
     condition = "output.section == 'training' && output.second_training == 'ask'",
-    checkboxInput("second_training", "Do you want another training set?", 
-                  value = FALSE)
+    HTML("<h3><span style='color:red'>
+          Do you want another training set?
+           </span></h3>"),
+    checkboxInput("second_training", "", value = FALSE)
   ),
   conditionalPanel(
     condition = "output.pg < 27",
@@ -349,8 +357,8 @@ main_ui <- mainPanel(
       )
       , p("Evaluation, for each of the 3 visuals -- independent effort with no questions")
       , tags$ul(
-        tags$li("Task 1 (x3 difficulties, 60 sec)")
-        , tags$li("Task 2 (x3 difficulties, 180 sec)")
+        tags$li("Task 1 (x2 difficulties, 60 sec)")
+        , tags$li("Task 2 (x2 difficulties, 180 sec)")
       )
       , p("Wrap up study")
       , tags$ul(
@@ -417,8 +425,8 @@ main_ui <- mainPanel(
   
   ### _Plot mainPanel ----
   conditionalPanel( 
-    condition = "(output.section == 'training' && output.section_pg != 6)
-      || output.section == 'task'", # block == 6 is splash page.
+    condition = "(output.section == 'training' && output.section_pg != 6) || 
+      output.section == 'task'", # output.section_pg == 6 is splash page.
     htmlOutput("plot_msg"),
     plotOutput("pca_plot", height = "auto"),
     plotOutput("mtour_plot", height = "auto"),
@@ -653,7 +661,6 @@ app_oblique_frame <-
 app_set_axes_position <- function(x, axes) {
   if (length(x) == 1) {x <- data.frame(x = x, y = x)}
   if (ncol(x) != 2) browser()
-  #stopifnot(ncol(x) == 2)
   position <- match.arg(axes, c("center", "bottomleft", "off", "left"))
   if (position == "off") return()
   if (position == "center") {
