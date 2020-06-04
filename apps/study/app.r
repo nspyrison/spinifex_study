@@ -33,13 +33,19 @@ server <- function(input, output, session) {
   p <- reactive({ ncol(dat()) })
   n_cl <- reactive({ length(unique(attributes(s_dat[[block()]])$cl_lvl)) })
   
-  section <- reactive({ # text name of section
-    if (rv$pg %in% 1:(training_start_pg - 1)) {return("intro")}
-    if (rv$pg %in% training_start_pg:(task_start_pg - 1) ) {return("training")}
-    if (rv$pg %in% task_start_pg:(survey_start_pg - 1) ) {return("task")}
-    if (rv$pg >= survey_start_pg - 1) {return("survey")} 
+  section <- reactive({ ## text name of section
+    if (rv$pg == 1) {return("intro")}
+    if (rv$pg == 2) {return("video")}
+    .pgs <- training_start_pg:(task_start_pg - 2)
+    if (rv$pg %in% .pgs) {return("training")}
+    .pgs <- task_start_pg - 1
+    if (rv$pg %in% .pgs) {return("splash")}
+    .pgs <- task_start_pg:(survey_start_pg - 1)
+    if (rv$pg %in% .pgs) {return("task")}
+    if (rv$pg == survey_start_pg) {return("survey")}
+    return("!!SECTION NOT DEFINED!!")
   })
-  section_pg <- reactive({ # ~page num of this section.
+  section_pg <- reactive({ ## current page num of this section.
     if (section() == "intro") {return(rv$pg)}
     if (section() == "training"){
       return(rv$pg - (training_start_pg - 1))
@@ -60,7 +66,7 @@ server <- function(input, output, session) {
     if (!is.numeric(1 + ((section_pg() - 1) %/% n_blocks) - 2 * (period() - 1))) browser()
     return(1 + ((section_pg() - 1) %/% n_blocks) - 2 * (period() - 1))
   })
-  block <- reactive({ # 1:3
+  block <- reactive({ # 1:2
     if (section() == "training") return(c(0, "t", "t", "t", "t", 0)[section_pg()])
     return((section_pg() - (n_blocks * (task() - 1))) %% (n_tasks * n_blocks))
   })

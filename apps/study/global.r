@@ -1,7 +1,7 @@
 ### Global init for each factor variant.
 
-##### App static global.r -----
-### Initialization 
+##### global.r, spinifex_study -----
+### Setup -----
 library("ggplot2")
 library("spinifex")
 library("shiny")
@@ -11,14 +11,18 @@ library("plotly")
 library("GGally")
 library("lubridate") ## For timer
 library("loggit")    ## For logging
+library("git2r")     ## For logging latest git commits
 
-### Logging
+#### Logging
 ## browseURL("https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/")
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## Uncomment the following line to apply logging
-#setLogFile(log_file); is_logging <- TRUE
+# setLogFile(log_file); is_logging <- TRUE
 is_logging <- FALSE 
-sim_series <- 300 ## the "series" or iteration of data to look at. Should be an even hundred
+#### Simulated data series, 
+## "series" or iteration of data to look at. Should be an even hundred
+sim_series <- 300
+
 
 ## Set log file, finding the first unused number, will need to write to a google sheet or otherwise store a file.
 log_base <- paste0("log_", this_group, "_", Sys.info()[4], "_")
@@ -37,6 +41,7 @@ if (is_logging == T){
   log_file <- "Logging is off! Log and responses not being recorded."
 }
 
+
 ## Set group (factor order) based on log number mod 3
 this_group <- 1 + (log_num - 1) %% 3 ## Expects [1,2,3] 
 fct_ord_latin_sq <- rbind(c(1, 2, 3), ## ~ grp 1; "pca", "grand", "manual"
@@ -47,22 +52,37 @@ fct_nm_vect <- c("pca", "grand", "manual") ## factor list
 this_factor_order    <- fct_ord_latin_sq[this_group, ]
 this_factor_nm_order <- fct_nm_vect[this_factor_order]
 
+
 ## Context, "onStart()" and onStop()
-contextLine <- paste0("Spinifex STUDY, --- (spinifex v", packageVersion("spinifex"),
-                      ") --- Started ", Sys.time())
-cat(sep = " \n",
-    "Doing application setup",
-    paste0("Log file: ", log_file), 
-    paste0("Group number: ", log_num, ".")
-    "")
+context_line <- paste0("Spinifex STUDY, --- (spinifex v", packageVersion("spinifex"),
+                       ") --- Started ", Sys.time())
+this_Sys.info <- paste(Sys.info()[1:5], collapse = ", ")
+context_msg <- paste(sep = " \n",
+                     contextLine,
+                     paste0("Log file: ", log_file), 
+                     paste0("Group number: ", log_num, "."),
+                     paste0("Sys.info()[1:5]: ", this_Sys.info),
+                     paste0("Last spinifex_study commit: ", 
+                            capture.output(git2r::repository("."))[3]),
+                     paste0("Last spinifex_study commit: ", 
+                            capture.output(git2r::repository("../spinifex"))[3])
+)
+cat("Doing application setup \n")
+cat(context_msg)
+loggit("INFO", "Spinifex study app start.", context_msg)
+
 onStop(function() {
   cat("Doing application cleanup\n")
+  cat(context_msg)
+  loggit("INFO", "Spinifex study app stop.", context_msg)
+  
+  ## Try to autosave if not saved and is_logging == T?
+  #### note that rv$resp_tbl is out of scope to the global file.
 })
-message(paste0("Log file: ", log_file))
-message(paste0("Group number: ", log_num, "."))
+
 
 ### Required inputs -----
-# tasks
+## Tasks, and block difficulty
 s_difficulty      <- c("easy", "hard")
 s_task_prompts    <- c("How many clusters do you see?",
                        "Rate the relative importance of ANY/ALL variables in terms of 
@@ -71,33 +91,8 @@ s_task2_questions <- c("Very important distinguishing clusters 'a' from 'b'",
                        "Somewhat important distinguishing clusters 'a' from 'b'",
                        "Very important distinguishing clusters 'b' from 'c'",
                        "Somewhat important distinguishing clusters 'b' from 'c'")
-s_sim_id   <- as.character((sim_series + 1):(sim_series + 12))
-sim_t1 <- readRDS("./data/simulation_data_t1.rds")
-sim_t2 <- readRDS("./data/simulation_data_t2.rds")
-sim_t3 <- readRDS("./data/simulation_data_t3.rds")
-sim_t4 <- readRDS("./data/simulation_data_t4.rds")
-s_train <- list(sim_t1, sim_t2, sim_t3, sim_t4)
-s_dat <- list()
-for (i in 1:length(s_sim_id)) {
-  s_dat[[i]] <- readRDS(
-    paste0("./data/simulation_data", s_sim_id[i], ".rds")
-  )
-}
 
-tpath_train1 <- readRDS("./data/grand_tpath_t1.rds") 
-tpath_train2 <- readRDS("./data/grand_tpath_t2.rds")
-tpath_train1 <- readRDS("./data/grand_tpath_t3.rds") 
-tpath_train2 <- readRDS("./data/grand_tpath_t4.rds")
-s_tpath_id   <- s_sim_id
-s_tpath_train <- list(tpath_train1, tpath_train2)
-s_tpath <- list()
-for (i in 1:length(s_tpath_id)) {
-  s_tpath[[i]] <- readRDS(
-    paste0("./data/grand_tpath", s_tpath_id[i], ".rds")
-  )
-}
-
-# survey
+## Survey questions
 s_survey_questions <- c("What gender are you?",
                         "What age are you?",
                         "Is english is your primary language?",
@@ -110,27 +105,50 @@ s_survey_questions <- c("What gender are you?",
                               "I liked using this visualization."), 3)
 )
 
+## Load training data and tour paths
+t_dat_len <- 4
+s_t_dat <- s_t_tpath <-  list()
+for (i in 1:t_dat_len) {
+  s_t_dat[[i]]   <- readRDS(
+    paste0("./data/simulation_data_t", s_sim_id[i], ".rds")
+  )
+  s_t_tpath[[i]] <- readRDS(
+    paste0("./data/grand_tpath", s_tpath_id[i], ".rds")
+  )
+}
+
+## Load data and tour paths
+dat_len   <- 12
+s_dat <- s_tpath <-  list()
+for (i in 1:dat_len) {
+  s_dat[[i]] <- readRDS(
+    paste0("./data/simulation_data", s_sim_id[i], ".rds")
+  )
+  s_tpath[[i]] <- readRDS(
+    paste0("./data/grand_tpath", s_tpath_id[i], ".rds")
+  )
+}
+
 
 ### Global variable initialization -----
-n_trainings        <- length(s_train)            # ~2
-n_factors          <- length(fct_nm_vect)            # ~3
+n_trainings        <- length(s_t_dat)            # ~4
+n_factors          <- length(fct_nm_vect)        # ~3
 n_tasks            <- 2                          # ~2
 n_task2_questions  <- length(s_task2_questions)  # ~4
 n_difficulty       <- length(s_difficulty)       # ~3
 n_blocks           <- 2                          # ~2
 n_survey_questions <- length(s_survey_questions) # ~18
-PC_cap <- 4 # Caps the number of principal components selectable.
-### Aes:
-pal <- "Dark2"
-axes_position <- "left"
+PC_cap             <- 4 # Number of principal components to choose from.
+pal                <- "Dark2"
 
-## Define section start pages
-## intro is pg 1; video intro is pg 2
+#### Define section start pages, 
+## may need manual changes when changing section sizes
+## intro is pg 1; video training is pg 2
 training_start_pg <- 3
-# ~ 9, pg 2:8 is training; (start on ui, 2x2 for tasks, splash)
 task_start_pg     <- (training_start_pg + n_trainings * n_tasks + 1) + 1
-# ~ 27, 9 + 3 * 3 * 2
-survey_start_pg   <- task_start_pg + n_factors * n_blocks * n_tasks
+## ~ pg9;(3+2*2+1+1; train_st, 2*2 task*blocks, splash pg, start on new pg)
+survey_start_pg   <- task_start_pg + n_factors * n_blocks * n_tasks + 1
+## ~ pg22, (9+3*3*2+1; task_st, 3*2*2 factor*task*block, start on new pg) 
 
 ##### UI START -----
 ### header_ui -----
@@ -144,14 +162,14 @@ header_ui <- fluidPage(
     checkboxInput("second_training", "", value = FALSE)
   ),
   conditionalPanel(
-    condition = "output.pg < 27",
+    condition = "output.pg < 22",
     actionButton("next_pg_button", "Next page")
   )
 )
 
 ### sidebar_ui ----
 sidebar_ui <- conditionalPanel(
-  condition = "(output.section == 'training' && output.section_pg < 6) 
+  condition = "output.section == 'training' 
               || output.section == 'task'",
   sidebarPanel( 
     ### _Training text -----
@@ -221,8 +239,6 @@ sidebar_ui <- conditionalPanel(
                      sliderInput("manip_slider", "Contribution",
                                  min = 0, max = 1, value = 0, step = .1)
     ), 
-    
-    
     
     ### _Task response input -----
     # Task 1
@@ -527,15 +543,6 @@ ui <- fluidPage(header_ui,
                 # , h4("task2 score:"), verbatimTextOutput("task2_score")
                 # , tableOutput("resp_tbl")
 )
-
-### onStop -----
-onStop(function(){
-  cat("(onSessionEnded ran) \n")
-  loggit("INFO", "Spinifex study app has stopped.")
-  
-  ### Try to autosave if not saved and logging.
-  # rv$ is out of scope at this point.
-})
 
 ##### App local functions
 app_render_ <- function(slides, # paste over spinifex render to add size
