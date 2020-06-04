@@ -11,23 +11,23 @@ server <- function(input, output, session) {
   )
   
   ### Reavtive value initialization -----
-  rv                 <- reactiveValues()
-  rv$pg              <- 1L
-  rv$timer           <- 999
-  rv$stopwatch       <- 0
-  rv$timer_active    <- TRUE
-  rv$pca_inter       <- 1L
-  rv$manual_inter    <- 1L
-  rv$resp_inter      <- 1L
-  rv$task_ttr        <- NULL
-  rv$task_response   <- NULL
-  rv$save_file       <- NULL
+  rv                  <- reactiveValues()
+  rv$pg               <- 1L
+  rv$timer            <- 999L
+  rv$stopwatch        <- 0L
+  rv$timer_active     <- TRUE
+  rv$pca_inter        <- 1L
+  rv$manual_inter     <- 1L
+  rv$resp_inter       <- 1L
+  rv$task_ttr         <- NULL
+  rv$task_response    <- NULL
+  rv$save_file        <- NULL
   rv$resp_tbl         <- NULL
-  rv$training_aes    <- FALSE
-  rv$second_training <- FALSE
-  rv$curr_basis      <- NULL
-  rv$manual_ls       <- list()
-  rv$basis_ls        <- list()
+  rv$training_aes     <- FALSE
+  rv$second_training  <- FALSE
+  rv$curr_basis       <- NULL
+  rv$manual_ls        <- list()
+  rv$basis_ls         <- list()
   
   ##### Reactives -----
   p <- reactive({ ncol(dat()) })
@@ -141,7 +141,7 @@ server <- function(input, output, session) {
   })  
   
   #### Task 2 answer 
-  ## answer by seperation percentile
+  ## Task 2 answer by seperation percentile
   task2_ans_ptile <- reactive({
     if (task() == 2){
       .dat <- dat()
@@ -157,14 +157,14 @@ server <- function(input, output, session) {
              nrow = 2, ncol = p(), byrow = T)
     }
   })
-  ## answer by score value
+  ## Task 2 answer by score value
   task2_ans <- reactive({
     if (task() == 2){
       .ptile_mat <- task2_ans_ptile()
       .ptile <- c(.ptile_mat[1, ], .ptile_mat[2, ])
       .ans_vect <- dplyr::case_when(
-        .ptile >= .75 ~ 2, # very
-        .ptile >= .25 ~ 1, # somewhat
+        .ptile >= .75 ~ 2, ## very important
+        .ptile >= .25 ~ 1, ## somewhat important
         .ptile >= 0 ~ 0
       )
       matrix(.ans_vect, nrow = 2, ncol = p(), byrow = T)
@@ -348,33 +348,32 @@ server <- function(input, output, session) {
   }
   gtour_plot <- reactive({ 
     if (grand_active() == TRUE) {
-      # data init
+      ## data init
       dat <- dat()
       dat_std <- tourr::rescale(dat)
       cluster <- attributes(dat)$cl_lvl
       
-      # tour init
+      ## tour init
       angle <- .1
       fps   <- 6
-      max_frames <- 90 # 90 frame for 15 sec @ fps = 6
-      set.seed(123) # if tourr starts using seeds
+      max_frames <- 90 ## 90 frame for 15 sec @ fps = 6
+      set.seed(123) ## if tourr starts using seeds
       
       tpath <- task_tpath()
       
       full_path <- tourr::interpolate(basis_set = tpath, angle = angle)
       attr(full_path, "class") <- "array"
       max_frames <- min(c(max_frames, dim(full_path)[3]))
-      full_path <- full_path[, , 1:max_frames]
+      full_path <- full_path[,, 1:max_frames]
       
-      tour_df <- array2df(array = full_path, data = dat_std) # to long form df
+      tour_df <- array2df(array = full_path, data = dat_std)
       
-      # render init
-      pal <- "Dark2"
+      ## render init
       axes_position <- "left"
       USE_AXES <- TRUE
       USE_AES  <- TRUE
       if (task() == 1) {
-        if(rv$training_aes == FALSE) { # During training
+        if(rv$training_aes == FALSE) { ## During training display/hiding var
           USE_AES <- FALSE
         } 
       }
@@ -394,29 +393,29 @@ server <- function(input, output, session) {
       
       gg <- ggplot()
       if (USE_AES == FALSE){
-        # data points
+        ## Projected data points
         gg <- gg + 
           geom_point(data_df, 
                      mapping = aes(x = x, y = y, frame = slide), 
-                     size = 1.7) # smaller size for plotly
-      } else { # if USE_AES == TRUE then apply more aes.
+                     size = 1.7) ## smaller size for plotly
+      } else { ## if USE_AES == TRUE then apply more aes.
         gg <- gg +
           geom_point(data_df, 
                      mapping = aes(x = x, y = y, frame = slide, 
                                    color = cluster, 
                                    fill  = cluster, 
                                    shape = cluster), 
-                     size = 1.7) # smaller size for plotly
+                     size = 1.7) ## smaller size for plotly
       }
-      if (USE_AXES == TRUE) { # iF USE_AXES == TRUE then draw axes.
-        # axis segments
+      if (USE_AXES == TRUE) { ## if USE_AXES == TRUE then draw axes.
+        ## Axis segments
         gg <- gg +
           geom_segment(basis_df,
                        mapping = aes(x = x, xend = zero[, 1],
                                      y = y, yend = zero[, 2],
                                      frame = slide),
                        size = .3, colour = "red") +
-          # axis label text
+          ## Axis label text
           geom_text(basis_df,
                     mapping = aes(x = x,
                                   y = y,
@@ -424,7 +423,7 @@ server <- function(input, output, session) {
                                   label = lab),
                     size = 6, colour = "red", fontface = "bold",
                     vjust = "outward", hjust = "outward") +
-          # Cirle path
+          ## Cirle path
           geom_path(circ,
                     mapping = aes(x = x, y = y),
                     color = "grey80", size = .3, inherit.aes = F)
@@ -432,21 +431,21 @@ server <- function(input, output, session) {
       
       x_range <- max(data_df[, 1], circ[, 1]) - min(data_df[, 1], circ[, 1])
       y_range <- max(data_df[, 2], circ[, 2]) - min(data_df[, 2], circ[, 2])
-      # Options 
+      ## Options 
       gg <- gg + theme_minimal() +
         scale_color_brewer(palette = pal) +
         scale_fill_brewer(palette = pal) +
-        theme(panel.grid.major = element_blank(), # no grid lines
-              panel.grid.minor = element_blank(), # no grid lines
-              axis.text.x = element_blank(),      # no axis marks
-              axis.text.y = element_blank(),      # no axis marks
-              axis.title.x = element_blank(),     # no axis titles for gtour
-              axis.title.y = element_blank(),     # no axis titles for gtour
+        theme(panel.grid.major = element_blank(), ## no grid lines
+              panel.grid.minor = element_blank(), ## no grid lines
+              axis.text.x = element_blank(),      ## no axis marks
+              axis.text.y = element_blank(),      ## no axis marks
+              axis.title.x = element_blank(),     ## no axis titles for gtour
+              axis.title.y = element_blank(),     ## no axis titles for gtour
               aspect.ratio = y_range / x_range, 
               legend.box.background = element_rect(),
               legend.title = element_text(size = 18, face = "bold"),
               legend.text  = element_text(size = 18, face = "bold")
-        ) # end of ggplot2 work 
+        ) ## end of ggplot2 work 
       
       ### plotly
       ggp <- plotly::ggplotly(p = gg, tooltip = "none") 
@@ -456,10 +455,10 @@ server <- function(input, output, session) {
         ggp, showlegend = T, yaxis = list(showgrid = F, showline = F),
         xaxis = list(scaleanchor = "y", scaleratio = 1, showgrid = F, 
                      showline = F, autorange = TRUE, fixedrange = FALSE),
-        #added for APP
+        ## added for APP:
         height = gtour_height(),
-        yaxis = list(autorange = TRUE, fixedrange = FALSE), # suppose to rescale, I don't think it does.
-        legend = list(x = 0.8, y = 0.7) # postition the title better
+        yaxis = list(autorange = TRUE, fixedrange = FALSE), ## suppose to rescale, I don't think it does.
+        legend = list(x = 0.75, y = 0.7) ## postition the title better
       )
       
       return(ggp)
@@ -477,18 +476,18 @@ server <- function(input, output, session) {
     if (manual_active()) {
       ### Make rv$manual_ls
       if(length(rv$manual_ls) == 0){
-        # data init
+        ## data init
         dat <- dat()
         dat_std <- tourr::rescale(dat)
         cluster <- attributes(dat)$cl_lvl
         m_var   <- manip_var()
         
-        # slider to phi/theta
+        ## slider to phi/theta
         theta <- phi <- NULL
         mv_sp <- create_manip_space(rv$curr_basis, m_var)[m_var, ]
-        theta <- atan(mv_sp[2] / mv_sp[1]) # Radial
+        theta <- atan(mv_sp[2] / mv_sp[1]) ## Radial angle
         phi_start <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
-        phi_pts <- acos((0:10)/10) # possible angles changes from manip_slider.
+        phi_pts <- acos((0:10) / 10) ## Possible angles to select with manip_slider
         phi_vect <- (phi_pts - phi_start) * - sign(mv_sp[1]) 
         
         for (i in 1:length(phi_vect)){
@@ -497,13 +496,12 @@ server <- function(input, output, session) {
           row.names(rv$basis_ls[[i]]) <- colnames(dat)
         }
         
-        # render init
-        pal <- "Dark2"
+        ## Render init
         axes_position <- "left"
         USE_AXES <- TRUE
         USE_AES  <- TRUE
         if (task() == 1) {
-          if(rv$training_aes == FALSE) { # During training
+          if(rv$training_aes == FALSE) { ## During training
             USE_AES  <- FALSE
           } 
         }
@@ -518,7 +516,7 @@ server <- function(input, output, session) {
                                                    cluster   = cluster,
                                                    axes      = axes_position
             )
-          } else { # when USE_AES == FALSE
+          } else { ## when USE_AES == FALSE
             rv$manual_ls[[i]] <- app_oblique_frame(data      = dat_std,
                                                    basis     = rv$basis_ls[[i]],
                                                    manip_var = m_var,
@@ -528,76 +526,76 @@ server <- function(input, output, session) {
             )
           }
         } 
-      } # end of for creating rv$manual_ls
+      } ## End of for creating rv$manual_ls
       
       j <- manip_slider_t() * 10 + 1
       if (time_elapsed() > 1)
         rv$curr_basis <- rv$basis_ls[[j]]
       
       rv$manual_ls[[j]]
-    } # non-display conditions return nothing.
+    } ## Non-display conditions return nothing.
   })
   
   
   ### resp_tbl() reactive -----
   resp_tbl <- reactive({
-    # init columns
+    ## Init columns
     col_factor <- 
-      c(rep("training", n_blocks + n_task2_questions * n_blocks),              # training
-        rep(this_factor_nm_order[1], n_blocks + n_task2_questions * n_blocks), # tasks across factor
+      c(rep("training", n_blocks + n_task2_questions * n_blocks),              ## Training
+        rep(this_factor_nm_order[1], n_blocks + n_task2_questions * n_blocks), ## Tasks across factor
         rep(this_factor_nm_order[2], n_blocks + n_task2_questions * n_blocks),
         rep(this_factor_nm_order[3], n_blocks + n_task2_questions * n_blocks),
-        rep("survey", n_survey_questions)                                      # survey
+        rep("survey", n_survey_questions)                                      ## Survey
       )
     col_task <- 
-      c(rep(1, n_tasks),                             # training
+      c(rep(1, n_tasks),                             ## Training
         rep(2, n_tasks * n_task2_questions),
-        rep(c(rep(1, n_blocks ),                     # task 1
-              rep(2, n_blocks * n_task2_questions)), # task 2
-            n_factors                                # across factors
+        rep(c(rep(1, n_blocks ),                     ## Task 1
+              rep(2, n_blocks * n_task2_questions)), ## Task 2
+            n_factors                                ## Across factors
         ),
-        paste0("survey", 1:6),                       # survey
+        paste0("survey", 1:6),                       ## Survey
         paste0("survey", 7:10, "_", this_factor_nm_order[1]),
         paste0("survey", 7:10, "_", this_factor_nm_order[2]),
         paste0("survey", 7:10, "_", this_factor_nm_order[3])
       )
     col_block <- 
-      c("t", "t",                                  # training
+      c("t", "t",                                  ## Training
         rep("t", n_tasks * n_task2_questions),
-        rep(c(1:n_blocks,                          # task 1
-              rep(1:n_blocks, n_task2_questions)), # task 2
-            n_factors                              # across factors
+        rep(c(1:n_blocks,                          ## Task 1
+              rep(1:n_blocks, n_task2_questions)), ## Task 2
+            n_factors                              ## Across factors
         ),
-        rep(NA, n_survey_questions)                # survey
+        rep(NA, n_survey_questions)                ## Survey
       )
     st  <- sim_series + 1
     gap <- n_blocks * n_tasks # ~4
-    sim_set <- c(st, st + 1,                     # task 1
-                 rep(st + 2, n_task2_questions), # task 2
+    sim_set <- c(st, st + 1,                     ## Task 1
+                 rep(st + 2, n_task2_questions), ## Task 2
                  rep(st + 3, n_task2_questions)
     )
     col_sim_id <- 
       as.character(
         c("t1", "t2",
-          rep("t3", n_task2_questions), # training 1 
-          rep("t4", n_task2_questions), # training 2
-          sim_set,                      # tasks across factors
+          rep("t3", n_task2_questions), ## Training 1 
+          rep("t4", n_task2_questions), ## Training 2
+          sim_set,                      ## Tasks across factors
           sim_set + gap,
           sim_set + 2 * gap,
-          rep(NA, n_survey_questions)   # survey
+          rep(NA, n_survey_questions)   ## Survey
         )
       )
     col_question <-
       c(
         rep(s_task_prompts[1], n_blocks),
-        rep(s_task2_questions, n_blocks),     # training
+        rep(s_task2_questions, n_blocks),     ## Training
         rep(
-          c(rep(s_task_prompts[1], n_blocks), # task 1
-            rep(s_task2_questions, n_blocks)  # task 2
+          c(rep(s_task_prompts[1], n_blocks), ## Task 1
+            rep(s_task2_questions, n_blocks)  ## Task 2
           ),
-          n_factors                           # across factors
+          n_factors                           ## Across factors
         ),
-        s_survey_questions                    # survey
+        s_survey_questions                    ## Survey
       )
     
     data.frame(user_uid        = substr(log_name, 5, nchar(log_name)),
@@ -629,7 +627,8 @@ server <- function(input, output, session) {
   observeEvent({
     dat()
     input$factor
-  }, { # Init axis choices when data changes
+  }, { 
+    ## Init axis choices when data changes
     if (pca_active() == TRUE | manual_active() == TRUE) {
       choices <- paste0("PC", 1:PC_cap)
       updateRadioButtons(session, "x_axis", choices = choices, selected = "PC1")
@@ -649,7 +648,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Task data changed; updated task 2 responce choices.")
     }
   })
-  # Bump x_axis when set to the same as y_axis
+  ## Bump x_axis when set to the same as y_axis
   observeEvent(input$x_axis, {
     output$plot_msg <- renderText("")
     if (input$x_axis == input$y_axis) {
@@ -671,7 +670,7 @@ server <- function(input, output, session) {
       )
     }
   })
-  # Bump y_axis when set to the same as x_axis
+  ## Bump y_axis when set to the same as x_axis
   observeEvent(input$y_axis, {
     output$plot_msg <- renderText("")
     if (input$x_axis == input$y_axis) {
@@ -700,8 +699,7 @@ server <- function(input, output, session) {
     input$y_axis
     factor()
     input$factor
-  },
-  {
+  }, {
     if (manual_active() == TRUE){
       rv$manual_ls <- list()
       dat_std <- tourr::rescale(dat())
@@ -737,8 +735,8 @@ server <- function(input, output, session) {
   observeEvent({
     dat()
     input$factor
-  }, 
-  { # Init manip_var_nm choices on data change.
+  }, {
+    ## Init manip_var_nm choices on data change.
     if (manual_active() == TRUE) {
       these_colnames <- colnames(dat())
       updateSelectInput(session, "manip_var_nm", choices = these_colnames, 
@@ -1097,17 +1095,17 @@ server <- function(input, output, session) {
   
   ### Obs next page button -----
   observeEvent(input$next_pg_button, {
-    if ((rv$stopwatch > 2 & is_logging == TRUE) | is_logging == FALSE){
-      # Init rv$resp_tbl <- resp_tbl() first press
+    if ((rv$stopwatch > 2 & do_log == TRUE) | do_log == FALSE){
+      ## Init rv$resp_tbl <- resp_tbl() first press
       if (is.null(rv$resp_tbl)){ rv$resp_tbl <- resp_tbl() }
-      # if <on last task> {<do nothing>}. Also shouldn't be visible
+      ## if <on last task> {<do nothing>}. Also shouldn't be visible
       if (rv$pg >= survey_start_pg){ return() }
       
       ### _Training evaluation -----
-      # If training section, evaluate response
+      ## if training section, evaluate response
       if (section() == "training") {
         this_msg <- ""
-        # Evaluate training task 1 
+        ## Evaluate training task 1 
         if (task() == 1 & rv$training_aes == FALSE) {
           rv$training_aes <- TRUE
           ans   <- task1_ans()
@@ -1118,24 +1116,24 @@ server <- function(input, output, session) {
             In the manual tour choose the variables with the largest axes 
             sequentially to manipulate their contribution to the projection."
           
-          if (delta >= 2){ # >= 2 clusters too high, retry
+          if (delta >= 2){ ## >= 2 clusters too high, retry
             rv$second_training <- TRUE
             this_msg <- paste0("That is little high, this data has ", ans, " clusters. ")
             if(section_pg() %in% c(2, 4)) {this_msg <- 
               paste0(this_msg, "Try again on another training set. ")}
           }
-          if (delta <= -2){ # <= 2 clusters too low, retry
+          if (delta <= -2){ ## <= 2 clusters too low, retry
             rv$second_training <- TRUE
             this_msg <- paste0("That is little low, this data has ", ans, " clusters. ")
             if(section_pg() %in% c(2, 4)) {this_msg <- 
               paste0(this_msg, "Try again on another training set. ")}
           }
-          if (abs(delta) == 1){ # within 1 cluster, passes
+          if (abs(delta) == 1){ ## within 1 cluster, passes
             if (section_pg() %in% c(2, 4)) rv$second_training <- "ask"
             this_msg <- paste0("Close, this data has ", ans, " clusters. 
             You have the right idea. As a reminder, ")
           }
-          if (delta == 0){ # exact answer, passes
+          if (delta == 0){ ## exact answer, passes
             if (section_pg() %in% c(2, 4))  rv$second_training <- "ask"
             this_msg <- paste0("That's correct, this data has ", ans, " clusters.
             As a reminder, ")
@@ -1146,13 +1144,13 @@ server <- function(input, output, session) {
           return()
         }
         
-        # Evaluation of the training for tasks 2.
+        ## Evaluation of the training for tasks 2.
         if (task() == 2 & rv$training_aes == FALSE) {
           rv$training_aes <- TRUE
           score <- task2_score()
           bar   <- -6
           
-          if (score < bar){ # score not passing
+          if (score < bar){ ## score not passing
             rv$second_training <- TRUE
             this_msg <- 
               "That seems a little off. Remember that the importance of a 
@@ -1161,7 +1159,7 @@ server <- function(input, output, session) {
               variables with small contributions cannot be ruled out, multiple 
               projections most be looked at."
           }
-          if (score >= bar){ # score is passing
+          if (score >= bar){ ## score is passing
             rv$second_training <- "ask"
             this_msg <- 
               "Very good! As a reminder, the importance of a variable for
@@ -1178,7 +1176,7 @@ server <- function(input, output, session) {
         }
       } ## end of training section evaluation
       
-      ### _rv$resp_tbl -----
+      ##### _rv$resp_tbl -----
       ## Write reponses and ttr to resp_tbl
       if (section() == "task" |
           (section() == "training" & task() %in% 1:2)) {
@@ -1188,7 +1186,7 @@ server <- function(input, output, session) {
         .ins_row_end   <- .ins_row_start + length(rv$task_response) - 1
         .rows          <- .ins_row_start:.ins_row_end
         
-        # Is response concerning?
+        ## Is response concerning?
         .task_concern <- "no"
         if (NA %in% rv$task_ttr){
           .task_concern <- "YES, ttr contains NA. REMOVE."}
@@ -1220,7 +1218,7 @@ server <- function(input, output, session) {
           }
         }
         
-        # task responses
+        ## task responses
         .task_answer <- .task_score <- .line_score <- .clust_score <- 
           .intensity_score<- NA
         if(task() == 1){
@@ -1236,14 +1234,14 @@ server <- function(input, output, session) {
             .task_answer[i] <- app_vect2str(.vars_ls[[i]])
             .line_score[i]  <- .score_ls[[i]]
           }
-          for (i in 1:2){ # 1&2, 3&4  # 1&3, 2&4 
+          for (i in 1:2){ ## 1&2, 3&4 
             .clust_score[i]      <- .line_score[2 * i - 1] + .line_score[2 * i]
             .intensity_score[i]  <- .line_score[i] + .line_score[i + 2]
           }
             .task_score <- sum(.line_score)
         }
         
-        # Did task time run out
+        ## Did task time run out
         .plot_elapsed <- NA
         if (section() == "task"){
           if (time_elapsed() >  task_time()) .plot_elapsed <- 1
@@ -1260,20 +1258,20 @@ server <- function(input, output, session) {
         rv$resp_tbl$answer[.rows]          <- .task_answer
         rv$resp_tbl$score[.rows]           <- .task_score
         rv$resp_tbl$line_score[.rows]      <- .line_score
-        rv$resp_tbl$clust_score[.rows]     <- "dont trust" #.clust_score
-        rv$resp_tbl$intensity_score[.rows] <- "dont trust" #.intensity_score
+        rv$resp_tbl$clust_score[.rows]     <- "dont trust" ##.clust_score
+        rv$resp_tbl$intensity_score[.rows] <- "dont trust" ##.intensity_score
         rv$resp_tbl$concern[.rows]         <- .task_concern
-      } # End of writing to resp_tbl
+      } ## End of writing to resp_tbl
       
       ### _New page ----
-      # if second training not needed, skip a page.
+      ## if second training not needed, skip a page.
       if (section() == "training" & block() %in% c(2, 4) &
           !(rv$second_training == TRUE | input$second_training == TRUE)) {
         rv$pg <- rv$pg + 1
       }
       rv$pg <- rv$pg + 1
       
-      # Reset responses, ttr, and timer for next task
+      ## Reset responses, ttr, and timer for next task
       output$plot_msg     <- renderText("")
       rv$pca_inter        <- 1L
       rv$manual_inter     <- 1L
@@ -1289,13 +1287,13 @@ server <- function(input, output, session) {
       rv$second_training  <- FALSE
       updateCheckboxInput(session, "second_training", value = FALSE)
       
-      # Clear task 1 response
+      ## Clear task 1 response
       if (section() %in% c("task", "training") & task() == 1) {
           updateNumericInput(session, "tsk1_resp", "",
                              value = 0, min = 0, max = 10)
       }
       
-      # Set structure for writeing to resp_tbl
+      ## Set structure for writeing to resp_tbl
       n_rows <- 0
       if (task() == 1){n_rows <- 1} 
       if (task() == 2){n_rows <- 4}
@@ -1325,18 +1323,18 @@ server <- function(input, output, session) {
     filebase = paste("responses", this_group, Sys.info()[4], sep = "_")
     prefix = ""
     
-    # Write survey responses to rv$resp_tbl
+    ## Write survey responses to rv$resp_tbl
     ins_row_start <- nrow(rv$resp_tbl) - n_survey_questions + 1
     ins_row_end   <- nrow(rv$resp_tbl)
     rv$resp_tbl$response[ins_row_start:ins_row_end] <- rv$task_response
     rv$resp_tbl$ttr[ins_row_start:ins_row_end] <- rv$task_ttr
     
-    # Do the actual saving
+    ## Do the actual saving
     save_base <- paste0(prefix, filebase, "_")
     save_num  <- 1
     save_name <- sprintf(paste0(save_base, "%03d"), save_num)
     save_file <- paste0(save_name, ".csv")
-    while (file.exists(save_file)){ # set the correct file number to use
+    while (file.exists(save_file)){ ## set the correct file number to use
       save_name <- sprintf(paste0(save_base, "%03d"), save_num)
       save_file <- paste0(save_name, ".csv")
       save_num  <- save_num + 1
@@ -1383,35 +1381,35 @@ server <- function(input, output, session) {
   
   ##### Outputs -----
   output$timer_disp <- renderText({
-    if (section() == "task") { # disp timer if not an intro page.
+    if (section() == "task") { ## disp timer if not an intro page.
       if (rv$timer < 1) {return("Time has expired, please enter your best guess and proceed.")
       } else {return(paste0("Time left: ", lubridate::seconds_to_period(rv$timer)))}
     }
   })
   output$stopwatch_disp <- renderText({
-    if (section() == "training" & block() != 6) { # disp timer if not an intro page.
+    if (section() == "training" & block() != 6) { ## disp timer if not an intro page.
       return(paste0("Time elapsed this task: ", lubridate::seconds_to_period(rv$stopwatch)))
     }
   })
   
   ### Controls ui coditionalPanels 
-  output$is_saved        <- reactive(if (is.null(rv$save_file)) {0} else {1}) # control save_msg.
-  output$pg              <- reactive(rv$pg)    # for hiding ui next_task button
-  output$section         <- reactive(section()) # for ui between sections
-  output$factor          <- reactive(factor())     # for sidebar inputs
-  output$task            <- reactive(task())   # for titles, and response inputs
-  output$block           <- reactive(block())  # for training ui
-  output$section_pg      <- reactive(section_pg())   # for navigating training
-  output$second_training <- reactive(rv$second_training) # for more training button
+  output$is_saved        <- reactive(if (is.null(rv$save_file)) {0} else {1}) ## Control save_msg.
+  output$pg              <- reactive(rv$pg)              ## For hiding ui next_task button
+  output$section         <- reactive(section())          ## For ui between sections
+  output$factor          <- reactive(factor())           ## For sidebar inputs
+  output$task            <- reactive(task())             ## For titles, and response inputs
+  output$block           <- reactive(block())            ## For training ui
+  output$section_pg      <- reactive(section_pg())       ## For navigating training
+  output$second_training <- reactive(rv$second_training) ## For more training button
   
-  outputOptions(output, "is_saved",        suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
-  outputOptions(output, "pg",              suspendWhenHidden = FALSE)
-  outputOptions(output, "section",         suspendWhenHidden = FALSE)
-  outputOptions(output, "factor",          suspendWhenHidden = FALSE)
-  outputOptions(output, "task",            suspendWhenHidden = FALSE)
-  outputOptions(output, "block",           suspendWhenHidden = FALSE)
-  outputOptions(output, "section_pg",      suspendWhenHidden = FALSE)
-  outputOptions(output, "second_training", suspendWhenHidden = FALSE) # eager evaluation for ui conditionalPanel
+  outputOptions(output, "is_saved",        suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
+  outputOptions(output, "pg",              suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "section",         suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "factor",          suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "task",            suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "block",           suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "section_pg",      suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "second_training", suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
   
   ### General task outputs
   output$task_header     <- renderText(task_header())
@@ -1425,17 +1423,18 @@ server <- function(input, output, session) {
   
   
   ### Dev msg -----
-  output$dev_msg <- renderPrint(cat("dev msg -- ", "\n",
-                                    "rv$this_sign: ", rv$this_sign, "\n",
-                                    "this resp_tbl row: ", factor(), "|", task(), block(), "\n",
-                                    "rv$pg: ", rv$pg, "\n",
-                                    "section() ", section(), "\n",
-                                    "section_pg() ", section_pg(), "\n",
-                                    "factor(): ", factor(), "\n",
-                                    "task(): ", task(), "\n",
-                                    "block(): ", block(), "\n",
-                                    "rv$timer: ", rv$timer, "\n",
-                                    sep = ""))
+  output$dev_msg <- renderPrint(
+    cat("dev msg -- ",
+        paste0("rv$this_sign: ",      rv$this_sign),
+        paste0("this resp_tbl row: ", factor(), "|", task(), block()),
+        paste0("rv$pg: ",             rv$pg),
+        paste0("section() ",          section()),
+        paste0("section_pg() ",       section_pg()),
+        paste0("factor(): ",          factor()),
+        paste0("task(): ",            task()),
+        paste0("block(): ",           block()),
+        paste0("rv$timer: ",          rv$timer),
+        sep = " \n"))
   }
   
   ### Combine as shiny app.
