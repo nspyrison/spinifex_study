@@ -18,7 +18,8 @@ library("git2r")     ## For logging latest git commits
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## Uncomment the following line to apply logging
 # setLogFile(log_file); is_logging <- TRUE
-is_logging <- FALSE 
+is_logging        <- FALSE 
+do_disp_dev_tools <- FALSE
 #### Simulated data series, 
 ## "series" or iteration of data to look at. Should be an even hundred
 sim_series <- 300
@@ -225,8 +226,7 @@ sidebar_ui <- conditionalPanel(
     ), # PCA axis selection
     conditionalPanel(
       condition = "(output.factor == 'pca' || output.factor == 'manual') || 
-                  (output.section == 'training' && input.factor != 'grand'
-                  && output.section_pg < 6)",
+                  (output.section == 'training' && input.factor != 'grand')",
       fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis", 
                                       choices = paste0("PC", 1:4), selected = "PC1")),
                column(6, radioButtons(inputId = "y_axis", label = "y axis", 
@@ -286,88 +286,64 @@ sidebar_ui <- conditionalPanel(
 ) ### end sidebar_ui
 
 ##### init survey columns -----
+.surv_lab <-  div(style = 'width:300px;',
+                  div(style = 'float:left;', 'strongly disagree'),
+                  div(style = 'float:right;', 'strongly agree')) 
 col_p1 <- column(4, 
                  h3(this_factor_nm_order[1]),
                  hr(),
                  h4(s_survey_questions[7]),
-                 sliderInput("survey7",
-                             label = div(style = 'width:300px;',
-                                         div(style = 'float:left;', 'strongly disagree'),
-                                         div(style = 'float:right;', 'strongly agree')),
+                 sliderInput("survey7",label = .surv_lab,
                              min = 1, max = 9, value = 5),
                  h4(s_survey_questions[8]),
-                 sliderInput("survey8",
-                             label = div(style = 'width:300px;',
-                                         div(style = 'float:left;', 'strongly disagree'),
-                                         div(style = 'float:right;', 'strongly agree')),
+                 sliderInput("survey8",label = .surv_lab,
                              min = 1, max = 9, value = 5),
                  h4(s_survey_questions[9]),
                  sliderInput("survey9",
-                             label = div(style = 'width:300px;',
-                                         div(style = 'float:left;', 'strongly disagree'),
-                                         div(style = 'float:right;', 'strongly agree')),
+                             label = label = .surv_lab,
                              min = 1, max = 9, value = 5),
                  h4(s_survey_questions[10]),
                  sliderInput("survey10",
-                             label = div(style = 'width:300px;',
-                                         div(style = 'float:left;', 'strongly disagree'),
-                                         div(style = 'float:right;', 'strongly agree')),
+                             label = .surv_lab,
                              min = 1, max = 9, value = 5)
 )
+
 col_p2 <- column(4, 
                  h3(this_factor_nm_order[2]),
                  hr(),
                  h4(s_survey_questions[11]),
-                 sliderInput("survey11",
-                             label = div(style = 'width:300px;',
-                                         div(style = 'float:left;', 'strongly disagree'),
-                                         div(style = 'float:right;', 'strongly agree')),
+                 sliderInput("survey11", label = .surv_lab,
                              min = 1, max = 9, value = 5),
                  h4(s_survey_questions[12]),
-                 sliderInput("survey12",
-                             label = div(style = 'width:300px;',
-                                         div(style = 'float:left;', 'strongly disagree'),
-                                         div(style = 'float:right;', 'strongly agree')),
+                 sliderInput("survey12",label = .surv_lab,
                              min = 1, max = 9, value = 5),
                  h4(s_survey_questions[13]),
                  sliderInput("survey13",
-                             label = div(style = 'width:300px;',
-                                         div(style = 'float:left;', 'strongly disagree'),
-                                         div(style = 'float:right;', 'strongly agree')),
+                             label = label = .surv_lab,
                              min = 1, max = 9, value = 5),
                  h4(s_survey_questions[14]),
                  sliderInput("survey14",
-                             label = div(style = 'width:300px;',
-                                         div(style = 'float:left;', 'strongly disagree'),
-                                         div(style = 'float:right;', 'strongly agree')),
-                             min = 1, max = 9, value = 5)
+                             label = label = .surv_lab,
+                             min = 1, max = 9, value = 5),
 )
 col_p3 <- column(4, 
                  h3(this_factor_nm_order[3]),
                  hr(),
                  h4(s_survey_questions[15]),
                  sliderInput("survey15",
-                             label = div(style = 'width:300px;',
-                                         div(style = 'float:left;', 'strongly disagree'),
-                                         div(style = 'float:right;', 'strongly agree')),
+                             label = label = .surv_lab,
                              min = 1, max = 9, value = 5),
                  h4(s_survey_questions[16]),
                  sliderInput("survey16",
-                             label = div(style = 'width:300px;',
-                                         div(style = 'float:left;', 'strongly disagree'),
-                                         div(style = 'float:right;', 'strongly agree')),
+                             label = label = .surv_lab,
                              min = 1, max = 9, value = 5),
                  h4(s_survey_questions[17]),
                  sliderInput("survey17",
-                             label = div(style = 'width:300px;',
-                                         div(style = 'float:left;', 'strongly disagree'),
-                                         div(style = 'float:right;', 'strongly agree')),
+                             label = label = .surv_lab,
                              min = 1, max = 9, value = 5),
                  h4(s_survey_questions[18]),
                  sliderInput("survey18",
-                             label = div(style = 'width:300px;',
-                                         div(style = 'float:left;', 'strongly disagree'),
-                                         div(style = 'float:right;', 'strongly agree')),
+                             label = label = .surv_lab,
                              min = 1, max = 9, value = 5)
 )
 
@@ -505,16 +481,10 @@ main_ui <- mainPanel(
       ),
       h3("How much do you agree with the following statements?"),
       h4(s_survey_questions[5]),
-      sliderInput("survey4",
-                  label = div(style = 'width:300px;',
-                              div(style = 'float:left;', 'strongly disagree'),
-                              div(style = 'float:right;', 'strongly agree')),
+      sliderInput("survey4", label = .surv_lab,
                   min = 1, max = 9, value = 5),
       h4(s_survey_questions[6]),
-      sliderInput("survey5",
-                  label = div(style = 'width:300px;',
-                              div(style = 'float:left;', 'strongly disagree'),
-                              div(style = 'float:right;', 'strongly agree')),
+      sliderInput("survey5",label = .surv_lab,
                   min = 1, max = 9, value = 5),
       fluidRow(col_p1, col_p2, col_p3),
       hr(),
@@ -532,19 +502,27 @@ main_ui <- mainPanel(
 
 
 ##### UI, combine panels -----
-ui <- fluidPage(header_ui,
-                sidebar_ui,
-                main_ui
-                ### DEV helping displays:
-                , actionButton("browser", "browser()")
-                # , verbatimTextOutput("dev_msg")
-                # , h4("task2 ans ptile:"),   verbatimTextOutput("task2_resp_ptile")
-                # , h4("task2 ans:"),   verbatimTextOutput("task2_resp")
-                # , h4("task2 score:"), verbatimTextOutput("task2_score")
-                # , tableOutput("resp_tbl")
-)
+if (do_disp_dev_tools == F){
+  ui <- fluidPage(header_ui,
+                  sidebar_ui,
+                  main_ui
+  )
+} else { ## if do_disp_dev_tools == T
+  ui <- fluidPage(header_ui,
+                  sidebar_ui,
+                  main_ui
+                  ### DEV helping displays:
+                  , actionButton("browser", "browser()")
+                  , verbatimTextOutput("dev_msg")
+                  , h4("task2 ans ptile:"),   verbatimTextOutput("task2_ans_ptile")
+                  , h4("task2 ans:"),   verbatimTextOutput("task2_ans")
+                  , h4("task2 score:"), verbatimTextOutput("task2_score")
+                  , tableOutput("resp_tbl")
+  )
+}
 
-##### App local functions
+
+##### App local functions below: -----
 app_render_ <- function(slides, # paste over spinifex render to add size
                         axes = "left",
                         alpha = 1,

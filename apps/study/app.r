@@ -1425,17 +1425,18 @@ server <- function(input, output, session) {
   
   
   ### Dev msg -----
-  output$dev_msg <- renderPrint(cat("dev msg -- ", "\n",
-                                    "rv$this_sign: ", rv$this_sign, "\n",
-                                    "this resp_tbl row: ", factor(), "|", task(), block(), "\n",
-                                    "rv$pg: ", rv$pg, "\n",
-                                    "section() ", section(), "\n",
-                                    "section_pg() ", section_pg(), "\n",
-                                    "factor(): ", factor(), "\n",
-                                    "task(): ", task(), "\n",
-                                    "block(): ", block(), "\n",
-                                    "rv$timer: ", rv$timer, "\n",
-                                    sep = ""))
+  output$dev_msg <- renderPrint(
+    cat("dev msg -- ",
+        paste0("rv$this_sign: ",      rv$this_sign),
+        paste0("this resp_tbl row: ", factor(), "|", task(), block()),
+        paste0("rv$pg: ",             rv$pg),
+        paste0("section() ",          section()),
+        paste0("section_pg() ",       section_pg()),
+        paste0("factor(): ",          factor()),
+        paste0("task(): ",            task()),
+        paste0("block(): ",           block()),
+        paste0("rv$timer: ",          rv$timer),
+        sep = " \n"))
   }
   
   ### Combine as shiny app.
