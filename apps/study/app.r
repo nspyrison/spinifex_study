@@ -22,7 +22,7 @@ server <- function(input, output, session) {
   rv$task_ttr        <- NULL
   rv$task_response   <- NULL
   rv$save_file       <- NULL
-  rv$ans_tbl         <- NULL
+  rv$resp_tbl         <- NULL
   rv$training_aes    <- FALSE
   rv$second_training <- FALSE
   rv$curr_basis      <- NULL
@@ -125,17 +125,17 @@ server <- function(input, output, session) {
   ### Task 1 answer -----
   task1_ans <- reactive({
     if (task() == 1){
-      response <- input$tsk1_ans
       length(attr(dat(), "ncl"))
     }
   })
   task1_score <- reactive({
     if (task() == 1){
-      abs(input$tsk1_ans - task1_ans())
+      abs(input$tsk1_resp - task1_ans())
     }
   })  
   
-  ### Task 2 answer 
+  #### Task 2 answer 
+  ## answer by seperation percentile
   task2_ans_ptile <- reactive({
     if (task() == 2){
       .dat <- dat()
@@ -151,6 +151,7 @@ server <- function(input, output, session) {
              nrow = 2, ncol = p(), byrow = T)
     }
   })
+  ## answer by score value
   task2_ans <- reactive({
     if (task() == 2){
       .ptile_mat <- task2_ans_ptile()
@@ -163,7 +164,7 @@ server <- function(input, output, session) {
       matrix(.ans_vect, nrow = 2, ncol = p(), byrow = T)
     }
   })
-  ### Score individual inputs for ans_tbl rows
+  ## Score responses. Seems like a lot of code, but the distinction is used elsewhere.
   task2_vars_very_ab <- reactive({
     if (task() == 2){
       which(task2_ans()[1, ] == 2)
@@ -186,28 +187,28 @@ server <- function(input, output, session) {
   })
   task2_score_very_ab <- reactive({
     if (task() == 2){
-      resp <- as.integer(gsub(' |V', '', input$tsk2_ans_very_ab))
+      resp <- as.integer(gsub(' |V', '', input$tsk2_resp_very_ab))
       ans  <- task2_vars_very_ab()
       -(length(union(resp, ans)) - length(intersect(resp, ans))) * 2^2
     }
   })
   task2_score_some_ab <- reactive({
     if (task() == 2){
-      resp <- as.integer(gsub(' |V', '', input$tsk2_ans_some_ab))
+      resp <- as.integer(gsub(' |V', '', input$tsk2_resp_some_ab))
       ans  <- task2_vars_some_ab()
       -(length(union(resp, ans)) - length(intersect(resp, ans))) * 1^2
     }
   })
   task2_score_very_bc <- reactive({
     if (task() == 2){
-      resp <- as.integer(gsub(' |V', '', input$tsk2_ans_very_bc))
+      resp <- as.integer(gsub(' |V', '', input$tsk2_resp_very_bc))
       ans  <- task2_vars_very_bc()
       -(length(union(resp, ans)) - length(intersect(resp, ans))) * 2^2
     }
   })
   task2_score_some_bc <- reactive({
     if (task() == 2){
-      resp <- as.integer(gsub(' |V', '', input$tsk2_ans_some_bc))
+      resp <- as.integer(gsub(' |V', '', input$tsk2_resp_some_bc))
       ans  <- task2_vars_some_bc()
       -(length(union(resp, ans)) - length(intersect(resp, ans))) * 1^2
     }
@@ -217,10 +218,10 @@ server <- function(input, output, session) {
     if (task() == 2){
       resp <- matrix(0, nrow = 2, ncol = p())
       row.names(resp) <- c("ab", "bc")
-      task2_very_ab <- as.integer(gsub(' |V', '', input$tsk2_ans_very_ab))
-      task2_some_ab <- as.integer(gsub(' |V', '', input$tsk2_ans_some_ab))
-      task2_very_bc <- as.integer(gsub(' |V', '', input$tsk2_ans_very_bc))
-      task2_some_bc <- as.integer(gsub(' |V', '', input$tsk2_ans_some_bc))
+      task2_very_ab <- as.integer(gsub(' |V', '', input$tsk2_resp_very_ab))
+      task2_some_ab <- as.integer(gsub(' |V', '', input$tsk2_resp_some_ab))
+      task2_very_bc <- as.integer(gsub(' |V', '', input$tsk2_resp_very_bc))
+      task2_some_bc <- as.integer(gsub(' |V', '', input$tsk2_resp_some_bc))
       resp[1, task2_very_ab] <- 2
       resp[1, task2_some_ab] <- 1
       resp[2, task2_very_bc] <- 2
@@ -244,14 +245,10 @@ server <- function(input, output, session) {
   }
   pca_plot <- reactive({
     if (pca_active() == TRUE) {
-      # data init
       dat <- dat()
       dat_std <- tourr::rescale(dat)
       cluster <- attributes(dat)$cl_lvl
-      # dat_std <- tourr::rescale(flea[,2:7]); cluster <- flea$species; colnames(dat_std) <- paste("V", 1:6)
       
-      # render init
-      pal <- "Dark2"
       axes_position <- "left"
       USE_AXES <- TRUE
       USE_AES  <- TRUE
@@ -261,7 +258,6 @@ server <- function(input, output, session) {
         } 
       }
       
-      # x_axis <- "PC1"; y_axis <- "PC2"
       x_axis <- input$x_axis
       y_axis <- input$y_axis
       x_num  <- as.integer(substr(x_axis, 3, 3))
@@ -288,7 +284,7 @@ server <- function(input, output, session) {
           geom_point(pca_x, 
                      mapping = aes(x = get(x_axis), y = get(y_axis)), 
                      size = 3)
-      } else { # if USE_AES == TRUE then apply more aes.
+      } else { ## if USE_AES == TRUE then apply more aes.
         gg <- gg +
           geom_point(pca_x, 
                      mapping = aes(x = get(x_axis), y = get(y_axis),
@@ -297,7 +293,7 @@ server <- function(input, output, session) {
                                    shape = cluster), 
                      size = 3)
       }
-      if (USE_AXES == TRUE) { # if USE_AXES == TRUE then draw axes
+      if (USE_AXES == TRUE) { ## then draw axes
         # axis segments
         gg <- gg +
           geom_segment(pca_rot,
@@ -537,8 +533,8 @@ server <- function(input, output, session) {
   })
   
   
-  ### ans_tbl() reactive -----
-  ans_tbl <- reactive({
+  ### resp_tbl() reactive -----
+  resp_tbl <- reactive({
     # init columns
     col_factor <- 
       c(rep("training", n_blocks + n_task2_questions * n_blocks),              # training
@@ -636,13 +632,13 @@ server <- function(input, output, session) {
     }
     if (task() == 2) {
       choices <- paste0("V", 1:p())
-      updateCheckboxGroupInput(session, "tsk2_ans_very_ab",
+      updateCheckboxGroupInput(session, "tsk2_resp_very_ab",
                                choices = choices, inline  = TRUE)
-      updateCheckboxGroupInput(session, "tsk2_ans_some_ab",
+      updateCheckboxGroupInput(session, "tsk2_resp_some_ab",
                                choices = choices, inline  = TRUE)
-      updateCheckboxGroupInput(session, "tsk2_ans_very_bc",
+      updateCheckboxGroupInput(session, "tsk2_resp_very_bc",
                                choices = choices, inline  = TRUE)
-      updateCheckboxGroupInput(session, "tsk2_ans_some_bc",
+      updateCheckboxGroupInput(session, "tsk2_resp_some_bc",
                                choices = choices, inline  = TRUE)
       loggit("INFO", "Task data changed; updated task 2 responce choices.")
     }
@@ -777,10 +773,10 @@ server <- function(input, output, session) {
   
   ##### Obs task responses -----
   ### task 1 response & ttr
-  observeEvent(input$tsk1_ans, {
+  observeEvent(input$tsk1_resp, {
     if(time_elapsed() > 1) {
       rv$task_ttr[1] <- time_elapsed()
-      rv$task_response[1] <- input$tsk1_ans
+      rv$task_response[1] <- input$tsk1_resp
       loggit("INFO", "Task 1 entered.", 
              paste0("Response: ", rv$task_response[1], 
                     ". ttr: ", rv$task_ttr[1], ".",
@@ -790,10 +786,10 @@ server <- function(input, output, session) {
     }
   })
   ### task 2 responses & ttr
-  observeEvent(input$tsk2_ans_very_ab, {
+  observeEvent(input$tsk2_resp_very_ab, {
     if(time_elapsed() > 1) {
       rv$task_ttr[1] <- time_elapsed()
-      rv$task_response[1] <- paste(input$tsk2_ans_very_ab, collapse = ", ")
+      rv$task_response[1] <- paste(input$tsk2_resp_very_ab, collapse = ", ")
       loggit("INFO", "Task 2, very important, clusters ab response entered.", 
              paste0("Response: ", rv$task_response[1], 
                     ". ttr: ", rv$task_ttr[1], ".",
@@ -802,10 +798,10 @@ server <- function(input, output, session) {
       )
     }
   })
-  observeEvent(input$tsk2_ans_some_ab, {
+  observeEvent(input$tsk2_resp_some_ab, {
     if(time_elapsed() > 1) {
       rv$task_ttr[2] <- time_elapsed()
-      rv$task_response[2] <- paste(input$tsk2_ans_some_ab, collapse = ", ")
+      rv$task_response[2] <- paste(input$tsk2_resp_some_ab, collapse = ", ")
       loggit("INFO", "Task 2, somewhat important clusters ab response entered.", 
              paste0("Response: ", rv$task_response[2], 
                     ". ttr: ", rv$task_ttr[2], ".",
@@ -814,10 +810,10 @@ server <- function(input, output, session) {
       )
     }
   })
-  observeEvent(input$tsk2_ans_very_bc, {
+  observeEvent(input$tsk2_resp_very_bc, {
     if(time_elapsed() > 1) {
       rv$task_ttr[3] <- time_elapsed()
-      rv$task_response[3] <- paste(input$tsk2_ans_very_bc, collapse = ", ")
+      rv$task_response[3] <- paste(input$tsk2_resp_very_bc, collapse = ", ")
       loggit("INFO", "Task 2, very important, clusters bc response entered.", 
              paste0("Response: ", rv$task_response[3], 
                     ". ttr: ", rv$task_ttr[3], ".",
@@ -826,10 +822,10 @@ server <- function(input, output, session) {
       )
     }
   })
-  observeEvent(input$tsk2_ans_some_bc, {
+  observeEvent(input$tsk2_resp_some_bc, {
     if(time_elapsed() > 1) {
       rv$task_ttr[4] <- time_elapsed()
-      rv$task_response[4] <- paste(input$tsk2_ans_some_bc, collapse = ", ")
+      rv$task_response[4] <- paste(input$tsk2_resp_some_bc, collapse = ", ")
       loggit("INFO", "Task 2, somewhat important, clusters bc response entered.", 
              paste0("Response: ", rv$task_response[4], 
                     ". ttr: ", rv$task_ttr[4], ".",
@@ -859,11 +855,11 @@ server <- function(input, output, session) {
   )
   observeEvent(
     {
-      input$tsk1_ans
-      input$tsk2_ans_very_ab
-      input$tsk2_ans_some_ab
-      input$tsk2_ans_very_bc
-      input$tsk2_ans_some_bc
+      input$tsk1_resp
+      input$tsk2_resp_very_ab
+      input$tsk2_resp_some_ab
+      input$tsk2_resp_very_bc
+      input$tsk2_resp_some_bc
       
     }, {
       rv$resp_inter <- rv$resp_inter + 1L
@@ -1096,8 +1092,8 @@ server <- function(input, output, session) {
   ### Obs next page button -----
   observeEvent(input$next_pg_button, {
     if ((rv$stopwatch > 2 & is_logging == TRUE) | is_logging == FALSE){
-      # Init rv$ans_tbl <- ans_tbl() first press
-      if (is.null(rv$ans_tbl)){ rv$ans_tbl <- ans_tbl() }
+      # Init rv$resp_tbl <- resp_tbl() first press
+      if (is.null(rv$resp_tbl)){ rv$resp_tbl <- resp_tbl() }
       # if <on last task> {<do nothing>}. Also shouldn't be visible
       if (rv$pg >= survey_start_pg){ return() }
       
@@ -1109,7 +1105,7 @@ server <- function(input, output, session) {
         if (task() == 1 & rv$training_aes == FALSE) {
           rv$training_aes <- TRUE
           ans   <- task1_ans()
-          delta <- input$tsk1_ans - task1_ans()
+          delta <- input$tsk1_resp - task1_ans()
           main_msg <- 
             "For PCA make sure to plot several components. 
             Using the grand tour look for groups of points moving together. 
@@ -1174,15 +1170,15 @@ server <- function(input, output, session) {
           return()
             
         }
-      } # end of training section evaluation
+      } ## end of training section evaluation
       
-      # Write reponses and ttr to ans_tbl
-      ### _rv$ans_tbl -----
+      ### _rv$resp_tbl -----
+      ## Write reponses and ttr to resp_tbl
       if (section() == "task" |
           (section() == "training" & task() %in% 1:2)) {
-        .ins_row_start <- which(rv$ans_tbl$factor  == factor() &
-                                  rv$ans_tbl$task  == task() &
-                                  rv$ans_tbl$block == block())[1]
+        .ins_row_start <- which(rv$resp_tbl$factor  == factor() &
+                                  rv$resp_tbl$task  == task() &
+                                  rv$resp_tbl$block == block())[1]
         .ins_row_end   <- .ins_row_start + length(rv$task_response) - 1
         .rows          <- .ins_row_start:.ins_row_end
         
@@ -1196,24 +1192,24 @@ server <- function(input, output, session) {
             !is.na(time_elapsed()) & factor() == "task"){
           .task_concern <- "YES, time elaspsed. REMOVE."}
         if (task() == 2 & !is.na(time_elapsed())){
-          ab_inter <- intersect(input$tsk2_ans_very_ab, input$tsk2_ans_some_ab)
+          ab_inter <- intersect(input$tsk2_resp_very_ab, input$tsk2_resp_some_ab)
           ab_inter_len <- length(ab_inter)
           if (ab_inter_len > 0){
             .task_concern <- "Some, task2 ab contains same var. 'somewhat' unselected by default"
-            ab_orig <- input$tsk2_ans_some_ab
+            ab_orig <- input$tsk2_resp_some_ab
             ab_update <- ab_orig[!ab_orig %in% ab_inter]
             .choices <- paste0("V", 1:p())
-            updateCheckboxGroupInput(session, "tsk2_ans_some_ab", 
+            updateCheckboxGroupInput(session, "tsk2_resp_some_ab", 
                                      choices = .choices, selected = ab_update)
           }
-          bc_inter <- intersect(input$tsk2_ans_very_bc, input$tsk2_ans_very_bc)
+          bc_inter <- intersect(input$tsk2_resp_very_bc, input$tsk2_resp_very_bc)
           bc_inter_len <- length(bc_inter)
           if (bc_inter_len > 0){
             .task_concern <- "Some, task2 bc contains same var. 'somewhat' unselected by default"
-            bc_orig <- input$tsk2_ans_some_ab
+            bc_orig <- input$tsk2_resp_some_ab
             bc_update <- bc_orig[!bc_orig %in% bc_inter]
             .choices <- paste0("V", 1:p())
-            updateCheckboxGroupInput(session, "tsk2_ans_some_ab", 
+            updateCheckboxGroupInput(session, "tsk2_resp_some_ab", 
                                      choices = .choices, selected = bc_update)
           }
         }
@@ -1249,19 +1245,19 @@ server <- function(input, output, session) {
         }
         
         
-        rv$ans_tbl$pca_inter[.rows]       <- rv$pca_inter
-        rv$ans_tbl$manual_inter[.rows]    <- rv$manual_inter
-        rv$ans_tbl$resp_inter[.rows]      <- rv$resp_inter
-        rv$ans_tbl$plot_elapsed[.rows]    <- .plot_elapsed
-        rv$ans_tbl$ttr[.rows]             <- rv$task_ttr
-        rv$ans_tbl$response[.rows]        <- rv$task_response
-        rv$ans_tbl$answer[.rows]          <- .task_answer
-        rv$ans_tbl$score[.rows]           <- .task_score
-        rv$ans_tbl$line_score[.rows]      <- .line_score
-        rv$ans_tbl$clust_score[.rows]     <- "dont trust" #.clust_score
-        rv$ans_tbl$intensity_score[.rows] <- "dont trust" #.intensity_score
-        rv$ans_tbl$concern[.rows]         <- .task_concern
-      } # End of writing to ans_tbl
+        rv$resp_tbl$pca_inter[.rows]       <- rv$pca_inter
+        rv$resp_tbl$manual_inter[.rows]    <- rv$manual_inter
+        rv$resp_tbl$resp_inter[.rows]      <- rv$resp_inter
+        rv$resp_tbl$plot_elapsed[.rows]    <- .plot_elapsed
+        rv$resp_tbl$ttr[.rows]             <- rv$task_ttr
+        rv$resp_tbl$response[.rows]        <- rv$task_response
+        rv$resp_tbl$answer[.rows]          <- .task_answer
+        rv$resp_tbl$score[.rows]           <- .task_score
+        rv$resp_tbl$line_score[.rows]      <- .line_score
+        rv$resp_tbl$clust_score[.rows]     <- "dont trust" #.clust_score
+        rv$resp_tbl$intensity_score[.rows] <- "dont trust" #.intensity_score
+        rv$resp_tbl$concern[.rows]         <- .task_concern
+      } # End of writing to resp_tbl
       
       ### _New page ----
       # if second training not needed, skip a page.
@@ -1289,11 +1285,11 @@ server <- function(input, output, session) {
       
       # Clear task 1 response
       if (section() %in% c("task", "training") & task() == 1) {
-          updateNumericInput(session, "tsk1_ans", "",
+          updateNumericInput(session, "tsk1_resp", "",
                              value = 0, min = 0, max = 10)
       }
       
-      # Set structure for writeing to ans_tbl
+      # Set structure for writeing to resp_tbl
       n_rows <- 0
       if (task() == 1){n_rows <- 1} 
       if (task() == 2){n_rows <- 4}
@@ -1313,21 +1309,21 @@ server <- function(input, output, session) {
                     ". factor(): ", factor(),
                     ". task(): ", task(),
                     ". block(): ", block(), 
-                    ". Wrote previous responses to rv$ans_tbl."))
+                    ". Wrote previous responses to rv$resp_tbl."))
     }
   })
   
   
   ### Obs save reponses button -----
-  observeEvent(input$save_ans, {
+  observeEvent(input$save_resp, {
     filebase = paste("responses", this_group, Sys.info()[4], sep = "_")
     prefix = ""
     
-    # Write survey responses to rv$ans_tbl
-    ins_row_start <- nrow(rv$ans_tbl) - n_survey_questions + 1
-    ins_row_end   <- nrow(rv$ans_tbl)
-    rv$ans_tbl$response[ins_row_start:ins_row_end] <- rv$task_response
-    rv$ans_tbl$ttr[ins_row_start:ins_row_end] <- rv$task_ttr
+    # Write survey responses to rv$resp_tbl
+    ins_row_start <- nrow(rv$resp_tbl) - n_survey_questions + 1
+    ins_row_end   <- nrow(rv$resp_tbl)
+    rv$resp_tbl$response[ins_row_start:ins_row_end] <- rv$task_response
+    rv$resp_tbl$ttr[ins_row_start:ins_row_end] <- rv$task_ttr
     
     # Do the actual saving
     save_base <- paste0(prefix, filebase, "_")
@@ -1339,7 +1335,7 @@ server <- function(input, output, session) {
       save_file <- paste0(save_name, ".csv")
       save_num  <- save_num + 1
     }
-    assign(save_name, rv$ans_tbl)
+    assign(save_name, rv$resp_tbl)
     write.csv(get(save_name), file = save_file, row.names = FALSE)
     rv$save_file <- save_file
     
@@ -1416,7 +1412,7 @@ server <- function(input, output, session) {
   output$pca_plot        <- renderPlot({pca_plot()}, height = pca_height)
   output$gtour_plot      <- renderPlotly({suppressWarnings(gtour_plot())})
   output$mtour_plot      <- renderPlot({mtour_plot()}, height = mtour_height)
-  output$ans_tbl         <- renderTable({rv$ans_tbl})
+  output$resp_tbl        <- renderTable({rv$resp_tbl})
   output$task2_ans_ptile <- renderPrint({task2_ans_ptile()})
   output$task2_ans       <- renderPrint({task2_ans()})
   output$task2_score     <- renderPrint({task2_score()})
@@ -1425,7 +1421,7 @@ server <- function(input, output, session) {
   ### Dev msg -----
   output$dev_msg <- renderPrint(cat("dev msg -- ", "\n",
                                     "rv$this_sign: ", rv$this_sign, "\n",
-                                    "this ans_tbl row: ", factor(), "|", task(), block(), "\n",
+                                    "this resp_tbl row: ", factor(), "|", task(), block(), "\n",
                                     "rv$pg: ", rv$pg, "\n",
                                     "section() ", section(), "\n",
                                     "section_pg() ", section_pg(), "\n",

@@ -1,6 +1,5 @@
 ### Global init for each factor variant.
 
-
 ##### App static global.r -----
 ### Initialization 
 library("ggplot2")
@@ -10,39 +9,61 @@ library("tidyr")
 library("dplyr")
 library("plotly")
 library("GGally")
-library("lubridate") # For timer
-library("loggit")    # For logging
+library("lubridate") ## For timer
+library("loggit")    ## For logging
 
-this_group <- 1 #sample(1:1, 1) #1 # between 1 and 3 ## SET GROUP HERE
-f_nm_ls <- c("pca", "grand", "manual") # factor list
-num_latin_sq <- rbind(c(1, 2, 3), # ~ grp 1; "pca", "grand", "manual"
-                      c(2, 3, 1), # ~ grp 2; "grand", "manual", "pca"
-                      c(3, 1, 2)  # ~ grp 3; "manual", "pca", "grand"
-)
-this_factor_order    <- num_latin_sq[this_group, ]
-this_factor_nm_order <- f_nm_ls[this_factor_order]
-
-log_base <- paste0("log_", this_group, "_", Sys.info()[4], "_")
-log_num  <- 1
-log_name <- sprintf(paste0(log_base, "%03d"), log_num)
-log_file <- paste0(log_name, ".json")
-while (file.exists(log_file)){ # Find an unused log number
-  log_name <- sprintf(paste0(log_base, "%03d"), log_num)
-  log_file <- paste0(log_name, ".json")
-  log_num  <- log_num + 1
-}
-
-is_logging <- FALSE # init
 ### Logging
-## https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/
+## browseURL("https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/")
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## Uncomment the following line to apply logging
 #setLogFile(log_file); is_logging <- TRUE
+is_logging <- FALSE 
+sim_series <- 300 ## the "series" or iteration of data to look at. Should be an even hundred
 
+## Set log file, finding the first unused number, will need to write to a google sheet or otherwise store a file.
+log_base <- paste0("log_", this_group, "_", Sys.info()[4], "_")
+log_num  <- 0
+log_file <- ""
+if (is_logging == T){
+  log_name <- sprintf(paste0(log_base, "%03d"), log_num)
+  log_file <- paste0(log_name, ".json")
+  while (file.exists(log_file)){ ## Find an unused log number
+    log_num  <- log_num + 1
+    log_name <- sprintf(paste0(log_base, "%03d"), log_num)
+    log_file <- paste0(log_name, ".json")
+  }
+} else { ## when is_logging != T
+  log_num  <- sample(1:3, 1)
+  log_file <- "Logging is off! Log and responses not being recorded."
+}
+
+## Set group (factor order) based on log number mod 3
+this_group <- 1 + (log_num - 1) %% 3 ## Expects [1,2,3] 
+fct_ord_latin_sq <- rbind(c(1, 2, 3), ## ~ grp 1; "pca", "grand", "manual"
+                          c(2, 3, 1), ## ~ grp 2; "grand", "manual", "pca"
+                          c(3, 1, 2)  ## ~ grp 3; "manual", "pca", "grand"
+)
+fct_nm_vect <- c("pca", "grand", "manual") ## factor list
+this_factor_order    <- fct_ord_latin_sq[this_group, ]
+this_factor_nm_order <- fct_nm_vect[this_factor_order]
+
+## Context, "onStart()" and onStop()
+contextLine <- paste0("Spinifex STUDY, --- (spinifex v", packageVersion("spinifex"),
+                      ") --- Started ", Sys.time())
+cat(sep = " \n",
+    "Doing application setup",
+    paste0("Log file: ", log_file), 
+    paste0("Group number: ", log_num, ".")
+    "")
+onStop(function() {
+  cat("Doing application cleanup\n")
+})
+message(paste0("Log file: ", log_file))
+message(paste0("Group number: ", log_num, "."))
 
 ### Required inputs -----
 # tasks
-s_difficulty      <- c("easy", "medium", "hard")
+s_difficulty      <- c("easy", "hard")
 s_task_prompts    <- c("How many clusters do you see?",
                        "Rate the relative importance of ANY/ALL variables in terms of 
                        distinugishing between the given clusters.")
@@ -50,7 +71,6 @@ s_task2_questions <- c("Very important distinguishing clusters 'a' from 'b'",
                        "Somewhat important distinguishing clusters 'a' from 'b'",
                        "Very important distinguishing clusters 'b' from 'c'",
                        "Somewhat important distinguishing clusters 'b' from 'c'")
-sim_series <- 300
 s_sim_id   <- as.character((sim_series + 1):(sim_series + 12))
 sim_t1 <- readRDS("./data/simulation_data_t1.rds")
 sim_t2 <- readRDS("./data/simulation_data_t2.rds")
@@ -91,15 +111,18 @@ s_survey_questions <- c("What gender are you?",
 )
 
 
-### Variable initialization -----
+### Global variable initialization -----
 n_trainings        <- length(s_train)            # ~2
-n_factors          <- length(f_nm_ls)            # ~3
+n_factors          <- length(fct_nm_vect)            # ~3
 n_tasks            <- 2                          # ~2
 n_task2_questions  <- length(s_task2_questions)  # ~4
 n_difficulty       <- length(s_difficulty)       # ~3
 n_blocks           <- 2                          # ~2
 n_survey_questions <- length(s_survey_questions) # ~18
 PC_cap <- 4 # Caps the number of principal components selectable.
+### Aes:
+pal <- "Dark2"
+axes_position <- "left"
 
 ## Define section start pages
 ## intro is pg 1; video intro is pg 2
@@ -109,6 +132,7 @@ task_start_pg     <- (training_start_pg + n_trainings * n_tasks + 1) + 1
 # ~ 27, 9 + 3 * 3 * 2
 survey_start_pg   <- task_start_pg + n_factors * n_blocks * n_tasks
 
+##### UI START -----
 ### header_ui -----
 header_ui <- fluidPage(
   titlePanel("Multivariate data visualization study"),
@@ -177,8 +201,8 @@ sidebar_ui <- conditionalPanel(
     # Factor selection
     conditionalPanel(condition = "output.section == 'training' && output.section_pg < 6",
                      radioButtons(inputId = "factor", label = "Factor", 
-                                  choices = f_nm_ls, 
-                                  selected = f_nm_ls[1],
+                                  choices = fct_nm_vect, 
+                                  selected = fct_nm_vect[1],
                                   inline = TRUE)
     ), # PCA axis selection
     conditionalPanel(
@@ -209,33 +233,33 @@ sidebar_ui <- conditionalPanel(
     conditionalPanel(condition = "output.task == 1",
                      tags$b(s_task_prompts[1]),
                      tags$br(),
-                     numericInput("tsk1_ans", "",
+                     numericInput("tsk1_resp", "",
                                   value = 0, min = 0, max = 10)
     ), # Task 2
     conditionalPanel(condition = "output.task == 2",
                      tags$b(s_task_prompts[2]),
                      tags$br(), br(),
                      checkboxGroupInput(
-                       inputId = "tsk2_ans_very_ab", #tsk2_ans_cla_very
+                       inputId = "tsk2_resp_very_ab",
                        label   = s_task2_questions[1],
                        choices = "V1",
                        inline  = TRUE
                      ),
                      checkboxGroupInput(
-                       inputId = "tsk2_ans_some_ab", #tsk2_ans_cla_very
+                       inputId = "tsk2_resp_some_ab",
                        label   = s_task2_questions[2],
                        choices = "V1",
                        inline  = TRUE
                      ),
                      hr(),
                      checkboxGroupInput(
-                       inputId = "tsk2_ans_very_bc", #tsk2_ans_cla_very
+                       inputId = "tsk2_resp_very_bc",
                        label   = s_task2_questions[3],
                        choices = "V1",
                        inline  = TRUE
                      ),
                      checkboxGroupInput(
-                       inputId = "tsk2_ans_some_bc", #tsk2_ans_cla_very
+                       inputId = "tsk2_resp_some_bc",
                        label   = s_task2_questions[4],
                        choices = "V1",
                        inline  = TRUE
@@ -478,7 +502,7 @@ main_ui <- mainPanel(
                   min = 1, max = 9, value = 5),
       fluidRow(col_p1, col_p2, col_p3),
       hr(),
-      actionButton("save_ans", "save responses")
+      actionButton("save_resp", "save responses")
     ),
     htmlOutput("save_msg"),
     conditionalPanel(
@@ -498,10 +522,10 @@ ui <- fluidPage(header_ui,
                 ### DEV helping displays:
                 , actionButton("browser", "browser()")
                 # , verbatimTextOutput("dev_msg")
-                # , h4("task2 ans ptile:"),   verbatimTextOutput("task2_ans_ptile")
-                # , h4("task2 ans:"),   verbatimTextOutput("task2_ans")
+                # , h4("task2 ans ptile:"),   verbatimTextOutput("task2_resp_ptile")
+                # , h4("task2 ans:"),   verbatimTextOutput("task2_resp")
                 # , h4("task2 score:"), verbatimTextOutput("task2_score")
-                # , tableOutput("ans_tbl")
+                # , tableOutput("resp_tbl")
 )
 
 ### onStop -----
