@@ -1,16 +1,8 @@
 source('global.r', local = TRUE)
 
-
-##### Server function, for shiny app
+####### Server function, for shiny app
 server <- function(input, output, session) {
-  loggit("INFO", "Spinifex study app has started.",
-         paste0("Computer name (Sys.info nodename):", Sys.info()[4],
-                ", group is ", as.character(this_group), 
-                "; factor order: ", paste0(this_factor_order, e = ", "), "."
-         )
-  )
-  
-  ### Reavtive value initialization -----
+  ##### Reavtive value initialization -----
   rv                  <- reactiveValues()
   rv$pg               <- 1L
   rv$timer            <- 999L
@@ -34,6 +26,7 @@ server <- function(input, output, session) {
   n_cl <- reactive({ length(unique(attributes(s_dat[[block()]])$cl_lvl)) })
   
   section <- reactive({ ## text name of section
+    #req(rv$pg)
     if (rv$pg == 1) {return("intro")}
     if (rv$pg == 2) {return("video")}
     .pgs <- training_start_pg:(task_start_pg - 2)
@@ -46,6 +39,7 @@ server <- function(input, output, session) {
     return("!!SECTION NOT DEFINED!!")
   })
   section_pg <- reactive({ ## current page num of this section.
+    req(rv$pg)
     if (section() == "intro") {return(rv$pg)}
     if (section() == "training"){
       return(rv$pg - (training_start_pg - 1))
@@ -56,24 +50,26 @@ server <- function(input, output, session) {
     if (section() == "survey") {return(1)}
   })
   period <- reactive({1 + ((section_pg() - 1) %/% (n_tasks * n_blocks))})
-  factor <- reactive({ # ~ PCA, gtour, mtour
+  factor <- reactive({ ## ~ for group 1: PCA, gtour, mtour
     if (section() == "training") return("training")
     if (section() == "task") return(this_factor_nm_order[period()])
     return("NONE / NA")
   })
-  task <- reactive({ # 1:2
+  task <- reactive({ ## in 1,2
+    req(section(), section_pg(), period())
     if (section() == "training") return(c(0, 1, 1, 2, 2, 0)[section_pg()])
     if (!is.numeric(1 + ((section_pg() - 1) %/% n_blocks) - 2 * (period() - 1))) browser()
     return(1 + ((section_pg() - 1) %/% n_blocks) - 2 * (period() - 1))
   })
-  block <- reactive({ # 1:2
+  block <- reactive({ ## in 1,2
     if (section() == "training") return(c(0, "t", "t", "t", "t", 0)[section_pg()])
     return((section_pg() - (n_blocks * (task() - 1))) %% (n_tasks * n_blocks))
   })
-  sim <- reactive({
+  sim <- reactive({ 
     return( (period() - 1) * 6 + (task() - 1) * 3 + block() )
   })
   task_time <- reactive({
+    req(task()) ## Yay, can req() reactive functions!
     if (factor() == "grand") {adj <- 1
     } else adj <- 0
     if (task() == 1) return(60  + adj)
@@ -81,39 +77,41 @@ server <- function(input, output, session) {
     return(999)
   })
   time_elapsed <- reactive({ as.integer(task_time() - rv$timer) })
-  dat <- reactive({ # simulation df with attachments.
+  dat <- reactive({ ## Simulation df with attachments.
     if (section() == "training") {
-      if (section_pg() %in% c(3, 5)) {return(s_train[[2]])
-      } else return(s_train[[1]])
-    } else {
+      return(s_t_dat[[section_pg()]])
+    } else { ## evaluation section.
+      req(sim())
       return(s_dat[[sim()]]) 
     }
   })
   task_tpath <- reactive({
     if (section() == "training") {
-      if (section_pg() %in% c(3, 5)) {return(s_tpath_train[[2]])
-      } else return(s_tpath_train[[1]])
+      return(s_t_tpath[[section_pg()]])
     } else {
       return(s_tpath[[sim()]]) 
     }
   })
   manip_var <- reactive({ 
-    if (input$manip_var_nm == "<none>") {return(1)}
+    req(input$manip_var_nm)
     return(which(colnames(dat()) == input$manip_var_nm))
   }) 
   pca_active <- reactive({
+    req(rv$timer_active, input$factor)
     if ((rv$timer_active == TRUE & factor() == "pca") |
         (section() == "training" & input$factor == "pca")) {
       return(TRUE)
     } else return(FALSE)
   })
   grand_active <- reactive({
+    req(rv$timer_active, input$factor)
     if ((rv$timer_active == TRUE & factor() == "grand") | 
         (section() == "training" & input$factor == "grand")) {
       return(TRUE)
     } else return(FALSE)
   })
   manual_active <- reactive({
+    req(rv$timer_active, input$factor)
     if ((rv$timer_active == TRUE & factor() == "manual") | 
         (section() == "training" & input$factor == "manual")) {
       return(TRUE)
@@ -124,11 +122,14 @@ server <- function(input, output, session) {
            # , ", difficulty: ", s_difficulty[block()] ## Don't show difficulty to participants.
     )
   })
-  ### Throttle manip_slider
-  manip_slider   <- reactive(input$manip_slider)
+  ## Throttle manip_slider
+  manip_slider   <- reactive({
+    req(input$manip_slider)
+    input$manip_slider
+  })
   manip_slider_t <- throttle(manip_slider, 10)
   
-  ### Task 1 answer -----
+  ##### Task 1 answer -----
   task1_ans <- reactive({
     if (task() == 1){
       length(attr(dat(), "ncl"))
@@ -1277,7 +1278,7 @@ server <- function(input, output, session) {
       rv$manual_inter     <- 1L
       rv$resp_inter       <- 1L
       rv$task_response    <- NULL
-      rv$task_ttr    <- NULL
+      rv$task_ttr         <- NULL
       rv$task_answer      <- NULL
       rv$task_score       <- NULL
       rv$timer            <- task_time()
