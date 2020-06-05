@@ -9,6 +9,8 @@ library("tidyr")
 library("dplyr")
 library("plotly")
 library("GGally")
+# library("shinyjs")   ## More control of shiny widgets
+## not used yet
 library("lubridate") ## For timer
 library("loggit")    ## For logging
 library("git2r")     ## For logging latest git commits
@@ -94,7 +96,7 @@ s_task2_questions <- c("Very important distinguishing clusters 'a' from 'b'",
 ## Survey questions
 s_survey_questions <- c("What gender are you?",
                         "What age are you?",
-                        "Is english is your primary language?",
+                        "What is your English proficiency?",
                         "What is your highest completed education?",
                         "I am experienced with data visualization.",
                         "I have education in multivariate statistical analysis.",
@@ -168,126 +170,127 @@ header_ui <- fluidPage(
 
 
 # ##### sidebar_ui ----
-sidebar_ui <- conditionalPanel(condition = "TRUE == TRUE"
-#   condition = "output.section == 'training'
-#               || output.section == 'task'",
-#   sidebarPanel(
-#     ##### _Training text -----
-#     conditionalPanel(
-#       condition = "output.section == 'training'",
-#       conditionalPanel( ## interface familiarity
-#         condition = "output.section_pg == 1",
-#         p("In this study, you will be working with 3 visualization techniques of
-#         multivariate data. Each one uses 2-dimensional projections created
-#         from different combinations of variables. The variable map (grey circle)
-#         shows the angle and magnitude that each variable contributes to the
-#         projection."),
-#         p("Principal Component Analysis (PCA) is displayed first. Use the radio
-#           buttons on the left sidebar panel to select new components to be
-#           displayed. Observe how the clusters and the variable contributions
-#           change."),
-#         p("Now switch to the grand tour factor. Play the animation. Notice how
-#           different clusters move as the variable contributions change. Drag
-#           the slider to select a different frame or animate at your own pace."),
-#         p("Change to the manual tour. You can select which components are on
-#           the axes. Using the drop-down, select the variable with the largest
-#           line segment. Use the slider to change the variable's contribution.
-#           Watch how the contributions and clusters move as a result. Select a
-#           change the y-axis to PC3 and back, notice that this resets the
-#           projection."),
-#       ),
-#       conditionalPanel( ## Rraining task 1, pg 1
-#         condition = "output.task == 1",
-#         tags$b("Now the data points are not colored by their cluster. How
-#         many clusters do you see in this training set?
-#         Make sure to use the controls and different factors.")
-#       ),
-#       conditionalPanel( ## Rraining task 1, pg 2
-#         condition = "output.task == 2",
-#         tags$b("The data points are now colored by their cluster again.
-#                Variables that have a large
-#                contribution in line with two clusters are important to
-#                distinguish them. However, you cannot rule out that variables
-#                with a small contribution are unimportant.
-#                Use this information to identify which variables distinguish
-#                the 2 clusters.")
-#       ),
-#       hr()
-#     ), ### end training text
-#     
-#     ##### _Training control inputs -----
-#     ## Factor selection
-#     conditionalPanel(condition = "output.section == 'training' && output.section_pg < 6",
-#                      radioButtons(inputId = "factor", label = "Factor",
-#                                   choices = fct_nm_vect,
-#                                   selected = fct_nm_vect[1],
-#                                   inline = TRUE)
-#     ), ## PCA axis selection
-#     conditionalPanel(
-#       condition = "(output.factor == 'pca' || output.factor == 'manual') ||
-#                   (output.section == 'training' && input.factor != 'grand')",
-#       fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis",
-#                                       choices = paste0("PC", 1:4), selected = "PC1")),
-#                column(6, radioButtons(inputId = "y_axis", label = "y axis",
-#                                       choices = paste0("PC", 1:4), selected = "PC2"))
-#       )
-#     ), ## Manip var/ magnitude selection
-#     conditionalPanel(condition = "output.factor == 'manual' ||
-#                        (output.section == 'training' && input.factor == 'manual')",
-#                      selectInput("manip_var_nm", "Manip var", "<none>"),
-#                      sliderInput("manip_slider", "Contribution",
-#                                  min = 0, max = 1, value = 0, step = .1)
-#     ),
-# 
-#     ##### _Task response input -----
-#     ## Task 1
-#     conditionalPanel(condition = "(output.task == 1 || output.task == 2)
-#                                  && output.factor != 'grand'",
-#                      hr()
-#     ),
-#     conditionalPanel(condition = "output.task == 1",
-#                      tags$b(s_task_prompts[1]),
-#                      tags$br(),
-#                      numericInput("tsk1_resp", "",
-#                                   value = 0, min = 0, max = 10)
-#     ), ## Task 2
-#     conditionalPanel(condition = "output.task == 2",
-#                      tags$b(s_task_prompts[2]),
-#                      tags$br(), tags$br(),
-#                      checkboxGroupInput(
-#                        inputId = "tsk2_resp_very_ab",
-#                        label   = s_task2_questions[1],
-#                        choices = "V1",
-#                        inline  = TRUE
-#                      ),
-#                      checkboxGroupInput(
-#                        inputId = "tsk2_resp_some_ab",
-#                        label   = s_task2_questions[2],
-#                        choices = "V1",
-#                        inline  = TRUE
-#                      ),
-#                      hr(),
-#                      checkboxGroupInput(
-#                        inputId = "tsk2_resp_very_bc",
-#                        label   = s_task2_questions[3],
-#                        choices = "V1",
-#                        inline  = TRUE
-#                      ),
-#                      checkboxGroupInput(
-#                        inputId = "tsk2_resp_some_bc",
-#                        label   = s_task2_questions[4],
-#                        choices = "V1",
-#                        inline  = TRUE
-#                      )
-#     )
-# 
-#   ) ## Close sidebarPanel()
+sidebar_ui <- conditionalPanel(
+  condition = "output.section == 'training'
+              || output.section == 'task'",
+  sidebarPanel(
+    ##### _Training text -----
+    conditionalPanel(
+      condition = "output.section == 'training'",
+      conditionalPanel( ## interface familiarity
+        condition = "output.section_pg == 1",
+        p("In this study, you will be working with 3 visualization techniques of
+        multivariate data. Each one uses 2-dimensional projections created
+        from different combinations of variables. The variable map (grey circle)
+        shows the angle and magnitude that each variable contributes to the
+        projection."),
+        p("Principal Component Analysis (PCA) is displayed first. Use the radio
+          buttons on the left sidebar panel to select new components to be
+          displayed. Observe how the clusters and the variable contributions
+          change."),
+        p("Now switch to the grand tour factor. Play the animation. Notice how
+          different clusters move as the variable contributions change. Drag
+          the slider to select a different frame or animate at your own pace."),
+        p("Change to the manual tour. You can select which components are on
+          the axes. Using the drop-down, select the variable with the largest
+          line segment. Use the slider to change the variable's contribution.
+          Watch how the contributions and clusters move as a result. Select a
+          change the y-axis to PC3 and back, notice that this resets the
+          projection."),
+      ),
+      conditionalPanel( ## Rraining task 1, pg 1
+        condition = "output.task == 1",
+        strong("Now the data points are not colored by their cluster. How
+        many clusters do you see in this training set?
+        Make sure to use the controls and different factors.")
+      ),
+      conditionalPanel( ## Rraining task 1, pg 2
+        condition = "output.task == 2",
+        strong("The data points are now colored by their cluster again.
+               Variables that have a large
+               contribution in line with two clusters are important to
+               distinguish them. However, you cannot rule out that variables
+               with a small contribution are unimportant.
+               Use this information to identify which variables distinguish
+               the 2 clusters.")
+      ),
+      hr()
+    ), ### end training text 
+    
+    ##### _Training control inputs -----
+    ## Factor selection
+    conditionalPanel(condition = "output.section == 'training' && output.section_pg < 6",
+                     radioButtons(inputId = "factor", label = "Factor",
+                                  choices = fct_nm_vect,
+                                  selected = fct_nm_vect[1],
+                                  inline = TRUE)
+    ), ## PCA axis selection
+    conditionalPanel(
+      condition = "(output.factor == 'pca' || output.factor == 'manual') ||
+                  (output.section == 'training' && input.factor != 'grand')",
+      fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis",
+                                      choices = paste0("PC", 1:4), selected = "PC1")),
+               column(6, radioButtons(inputId = "y_axis", label = "y axis",
+                                      choices = paste0("PC", 1:4), selected = "PC2"))
+      )
+    ), ## Manip var/ magnitude selection
+    conditionalPanel(condition = "output.factor == 'manual' ||
+                       (output.section == 'training' && input.factor == 'manual')",
+                     selectInput("manip_var_nm", "Manip var", "<none>"),
+                     sliderInput("manip_slider", "Contribution",
+                                 min = 0, max = 1, value = 0, step = .1)
+    ),
+    
+    ##### _Task response input -----
+    ## Task 1
+    conditionalPanel(condition = "(output.task == 1 || output.task == 2)
+                                 && output.factor != 'grand'",
+                     hr()
+    ),
+    conditionalPanel(condition = "output.task == 1",
+                     strong(s_task_prompts[1]),
+                     br(),
+                     numericInput("tsk1_resp", "",
+                                  value = 0, min = 0, max = 10)
+    ), ## Task 2
+    conditionalPanel(condition = "output.task == 2",
+                     strong(s_task_prompts[2]),
+                     br(), br(),
+                     checkboxGroupInput(
+                       inputId = "tsk2_resp_very_ab",
+                       label   = s_task2_questions[1],
+                       choices = "V1",
+                       inline  = TRUE
+                     ),
+                     checkboxGroupInput(
+                       inputId = "tsk2_resp_some_ab",
+                       label   = s_task2_questions[2],
+                       choices = "V1",
+                       inline  = TRUE
+                     ),
+                     hr(),
+                     checkboxGroupInput(
+                       inputId = "tsk2_resp_very_bc",
+                       label   = s_task2_questions[3],
+                       choices = "V1",
+                       inline  = TRUE
+                     ),
+                     checkboxGroupInput(
+                       inputId = "tsk2_resp_some_bc",
+                       label   = s_task2_questions[4],
+                       choices = "V1",
+                       inline  = TRUE
+                     )
+    )
+    
+  ) ## Close sidebarPanel()
 ) ## Close conditionalPanel(), end sidebar_ui section
 
 ##### Init survey columns -----
-.surv_lab <-  div(style = 'width:300px;',
-                  div(style = 'float:left;', 'strongly disagree'),
-                  div(style = 'float:right;', 'strongly agree')) 
+.surv_lab <- HTML("<div style=\"width:300px;\">
+                    <div style=\"float:left;\">strongly disagree</div>
+                    <div style=\"float:right;\">strongly agree</div>
+                  </div>")
 col_p1 <- column(4, 
                  h3(this_factor_nm_order[1]),
                  hr(),
@@ -341,155 +344,146 @@ col_p3 <- column(4,
 
 ##### main_ui -----
 main_ui <- mainPanel(
-#   ### _Intro mainPanel -----
-#   conditionalPanel(
-#     condition = "output.section == 'intro'",
-#     conditionalPanel(
-#       condition = "output.pg == 1", ## First page
-#       h3("Welcome to the study")
-#       , br()
-#       , p("This a completely voluntary study that will take approximately 45-50
-#           minutes to complete. If at any point you would like to stop,
-#           please let the invigilator know.")
-#       , br()
-#       , p("You are helping to compare the effectiveness of different
-#           multivariate data visualization techniques.
-#           The study is structured as follows:")
-#       , p("Training -- questions encouraged")
-#       , tags$ul(
-#         tags$li("Video training: you will first watch a five minute video
-#               explaining the techniques")
-#         , tags$li("Interface familiarity: you will get to explore the interface
-#                 for the different tasks, answer questions about the data, and
-#                 receive feedback")
-#       )
-#       , p("Evaluation, for each of the 3 visuals -- independent effort with no questions")
-#       , tags$ul(
-#         tags$li("Task 1 (x2 difficulties, 60 sec)")
-#         , tags$li("Task 2 (x2 difficulties, 180 sec)")
-#       )
-#       , p("Wrap up study")
-#       , tags$ul(
-#         tags$li("Complete survey")
-#         , tags$li("Save and exit from app")
-#         , tags$li("Collect a voucher for a free hot beverage on campus, from the invigilator.")
-#       )
-#       , p("We really appreciate your participation in this study.")
-#     ), ## End first page
-#     conditionalPanel(
-#       condition = "output.pg == 2", ## Video, second page
-#       h2("Video training"), tags$br(), tags$br(),
-#       p("Watch the following video before proceeding:"), tags$br(),
-#       ## Adding the 'a' tag to the sidebar linking external file
-#       p("Minimize the study and watch the training video."),
-#       #tags$a(href='training.mp4', target='blank', 'training video (4:17)'),
-#       tags$br(), tags$br(),
-#       p("If this link only contains audio let the invigilator know.")
-#     )  ## end of video, second page
-#   ), ## close conditionPanel -- intro section text
-# 
-#   ### _Training mainPanel -----
-#   conditionalPanel(
-#     condition = "output.section == 'training'",
-#     conditionalPanel(condition = "output.section_pg == 1", ## ui intro
-#                      h2("Training -- interface")
-#     ),
-#     conditionalPanel(condition = "output.section_pg == 2",
-#                      h2("Training -- task 1")
-#     ),
-#     conditionalPanel(condition = "output.section_pg == 3",
-#                      h2("Training -- task 1, set 2")
-#     ),
-#     conditionalPanel(condition = "output.section_pg == 4",
-#                      h2("Training -- task 2")
-#     ),
-#     conditionalPanel(condition = "output.section_pg == 5",
-#                      h2("Training -- task 2, set 2")
-#     ),
-#     conditionalPanel( ## splash page
-#       condition = "output.section_pg == 6",
-#       h1(), h1(), h1(),
-#       h1("Training complete, Great job!"),
-#       h4("Take a break and strech if you feel like it."),
-#       HTML("<h3><span style='color:red'>
-#           Keep in mind that we are evaluating the factors, not your performance.
-#           Don't worry if you don't fully understand the theory or find a task difficult.
-#            </span></h3>"),
-#       h4("Ask any final clarification questions. Then continue on to the
-#         evaluation section. Task 1 is limited to 1 minute, and task 2 is limited
-#         to 3 minutes (time displayed on top).")
-#     ),
-#     textOutput('stopwatch_disp'),
-#     hr()
-#   ), ## close training section main panel text
-# 
-#   ### _Task mainPanel -----
-#   conditionalPanel(
-#     condition = "output.section == 'task'",
-#     h2(textOutput('task_header')),
-#     textOutput('timer_disp'),
-#     hr()
-#   ), ## close task section conditional panel title text
-# 
-#   ### _Plot mainPanel ----
-#   conditionalPanel(
-#     condition = "(output.section == 'training' && output.section_pg != 6) ||
-#       output.section == 'task'", ## output.section_pg == 6 is splash page.
-#     htmlOutput("plot_msg"),
-#     plotOutput("pca_plot", height = "auto"),
-#     plotOutput("mtour_plot", height = "auto"),
-#     plotlyOutput("gtour_plot", height = "auto")
-#   ), ## Close plot conditional panel
-# 
-#   ### _Survey mainPanel -----
-#   conditionalPanel(
-#     condition = "output.section == 'survey'",
-#     conditionalPanel(
-#       condition = "output.is_saved == 0",
-#       selectInput("survey1", label = s_survey_questions[1],
-#                   choices = c("decline to answer",
-#                               "female",
-#                               "male",
-#                               "intergender/other")
-#       ),
-#       selectInput("survey2", label = s_survey_questions[2],
-#                   choices = c("decline to answer",
-#                               "19 or younger",
-#                               "20 to 29",
-#                               "30 to 39",
-#                               "40 or older")
-#       ),
-#       selectInput("survey2", label = s_survey_questions[3],
-#                   choices = c("decline to answer",
-#                               "English first language",
-#                               "English not first language")
-#       ),
-#       selectInput("survey3", label = s_survey_questions[4],
-#                   choices = c("decline to answer",
-#                               "High school",
-#                               "Undergraduate",
-#                               "Honors, masters, mba",
-#                               "Doctorate")
-#       ),
-#       h3("How much do you agree with the following statements?"),
-#       h4(s_survey_questions[5]),
-#       sliderInput("survey4", label = .surv_lab,
-#                   min = 1, max = 9, value = 5),
-#       h4(s_survey_questions[6]),
-#       sliderInput("survey5",label = .surv_lab,
-#                   min = 1, max = 9, value = 5),
-#       fluidRow(col_p1, col_p2, col_p3),
-#       hr(),
-#       actionButton("save_resp", "save responses")
-#     ),
-#     htmlOutput("save_msg"),
-#     conditionalPanel(
-#       condition = "output.is_saved == 1",
-#       h3("Thank you for participating!"),
-#       br(),
-#       h4("Let the invigilator know you have completed the study and have a good day.")
-#     )
-#   ) ## close survey condition panel
+  ### _Intro mainPanel -----
+  conditionalPanel(
+    condition = "output.section == 'intro'",
+    conditionalPanel(
+      condition = "output.pg == 1", ## First page
+      
+      h3("Welcome to the study"),
+      br(),
+      p("This a completely voluntary study that will take approximately 45-50
+          minutes to complete. If at any point you would like to stop,
+          please let the invigilator know."),
+      br(),
+      p("You are helping to compare the effectiveness of different
+          multivariate data visualization techniques.
+          The study is structured as follows:"),
+      p("Training -- questions encouraged"),
+      HTML("<ul>
+              <li>Video training: you will first watch a five minute video
+                  explaining the techniques</li>
+              <li>Interface familiarity: you will get to explore the interface
+                    for the different tasks, answer questions about the data, and
+                    receive feedback</li>
+            </ul>"),
+      p("Evaluation, for each of the 3 visuals -- independent effort with no questions"),
+      HTML("<ul>
+              <li>Task 1 (x2 difficulties, 60 sec)</li>
+              <li>Task 2 (x2 difficulties, 180 sec)</li>
+            </ul>"),
+      p("Wrap up study"),
+      HTML("<ul>
+              <li>Complete survey</li>
+              <li>Save and exit from app</li>
+            </ul>"),
+      p("We really appreciate your participation in this study.")
+    ), ## End first page
+    conditionalPanel(
+      condition = "output.pg == 2", ## Video, second page
+      h2("Video training"), br(), br(),
+      p("Watch the following video before proceeding:"), br(),
+      ## Adding the 'a' tag to the sidebar linking external file
+      p("Minimize the study and watch the training video."),
+      #a(href='training.mp4', target='blank', 'training video (4:17)'),
+      br(), br(),
+      p("If this link only contains audio let the invigilator know.")
+    )  ## end of video, second page
+  ), ## close conditionPanel -- intro section text
+  
+  ### _Training mainPanel -----
+  conditionalPanel(
+    condition = "output.section == 'training'",
+    conditionalPanel(condition = "output.section_pg == 1", ## ui intro
+                     h2("Training -- interface")
+    ),
+    conditionalPanel(condition = "output.section_pg == 2",
+                     h2("Training -- task 1")
+    ),
+    conditionalPanel(condition = "output.section_pg == 3",
+                     h2("Training -- task 1, set 2")
+    ),
+    conditionalPanel(condition = "output.section_pg == 4",
+                     h2("Training -- task 2")
+    ),
+    conditionalPanel(condition = "output.section_pg == 5",
+                     h2("Training -- task 2, set 2")
+    ),
+    conditionalPanel( ## splash page
+      condition = "output.section_pg == 6",
+      h1(), h1(), h1(),
+      h1("Training complete, Great job!"),
+      h4("Take a break and strech if you feel like it."),
+      HTML("<h3><span style='color:red'>
+          Keep in mind that we are evaluating the factors, not your performance.
+          Don't worry if you don't fully understand the theory or find a task difficult.
+           </span></h3>"),
+      h4("Ask any final clarification questions. Then continue on to the
+        evaluation section. Task 1 is limited to 1 minute, and task 2 is limited
+        to 3 minutes (time displayed on top).")
+    ),
+    textOutput('stopwatch_disp'),
+    hr()
+  ), ## close training section main panel text
+  
+  ### _Task mainPanel -----
+  conditionalPanel(
+    condition = "output.section == 'task'",
+    h2(textOutput('task_header')),
+    textOutput('timer_disp'),
+    hr()
+  ), ## close task section conditional panel title text
+  
+  ### _Plot mainPanel ----
+  conditionalPanel(
+    condition = "(output.section == 'training' && output.section_pg != 6) ||
+      output.section == 'task'", ## output.section_pg == 6 is splash page.
+    htmlOutput("plot_msg"),
+    plotOutput("pca_plot", height = "auto"),
+    plotOutput("mtour_plot", height = "auto"),
+    plotlyOutput("gtour_plot", height = "auto")
+  ), ## Close plot conditional panel
+  
+  ### _Survey mainPanel -----
+  conditionalPanel(
+    condition = "output.section == 'survey'",
+    conditionalPanel(
+      condition = "output.is_saved == 0",
+      selectInput("survey1", label = s_survey_questions[1],
+                  choices = c("decline to answer", "female", "male",
+                              "intergender/other")
+      ),
+      selectInput("survey2", label = s_survey_questions[2],
+                  choices = c("decline to answer", "19 or younger", "20 to 29", 
+                              "30 to 39", "40 or older")
+      ),
+      selectInput("survey2", label = s_survey_questions[3],
+                  choices = c("decline to answer", "Learned and used from birth", 
+                              "Fluent conversational", "Less than conversational")
+      ),
+      selectInput("survey3", label = s_survey_questions[4],
+                  choices = c("decline to answer", "High school", 
+                              "Undergraduate", "Honors, masters, mba", "Doctorate")
+      ),
+      h3("How much do you agree with the following statements?"),
+      h4(s_survey_questions[5]),
+      sliderInput("survey4", label = .surv_lab,
+                  min = 1, max = 9, value = 5),
+      h4(s_survey_questions[6]),
+      sliderInput("survey5",label = .surv_lab,
+                  min = 1, max = 9, value = 5),
+      fluidRow(col_p1, col_p2, col_p3),
+      hr(),
+      actionButton("save_resp", "save responses")
+    ),
+    htmlOutput("save_msg"),
+    conditionalPanel(
+      condition = "output.is_saved == 1",
+      h3("Thank you for participating!"),
+      br(),
+      h4("Let the invigilator know you have completed the study and have a good day.")
+    )
+  ) ## close survey condition panel
 ) ## close mainPanel() End of main_ui section.
 
 
@@ -503,7 +497,6 @@ if (do_disp_dev_tools == F){
   ui <- fluidPage(header_ui,
                   sidebar_ui,
                   main_ui, 
-                  
                   ### DEV helping displays:
                   actionButton("browser", "browser()"),
                   verbatimTextOutput("dev_msg"),
@@ -523,14 +516,14 @@ app_render_ <- function(slides, ## paste over spinifex render to add size
                         ...) {
   ## Initialize
   if (length(slides) == 2)
-    data_slides <- data.frame(slides[[2]])
-  basis_slides  <- data.frame(slides[[1]])
-  manip_var     <- attributes(slides$basis_slides)$manip_var
-  n_slides      <- max(basis_slides$slide)
-  p             <- nrow(basis_slides) / n_slides
-  d             <- ncol(basis_slides) - 2
-  angle         <- seq(0, 2 * pi, length = 360)
-  circ          <- data.frame(x = cos(angle), y = sin(angle))
+    data_slides  <- data.frame(slides[[2]])
+  basis_slides   <- data.frame(slides[[1]])
+  manip_var      <- attributes(slides$basis_slides)$manip_var
+  n_slides       <- max(basis_slides$slide)
+  p              <- nrow(basis_slides) / n_slides
+  d              <- ncol(basis_slides) - 2
+  angle          <- seq(0, 2 * pi, length = 360)
+  circ           <- data.frame(x = cos(angle), y = sin(angle))
   ## Scale basis axes
   if (axes != "off"){
     zero         <- app_set_axes_position(0, axes)
