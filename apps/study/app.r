@@ -1292,7 +1292,7 @@ server <- function(input, output, session) {
       rv$timer_active     <- TRUE
       rv$training_aes     <- FALSE
       
-      if (rv$pg == survey_start_pg) shinyjs::hide("next_pg_button")
+      #if (rv$pg == survey_start_pg) shinyjs::hide("next_pg_button")
       
       ## Clear task 1 response
       if (section_nm() %in% c("task", "training") & task() == 1) {

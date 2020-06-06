@@ -9,7 +9,7 @@ library("tidyr")
 library("dplyr")
 library("plotly")
 library("GGally")
-library("shinyjs")   ## help with handling conditionalPanels.
+# library("shinyjs")   ## help with handling conditionalPanels.
 library("lubridate") ## For timer
 library("loggit")    ## For logging
 library("git2r")     ## For logging latest git commits
@@ -155,7 +155,10 @@ survey_start_pg   <- task_start_pg + n_factors * n_blocks * n_tasks + 1
 header_ui <- fluidPage(
   titlePanel("Multivariate data visualization study"),
   actionButton("next_pg_button", "Next page"),
-  conditionalPanel("1 == 0", h1("CONDITIONAL PANEL WRONG!!"))
+  conditionalPanel(T, h1("THIS R CONDITION IS TRUE!!")),
+  conditionalPanel(F, h1("THIS R CONDITION IS FALSE!!")),
+  conditionalPanel("1 == 1", h1("THIS JS CONDITION IS TRUE!!")),
+  conditionalPanel("1 == 0", h1("THIS JS CONDITION IS FALSE!!")),
 )
 
 ##### sidebar_ui ----
@@ -477,13 +480,13 @@ main_ui <- mainPanel(
 
 ##### UI, combine panels -----
 if (do_disp_dev_tools == F){
-  ui <- fluidPage(useShinyjs(), ## Required in ui to use shinyjs.
+  ui <- fluidPage(#useShinyjs(), ## Required in ui to use shinyjs.
                   header_ui,
                   sidebar_ui,
                   main_ui
   )
 } else { ## if do_disp_dev_tools == T
-  ui <- fluidPage(useShinyjs(), ## Required in ui to use shinyjs.
+  ui <- fluidPage(#useShinyjs(), ## Required in ui to use shinyjs.
                   header_ui,
                   sidebar_ui,
                   main_ui, 
