@@ -154,23 +154,12 @@ survey_start_pg   <- task_start_pg + n_factors * n_blocks * n_tasks + 1
 ### header_ui -----
 header_ui <- fluidPage(
   titlePanel("Multivariate data visualization study"),
-  conditionalPanel(
-    condition = "output.section == 'training' && output.second_training == 'ask'",
-    div(style="display: inline-block;vertical-align:top;",
-        checkboxInput("second_training", "", value = FALSE),
-        HTML("<h3><span style='color:red'>
-                Do you want another training set?
-              </span></h3>")
-    )
-  ),
   actionButton("next_pg_button", "Next page")
 )
 
-
 # ##### sidebar_ui ----
 sidebar_ui <- conditionalPanel(
-  condition = "output.section == 'training'
-              || output.section == 'task'",
+  condition = "output.section == 'training' || output.section == 'task'",
   sidebarPanel(
     ##### _Training text -----
     conditionalPanel(
@@ -498,9 +487,6 @@ if (do_disp_dev_tools == F){
                   ### DEV helping displays:
                   actionButton("browser", "browser()"),
                   verbatimTextOutput("dev_msg"),
-                  h4("task2 ans ptile:"),   verbatimTextOutput("task2_ans_ptile"),
-                  h4("task2 ans:"),   verbatimTextOutput("task2_ans"),
-                  h4("task2 score:"), verbatimTextOutput("task2_score"),
                   tableOutput("resp_tbl")
   )
 }

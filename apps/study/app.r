@@ -1135,24 +1135,20 @@ server <- function(input, output, session) {
             sequentially to manipulate their contribution to the projection."
           
           if (delta >= 2){ ## >= 2 clusters too high, retry
-            rv$second_training <- TRUE
             this_msg <- paste0("That is little high, this data has ", ans, " clusters. ")
             if(section_pg() %in% c(2, 4)) {this_msg <- 
               paste0(this_msg, "Try again on another training set. ")}
           }
           if (delta <= -2){ ## <= 2 clusters too low, retry
-            rv$second_training <- TRUE
             this_msg <- paste0("That is little low, this data has ", ans, " clusters. ")
             if(section_pg() %in% c(2, 4)) {this_msg <- 
               paste0(this_msg, "Try again on another training set. ")}
           }
           if (abs(delta) == 1){ ## within 1 cluster, passes
-            if (section_pg() %in% c(2, 4)) rv$second_training <- "ask"
             this_msg <- paste0("Close, this data has ", ans, " clusters. 
             You have the right idea. As a reminder, ")
           }
           if (delta == 0){ ## exact answer, passes
-            if (section_pg() %in% c(2, 4))  rv$second_training <- "ask"
             this_msg <- paste0("That's correct, this data has ", ans, " clusters.
             As a reminder, ")
           }
@@ -1169,7 +1165,6 @@ server <- function(input, output, session) {
           bar   <- -6
           
           if (score < bar){ ## score not passing
-            rv$second_training <- TRUE
             this_msg <- 
               "That seems a little off. Remember that the importance of a 
               variable for distinguishing a group is related to variables in a 
@@ -1178,7 +1173,6 @@ server <- function(input, output, session) {
               projections most be looked at."
           }
           if (score >= bar){ ## score is passing
-            rv$second_training <- "ask"
             this_msg <- 
               "Very good! As a reminder, the importance of a variable for
               distinguishing a group is related to variables in a separating 
@@ -1281,13 +1275,8 @@ server <- function(input, output, session) {
       } ## End of writing to resp_tbl
       
       ### _New page ----
-      ## if second training not needed, skip a page.
-      if (section_nm() == "training" & block() %in% c(2, 4) &
-          !(rv$second_training == TRUE | input$second_training == TRUE)) {
-        rv$pg <- rv$pg + 1
-      }
+      ## Advance to the next page, reset variables
       rv$pg <- rv$pg + 1
-      
       ## Reset responses, ttr, and timer for next task
       output$plot_msg     <- renderText("")
       rv$pca_inter        <- 1L
@@ -1301,8 +1290,6 @@ server <- function(input, output, session) {
       rv$stopwatch        <- 0
       rv$timer_active     <- TRUE
       rv$training_aes     <- FALSE
-      rv$second_training  <- FALSE
-      updateCheckboxInput(session, "second_training", value = FALSE)
       
       if (rv$pg == survey_start_pg) shinyjs::hide("next_pg_button")
       
@@ -1407,16 +1394,15 @@ server <- function(input, output, session) {
     }
   })
   
-  ### Controls ui coditionalPanels 
+  ### Condition handling for ui coditionalPanels 
   output$is_saved        <- reactive(if (is.null(rv$save_file)) {0} else {1}) ## Control save_msg.
-  output$pg              <- reactive(rv$pg)              ## For hiding ui next_task button
-  output$section         <- reactive(section_nm())          ## For ui between sections
-  output$factor          <- reactive(factor_nm())           ## For sidebar inputs
-  output$task            <- reactive(task())             ## For titles, and response inputs
-  output$block           <- reactive(block())            ## For training ui
-  output$section_pg      <- reactive(section_pg())       ## For navigating training
-  output$second_training <- reactive(rv$second_training) ## For more training button
-  
+  output$pg              <- reactive(rv$pg)        ## For hiding ui next_task button
+  output$section         <- reactive(section_nm()) ## For ui between sections
+  output$factor          <- reactive(factor_nm())  ## For sidebar inputs
+  output$task            <- reactive(task())       ## For titles, and response inputs
+  output$block           <- reactive(block())      ## For training ui
+  output$section_pg      <- reactive(section_pg()) ## For navigating training
+
   outputOptions(output, "is_saved",        suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
   outputOptions(output, "pg",              suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "section",         suspendWhenHidden = FALSE) ##  "
@@ -1424,8 +1410,7 @@ server <- function(input, output, session) {
   outputOptions(output, "task",            suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "block",           suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "section_pg",      suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "second_training", suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
-  
+
   ### General task outputs
   output$task_header     <- renderText(task_header())
   output$pca_plot        <- renderPlot({pca_plot()}, height = pca_height)
