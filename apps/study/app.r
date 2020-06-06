@@ -2,6 +2,7 @@ source('global.r', local = TRUE)
 
 ####### Server function, for shiny app
 server <- function(input, output, session) {
+
   ##### Reavtive value initialization -----
   rv                  <- reactiveValues()
   rv$pg               <- 1L
@@ -1395,21 +1396,21 @@ server <- function(input, output, session) {
   })
   
   ### Condition handling for ui coditionalPanels 
-  output$is_saved        <- reactive(if (is.null(rv$save_file)) {0} else {1}) ## Control save_msg.
-  output$pg              <- reactive(rv$pg)        ## For hiding ui next_task button
-  output$section         <- reactive(section_nm()) ## For ui between sections
-  output$factor          <- reactive(factor_nm())  ## For sidebar inputs
-  output$task            <- reactive(task())       ## For titles, and response inputs
-  output$block           <- reactive(block())      ## For training ui
-  output$section_pg      <- reactive(section_pg()) ## For navigating training
+  output$is_saved   <- reactive(if (is.null(rv$save_file)) {0} else {1}) ## Control save_msg.
+  output$pg         <- reactive(rv$pg)        ## For hiding ui next_task button
+  output$section_nm <- reactive(section_nm()) ## For ui between sections
+  output$factor     <- reactive(factor_nm())  ## For sidebar inputs
+  output$task       <- reactive(task())       ## For titles, and response inputs
+  output$block      <- reactive(block())      ## For training ui
+  output$section_pg <- reactive(section_pg()) ## For navigating training
 
-  outputOptions(output, "is_saved",        suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
-  outputOptions(output, "pg",              suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "section",         suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "factor",          suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "task",            suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "block",           suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "section_pg",      suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "is_saved",   suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
+  outputOptions(output, "pg",         suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "section",    suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "factor",     suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "task",       suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "block",      suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "section_pg", suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
 
   ### General task outputs
   output$task_header     <- renderText(task_header())

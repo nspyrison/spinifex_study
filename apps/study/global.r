@@ -18,12 +18,12 @@ library("git2r")     ## For logging latest git commits
 ## browseURL("https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/")
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## Uncomment the following line to apply logging
-do_log <- TRUE
-do_disp_dev_tools <- TRUE
+do_log <- F
+do_disp_dev_tools <- F
 #### Simulated data series, 
 ## "series" or iteration of data to look at. Should be an even hundred
 sim_series <- 300
-
+cat(do_log)
 
 ## Set log file, finding the first unused number, will need to write to a google sheet or otherwise store a file.
 log_base <- paste0("log_", Sys.info()[4], "_")
@@ -42,7 +42,7 @@ if (do_log == T){
   log_num  <- sample(1:3, 1)
   log_file <- "Logging is off! Log and responses not being recorded."
 }
-
+cat("do_log, log_file: ", do_log, log_file, " /n")
 
 ## Set group (factor order) based on log number mod 3
 this_group <- 1 + (log_num - 1) %% 3 ## Expects [1,2,3] 
@@ -75,7 +75,7 @@ cat(context_msg)
 onStop(function() {
   cat(context_msg)
   loggit("INFO", "=====Spinifex study app stop.=====")
-  
+  set_logfile(logfile = NULL, confirm = TRUE)
   ## Try to autosave if not saved and do_log == T?
   #### note that rv$resp_tbl is out of scope to the global file.
 })
@@ -154,16 +154,17 @@ survey_start_pg   <- task_start_pg + n_factors * n_blocks * n_tasks + 1
 ### header_ui -----
 header_ui <- fluidPage(
   titlePanel("Multivariate data visualization study"),
-  actionButton("next_pg_button", "Next page")
+  actionButton("next_pg_button", "Next page"),
+  conditionalPanel("1 == 0", h1("CONDITIONAL PANEL WRONG!!"))
 )
 
-# ##### sidebar_ui ----
+##### sidebar_ui ----
 sidebar_ui <- conditionalPanel(
-  condition = "output.section == 'training' || output.section == 'task'",
+  condition = "output.section_nm == 'training' || output.section_nm == 'task'",
   sidebarPanel(
     ##### _Training text -----
     conditionalPanel(
-      condition = "output.section == 'training'",
+      condition = "output.section_nm == 'training'",
       conditionalPanel( ## interface familiarity
         condition = "output.section_pg == 1",
         p("In this study, you will be working with 3 visualization techniques of
@@ -206,7 +207,7 @@ sidebar_ui <- conditionalPanel(
     
     ##### _Training control inputs -----
     ## Factor selection
-    conditionalPanel(condition = "output.section == 'training' && output.section_pg < 6",
+    conditionalPanel(condition = "output.section_nm == 'training' && output.section_pg < 6",
                      radioButtons(inputId = "factor", label = "Factor",
                                   choices = fct_nm_vect,
                                   selected = fct_nm_vect[1],
@@ -214,7 +215,7 @@ sidebar_ui <- conditionalPanel(
     ), ## PCA axis selection
     conditionalPanel(
       condition = "(output.factor == 'pca' || output.factor == 'manual') ||
-                  (output.section == 'training' && input.factor != 'grand')",
+                  (output.section_nm == 'training' && input.factor != 'grand')",
       fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis",
                                       choices = paste0("PC", 1:4), selected = "PC1")),
                column(6, radioButtons(inputId = "y_axis", label = "y axis",
@@ -222,7 +223,7 @@ sidebar_ui <- conditionalPanel(
       )
     ), ## Manip var/ magnitude selection
     conditionalPanel(condition = "output.factor == 'manual' ||
-                       (output.section == 'training' && input.factor == 'manual')",
+                       (output.section_nm == 'training' && input.factor == 'manual')",
                      selectInput("manip_var_nm", "Manip var", "<none>"),
                      sliderInput("manip_slider", "Contribution",
                                  min = 0, max = 1, value = 0, step = .1)
@@ -333,7 +334,7 @@ col_p3 <- column(4,
 main_ui <- mainPanel(
   ### _Intro mainPanel -----
   conditionalPanel(
-    condition = "output.section == 'intro'",
+    condition = "output.section_nm == 'intro'",
     conditionalPanel(
       condition = "output.pg == 1", ## First page
       
@@ -367,7 +368,7 @@ main_ui <- mainPanel(
       p("We really appreciate your participation in this study.")
     ), ## End first page
     conditionalPanel(
-      condition = "output.pg == 2", ## Video, second page
+      condition = "output.pg == 2", ## Video
       h2("Video training"), br(), br(),
       p("Watch the following video before proceeding:"), br(),
       ## Adding the 'a' tag to the sidebar linking external file
@@ -375,12 +376,12 @@ main_ui <- mainPanel(
       #a(href='training.mp4', target='blank', 'training video (4:17)'),
       br(), br(),
       p("If this link only contains audio let the invigilator know.")
-    )  ## end of video, second page
-  ), ## close conditionPanel -- intro section text
+    )  ## End of video
+  ), ## Close conditionalPanel -- intro section text
   
   ### _Training mainPanel -----
   conditionalPanel(
-    condition = "output.section == 'training'",
+    condition = "output.section_nm == 'training'",
     conditionalPanel(condition = "output.section_pg == 1", ## ui intro
                      h2("Training -- interface")
     ),
@@ -415,7 +416,7 @@ main_ui <- mainPanel(
   
   ### _Task mainPanel -----
   conditionalPanel(
-    condition = "output.section == 'task'",
+    condition = "output.section_nm == 'task'",
     h2(textOutput('task_header')),
     textOutput('timer_disp'),
     hr()
@@ -423,8 +424,8 @@ main_ui <- mainPanel(
   
   ### _Plot mainPanel ----
   conditionalPanel(
-    condition = "(output.section == 'training' && output.section_pg != 6) ||
-      output.section == 'task'", ## output.section_pg == 6 is splash page.
+    condition = "(output.section_nm == 'training' && output.section_pg != 6) ||
+      output.section_nm == 'task'", ## output.section_pg == 6 is splash page.
     htmlOutput("plot_msg"),
     plotOutput("pca_plot", height = "auto"),
     plotOutput("mtour_plot", height = "auto"),
@@ -433,7 +434,7 @@ main_ui <- mainPanel(
   
   ### _Survey mainPanel -----
   conditionalPanel(
-    condition = "output.section == 'survey'",
+    condition = "output.section_nm == 'survey'",
     conditionalPanel(
       condition = "output.is_saved == 0",
       selectInput("survey1", label = s_survey_questions[1],
@@ -476,12 +477,14 @@ main_ui <- mainPanel(
 
 ##### UI, combine panels -----
 if (do_disp_dev_tools == F){
-  ui <- fluidPage(header_ui,
+  ui <- fluidPage(useShinyjs(), ## Required in ui to use shinyjs.
+                  header_ui,
                   sidebar_ui,
                   main_ui
   )
 } else { ## if do_disp_dev_tools == T
-  ui <- fluidPage(header_ui,
+  ui <- fluidPage(useShinyjs(), ## Required in ui to use shinyjs.
+                  header_ui,
                   sidebar_ui,
                   main_ui, 
                   ### DEV helping displays:
