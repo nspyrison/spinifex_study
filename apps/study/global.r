@@ -9,8 +9,7 @@ library("tidyr")
 library("dplyr")
 library("plotly")
 library("GGally")
-# library("shinyjs")   ## More control of shiny widgets
-## not used yet
+library("shinyjs")   ## help with handling conditionalPanels.
 library("lubridate") ## For timer
 library("loggit")    ## For logging
 library("git2r")     ## For logging latest git commits
@@ -20,7 +19,7 @@ library("git2r")     ## For logging latest git commits
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## Uncomment the following line to apply logging
 do_log <- TRUE
-do_disp_dev_tools <- FALSE
+do_disp_dev_tools <- TRUE
 #### Simulated data series, 
 ## "series" or iteration of data to look at. Should be an even hundred
 sim_series <- 300
@@ -157,15 +156,14 @@ header_ui <- fluidPage(
   titlePanel("Multivariate data visualization study"),
   conditionalPanel(
     condition = "output.section == 'training' && output.second_training == 'ask'",
-    HTML("<h3><span style='color:red'>
-          Do you want another training set?
-           </span></h3>"),
-    checkboxInput("second_training", "", value = FALSE)
+    div(style="display: inline-block;vertical-align:top;",
+        checkboxInput("second_training", "", value = FALSE),
+        HTML("<h3><span style='color:red'>
+                Do you want another training set?
+              </span></h3>")
+    )
   ),
-  conditionalPanel(
-    condition = "output.pg < 22",
-    actionButton("next_pg_button", "Next page")
-  )
+  actionButton("next_pg_button", "Next page")
 )
 
 
@@ -422,7 +420,7 @@ main_ui <- mainPanel(
         evaluation section. Task 1 is limited to 1 minute, and task 2 is limited
         to 3 minutes (time displayed on top).")
     ),
-    textOutput('stopwatch_disp'),
+    textOutput('timer_disp'),
     hr()
   ), ## close training section main panel text
   
@@ -683,5 +681,5 @@ app_vect2str <- function(vect){
 }
 
 app_html_red <- function(string){
-  paste0("<h3><span style='color:red'>", string, "</span></h3>")
+  paste0("<strong><span style='color:red'>", string, "</span><strong>")
 }

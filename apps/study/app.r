@@ -25,7 +25,7 @@ server <- function(input, output, session) {
   p <- reactive({ ncol(dat()) })
   n_cl <- reactive({ length(unique(attributes(s_dat[[block()]])$cl_lvl)) })
   
-  section <- reactive({ ## text name of section
+  section_nm <- reactive({ ## text name of section
     #req(rv$pg)
     if (rv$pg == 1) {return("intro")}
     if (rv$pg == 2) {return("video")}
@@ -40,29 +40,29 @@ server <- function(input, output, session) {
   })
   section_pg <- reactive({ ## current page num of this section.
     req(rv$pg)
-    if (section() == "intro") {return(rv$pg)}
-    if (section() == "training"){
+    if (section_nm() == "intro") {return(rv$pg)}
+    if (section_nm() == "training"){
       return(rv$pg - (training_start_pg - 1))
     }
-    if (section() == "task"){
+    if (section_nm() == "task"){
       return(rv$pg - (task_start_pg - 1))
     }
-    if (section() == "survey") {return(1)}
+    if (section_nm() == "survey") {return(1)}
   })
   period <- reactive({1 + ((section_pg() - 1) %/% (n_tasks * n_blocks))})
-  factor <- reactive({ ## ~ for group 1: PCA, gtour, mtour
-    if (section() == "training") return("training")
-    if (section() == "task") return(this_factor_nm_order[period()])
+  factor_nm <- reactive({ ## ~ for group 1: PCA, gtour, mtour
+    if (section_nm() == "training") return(input$factor)
+    if (section_nm() == "task") return(this_factor_nm_order[period()])
     return("NONE / NA")
   })
   task <- reactive({ ## in 1,2
-    req(section(), section_pg(), period())
-    if (section() == "training") return(c(0, 1, 1, 2, 2, 0)[section_pg()])
+    req(section_nm(), section_pg(), period())
+    if (section_nm() == "training") return(c(0, 1, 1, 2, 2, 0)[section_pg()])
     if (!is.numeric(1 + ((section_pg() - 1) %/% n_blocks) - 2 * (period() - 1))) browser()
     return(1 + ((section_pg() - 1) %/% n_blocks) - 2 * (period() - 1))
   })
   block <- reactive({ ## in 1,2
-    if (section() == "training") return(c(0, "t", "t", "t", "t", 0)[section_pg()])
+    if (section_nm() == "training") return(c(0, "t", "t", "t", "t", 0)[section_pg()])
     return((section_pg() - (n_blocks * (task() - 1))) %% (n_tasks * n_blocks))
   })
   sim <- reactive({ 
@@ -70,7 +70,7 @@ server <- function(input, output, session) {
   })
   task_time <- reactive({
     req(task()) ## Yay, can req() reactive functions!
-    if (factor() == "grand") {adj <- 1
+    if (factor_nm() == "grand") {adj <- 1
     } else adj <- 0
     if (task() == 1) return(60  + adj)
     if (task() == 2) return(180 + adj)
@@ -78,7 +78,7 @@ server <- function(input, output, session) {
   })
   time_elapsed <- reactive({ as.integer(task_time() - rv$timer) })
   dat <- reactive({ ## Simulation df with attachments.
-    if (section() == "training") {
+    if (section_nm() == "training") {
       return(s_t_dat[[section_pg()]])
     } else { ## evaluation section.
       req(sim())
@@ -86,7 +86,7 @@ server <- function(input, output, session) {
     }
   })
   task_tpath <- reactive({
-    if (section() == "training") {
+    if (section_nm() == "training") {
       return(s_t_tpath[[section_pg()]])
     } else {
       return(s_tpath[[sim()]]) 
@@ -97,30 +97,48 @@ server <- function(input, output, session) {
     return(which(colnames(dat()) == input$manip_var_nm))
   }) 
   pca_active <- reactive({
-    req(rv$timer_active, input$factor)
-    if ((rv$timer_active == TRUE & factor() == "pca") |
-        (section() == "training" & input$factor == "pca")) {
+    req(rv$timer_active, factor_nm())
+    if (factor_nm() == "pca") {
       return(TRUE)
     } else return(FALSE)
   })
   grand_active <- reactive({
     req(rv$timer_active, input$factor)
-    if ((rv$timer_active == TRUE & factor() == "grand") | 
-        (section() == "training" & input$factor == "grand")) {
+    if (factor_nm() == "grand") {
       return(TRUE)
     } else return(FALSE)
   })
   manual_active <- reactive({
     req(rv$timer_active, input$factor)
-    if ((rv$timer_active == TRUE & factor() == "manual") | 
-        (section() == "training" & input$factor == "manual")) {
+    if (factor_nm() == "manual") {
       return(TRUE)
     } else return(FALSE)
   })
   task_header <- reactive({
-    paste0("Evaluation -- factor: ", factor(), ", task ", task() 
+    paste0("Evaluation -- factor: ", factor_nm(), ", task ", task() 
            # , ", difficulty: ", s_difficulty[block()] ## Don't show difficulty to participants.
     )
+  })
+  timer_info <- reactive({
+    paste0("time_elapsed() of task_time(): ", time_elapsed(), " of ", task_time())
+  })
+  page_info <- reactive({
+    paste0(sep = " /n",
+           paste0("rv$pg 'of n': ", rv$pg, " of ", survey_start_pg),
+           paste0("section_nm(), 'pg' section_pg(): ", section_nm(),
+                  ", pg ", section_pg()),
+           paste0("task_header(): ", task_header())
+    )
+  })
+  pftb <- reactive({
+    paste("period(), factor_nm(), task(), block(), sim(): ", period(), factor_nm(), task(), block(), sim())
+  })
+  resp_info <- reactive({
+    .t <- task()
+    paste0(sep = " /n",
+           paste0("rv$task_response: ", rv$task_response[.t]), 
+           paste0("rv$task_ttr: ", rv$task_ttr[.t]),
+           pftb())
   })
   ## Throttle manip_slider
   manip_slider   <- reactive({
@@ -246,12 +264,12 @@ server <- function(input, output, session) {
   
   ### PCA plot reactive -----
   pca_height <- function(){
-    if (pca_active() == TRUE) {
+    if (pca_active() == T) {
       return(600)
     } else return(1) 
   }
   pca_plot <- reactive({
-    if (pca_active() == TRUE) {
+    if (pca_active() == T) {
       dat <- dat()
       dat_std <- tourr::rescale(dat)
       cluster <- attributes(dat)$cl_lvl
@@ -260,7 +278,7 @@ server <- function(input, output, session) {
       USE_AXES <- TRUE
       USE_AES  <- TRUE
       if (task() == 1) {
-        if(rv$training_aes == FALSE) { # During training
+        if(rv$training_aes == FALSE) {
           USE_AES  <- FALSE
         } 
       }
@@ -343,12 +361,12 @@ server <- function(input, output, session) {
   
   ### Grand tour plot reactive -----
   gtour_height <- function(){
-    if (grand_active() == TRUE) {
+    if (grand_active() == T) {
       return(600)
     } else return(1) 
   }
   gtour_plot <- reactive({ 
-    if (grand_active() == TRUE) {
+    if (grand_active() == T) {
       ## data init
       dat <- dat()
       dat_std <- tourr::rescale(dat)
@@ -398,7 +416,7 @@ server <- function(input, output, session) {
         gg <- gg + 
           geom_point(data_df, 
                      mapping = aes(x = x, y = y, frame = slide), 
-                     size = 1.7) ## smaller size for plotly
+                     size = 1.7) ## Smaller size for plotly
       } else { ## if USE_AES == TRUE then apply more aes.
         gg <- gg +
           geom_point(data_df, 
@@ -662,7 +680,7 @@ server <- function(input, output, session) {
       updateRadioButtons(session, "x_axis", choices = choices, selected = x_axis_out)
       loggit("INFO", paste0("x_axis set to ", input$x_axis, 
                             ", same as y_axis; x_axis bumped to ", x_axis_out, "."),
-             paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+             paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
       )
       
       output$plot_msg <- renderText(
@@ -684,7 +702,7 @@ server <- function(input, output, session) {
       updateRadioButtons(session, "y_axis", choices = choices, selected = y_axis_out)
       loggit("INFO", paste0("y_axis set to ", input$y_axis, 
                             ", same as x_axis; y_axis bumped to ", y_axis_out, "."),
-             paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+             paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
       )
       
       output$plot_msg <- renderText(
@@ -698,7 +716,7 @@ server <- function(input, output, session) {
     dat()
     input$x_axis
     input$y_axis
-    factor()
+    factor_nm()
     input$factor
   }, {
     if (manual_active() == TRUE){
@@ -714,7 +732,7 @@ server <- function(input, output, session) {
              paste0("New basis set (from dat/axes) "), 
              paste0("x_axis: ", x, ", y_axis: ", y, ". rv$curr_basis: ",
                     paste0(round(rv$curr_basis, 2), e = ", "),
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -726,7 +744,7 @@ server <- function(input, output, session) {
       loggit("INFO", paste0("Slider value changed: ", manip_slider_t()),
              paste0("rv$curr_basis updated: ",
                     paste0(round(rv$curr_basis, 2), e = ", "), 
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -751,7 +769,7 @@ server <- function(input, output, session) {
     {
       manip_var()
       dat()
-      factor()
+      factor_nm()
       input$factor
       input$x_axis
       input$y_axis
@@ -769,7 +787,7 @@ server <- function(input, output, session) {
         loggit("INFO", 
                paste0("New manip slider value (from dat/axes/manip_var)."), 
                paste0("manip_slider: ", .val, 
-                      paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                      paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
                )
         )
       }
@@ -785,7 +803,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Task 1 entered.", 
              paste0("Response: ", rv$task_response[1], 
                     ". ttr: ", rv$task_ttr[1], ".",
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -798,7 +816,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Task 2, very important, clusters ab response entered.", 
              paste0("Response: ", rv$task_response[1], 
                     ". ttr: ", rv$task_ttr[1], ".",
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -810,7 +828,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Task 2, somewhat important clusters ab response entered.", 
              paste0("Response: ", rv$task_response[2], 
                     ". ttr: ", rv$task_ttr[2], ".",
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -822,7 +840,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Task 2, very important, clusters bc response entered.", 
              paste0("Response: ", rv$task_response[3], 
                     ". ttr: ", rv$task_ttr[3], ".",
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -834,7 +852,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Task 2, somewhat important, clusters bc response entered.", 
              paste0("Response: ", rv$task_response[4], 
                     ". ttr: ", rv$task_ttr[4], ".",
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -865,7 +883,6 @@ server <- function(input, output, session) {
       input$tsk2_resp_some_ab
       input$tsk2_resp_very_bc
       input$tsk2_resp_some_bc
-      
     }, {
       rv$resp_inter <- rv$resp_inter + 1L
     }
@@ -880,7 +897,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 1 entered.", 
              paste0("Response: ", rv$task_response[i], 
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -893,7 +910,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 2 entered.", 
              paste0("Response: ", rv$task_response[i], 
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -906,7 +923,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 3 entered.", 
              paste0("Response: ", rv$task_response[i], 
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -919,7 +936,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 4 entered.", 
              paste0("Response: ", rv$task_response[i], 
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -932,7 +949,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 5 entered.", 
              paste0("Response: ", rv$task_response[i], 
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -945,7 +962,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 6 entered.", 
              paste0("Response: ", rv$task_response[i], 
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -958,7 +975,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 7 entered.", 
              paste0("Response: ", rv$task_response[i], 
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -971,7 +988,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 8 entered.", 
              paste0("Response: ", rv$task_response[i], 
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -984,7 +1001,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 9 entered.", 
              paste0("Response: ", rv$task_response[i], 
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -997,7 +1014,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 10 entered.", 
              paste0("Response: ", rv$task_response[i], 
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -1010,7 +1027,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 11 entered.", 
              paste0("Response: ", rv$task_response[i], 
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -1023,7 +1040,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 12 entered.", 
              paste0("Response: ", rv$task_response[i], 
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -1036,7 +1053,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 13 entered.", 
              paste0("Response: ", rv$task_response[i], 
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -1049,7 +1066,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 14 entered.", 
              paste0("Response: ", rv$task_response[i], 
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -1062,7 +1079,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 15 entered.", 
              paste0("Response: ", rv$task_response[i], 
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -1075,7 +1092,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 16 entered.", 
              paste0("Response: ", rv$task_response[i], 
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -1088,7 +1105,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 17 entered.", 
              paste0("Response: ", rv$task_response[i], 
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", ")
+                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
              )
       )
     }
@@ -1104,7 +1121,7 @@ server <- function(input, output, session) {
       
       ### _Training evaluation -----
       ## if training section, evaluate response
-      if (section() == "training") {
+      if (section_nm() == "training") {
         this_msg <- ""
         ## Evaluate training task 1 
         if (task() == 1 & rv$training_aes == FALSE) {
@@ -1179,9 +1196,9 @@ server <- function(input, output, session) {
       
       ##### _rv$resp_tbl -----
       ## Write reponses and ttr to resp_tbl
-      if (section() == "task" |
-          (section() == "training" & task() %in% 1:2)) {
-        .ins_row_start <- which(rv$resp_tbl$factor  == factor() &
+      if (section_nm() == "task" |
+          (section_nm() == "training" & task() %in% 1:2)) {
+        .ins_row_start <- which(rv$resp_tbl$factor  == factor_nm() &
                                   rv$resp_tbl$task  == task() &
                                   rv$resp_tbl$block == block())[1]
         .ins_row_end   <- .ins_row_start + length(rv$task_response) - 1
@@ -1194,7 +1211,7 @@ server <- function(input, output, session) {
         if (min(rv$task_ttr) == "(default)" & !is.na(time_elapsed())){
           .task_concern <- "Yes, ttr defaulted. Consider removing."}
         if (max(rv$task_ttr) > task_time() + 30 & 
-            !is.na(time_elapsed()) & factor() == "task"){
+            !is.na(time_elapsed()) & factor_nm() == "task"){
           .task_concern <- "YES, time elaspsed. REMOVE."}
         if (task() == 2 & !is.na(time_elapsed())){
           ab_inter <- intersect(input$tsk2_resp_very_ab, input$tsk2_resp_some_ab)
@@ -1244,11 +1261,10 @@ server <- function(input, output, session) {
         
         ## Did task time run out
         .plot_elapsed <- NA
-        if (section() == "task"){
+        if (section_nm() == "task"){
           if (time_elapsed() >  task_time()) .plot_elapsed <- 1
           if (time_elapsed() <= task_time()) .plot_elapsed <- 0
         }
-        
         
         rv$resp_tbl$pca_inter[.rows]       <- rv$pca_inter
         rv$resp_tbl$manual_inter[.rows]    <- rv$manual_inter
@@ -1266,7 +1282,7 @@ server <- function(input, output, session) {
       
       ### _New page ----
       ## if second training not needed, skip a page.
-      if (section() == "training" & block() %in% c(2, 4) &
+      if (section_nm() == "training" & block() %in% c(2, 4) &
           !(rv$second_training == TRUE | input$second_training == TRUE)) {
         rv$pg <- rv$pg + 1
       }
@@ -1288,8 +1304,10 @@ server <- function(input, output, session) {
       rv$second_training  <- FALSE
       updateCheckboxInput(session, "second_training", value = FALSE)
       
+      if (rv$pg == survey_start_pg) shinyjs::hide("next_pg_button")
+      
       ## Clear task 1 response
-      if (section() %in% c("task", "training") & task() == 1) {
+      if (section_nm() %in% c("task", "training") & task() == 1) {
           updateNumericInput(session, "tsk1_resp", "",
                              value = 0, min = 0, max = 10)
       }
@@ -1298,23 +1316,18 @@ server <- function(input, output, session) {
       n_rows <- 0
       if (task() == 1){n_rows <- 1} 
       if (task() == 2){n_rows <- 4}
-      if (section() == "survey") {n_rows <- 1}
+      if (section_nm() == "survey") {n_rows <- 1}
       def <- "default"
       if (task() == 1){def <- "0 (default)"}
       if (task() == 2){def <- "none (default)"}
-      if (section() == "survey") {def <- c(rep("decline to answer (default)", 3),
+      if (section_nm() == "survey") {def <- c(rep("decline to answer (default)", 3),
                                               rep("5 (default)", n_survey_questions - 3))}
       rv$task_response <- rep(def, n_rows)
       rv$task_ttr <- rep("(default)", n_rows)
-      loggit("INFO", paste0("Next page: section ", section(), 
-                            ", section page ", section_pg()),
-             paste0("rv$pg: ", rv$pg, 
-                    ". section(): ", section(),
-                    ". period(): ", period(),
-                    ". factor(): ", factor(),
-                    ". task(): ", task(),
-                    ". block(): ", block(), 
-                    ". Wrote previous responses to rv$resp_tbl."))
+      loggit("INFO", paste0("Next page:"),
+             cat("Wrote previous responses to rv$resp_tbl. Next page's page_info(): /n", 
+                 page_info())
+      )
     }
   })
   
@@ -1372,23 +1385,24 @@ server <- function(input, output, session) {
       rv$timer     <- rv$timer - 1
       rv$stopwatch <- rv$stopwatch + 1
     })
-    if(rv$timer < 0 & section() == "task" & rv$timer_active == TRUE){
+    if(rv$timer < 0 & section_nm() == "task" & rv$timer_active == TRUE){
       rv$timer_active <- FALSE
       loggit("INFO", "Timer elapsed.", 
-             paste("factor,task,block,period:@", factor(), task(), block(), period(), sep = ", "))
+             paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", "))
     }
   })
   
   
   ##### Outputs -----
   output$timer_disp <- renderText({
-    if (section() == "task") { ## disp timer if not an intro page.
+    if (section_nm() == "task") { ## Disp timer counting down if on a task.
       if (rv$timer < 1) {return("Time has expired, please enter your best guess and proceed.")
-      } else {return(paste0("Time left: ", lubridate::seconds_to_period(rv$timer)))}
-    }
-  })
-  output$stopwatch_disp <- renderText({
-    if (section() == "training" & block() != 6) { ## disp timer if not an intro page.
+      } else {return(
+        paste0("Time left: ", lubridate::seconds_to_period(rv$timer)), 
+        " of ", lubridate::seconds_to_period(task_time()))
+      }
+    } 
+    if (section_nm() == "training" & block() != 6) { ## Disp timer Counting up if in training.
       return(paste0("Time elapsed this task: ", lubridate::seconds_to_period(rv$stopwatch)))
     }
   })
@@ -1396,8 +1410,8 @@ server <- function(input, output, session) {
   ### Controls ui coditionalPanels 
   output$is_saved        <- reactive(if (is.null(rv$save_file)) {0} else {1}) ## Control save_msg.
   output$pg              <- reactive(rv$pg)              ## For hiding ui next_task button
-  output$section         <- reactive(section())          ## For ui between sections
-  output$factor          <- reactive(factor())           ## For sidebar inputs
+  output$section         <- reactive(section_nm())          ## For ui between sections
+  output$factor          <- reactive(factor_nm())           ## For sidebar inputs
   output$task            <- reactive(task())             ## For titles, and response inputs
   output$block           <- reactive(block())            ## For training ui
   output$section_pg      <- reactive(section_pg())       ## For navigating training
@@ -1422,21 +1436,17 @@ server <- function(input, output, session) {
   output$task2_ans       <- renderPrint({task2_ans()})
   output$task2_score     <- renderPrint({task2_score()})
   
-  
   ### Dev msg -----
-  output$dev_msg <- renderPrint(
-    cat("dev msg -- ",
-        paste0("rv$this_sign: ",      rv$this_sign),
-        paste0("this resp_tbl row: ", factor(), "|", task(), block()),
-        paste0("rv$pg: ",             rv$pg),
-        paste0("section() ",          section()),
-        paste0("section_pg() ",       section_pg()),
-        paste0("factor(): ",          factor()),
-        paste0("task(): ",            task()),
-        paste0("block(): ",           block()),
-        paste0("rv$timer: ",          rv$timer),
-        sep = " \n"))
-  }
+  output$dev_msg <- renderPrint({
+    cat("dev msg -- \n",
+        page_info(),
+        task_header(),
+        timer_info(),
+        pftb(),
+    )
+  }) 
+  
+} ## End server function
   
   ### Combine as shiny app.
   shinyApp(ui = ui, server = server)
