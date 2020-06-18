@@ -59,7 +59,6 @@ server <- function(input, output, session) {
   task <- reactive({ ## in 1,2
     req(section_nm(), section_pg(), period())
     if (section_nm() == "training") return(c(0, 1, 1, 2, 2, 0)[section_pg()])
-    if (!is.numeric(1 + ((section_pg() - 1) %/% n_blocks) - 2 * (period() - 1))) browser()
     return(1 + ((section_pg() - 1) %/% n_blocks) - 2 * (period() - 1))
   })
   block <- reactive({ ## in 1,2

@@ -1,0 +1,13 @@
+name: study
+title: study
+username:
+account: ebsmonash
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2460477
+bundleId: 3285590
+url: https://ebsmonash.shinyapps.io/study/
+when: 1592452543.71887
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: output|www

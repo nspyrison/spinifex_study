@@ -18,7 +18,7 @@ library("git2r")     ## For logging latest git commits
 ## browseURL("https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/")
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## Uncomment the following line to apply logging
-do_log <- F
+do_log <- T
 do_disp_dev_tools <- F
 #### Simulated data series, 
 ## "series" or iteration of data to look at. Should be an even hundred
@@ -645,7 +645,6 @@ app_oblique_frame <-
 
 app_set_axes_position <- function(x, axes) {
   if (length(x) == 1) {x <- data.frame(x = x, y = x)}
-  if (ncol(x) != 2) browser()
   position <- match.arg(axes, c("center", "bottomleft", "off", "left"))
   if (position == "off") return()
   if (position == "center") {
