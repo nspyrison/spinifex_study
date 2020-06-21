@@ -18,7 +18,7 @@ library("loggit")    ## For logging
 ## browseURL("https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/")
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## Uncomment the following line to apply logging
-do_log <- T
+do_log <- F
 do_disp_dev_tools <- F
 #### Simulated data series, 
 ## "series" or iteration of data to look at. Should be an even hundred
@@ -32,7 +32,7 @@ log_file <- ""
 if (do_log == T){
   log_name <- sprintf(paste0(log_base, "%03d"), log_num)
   log_file <- paste0(log_name, ".json")
-  while (file.exists(log_file)){ ## Find an unused log number
+  while (file.exists(log_file)) { ## Find an unused log number
     log_num  <- log_num + 1
     log_name <- sprintf(paste0(log_base, "%03d"), log_num)
     log_file <- paste0(log_name, ".json")
@@ -88,13 +88,16 @@ s_task2_questions <- c("Very important distinguishing clusters 'a' from 'b'",
                        "Very important distinguishing clusters 'b' from 'c'",
                        "Somewhat important distinguishing clusters 'b' from 'c'")
 
-## Survey questions
-s_survey_questions <- c("What gender are you?",
-                        "What age are you?",
+## Survey questions; n = 21 = 9 + 12
+s_survey_questions <- c("What sex are you?",
+                        "What age group do you belong to?",
                         "What is your English proficiency?",
                         "What is your highest completed education?",
                         "I am experienced with data visualization.",
-                        "I have education in multivariate statistical analysis.",
+                        "I am experienced with tabular data.",
+                        "I am experienced with clustering classification techniques.",
+                        "I am experienced with multivariate statistical analysis.",
+                        "I am experienced with machine learning.",
                         rep(c("I was already familiar with this visualization.",
                               "I found this visualization easy to use.",
                               "I felt confident in my answers with this visualization.",
@@ -278,55 +281,55 @@ sidebar_ui <- conditionalPanel(
                     <div style=\"float:left;\">strongly disagree</div>
                     <div style=\"float:right;\">strongly agree</div>
                   </div>")
+.s_fct_start <- 9
 col_p1 <- column(4, 
                  h3(this_factor_nm_order[1]),
                  hr(),
-                 h4(s_survey_questions[7]),
-                 sliderInput("survey7",label = .surv_lab,
-                             min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[8]),
-                 sliderInput("survey8",label = .surv_lab,
-                             min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[9]),
-                 sliderInput("survey9", label = .surv_lab,
-                             min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[10]),
-                 sliderInput("survey10",
-                             label = .surv_lab,
-                             min = 1, max = 9, value = 5)
+                 h4(s_survey_questions[.s_fct_start + 1]),
+                 sliderInput(paste0("survey", .s_fct_start + 1), 
+                             label = .surv_lab, min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[.s_fct_start + 2]),
+                 sliderInput(paste0("survey", .s_fct_start + 2),
+                             label = .surv_lab, min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[.s_fct_start + 3]),
+                 sliderInput(paste0("survey", .s_fct_start + 3),
+                             label = .surv_lab, min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[.s_fct_start + 4]),
+                 sliderInput(paste0("survey", .s_fct_start + 4),
+                             label = .surv_lab, min = 1, max = 9, value = 5)
 )
 
 col_p2 <- column(4, 
                  h3(this_factor_nm_order[2]),
                  hr(),
-                 h4(s_survey_questions[11]),
-                 sliderInput("survey11", label = .surv_lab,
-                             min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[12]),
-                 sliderInput("survey12",label = .surv_lab,
-                             min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[13]),
-                 sliderInput("survey13", label = .surv_lab,
-                             min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[14]),
-                 sliderInput("survey14", label = .surv_lab,
-                             min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[.s_fct_start + 5]),
+                 sliderInput(paste0("survey", .s_fct_start + 5), 
+                             label = .surv_lab, min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[.s_fct_start + 6]),
+                 sliderInput(paste0("survey", .s_fct_start + 6),
+                             label = .surv_lab, min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[.s_fct_start + 7]),
+                 sliderInput(paste0("survey", .s_fct_start + 7),
+                             label = .surv_lab, min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[.s_fct_start + 8]),
+                 sliderInput(paste0("survey", .s_fct_start + 8),
+                             label = .surv_lab, min = 1, max = 9, value = 5)
 )
 col_p3 <- column(4, 
                  h3(this_factor_nm_order[3]),
                  hr(),
-                 h4(s_survey_questions[15]),
-                 sliderInput("survey15", label = .surv_lab,
-                             min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[16]),
-                 sliderInput("survey16", label = .surv_lab,
-                             min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[17]),
-                 sliderInput("survey17", label = .surv_lab,
-                             min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[18]),
-                 sliderInput("survey18", label = .surv_lab,
-                             min = 1, max = 9, value = 5)
+                 h4(s_survey_questions[.s_fct_start + 9]),
+                 sliderInput(paste0("survey", .s_fct_start + 9), 
+                             label = .surv_lab, min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[.s_fct_start + 10]),
+                 sliderInput(paste0("survey", .s_fct_start + 10),
+                             label = .surv_lab, min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[.s_fct_start + 11]),
+                 sliderInput(paste0("survey", .s_fct_start + 11),
+                             label = .surv_lab, min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[.s_fct_start + 12]),
+                 sliderInput(paste0("survey", .s_fct_start + 12),
+                             label = .surv_lab, min = 1, max = 9, value = 5)
 )
 
 ##### main_ui -----
@@ -372,10 +375,10 @@ main_ui <- mainPanel(
       p("Watch the following video before proceeding:"), br(),
       ## Adding the 'a' tag to the sidebar linking external file
       p("Minimize the study and watch the training video."),
-      #a(href='training.mp4', target='blank', 'training video (4:17)'),
+       a(href='training.mp4', target='blank', 'training video (4:17)'),
       br(), br(),
-      p("If this link only contains audio let the invigilator know.")
-    )  ## End of video
+       p("If this link only contains audio let the invigilator know.")
+    ) ## End of video
   ), ## Close conditionalPanel -- intro section text
   
   ### _Training mainPanel -----
@@ -438,26 +441,35 @@ main_ui <- mainPanel(
       condition = "output.is_saved == 0",
       selectInput("survey1", label = s_survey_questions[1],
                   choices = c("decline to answer", "female", "male",
-                              "intergender/other")
+                              "intersex, non-binary, or other")
       ),
       selectInput("survey2", label = s_survey_questions[2],
                   choices = c("decline to answer", "19 or younger", "20 to 29", 
                               "30 to 39", "40 or older")
       ),
-      selectInput("survey2", label = s_survey_questions[3],
-                  choices = c("decline to answer", "Learned and used from birth", 
-                              "Fluent conversational", "Less than conversational")
+      selectInput("survey3", label = s_survey_questions[3],
+                  choices = c("decline to answer", "fluent", 
+                              "conversational", "less than conversational")
       ),
-      selectInput("survey3", label = s_survey_questions[4],
-                  choices = c("decline to answer", "High school", 
-                              "Undergraduate", "Honors, masters, mba", "Doctorate")
+      selectInput("survey4", label = s_survey_questions[4],
+                  choices = c("decline to answer", "high school", 
+                              "undergraduate", "honors, masters, mba", "doctorate")
       ),
-      h3("How much do you agree with the following statements?"),
-      h4(s_survey_questions[5]),
-      sliderInput("survey4", label = .surv_lab,
+      h3("To what extent do you agree with the following statements?"),
+      strong(s_survey_questions[5]),
+      sliderInput("survey5", label = .surv_lab,
                   min = 1, max = 9, value = 5),
-      h4(s_survey_questions[6]),
-      sliderInput("survey5",label = .surv_lab,
+      strong(s_survey_questions[6]),
+      sliderInput("survey6",label = .surv_lab,
+                  min = 1, max = 9, value = 5),
+      strong(s_survey_questions[7]),
+      sliderInput("survey7",label = .surv_lab,
+                  min = 1, max = 9, value = 5),
+      strong(s_survey_questions[8]),
+      sliderInput("survey8",label = .surv_lab,
+                  min = 1, max = 9, value = 5),
+      strong(s_survey_questions[9]),
+      sliderInput("survey9",label = .surv_lab,
                   min = 1, max = 9, value = 5),
       fluidRow(col_p1, col_p2, col_p3),
       hr(),
