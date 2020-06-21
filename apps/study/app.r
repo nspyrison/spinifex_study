@@ -1,5 +1,6 @@
 source('global.r', local = TRUE)
 
+
 ####### Server function, for shiny app
 server <- function(input, output, session) {
 

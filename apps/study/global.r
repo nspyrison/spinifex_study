@@ -12,7 +12,7 @@ library("GGally")
 # library("shinyjs")   ## help with handling conditionalPanels.
 library("lubridate") ## For timer
 library("loggit")    ## For logging
-library("git2r")     ## For logging latest git commits
+
 
 #### Logging
 ## browseURL("https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/")
@@ -63,11 +63,7 @@ context_msg <- paste(sep = " \n",
                      context_line,
                      paste0("Log file: ", log_file), 
                      paste0("Group number: ", log_num, "."),
-                     paste0("Sys.info()[1:5]: ", this_Sys.info),
-                     paste0("Last spinifex_study commit: ", 
-                            capture.output(git2r::repository("."))[3])
-                     # paste0("Last spinifex commit: ", 
-                     #        capture.output(git2r::repository("../spinifex/"))[3])
+                     paste0("Sys.info()[1:5]: ", this_Sys.info)
 )
 loggit("INFO", "=====Spinifex study app start.=====")
 cat(context_msg)
