@@ -11,21 +11,21 @@ library("plotly")
 library("GGally")
 library("lubridate") ## For timer
 library("loggit")    ## For logging
-library("git2r")     ## For logging latest git commits
+
 
 #### Logging
 ## browseURL("https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/")
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## Uncomment the following line to apply logging
-do_log <- TRUE
-do_disp_dev_tools <- FALSE
+do_log <- F
+do_disp_dev_tools <- T
 #### Simulated data series, 
 ## "series" or iteration of data to look at. Should be an even hundred
-v <- 300
+sim_series <- 300
 
 
 ## Set log file, finding the first unused number, will need to write to a google sheet or otherwise store a file.
-log_base <- paste0("log_grp", this_group, "_", Sys.info()[4], "_")
+log_base <- paste0("log_", Sys.info()[4], "_")
 log_num  <- 1
 log_file <- ""
 if (do_log == T){
@@ -39,6 +39,7 @@ if (do_log == T){
   set_logfile(log_file)
 } else { ## when do_log != T
   log_num  <- sample(1:3, 1)
+  log_name <- paste0("NOLOG_", Sys.info()[4])
   log_file <- "Logging is off! Log and responses not being recorded."
 }
 
@@ -62,11 +63,7 @@ context_msg <- paste(sep = " \n",
                      context_line,
                      paste0("Log file: ", log_file), 
                      paste0("Group number: ", log_num, "."),
-                     paste0("Sys.info()[1:5]: ", this_Sys.info),
-                     paste0("Last spinifex_study commit: ", 
-                            capture.output(git2r::repository("."))[3])
-                     # paste0("Last spinifex commit: ", 
-                     #        capture.output(git2r::repository("../spinifex/"))[3])
+                     paste0("Sys.info()[1:5]: ", this_Sys.info)
 )
 cat("Doing application setup \n")
 cat(context_msg)
