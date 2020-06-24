@@ -28,7 +28,7 @@ server <- function(input, output, session) {
   n_cl <- reactive({ length(unique(attributes(s_dat[[block()]])$cl_lvl)) })
   
   section_nm <- reactive({ ## text name of section
-    #req(rv$pg)
+    # req(rv$pg)
     if (rv$pg == 1) {return("intro")}
     if (rv$pg == 2) {return("video")}
     .pgs <- training_start_pg:(task_start_pg - 2)
@@ -41,7 +41,7 @@ server <- function(input, output, session) {
     return("!!SECTION NOT DEFINED!!")
   })
   section_pg <- reactive({ ## current page num of this section.
-    req(rv$pg)
+    # req(rv$pg)
     if (section_nm() == "intro") {return(rv$pg)}
     if (section_nm() == "training"){
       return(rv$pg - (training_start_pg - 1))
@@ -58,7 +58,7 @@ server <- function(input, output, session) {
     return("NONE / NA")
   })
   task <- reactive({ ## in 1,2
-    req(section_nm(), section_pg(), period())
+    # req(section_nm(), section_pg(), period())
     if (section_nm() == "training") return(c(0, 1, 1, 2, 2, 0)[section_pg()])
     return(1 + ((section_pg() - 1) %/% n_blocks) - 2 * (period() - 1))
   })
@@ -70,7 +70,7 @@ server <- function(input, output, session) {
     return( (period() - 1) * 6 + (task() - 1) * 3 + block() )
   })
   task_time <- reactive({
-    req(task()) ## Yay, can req() reactive functions!
+    # req(task()) ## Yay, can req() reactive functions!
     if (factor_nm() == "grand") {adj <- 1
     } else adj <- 0
     if (task() == 1) return(60  + adj)
@@ -82,7 +82,7 @@ server <- function(input, output, session) {
     if (section_nm() == "training") {
       return(s_t_dat[[section_pg()]])
     } else { ## evaluation section.
-      req(sim())
+      # req(sim())
       return(s_dat[[sim()]]) 
     }
   })
@@ -94,23 +94,23 @@ server <- function(input, output, session) {
     }
   })
   manip_var <- reactive({ 
-    req(input$manip_var_nm)
+    # req(input$manip_var_nm)
     return(which(colnames(dat()) == input$manip_var_nm))
   }) 
   pca_active <- reactive({
-    req(rv$timer_active, factor_nm())
+    # req(rv$timer_active, factor_nm())
     if (factor_nm() == "pca") {
       return(TRUE)
     } else return(FALSE)
   })
   grand_active <- reactive({
-    req(rv$timer_active, input$factor)
+    # req(rv$timer_active, input$factor)
     if (factor_nm() == "grand") {
       return(TRUE)
     } else return(FALSE)
   })
   manual_active <- reactive({
-    req(rv$timer_active, input$factor)
+    # req(rv$timer_active, input$factor)
     if (factor_nm() == "manual") {
       return(TRUE)
     } else return(FALSE)
@@ -143,7 +143,7 @@ server <- function(input, output, session) {
   })
   ## Throttle manip_slider
   manip_slider   <- reactive({
-    req(input$manip_slider)
+    # req(input$manip_slider)
     input$manip_slider
   })
   manip_slider_t <- throttle(manip_slider, 10)
@@ -1399,15 +1399,15 @@ server <- function(input, output, session) {
   output$is_saved   <- reactive(if (is.null(rv$save_file)) {0} else {1}) ## Control save_msg.
   output$pg         <- reactive(rv$pg)        ## For hiding ui next_task button
   output$section_nm <- reactive(section_nm()) ## For ui between sections
-  output$factor     <- reactive(factor_nm())  ## For sidebar inputs
+  output$factor_nm  <- reactive(factor_nm())  ## For sidebar inputs
   output$task       <- reactive(task())       ## For titles, and response inputs
   output$block      <- reactive(block())      ## For training ui
   output$section_pg <- reactive(section_pg()) ## For navigating training
 
   outputOptions(output, "is_saved",   suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
   outputOptions(output, "pg",         suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "section",    suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "factor",     suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "section_nm", suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "factor_nm",  suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "task",       suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "block",      suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "section_pg", suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
@@ -1431,7 +1431,8 @@ server <- function(input, output, session) {
         pftb(),
     )
   }) 
-  
+  output$test_next_pg_button <- reactive({input$next_pg_button})
+  outputOptions(output, "test_next_pg_button", suspendWhenHidden = FALSE)
 } ## End server function
   
   ### Combine as shiny app.

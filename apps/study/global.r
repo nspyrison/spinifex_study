@@ -154,10 +154,8 @@ survey_start_pg   <- task_start_pg + n_factors * n_blocks * n_tasks + 1
 header_ui <- fluidPage(
   titlePanel("Multivariate data visualization study"),
   actionButton("next_pg_button", "Next page"),
-  conditionalPanel(T, h1("THIS R CONDITION IS TRUE!!")),
-  conditionalPanel(F, h1("THIS R CONDITION IS FALSE!!")),
-  conditionalPanel("1 == 1", h1("THIS JS CONDITION IS TRUE!!")),
-  conditionalPanel("1 == 0", h1("THIS JS CONDITION IS FALSE!!")),
+  verbatimTextOutput("test_next_pg_button"),
+  p("testing that text was added.")
 )
 
 ##### sidebar_ui ----
@@ -216,7 +214,7 @@ sidebar_ui <- conditionalPanel(
                                   inline = TRUE)
     ), ## PCA axis selection
     conditionalPanel(
-      condition = "(output.factor == 'pca' || output.factor == 'manual') ||
+      condition = "(output.factor_nm == 'pca' || output.factor_nm == 'manual') ||
                   (output.section_nm == 'training' && input.factor != 'grand')",
       fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis",
                                       choices = paste0("PC", 1:4), selected = "PC1")),
@@ -224,7 +222,7 @@ sidebar_ui <- conditionalPanel(
                                       choices = paste0("PC", 1:4), selected = "PC2"))
       )
     ), ## Manip var/ magnitude selection
-    conditionalPanel(condition = "output.factor == 'manual' ||
+    conditionalPanel(condition = "output.factor_nm == 'manual' ||
                        (output.section_nm == 'training' && input.factor == 'manual')",
                      selectInput("manip_var_nm", "Manip var", "<none>"),
                      sliderInput("manip_slider", "Contribution",
@@ -234,7 +232,7 @@ sidebar_ui <- conditionalPanel(
     ##### _Task response input -----
     ## Task 1
     conditionalPanel(condition = "(output.task == 1 || output.task == 2)
-                                 && output.factor != 'grand'",
+                                 && output.factor_nm != 'grand'",
                      hr()
     ),
     conditionalPanel(condition = "output.task == 1",

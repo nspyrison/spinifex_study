@@ -7,7 +7,8 @@ server = shinyServer(function(input, output, session) {
   })
   
   output$panelStatus <- reactive({
-    input$select1=="show"
+    #input$select1=="show"
+    T == T
   })
   outputOptions(output, "panelStatus", suspendWhenHidden = FALSE)
   
@@ -19,10 +20,10 @@ ui=shinyUI(fluidPage(
                c("Yes" = "show", "No" = "noshow")),
   
   conditionalPanel(
-    
-    condition = 'output.panelStatus'
-    ,
-    verbatimTextOutput("color_pr"))
+    condition = 'output.panelStatus',
+    verbatimTextOutput("color_pr"),
+    verbatimTextOutput("panelStatus")
+  )
 ))
 
 shinyApp(ui=ui,server=server)
