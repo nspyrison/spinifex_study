@@ -1,6 +1,4 @@
-##### study_v2_online\global.r
-
-##### global.r, spinifex_study -----
+##### study_v2_online\global.r -----
 ### Setup -----
 library("shiny")
 library("spinifex")
@@ -15,71 +13,46 @@ library("shinyjs")   ## advanced control of html elements (disabling tabs)
 require("V8")        ## req for shinyjs::extendShinyjs()
 
 ## Global variable controlers
-do_log            <- F
-do_disp_dev_tools <- F
-sim_series        <- 300 ## Iteration of data to look at. Expects even hundred.
+do_log             <- F
+do_disp_dev_tools  <- F
+sim_series         <- 300 ## Iteration of data to look at. Expects even hundred.
 
 ##### Required inputs -----
 block_difficulties <- c("easy", "hard")
 task_header        <- "Rate the relative importance of ANY/ALL variables in terms of distinugishing between the given clusters."
 task_questions     <- c("Very important distinguishing clusters 'a' from 'b'",
-                        "Somewhat important distinguishing clusters 'a' from 'b'",
-                        "Very important distinguishing clusters 'b' from 'c'",
-                        "Somewhat important distinguishing clusters 'b' from 'c'")
+                        "Somewhat important distinguishing clusters 'a' from 'b'") # ,
+                        # "Very important distinguishing clusters 'b' from 'c'",
+                        # "Somewhat important distinguishing clusters 'b' from 'c'")
 ## Survey questions; n = 21 = 9 + (4*3)
-survey_questions <- c("What sex are you?",
-                      "What age group do you belong to?",
-                      "What is your English proficiency?",
-                      "What is your highest completed education?",
-                      "I am experienced with data visualization.",
-                      "I am experienced with tabular data.",
-                      "I am experienced with clustering classification techniques.",
-                      "I am experienced with multivariate statistical analysis.",
-                      "I am experienced with machine learning.", ## If you add a question here, update .surv_fct_col_start
-                      rep(c("I was already familiar with this visualization.",
-                            "I found this visualization easy to use.",
-                            "I felt confident in my answers with this visualization.",
-                            "I liked using this visualization."), 3)
+survey_questions   <- c("What sex are you?",
+                        "What age group do you belong to?",
+                        "What is your English proficiency?",
+                        "What is your highest completed education?",
+                        "I am experienced with data visualization.",
+                        "I am experienced with tabular data.",
+                        "I am experienced with clustering classification techniques.",
+                        "I am experienced with multivariate statistical analysis.",
+                        "I am experienced with machine learning.", ## If you add a question here, update .surv_fct_col_start
+                        rep(c("I was already familiar with this visualization.",
+                              "I found this visualization easy to use.",
+                              "I felt confident in my answers with this visualization.",
+                              "I liked using this visualization."), 3)
 )
 
 
 ##### Startup initialization variables
-## Context, "onStart()" and onStop()
-context_line  <- paste0("Spinifex STUDY, --- (spinifex v", packageVersion("spinifex"),
-                        ") --- Started ", Sys.time())
-this_Sys.info <- paste(Sys.info()[1:5], collapse = ", ")
-context_msg   <- paste(sep = " \n",
-                       context_line,
-                       paste0("Log file: ", log_file), 
-                       paste0("Group number: ", log_num, "."),
-                       paste0("Sys.info()[1:5]: ", this_Sys.info)
-)
+## server onStart & onStop() calls;
+message(context_msg)
+loggit("INFO", "=====Spinifex study app start.=====")
 
-## Local app js to handle disabling tabs
-app_jscode <- "
-shinyjs.disableTab = function(name) {
-  var tab = $('.nav li a[data-value=' + name + ']');
-  tab.bind('click.tab', function(e) {
-    e.preventDefault();
-    return false;
-  });
-  tab.addClass('disabled');
-}
-
-shinyjs.enableTab = function(name) {
-  var tab = $('.nav li a[data-value=' + name + ']');
-  tab.unbind('click.tab');
-  tab.removeClass('disabled');
-}
-"
-## Local app css to format disabled tabs
-app_css <- "
-.nav li a.disabled {
-  background-color: #aaa !important;
-  color: #333 !important;
-  cursor: not-allowed !important;
-  border-color: #aaa !important;
-}"
+onStop(function() {
+  message(context_msg)
+  loggit("INFO", "=====Spinifex study app stop.=====")
+  set_logfile(logfile = NULL, confirm = TRUE)
+  ## Try to autosave if not saved and do_log == T?
+  #### note that reaching rv$resp_tbl is out of scope to the global file.
+})
 
 ##### Logging
 ## Logging format: loggit("INFO", "<main msg>", "<detail>")
@@ -112,23 +85,42 @@ this_group <- 1 + (log_num - 1) %% 3  ## Expects [1,2,3]
 this_factor_order    <- fct_ord_latin_sq[this_group, ]
 this_factor_nm_order <- c("pca", "grand", "manual")[this_factor_order]
 
+context_line  <- paste0("Spinifex STUDY, --- (spinifex v", 
+                        packageVersion("spinifex"), ") --- Started ", Sys.time())
+context_msg   <- paste(sep = " \n",
+                       context_line,
+                       paste0("Log file: ", log_file), 
+                       paste0("Group number: ", this_group, ".")
+)
 
-## onStart();
-message(context_msg)
-loggit("INFO", "=====Spinifex study app start.=====")
+## Local app js to handle disabling tabs
+app_jscode <- "
+shinyjs.disableTab = function(name) {
+  var tab = $('.nav li a[data-value=' + name + ']');
+  tab.bind('click.tab', function(e) {
+    e.preventDefault();
+    return false;
+  });
+  tab.addClass('disabled');
+}
 
-onStop(function() {
-  message(context_msg)
-  loggit("INFO", "=====Spinifex study app stop.=====")
-  set_logfile(logfile = NULL, confirm = TRUE)
-  ## Try to autosave if not saved and do_log == T?
-  #### note that rv$resp_tbl is out of scope to the global file.
-})
-
+shinyjs.enableTab = function(name) {
+  var tab = $('.nav li a[data-value=' + name + ']');
+  tab.unbind('click.tab');
+  tab.removeClass('disabled');
+}"
+## Local app css to format disabled tabs
+app_css <- "
+.nav li a.disabled {
+  background-color: #aaa !important;
+  color: #333 !important;
+  cursor: not-allowed !important;
+  border-color: #aaa !important;
+}"
 
 ## Load training data and tour paths
-t_dat_len <- 4
-s_t_dat <- s_t_tpath <-  list()
+t_dat_len <- 4 / l_tasks
+s_t_dat <- s_t_tpath <- list()
 for (i in 1:t_dat_len) {
   s_t_dat[[i]]   <- readRDS(
     paste0("../data/simulation_data_t", i, ".rds")
@@ -139,8 +131,8 @@ for (i in 1:t_dat_len) {
 }
 
 ## Load data and tour paths
-dat_len   <- 12
-s_dat <- s_tpath <-  list()
+dat_len <- 12
+s_dat <- s_tpath <- list()
 for (i in 1:dat_len) {
   s_dat[[i]] <- readRDS(
     paste0("../data/simulation_data", sim_series + i, ".rds")
@@ -152,12 +144,12 @@ for (i in 1:dat_len) {
 
 
 ##### Global variable initialization -----
-n_trainings        <- length(s_t_dat)            ## ~4
-n_factors          <- length(fct_nm_vect)        ## ~3
-n_tasks            <- length(task_header)        ## ~1
-n_task2_questions  <- length(s_task2_questions)  ## ~4
-n_blocks           <- length(block_difficulties) ## ~2
-n_survey_questions <- length(s_survey_questions) ## ~21
+l_trainings        <- length(task_questions)     ## ~2
+l_factors          <- length(this_factor_order)  ## ~3
+l_tasks            <- length(task_header)        ## ~1
+l_task_questions   <- length(task_questions)     ## ~2
+l_blocks           <- length(block_difficulties) ## ~2
+l_survey_questions <- length(survey_questions)   ## ~21
 PC_cap             <- 4 ## Number of principal components to choose from.
 pal                <- "Dark2"
 
@@ -175,7 +167,7 @@ sidebar_x <- conditionalPanel(
 
 ##### _Survey mainPanel -----
 ## survey init
-.surv_css <- HTML("<div style=\"width:300px;\">
+.surv_lab <- HTML("<div style=\"width:300px;\">
                       <div style=\"float:left;\">strongly disagree</div>
                       <div style=\"float:right;\">strongly agree</div>
                     </div>")
@@ -183,16 +175,16 @@ sidebar_x <- conditionalPanel(
 .surv_fct_col1 <- column(4, 
                          h3(this_factor_nm_order[1]),
                          hr(),
-                         h4(s_survey_questions[.surv_fct_col_start + 1]),
+                         h4(survey_questions[.surv_fct_col_start + 1]),
                          sliderInput(paste0("survey", .surv_fct_col_start + 1), 
                                      label = .surv_lab, min = 1, max = 9, value = 5),
-                         h4(s_survey_questions[.surv_fct_col_start + 2]),
+                         h4(survey_questions[.surv_fct_col_start + 2]),
                          sliderInput(paste0("survey", .surv_fct_col_start + 2),
                                      label = .surv_lab, min = 1, max = 9, value = 5),
-                         h4(s_survey_questions[.surv_fct_col_start + 3]),
+                         h4(survey_questions[.surv_fct_col_start + 3]),
                          sliderInput(paste0("survey", .surv_fct_col_start + 3),
                                      label = .surv_lab, min = 1, max = 9, value = 5),
-                         h4(s_survey_questions[.surv_fct_col_start + 4]),
+                         h4(survey_questions[.surv_fct_col_start + 4]),
                          sliderInput(paste0("survey", .surv_fct_col_start + 4),
                                      label = .surv_lab, min = 1, max = 9, value = 5)
 )
@@ -200,32 +192,32 @@ sidebar_x <- conditionalPanel(
 .surv_fct_col2 <- column(4, 
                          h3(this_factor_nm_order[2]),
                          hr(),
-                         h4(s_survey_questions[.surv_fct_col_start + 5]),
+                         h4(survey_questions[.surv_fct_col_start + 5]),
                          sliderInput(paste0("survey", .surv_fct_col_start + 5), 
                                      label = .surv_lab, min = 1, max = 9, value = 5),
-                         h4(s_survey_questions[.surv_fct_col_start + 6]),
+                         h4(survey_questions[.surv_fct_col_start + 6]),
                          sliderInput(paste0("survey", .surv_fct_col_start + 6),
                                      label = .surv_lab, min = 1, max = 9, value = 5),
-                         h4(s_survey_questions[.surv_fct_col_start + 7]),
+                         h4(survey_questions[.surv_fct_col_start + 7]),
                          sliderInput(paste0("survey", .surv_fct_col_start + 7),
                                      label = .surv_lab, min = 1, max = 9, value = 5),
-                         h4(s_survey_questions[.surv_fct_col_start + 8]),
+                         h4(survey_questions[.surv_fct_col_start + 8]),
                          sliderInput(paste0("survey", .surv_fct_col_start + 8),
                                      label = .surv_lab, min = 1, max = 9, value = 5)
 )
 .surv_fct_col3 <- column(4, 
                          h3(this_factor_nm_order[3]),
                          hr(),
-                         h4(s_survey_questions[.surv_fct_col_start + 9]),
+                         h4(survey_questions[.surv_fct_col_start + 9]),
                          sliderInput(paste0("survey", .surv_fct_col_start + 9), 
                                      label = .surv_lab, min = 1, max = 9, value = 5),
-                         h4(s_survey_questions[.surv_fct_col_start + 10]),
+                         h4(survey_questions[.surv_fct_col_start + 10]),
                          sliderInput(paste0("survey", .surv_fct_col_start + 10),
                                      label = .surv_lab, min = 1, max = 9, value = 5),
-                         h4(s_survey_questions[.surv_fct_col_start + 11]),
+                         h4(survey_questions[.surv_fct_col_start + 11]),
                          sliderInput(paste0("survey", .surv_fct_col_start + 11),
                                      label = .surv_lab, min = 1, max = 9, value = 5),
-                         h4(s_survey_questions[.surv_fct_col_start + 12]),
+                         h4(survey_questions[.surv_fct_col_start + 12]),
                          sliderInput(paste0("survey", .surv_fct_col_start + 12),
                                      label = .surv_lab, min = 1, max = 9, value = 5)
 )
@@ -234,36 +226,37 @@ mainpanel_survey <- mainPanel(
   conditionalPanel( ##TODO consider removing
     condition = "output.is_saved == 0",
     ## Factor independant questions
-    selectInput("survey1", label = s_survey_questions[1],
+    selectInput("survey1", label = survey_questions[1],
                 choices = c("decline to answer", "female", "male",
                             "intersex, non-binary, or other")
     ),
-    selectInput("survey2", label = s_survey_questions[2],
+    selectInput("survey2", label = survey_questions[2],
                 choices = c("decline to answer", "19 or younger", "20 to 29", 
-                            "30 to 39", "40 or older")
+                            "30 to 39", "40 to 49", "50 or older")
     ),
-    selectInput("survey3", label = s_survey_questions[3],
-                choices = c("decline to answer", "fluent", 
+    selectInput("survey3", label = survey_questions[3],
+                choices = c("decline to answer", "fluent and used from birth",
+                            "fluent, but not used from birth", 
                             "conversational", "less than conversational")
     ),
-    selectInput("survey4", label = s_survey_questions[4],
+    selectInput("survey4", label = survey_questions[4],
                 choices = c("decline to answer", "high school", 
                             "undergraduate", "honors, masters, mba", "doctorate")
     ),
     h3("To what extent do you agree with the following statements?"),
-    strong(s_survey_questions[5]),
+    strong(survey_questions[5]),
     sliderInput("survey5", label = .surv_lab,
                 min = 1, max = 9, value = 5),
-    strong(s_survey_questions[6]),
+    strong(survey_questions[6]),
     sliderInput("survey6",label = .surv_lab,
                 min = 1, max = 9, value = 5),
-    strong(s_survey_questions[7]),
+    strong(survey_questions[7]),
     sliderInput("survey7",label = .surv_lab,
                 min = 1, max = 9, value = 5),
-    strong(s_survey_questions[8]),
+    strong(survey_questions[8]),
     sliderInput("survey8",label = .surv_lab,
                 min = 1, max = 9, value = 5),
-    strong(s_survey_questions[9]),
+    strong(survey_questions[9]),
     sliderInput("survey9",label = .surv_lab,
                 min = 1, max = 9, value = 5),
     ## Factor dependant questions
@@ -298,7 +291,7 @@ if (do_disp_dev_tools == TRUE){
   )
 }
 ##### UI, combine panels -----
-ui <- fluidpage(
+ui <- fluidPage(
   shinyjs::useShinyjs(),
   shinyjs::extendShinyjs(text = app_jscode),
   shinyjs::inlineCSS(app_css),
@@ -320,6 +313,66 @@ ui <- fluidpage(
   ) ## Close content navbarPage
 ) ## Close ui fluidpage
 
+
+### Response table structure -----
+resp_tbl <- reactive({
+  ## Init columns
+  col_factor <- 
+    c(rep("training", l_trainings * l_task_questions),           ## Training
+      rep(this_factor_nm_order[1], l_task_questions * l_blocks), ## Task across factor
+      rep(this_factor_nm_order[2], l_task_questions * l_blocks),
+      rep(this_factor_nm_order[3], l_task_questions * l_blocks),
+      rep("survey", l_survey_questions)                          ## Survey
+    )
+  col_block <- 
+    c(rep("training", l_trainings * l_task_questions),   ## Training
+      rep(rep(1:l_blocks, l_task_questions), l_factors), ## Task across factors
+      rep(NA, l_survey_questions)                        ## Survey
+    )
+  .st  <- sim_series + 1
+  .gap <- l_blocks * l_task_questions # ~2
+  .sim_set <- c(rep(.st + 2, l_task_questions), ## Task 2
+                rep(.st + 3, l_task_questions))
+  col_data_num <- 
+    as.character(
+      c(rep(paste0("t", 1:l_trainings), l_task_questions), ## Training
+        .sim_set + 0 * .gap,                                 ## Tasks across factors
+        .sim_set + 1 * .gap,
+        .sim_set + 2 * .gap,
+        rep(NA, l_survey_questions)                        ## Survey
+      )
+    )
+  col_question <-
+    c(rep(task_questions, l_trainings),          ## Training
+      rep(task_questions, l_blocks * l_factors), ## Task Across factors
+      survey_questions                           ## Survey
+    )
+  
+  if (F) { ## don't run: testing columns for same length
+    lapply(list(col_factor, col_block, col_data_num, col_question), length)
+  }
+  ## Structure and ids:
+  data.frame(log_num         = log_num,
+             group_num       = this_group,
+             nodename        = Sys.info()[4],
+             data_num        = col_data_num,
+             question        = col_question,
+             factor          = col_factor,
+             block           = col_block,
+             ## User responses
+             pca_inter       = NA,
+             manual_inter    = NA,
+             resp_inter      = NA,
+             plot_elapsed    = NA,
+             ttr             = NA,
+             response        = NA,
+             answer          = NA,
+             task_score      = NA,
+             clust_score     = NA,
+             intensity_score = NA,
+             line_score      = NA,
+             concern         = NA)
+})
 
 ##### App local functions: -----
 ## Define some functions unique to this app to be called in app.r

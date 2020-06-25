@@ -1,11 +1,8 @@
-##### study_v2_online\app.r
-
-source('global.r', local = TRUE)
-
+##### study_v2_online\app.r ------
+source('global.r', local = TRUE) ## Contains setup, global varibles and local functions.
 
 ####### Server function, for shiny app
 server <- function(input, output, session) {
-
   ##### Reavtive value initialization -----
   rv                  <- reactiveValues()
   rv$pg               <- 1L
@@ -25,9 +22,8 @@ server <- function(input, output, session) {
   rv$manual_ls        <- list()
   rv$basis_ls         <- list()
   
-  ##### Reactives -----
-  p <- reactive({ ncol(dat()) })
-  n_cl <- reactive({ length(unique(attributes(s_dat[[block()]])$cl_lvl)) })
+  ##### Reactive functions -----
+  p    <- reactive({ ncol(dat()) })
   
   section_nm <- reactive({ ## text name of section
     # req(rv$pg)
@@ -553,98 +549,13 @@ server <- function(input, output, session) {
       j <- manip_slider_t() * 10 + 1
       if (time_elapsed() > 1)
         rv$curr_basis <- rv$basis_ls[[j]]
-      
       rv$manual_ls[[j]]
     } ## Non-display conditions return nothing.
-  })
-  
-  
-  ### resp_tbl() reactive -----
-  resp_tbl <- reactive({
-    ## Init columns
-    col_factor <- 
-      c(rep("training", n_blocks + n_task2_questions * n_blocks),              ## Training
-        rep(this_factor_nm_order[1], n_blocks + n_task2_questions * n_blocks), ## Tasks across factor
-        rep(this_factor_nm_order[2], n_blocks + n_task2_questions * n_blocks),
-        rep(this_factor_nm_order[3], n_blocks + n_task2_questions * n_blocks),
-        rep("survey", n_survey_questions)                                      ## Survey
-      )
-    col_task <- 
-      c(rep(1, n_tasks),                             ## Training
-        rep(2, n_tasks * n_task2_questions),
-        rep(c(rep(1, n_blocks ),                     ## Task 1
-              rep(2, n_blocks * n_task2_questions)), ## Task 2
-            n_factors                                ## Across factors
-        ),
-        paste0("survey", 1:6),                       ## Survey
-        paste0("survey", 7:10, "_", this_factor_nm_order[1]),
-        paste0("survey", 7:10, "_", this_factor_nm_order[2]),
-        paste0("survey", 7:10, "_", this_factor_nm_order[3])
-      )
-    col_block <- 
-      c("t", "t",                                  ## Training
-        rep("t", n_tasks * n_task2_questions),
-        rep(c(1:n_blocks,                          ## Task 1
-              rep(1:n_blocks, n_task2_questions)), ## Task 2
-            n_factors                              ## Across factors
-        ),
-        rep(NA, n_survey_questions)                ## Survey
-      )
-    st  <- sim_series + 1
-    gap <- n_blocks * n_tasks # ~4
-    sim_set <- c(st, st + 1,                     ## Task 1
-                 rep(st + 2, n_task2_questions), ## Task 2
-                 rep(st + 3, n_task2_questions)
-    )
-    col_sim_id <- 
-      as.character(
-        c("t1", "t2",
-          rep("t3", n_task2_questions), ## Training 1 
-          rep("t4", n_task2_questions), ## Training 2
-          sim_set,                      ## Tasks across factors
-          sim_set + gap,
-          sim_set + 2 * gap,
-          rep(NA, n_survey_questions)   ## Survey
-        )
-      )
-    col_question <-
-      c(
-        rep(s_task_prompts[1], n_blocks),
-        rep(s_task2_questions, n_blocks),     ## Training
-        rep(
-          c(rep(s_task_prompts[1], n_blocks), ## Task 1
-            rep(s_task2_questions, n_blocks)  ## Task 2
-          ),
-          n_factors                           ## Across factors
-        ),
-        s_survey_questions                    ## Survey
-      )
-    
-    data.frame(user_uid        = substr(log_name, 5, nchar(log_name)),
-               group           = substr(log_name, 5, 5),
-               factor          = col_factor,
-               task            = col_task,
-               block           = col_block,
-               sim_id          = col_sim_id,
-               question        = col_question,
-               pca_inter       = NA,
-               manual_inter    = NA,
-               resp_inter      = NA,
-               plot_elapsed    = NA,
-               ttr             = NA,
-               response        = NA,
-               answer          = NA,
-               task_score      = NA,
-               clust_score     = NA,
-               intensity_score = NA,
-               line_score      = NA,
-               concern         = NA
-    )
   })
   ##### End of reactives
   
   
-  ##### Start observes
+  ##### Start observes -----
   ### Obs update axis/task2 choices -----
   observeEvent({
     dat()
