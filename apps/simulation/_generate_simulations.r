@@ -102,7 +102,7 @@ if(F){ ## Don't run
     if((i %% 2) == 0) {hard()} ## Even sims are hard
     sim_nm <- paste0("simulation_data", (sim_series + i))
     assign(sim_nm, simulate_clusters())
-    filepath_nm = paste0("./apps/study/data/", sim_nm,".rds")
+    filepath_nm = paste0("./apps/data/", sim_nm,".rds")
     saveRDS(object = get(sim_nm), file = filepath_nm)
     
     if (file.exists(filepath_nm)) {
@@ -118,7 +118,7 @@ if(F){ ## Don't run
     train() ## Using training parameters
     sim_nm <- paste0("simulation_data", sim_series, i)
     assign(sim_nm, simulate_clusters())
-    filepath_nm = paste0("./apps/study/data/", sim_nm,".rds")
+    filepath_nm = paste0("./apps/data/", sim_nm,".rds")
     saveRDS(object = get(sim_nm), file = filepath_nm)
     
     if (file.exists(filepath_nm)) {

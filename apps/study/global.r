@@ -109,10 +109,10 @@ t_dat_len <- 4
 s_t_dat <- s_t_tpath <-  list()
 for (i in 1:t_dat_len) {
   s_t_dat[[i]]   <- readRDS(
-    paste0("./data/simulation_data_t", i, ".rds")
+    paste0("../data/simulation_data_t", i, ".rds")
   )
   s_t_tpath[[i]] <- readRDS(
-    paste0("./data/grand_tpath_t", i, ".rds")
+    paste0("../data/grand_tpath_t", i, ".rds")
   )
 }
 
@@ -121,10 +121,10 @@ dat_len   <- 12
 s_dat <- s_tpath <-  list()
 for (i in 1:dat_len) {
   s_dat[[i]] <- readRDS(
-    paste0("./data/simulation_data", sim_series + i, ".rds")
+    paste0("../data/simulation_data", sim_series + i, ".rds")
   )
   s_tpath[[i]] <- readRDS(
-    paste0("./data/grand_tpath", sim_series + i, ".rds")
+    paste0("../data/grand_tpath", sim_series + i, ".rds")
   )
 }
 

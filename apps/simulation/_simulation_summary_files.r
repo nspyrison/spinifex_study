@@ -9,12 +9,12 @@ str(ex)
 rm(list = ls(pattern = "^simulation_data"))
 load_num  <- start_num <- 301
 load_name <- sprintf("simulation_data%03d", load_num)
-load_file <- paste0("./apps/study/data/", load_name, ".rds")
+load_file <- paste0("./apps/data/", load_name, ".rds")
 while (file.exists(load_file)){
   assign(load_name, readRDS(load_file))
   load_num <- load_num + 1
   load_name <- sprintf("simulation_data%03d", load_num)
-  load_file <- paste0("./apps/study/data/", load_name, ".rds")
+  load_file <- paste0("./apps/data/", load_name, ".rds")
 }
 loaded_sim_names <- ls()[grepl("simulation_data", ls())]
 id_nums <- start_num:(load_num - 1)
@@ -88,14 +88,14 @@ for (i in 1:length(loaded_sim_names)) {
   .obj_nm <- paste0("grand_tpath", id_nums[i])
   assign(.obj_nm, .tpath)
   if (SAVE_TPATHS){
-    saveRDS(object = get(.obj_nm), paste0("./apps/study/data/", .obj_nm, ".rds"))
+    saveRDS(object = get(.obj_nm), paste0("./apps/data/", .obj_nm, ".rds"))
   }
 }
 # Grand tour paths for the training simulations 
-simulation_data_train1 <- readRDS("./apps/study/data/simulation_data_t1.rds")
-simulation_data_train2 <- readRDS("./apps/study/data/simulation_data_t2.rds")
-simulation_data_train3 <- readRDS("./apps/study/data/simulation_data_t3.rds")
-simulation_data_train4 <- readRDS("./apps/study/data/simulation_data_t4.rds")
+simulation_data_train1 <- readRDS("./apps/data/simulation_data_t1.rds")
+simulation_data_train2 <- readRDS("./apps/data/simulation_data_t2.rds")
+simulation_data_train3 <- readRDS("./apps/data/simulation_data_t3.rds")
+simulation_data_train4 <- readRDS("./apps/data/simulation_data_t4.rds")
 loaded_train_names <- ls()[grepl("simulation_data_train", ls())]
 for (i in 1:length(loaded_train_names)) {
   .sim    <- as.matrix(get(loaded_train_names[i]))
@@ -104,6 +104,6 @@ for (i in 1:length(loaded_train_names)) {
   .obj_nm <- paste0("grand_tpath_t", i)
   assign(.obj_nm, .tpath)
   if (SAVE_TPATHS){
-    saveRDS(object = get(.obj_nm), paste0("./apps/study/data/", .obj_nm, ".rds"))
+    saveRDS(object = get(.obj_nm), paste0("./apps/data/", .obj_nm, ".rds"))
   }
 }
