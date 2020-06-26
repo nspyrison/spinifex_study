@@ -4,7 +4,9 @@ questions <- c("What is your name?","Can you code in R?","Do you find coding fun
 
 ui <- pageWithSidebar(
   headerPanel("Exam"),
-  sidebarPanel(actionButton("goButton", "Next"),p("Next Question")),
+  sidebarPanel(actionButton("goButton", "Next"),
+               p("Next Question")
+  ),
   mainPanel(verbatimTextOutput("nText")))
 
 server <- function(input, output,session) {

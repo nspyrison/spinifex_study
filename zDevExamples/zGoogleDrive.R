@@ -1,3 +1,4 @@
+message("Use `googledrive` it is build on the current api 4.0. don't use Jenny's `googlesheets`, uses outdated API.")
 ##### googledrive -----
 # https://googledrive.tidyverse.org/
 
@@ -15,24 +16,6 @@ df <- tibble(sys_info, ff_text = "Hello google sheets!")
 df
 
 googledrive::drive_upload()
-
-
-
-#### googlesheets -----
-# https://github.com/jennybc/googlesheets
-# https://datascienceplus.com/how-to-use-googlesheets-to-connect-r-to-google-sheets/
-
-# install.packages("googlesheets")
-library("googlesheets") ## app has not verified by google yet; looks like an api issue with the package.
-# library("dplyr")
-# gs_ls()
-
-warning(
-  paste0("Oauth app not working, oauth credentials, or ",
-         "a better solution may be to go with the `googledrive` package.")
-)
-
-
 
 
 

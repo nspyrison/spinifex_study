@@ -12,7 +12,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   
   # Initialize the timer, 10 seconds, not active.
-  timer <- reactiveVal(10)
+  timer  <- reactiveVal(10)
   active <- reactiveVal(FALSE)
   
   # Output the time left.
@@ -41,7 +41,7 @@ server <- function(input, output, session) {
   
   # observers for actionbuttons
   observeEvent(input$start, {active(TRUE)})
-  observeEvent(input$stop, {active(FALSE)})
+  observeEvent(input$stop,  {active(FALSE)})
   observeEvent(input$reset, {timer(12)})
   
 }
