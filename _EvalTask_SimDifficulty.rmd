@@ -1,11 +1,13 @@
 ---
 title: "Evaluating task and vet sim difficulty."
-output: html_document
-
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
 ---
 
 ```{r setup_condensed, include=F}
-## Load packages here.
+## Setup
 library("knitr")
 knitr::opts_chunk$set(
   echo = F,
@@ -19,9 +21,8 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Initialize
-
 ```{r init}
+## Initialize
 library("spinifex")
 library("tourr")
 library("ggplot2")
@@ -48,7 +49,7 @@ df_pcaVar <- data.frame(
 )
 ```
 
-# Evaluating task -- Rate variables importance to the seperation of 2 clusters.
+# Measuring which variables are sensitive to cluster seperation
 
 Consider a sree plot of flea data. This shows which componets are contributing to the *full sample, full dimensionality,* $[n,p]$ variation of the data.
 
@@ -144,5 +145,52 @@ df_clSep <- data.frame(variable = .var_nm_ord,
     # theme(legend.position = c(0.9, 0.5)) + ## legend position doesn't work now because different geoms??
     scale_fill_manual(values = "#1B9E77") + 
     scale_colour_manual(values = "#D95F02"))
-# RColorBrewer::brewer.pal(n=2, "Dark2")
+# RColorBrewer::brewer.pal(n=5, "Dark2")
 ```
+
+
+# Evaluating the response
+
+Now that we have a measure we want to define an objective cutoff for evaluation. We bin the seperation of clusters into 3 even bands relative to the max and assigned values of 0, 1, and 2 with increaing importance. Note that at least 1 variable must be "very important".
+
+```{r answer}
+bar    <- max(.clSep_rate)
+bar.66 <- 2 / 3 * bar
+bar.33 <- 1 / 3 * bar
+
+g2 +
+  geom_rect(fill = "#7570B3", alpha = 0.05,
+            mapping = aes(xmin = .3, xmax = 6.8, ymin = bar.66, ymax = bar)) +
+  geom_text(aes(x = 5.5, y = bar.66 + .07, label = "very important -> 2"), size=4) +
+  geom_text(aes(x = 3, y = bar +.02, label = "max(clSep) | data"), size = 3) +
+  geom_rect(fill = "#E7298A", alpha = 0.05,
+            mapping = aes(xmin = .3, xmax = 6.8, ymin = bar.33, ymax = bar.66)) +
+  geom_text(aes(x = 5.5, y = bar.33+ .07, label = "somewhat important -> 1"), size=4) +
+  geom_rect(fill = "#66A61E", alpha = 0.05,
+            mapping = aes(xmin = .3, xmax = 6.8, ymin = 0, ymax = bar.33)) +
+ geom_text(aes(x = 5.5, y = 0 + .07, label = "not important -> 0"), size = 4)
+```
+
+We make a $p$-length answer vector for the data set and find the variable-wise differnece with the response vector and aggregate over each variable acording to a measure where a larger value is worse.
+
+$$MarksOff = \sum_{i = 1}^{p}(Answer_i - Response_i)^2$$
+
+```{r exampleScoring}
+df_clSep$ptile_clSep <- df_clSep$rate_clSep / bar
+df_taskEval <- data.frame(
+  variable = df_clSep$variable,
+  answer =  dplyr::case_when(df_clSep$rate_clSep > bar.66 ~ 2,
+                             df_clSep$rate_clSep > bar.33 ~ 1,
+                             df_clSep$rate_clSep >= 0 ~ 0),
+  exampleResponse = c(2, 1, 1, 2, 0, 0))
+df_taskEval$delta <- df_taskEval$answer - df_taskEval$exampleResponse
+df_taskEval$var_marksOff <- df_taskEval$delta^2
+
+kable(df_taskEval)
+cat(paste0("total MarksOff = ", sum(df_taskEval$var_marksOff)))
+```
+
+# Simulation difficulty
+
+_To be continued..._
+
