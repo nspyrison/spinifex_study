@@ -1,0 +1,148 @@
+---
+title: "Evaluating task and vet sim difficulty."
+output: html_document
+
+---
+
+```{r setup_condensed, include=F}
+## Load packages here.
+library("knitr")
+knitr::opts_chunk$set(
+  echo = F,
+  message   = F, warning = F, error = F,
+  results   = "asis",                # Opts: "asis", "markup", "hold", "hide"
+  fig.align = "center",              # Opts: "left", "right", "center", "default"
+  fig.width = 8, fig.height = 5,
+  out.width = "100%",
+  fig.pos   = "h", out.extra   = "", # Figures forced closer to chunk location.
+  collapse  = TRUE, cache = FALSE, cache.lazy  = FALSE
+)
+```
+
+# Initialize
+
+```{r init}
+library("spinifex")
+library("tourr")
+library("ggplot2")
+library("tibble")
+
+dat <- tourr::rescale(tourr::flea[,1:6])
+rb       <- basis_random(n = ncol(dat))
+class    <- tourr::flea$species
+
+invisible(capture.output(holes_path <- save_history(dat, tour_path = guided_tour(holes()))))
+holes_basis <- as.matrix(holes_path[,, dim(holes_path)[3]])
+
+n <- nrow(dat)
+p <- ncol(dat)
+k_cl <- length(unique(class))
+pca_obj <- prcomp(dat)
+
+pca_var_rate <- pca_obj$sdev^2 / sum(pca_obj$sdev^2)
+
+df_pcaVar <- data.frame(
+  pc_number = paste0("PC", 1:p),
+  rate_var_explained = pca_var_rate,
+  cumsum_rate_var_explained = cumsum(pca_var_rate)
+)
+```
+
+# Evaluating task -- Rate variables importance to the seperation of 2 clusters.
+
+Consider a sree plot of flea data. This shows which componets are contributing to the *full sample, full dimensionality,* $[n,p]$ variation of the data.
+
+```{r Screeplot}
+(g1 <- ggplot(data = df_pcaVar) + 
+   ## Individual var bars
+   geom_bar(stat = "identity", 
+            mapping = aes(x = pc_number, y = rate_var_explained, 
+                          fill = "Individual var explained")) + 
+   ## Cummulative var line
+   geom_line(mapping = aes(x = pc_number, y = cumsum_rate_var_explained,
+                           color = "Cumsum of var explained", group = 1),lwd = 1.2) +
+   geom_point(mapping = aes(x = pc_number, y = cumsum_rate_var_explained,
+                            color = "Cumsum of var explained"), shape = 18, size = 4) +
+   ## Themes, legends and colors 
+   theme_minimal() +
+   labs(title = "pca screeplot of normalized flea data",
+        x = "Component number", 
+        y = "Variance explained",
+        colour = "", fill = "") + 
+   # theme(legend.position = c(0.9, 0.5)) + ## legend position doesn't work now because different geoms??
+   scale_fill_manual(values = "#1B9E77") + 
+   scale_colour_manual(values = "#D95F02"))
+# RColorBrewer::brewer.pal(n=2, "Dark2")
+```
+
+The user study task trys to explore the *full sample, full dimensionality* $[n,p]$ seperation of two specified clusters. In an analogous manner, let's try to create a screeplot-like output to evalute the contributions of the original variables.
+
+```{r lda}
+DO_RUN <- FALSE
+if (DO_RUN) {
+  .cl  <- unique(class)[1:2]
+  .sub <- dat[class == .cl, ]
+  .lda_dat <- data.frame(.sub, species = class[class == .cl]) 
+  
+  library(MASS)
+  (lda_obj <- lda(species~., data = .lda_dat))
+}
+```
+
+Because Linear Discriminant Analysis (LDA) used cluster means and not their medians, we'll select mean as well. Let's find the $p$-space cluster means.
+
+```{r clusterMeans}
+df_clusterMeans <- NULL
+for (i in 1:k_cl) {
+  .cl  <- unique(class)[i]
+  .sub <- dat[class == .cl, ]
+  .row <- apply(.sub, 2, mean)
+  df_clusterMeans <- rbind(df_clusterMeans, .row)
+}
+df_clusterMeans <- as.data.frame(df_clusterMeans, row.names = unique(class))
+kable(df_clusterMeans)
+``` 
+
+Suppose the clusters in questions are *Concinna* and *Heptapot*, now let's find the $p$-dim line between their means. Let of the cluster mean of *Concinna* be the $p$-dim constant vetor. Then $p$-dim slope is then 
+
+```{r lineCoeff}
+.cl_mns   <- df_clusterMeans[1:2, ]
+.constant <- .cl_mns[1,] 
+rownames(.constant) <- ("constants_ConcinnaHeptapot")
+.coeff    <-  - (.cl_mns[2,] - .cl_mns[1,])
+rownames(.coeff) <- ("coefficients_ConcinnaHeptapot")
+kable(rbind(.constant, .coeff))
+``` 
+
+We have a vector of variable-coffecients corisponding to the sepration of the cluster means. Let's discard the orientation. The remaining magnitudes describe the *full sample, full dimensionality* seperation of the cluster means between *Concinna* and *Heptapot*. Let's visualize This similar to the screeplot.
+
+```{r clSepScreeplot}
+.mag <- abs(.coeff)
+.clSep_rate <- t(.mag[order(.mag, decreasing = T)]) / sum(.mag)
+.var_nm_ord <- factor(row.names(.clSep_rate), levels=unique(row.names(.clSep_rate)))
+
+df_clSep <- data.frame(variable = .var_nm_ord,
+                       rate_clSep = as.vector(.clSep_rate),
+                       cumsum_rate_clSep = cumsum(.clSep_rate))
+
+(g2 <- ggplot(data = df_clSep) + 
+    ## Individual clSep bars
+    geom_bar(stat = "identity", 
+             mapping = aes(x = variable, y = rate_clSep, 
+                           fill = "Individual clSep explained")) + 
+    ## Cummulative clSep line
+    geom_line(mapping = aes(x = variable, y = cumsum_rate_clSep, group = 1,
+                            color = "Cumsum of clSep explained"), lwd = 1.2) +
+    geom_point(mapping = aes(x = variable, y = cumsum_rate_clSep,
+                             color = "Cumsum of clSep explained"), shape = 18, size = 4) +
+    ## Themes, legends and colors 
+    theme_minimal() +
+    labs(title = "Variables contributions to the seperation of cluster means [Concinna-Heptapot]",
+         x = "Variable", 
+         y = "Seperation of cluster means", 
+         colour = "", fill = "") + 
+    # theme(legend.position = c(0.9, 0.5)) + ## legend position doesn't work now because different geoms??
+    scale_fill_manual(values = "#1B9E77") + 
+    scale_colour_manual(values = "#D95F02"))
+# RColorBrewer::brewer.pal(n=2, "Dark2")
+```
