@@ -76,7 +76,7 @@ Consider a sree plot of flea data. This shows which componets are contributing t
 # RColorBrewer::brewer.pal(n=2, "Dark2")
 ```
 
-The user study task trys to explore the *full sample, full dimensionality* $[n,p]$ seperation of two specified clusters. In an analogous manner, let's try to create a screeplot-like output to evalute the contributions of the original variables.
+The user study task trys to explore the *full sample, full dimensionality* $[n,p]$ seperation of two specified clusters. In an analogous manner, __let's try to create a screeplot-like output to evalute the contributions of the original variables.__
 
 ```{r lda}
 DO_RUN <- FALSE
@@ -90,43 +90,56 @@ if (DO_RUN) {
 }
 ```
 
-Because Linear Discriminant Analysis (LDA) used cluster means and not their medians, we'll select mean as well. Let's find the $p$-space cluster means.
+This happens to be precisely the setup for Linear Discriminant Analysis (LDA) (Fisher, 1936). Start by finding cluster means (originally had considered median). We have:
 
 ```{r clusterMeans}
-df_clusterMeans <- NULL
+mat_clusterMeans <- NULL
 for (i in 1:k_cl) {
   .cl  <- unique(class)[i]
   .sub <- dat[class == .cl, ]
   .row <- apply(.sub, 2, mean)
-  df_clusterMeans <- rbind(df_clusterMeans, .row)
+  mat_clusterMeans <- rbind(mat_clusterMeans, .row)
 }
-df_clusterMeans <- as.data.frame(df_clusterMeans, row.names = unique(class))
-kable(df_clusterMeans)
+kable(round(mat_clusterMeans,2), row.names = unique(class))
 ``` 
 
-Suppose the clusters in questions are *Concinna* and *Heptapot*, now let's find the $p$-dim line between their means. Let of the cluster mean of *Concinna* be the $p$-dim constant vetor. Then $p$-dim slope is then 
 
-```{r lineCoeff}
-.cl_mns   <- df_clusterMeans[1:2, ]
-.constant <- .cl_mns[1,] 
-rownames(.constant) <- ("constants_ConcinnaHeptapot")
-.coeff    <-  - (.cl_mns[2,] - .cl_mns[1,])
-rownames(.coeff) <- ("coefficients_ConcinnaHeptapot")
-kable(rbind(.constant, .coeff))
+Suppose the clusters in questions are *Concinna* and *Heptapot*, now let's find the $p$-dim line between the cluster means. Let of the cluster mean of *Concinna* be the constant vetor (offset from origin). The vector between the cluser means is the slope, the $p$-dim, coefficients.
+
+```{r clMeansAsPLine}
+df_pLine_clusterMeans_CH <- as.data.frame(mat_clusterMeans[1:2, ])
+rownames(df_pLine_clusterMeans_CH) <- c(("constants_ConcinnaHeptapot"), ("coefficients_ConcinnaHeptapot"))
+
+kable(round(df_pLine_clusterMeans_CH, 2))
 ``` 
 
-We have a vector of variable-coffecients corisponding to the sepration of the cluster means. Let's discard the orientation. The remaining magnitudes describe the *full sample, full dimensionality* seperation of the cluster means between *Concinna* and *Heptapot*. Let's visualize This similar to the screeplot.
+We have a vector of variable-coffecients corisponding to the sepration of the cluster means. Now we need to account for the variation held within the variables. To do so we need scale each variable the reciporical of the covariance matrix:
+
+```{r InvCov, fig.cap="inverse of the covariance matrix"}
+.cov_inverse <- 1 / cov(dat)
+```
+
+Solving for the product
+
+$$ Cluster Seperation_{[1,p]} = Coefficients{[1, p]} * Covariance(flea)_{[p, p]}^{(-1)} =$$
+```{r clusterSep}
+df_clusterSep_CH <- .cov_inverse * df_pLine_clusterMeans_CH[2, ]
+rownames(df_clusterSep_CH) <- "clusterSeperation_ConcinnaHeptapot"
+df_clusterSep_CH
+```
+
+This is the remaining variable coefficents that best describe the *full sample, full dimensionality* seperation of the cluster means between *Concinna* and *Heptapot* after controling for variance and covariances. We discard the sign as we only care about magnitude of seperation. Now let's visualize this similar to the screeplot.
 
 ```{r clSepScreeplot}
-.mag <- abs(.coeff)
-.clSep_rate <- t(.mag[order(.mag, decreasing = T)]) / sum(.mag)
+.clSep <- abs(df_clusterSep_CH)
+.clSep_rate <- t(.clSep[order(.clSep, decreasing = T)]) / sum(.clSep)
 .var_nm_ord <- factor(row.names(.clSep_rate), levels=unique(row.names(.clSep_rate)))
 
-df_clSep <- data.frame(variable = .var_nm_ord,
+df_Scree_ClSep <- data.frame(variable = .var_nm_ord,
                        rate_clSep = as.vector(.clSep_rate),
                        cumsum_rate_clSep = cumsum(.clSep_rate))
 
-(g2 <- ggplot(data = df_clSep) + 
+(g2 <- ggplot(data = df_Scree_ClSep) + 
     ## Individual clSep bars
     geom_bar(stat = "identity", 
              mapping = aes(x = variable, y = rate_clSep, 
@@ -154,21 +167,27 @@ df_clSep <- data.frame(variable = .var_nm_ord,
 Now that we have a measure we want to define an objective cutoff for evaluation. We bin the seperation of clusters into 3 even bands relative to the max and assigned values of 0, 1, and 2 with increaing importance. Note that at least 1 variable must be "very important".
 
 ```{r answer}
-bar    <- max(.clSep_rate)
-bar.66 <- 2 / 3 * bar
-bar.33 <- 1 / 3 * bar
+bar100 <- max(.clSep_rate)
+bar.66 <- 2 / 3 * bar100
+bar.33 <- 1 / 3 * bar100
 
 g2 +
   geom_rect(fill = "#7570B3", alpha = 0.05,
-            mapping = aes(xmin = .3, xmax = 6.8, ymin = bar.66, ymax = bar)) +
-  geom_text(aes(x = 5.5, y = bar.66 + .07, label = "very important -> 2"), size=4) +
-  geom_text(aes(x = 3, y = bar +.02, label = "max(clSep) | data"), size = 3) +
+            mapping = aes(xmin = .3, xmax = 6.8, ymin = bar.66, ymax = bar100)) +
+    geom_text(aes(x = 6.5, y = bar100 +.04, 
+                  label = "max(single variable cluster seperation) | sample"), 
+              size = 4, hjust = 1) +
+  geom_hline(yintercept = bar100) +
+  geom_text(aes(x = 6.5, y = bar.66 + .07, label = "very important -> 2"), 
+            size = 4, hjust = 1) +
   geom_rect(fill = "#E7298A", alpha = 0.05,
             mapping = aes(xmin = .3, xmax = 6.8, ymin = bar.33, ymax = bar.66)) +
-  geom_text(aes(x = 5.5, y = bar.33+ .07, label = "somewhat important -> 1"), size=4) +
+  geom_text(aes(x = 6.5, y = bar.33 + .07, label = "somewhat important -> 1"), 
+            size = 4, hjust = 1) +
   geom_rect(fill = "#66A61E", alpha = 0.05,
             mapping = aes(xmin = .3, xmax = 6.8, ymin = 0, ymax = bar.33)) +
- geom_text(aes(x = 5.5, y = 0 + .07, label = "not important -> 0"), size = 4)
+  geom_text(aes(x = 6.5, y = 0 + .07, label = "not important -> 0"), 
+            size = 4, hjust = 1)
 ```
 
 We make a $p$-length answer vector for the data set and find the variable-wise differnece with the response vector and aggregate over each variable acording to a measure where a larger value is worse.
@@ -176,13 +195,13 @@ We make a $p$-length answer vector for the data set and find the variable-wise d
 $$MarksOff = \sum_{i = 1}^{p}(Answer_i - Response_i)^2$$
 
 ```{r exampleScoring}
-df_clSep$ptile_clSep <- df_clSep$rate_clSep / bar
+df_Scree_ClSep$ptile_clSep <- df_Scree_ClSep$rate_clSep / bar
 df_taskEval <- data.frame(
-  variable = df_clSep$variable,
-  answer =  dplyr::case_when(df_clSep$rate_clSep > bar.66 ~ 2,
-                             df_clSep$rate_clSep > bar.33 ~ 1,
-                             df_clSep$rate_clSep >= 0 ~ 0),
-  exampleResponse = c(2, 1, 1, 2, 0, 0))
+  variable = df_Scree_ClSep$variable,
+  answer =  dplyr::case_when(df_Scree_ClSep$rate_clSep > bar.66 ~ 2,
+                             df_Scree_ClSep$rate_clSep > bar.33 ~ 1,
+                             df_Scree_ClSep$rate_clSep >= 0 ~ 0),
+  exampleResponse = c(2, 1, 1, 2, 0, 1))
 df_taskEval$delta <- df_taskEval$answer - df_taskEval$exampleResponse
 df_taskEval$var_marksOff <- df_taskEval$delta^2
 
@@ -193,4 +212,15 @@ cat(paste0("total MarksOff = ", sum(df_taskEval$var_marksOff)))
 # Simulation difficulty
 
 _To be continued..._
+
+
+
+
+
+
+# References
+
+
+Fisher, Ronald A. "The Use of Multiple Measurements in Taxonomic Problems." Annals of Eugenics 7, no. 2 (September 1936): 179-88. https://doi.org/10.1111/j.1469-1809.1936.tb02137.x.
+
 
