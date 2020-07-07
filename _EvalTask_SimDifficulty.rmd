@@ -195,7 +195,7 @@ We make a $p$-length answer vector for the data set and find the variable-wise d
 $$MarksOff = \sum_{i = 1}^{p}(Answer_i - Response_i)^2$$
 
 ```{r exampleScoring}
-df_Scree_ClSep$ptile_clSep <- df_Scree_ClSep$rate_clSep / bar
+df_Scree_ClSep$ptile_clSep <- df_Scree_ClSep$rate_clSep / bar100
 df_taskEval <- data.frame(
   variable = df_Scree_ClSep$variable,
   answer =  dplyr::case_when(df_Scree_ClSep$rate_clSep > bar.66 ~ 2,
