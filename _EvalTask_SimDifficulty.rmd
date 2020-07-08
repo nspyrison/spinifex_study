@@ -48,8 +48,9 @@ df_pcaVar <- data.frame(
   cumsum_rate_var_explained = cumsum(pca_var_rate)
 )
 ```
+# Cluster seperation and task evalution
 
-# Measuring which variables are sensitive to cluster seperation
+## Measuring which variables are sensitive to cluster seperation
 
 Consider a sree plot of flea data. This shows which componets are contributing to the *full sample, full dimensionality,* $[n,p]$ variation of the data.
 
@@ -78,16 +79,15 @@ Consider a sree plot of flea data. This shows which componets are contributing t
 
 The user study task trys to explore the *full sample, full dimensionality* $[n,p]$ seperation of two specified clusters. In an analogous manner, __let's try to create a screeplot-like output to evalute the contributions of the original variables.__
 
-```{r lda}
-DO_RUN <- FALSE
-if (DO_RUN) {
-  .cl  <- unique(class)[1:2]
-  .sub <- dat[class == .cl, ]
-  .lda_dat <- data.frame(.sub, species = class[class == .cl]) 
-  
-  library(MASS)
-  (lda_obj <- lda(species~., data = .lda_dat))
-}
+```{r lda, eval=FALSE}
+#### USES EVAL
+
+.cl  <- unique(class)[1:2]
+.sub <- dat[class == .cl, ]
+.lda_dat <- data.frame(.sub, species = class[class == .cl]) 
+
+library(MASS)
+(lda_obj <- lda(species~., data = .lda_dat))
 ```
 
 This happens to be precisely the setup for Linear Discriminant Analysis (LDA) (Fisher, 1936). Start by finding cluster means (originally had considered median). We have:
@@ -100,7 +100,11 @@ for (i in 1:k_cl) {
   .row <- apply(.sub, 2, mean)
   mat_clusterMeans <- rbind(mat_clusterMeans, .row)
 }
-kable(round(mat_clusterMeans,2), row.names = unique(class))
+
+## Prep display
+.disp_df_clusterMeans <- round(mat_clusterMeans, 2)
+rownames(.disp_df_clusterMeans) <- unique(class)
+kable(.disp_df_clusterMeans)
 ``` 
 
 
@@ -115,17 +119,16 @@ kable(round(df_pLine_clusterMeans_CH, 2))
 
 We have a vector of variable-coffecients corisponding to the sepration of the cluster means. Now we need to account for the variation held within the variables. To do so we need scale each variable the reciporical of the covariance matrix:
 
-```{r InvCov, fig.cap="inverse of the covariance matrix"}
-.cov_inverse <- 1 / cov(dat)
-```
-
 Solving for the product
 
-$$ Cluster Seperation_{[1,p]} = Coefficients{[1, p]} * Covariance(flea)_{[p, p]}^{(-1)} =$$
+$$ Cluster Seperation_{[1,p]} = Coefficients{[1, p]} * 1/Covariance(flea)_{[p, p]}$$
+
 ```{r clusterSep}
-df_clusterSep_CH <- .cov_inverse * df_pLine_clusterMeans_CH[2, ]
+.inverse_covar <- 1 / cov(dat)
+df_clusterSep_CH <- .inverse_covar * df_pLine_clusterMeans_CH[2, ]
 rownames(df_clusterSep_CH) <- "clusterSeperation_ConcinnaHeptapot"
-df_clusterSep_CH
+
+kable(round(df_clusterSep_CH, 2))
 ```
 
 This is the remaining variable coefficents that best describe the *full sample, full dimensionality* seperation of the cluster means between *Concinna* and *Heptapot* after controling for variance and covariances. We discard the sign as we only care about magnitude of seperation. Now let's visualize this similar to the screeplot.
@@ -161,8 +164,7 @@ df_Scree_ClSep <- data.frame(variable = .var_nm_ord,
 # RColorBrewer::brewer.pal(n=5, "Dark2")
 ```
 
-
-# Evaluating the response
+## Evaluating the response
 
 Now that we have a measure we want to define an objective cutoff for evaluation. We bin the seperation of clusters into 3 even bands relative to the max and assigned values of 0, 1, and 2 with increaing importance. Note that at least 1 variable must be "very important".
 
@@ -206,17 +208,116 @@ df_taskEval$delta <- df_taskEval$answer - df_taskEval$exampleResponse
 df_taskEval$var_marksOff <- df_taskEval$delta^2
 
 kable(df_taskEval)
-cat(paste0("total MarksOff = ", sum(df_taskEval$var_marksOff)))
+message(paste0("total MarksOff = ", sum(df_taskEval$var_marksOff)))
 ```
+
+## Projected data view
+
+All linear projections are nesciarily a lossy representation of the full data. By this we mean that no single 2D frame can show the whole set of infromation for $p>=3$ -dimensional sample. Any pair of Pricipal Components nessciaronly shows less than all the variation, namely the sum of their contributions, typicaly stated as percentage of full sample variation. Analogously any single projection cannot show the full information explain the cluster seperation of 2 given clusters.
+
+In applcation, viewing a PC1 by PC2 biplot of flea data contains `r round(100*df_pcaVar[2,3],2)` percent of the variation explained in the sample. While viewing (an orthogonal project) the top 2 variables (namely: `r as.character(df_Scree_ClSep[1:2, 1])` ) explain `r round(100*df_Scree_ClSep[2, 3],2)` percent of the within sample cluster seperation between *Concinna* and *Heptapot*.
+
+_finish this thought_
+
+## Mental task
+
+_todo_
 
 # Simulation difficulty
 
-_To be continued..._
+
+In order to properly distinguish a difference between the 3 vizualization factors the data must be of suitable complexity, such that it has the following properties:
+
+1. Must be complex enough not to see within the any pair of the first 4 Principal Components; such that PCA is not sufficent for exploring cluster seperation
+2. Must not be so complex as to preclude any meaningful response given the factor visuals and time constraints.
+
+Let's try to evaluate our current generation of data simulations against these properties
+
+```{r simPcaPairs, eval=TRUE}
+#### USES EVAL
+
+## Series spans from 301:312
+dat              <- readRDS("./apps/data/simulation_data301.rds")
+dat_clusters     <- attributes(dat)$cl_lvl
+dat_pca_rot      <- prcomp(dat)$rotation
+proj_dat_pca_rot <- as.data.frame(as.matrix(dat) %*% dat_pca_rot)
 
 
+library(GGally)
+ggparis_proj_dat_pca <- 
+  ggpairs(proj_dat_pca_rot[, 1:4], 
+          title = "ggpairs of PC1:4 for simulation_data301",
+          ggplot2::aes(colour = dat_clusters))
+#scale_color_brewer("Dark2") ## scale_color/fill* don't work as explected on ggpairs()
+
+ggplot2::ggsave(filename = "ggpairs_pca_sim301.png",
+                plot =  ggparis_proj_dat_pca,
+                path = "./output/")
+```
+![](output/ggpairs_pca_sim301.png)
 
 
+Seems sufficent to be complex enough not to be seen as a pair of components within the first 4 Principal Components. Now to see if we can see anything in radial tours of all variables.
 
+_note: spinifex needs cleanup_
+
+```{r simRadialTours, eval=TRUE}
+#### USES EVAL
+
+## radial tours from a basis of PC1:2:
+bas_pca <- dat_pca_rot[, 1:2]
+dat_std <- tourr::rescale(dat) ## cl_lvls: class <- dat_clusters
+library("spinifex")
+
+
+if(F) {
+  ns_play_radial_tour <- function(data,
+                                  basis,
+                                  manip_var = sample(1:ncol(data)),
+                                  theta = NULL,
+                                  render_type = render_gganimate,
+                                  ...) {
+    ### Test examples
+    # data <- flea_std;basis <- rb; manip_var <- 1; theta = NULL; 
+    # render_type <- render_gganimate;
+    manip_space <- create_manip_space(basis = basis, manip_var = manip_var)
+    mv_sp <- manip_space[manip_var, ]
+    theta <- NULL
+    if (is.null(theta)) {
+      theta <- atan(basis[manip_var, 2] / basis[manip_var, 1])
+      ### Was trying to incorprate the below this after CRAN ver, but not working. 
+      # ang_minor <- atan(mv_sp[2] / mv_sp[1])
+      # offset <- 270 + sign(mv_sp[1]) * 90
+      # theta <- (offset + sign(mv_sp[1]) * sign(mv_sp[2]) * ang_minor) %% 360
+    }
+    tour_hist <- manual_tour(basis = basis, manip_var = manip_var, theta = theta, ...)
+    tour_df   <- array2df(array = tour_hist, data = data)
+    render_type(slides = tour_df, ...)
+  }
+  
+  i_s <- 1:ncol(dat)
+  # ls_dat_radial_tour <- list()
+  for(i in i_s) {
+    .this_radial_tour <- 
+      ns_play_radial_tour(basis = bas_pca, data = dat_std, manip_var = i,
+                          render_type = render_gganimate, 
+                          col = col_of(dat_clusters), pch = pch_of(dat_clusters), 
+                          axes = "bottomleft", fps = 8)
+    .gif_filepath <- paste(".output/radialTour_sim301_mv", i, ".gif")
+    gganimate::anim_save(.gif_filepath, .this_radial_tour)
+    # ## store gganimate in a list obj that isn't currently used
+    # ls_dat_radial_tour[[i]] <- .this_radial_tour 
+    .this_radial_tour ## explicitly call the gganimate tour
+  }
+}
+```
+![](output/radialTour_sim301_mv1.gif)
+![](output/radialTour_sim301_mv2.gif)
+![](output/radialTour_sim301_mv3.gif)
+![](output/radialTour_sim301_mv4.gif)
+![](output/radialTour_sim301_mv5.gif)
+![](output/radialTour_sim301_mv6.gif)
+![](output/radialTour_sim301_mv7.gif)
 
 # References
 

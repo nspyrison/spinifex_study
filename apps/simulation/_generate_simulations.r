@@ -19,7 +19,7 @@ hard <- function(){
   n_cl_complexshape <<- sample(1:2, 1)
 }
 ###### Simulate clusters
-simulate_clusters <- function(p = sample(5:7, 1),      ## Numbbr of columns
+simulate_clusters <- function(p = sample(5:7, 1),      ## Number of columns
                               p_signal = 1,            ## Number of signal columns (difference in mean)
                               cl = sample(3:4, 1),     ## Number of clusters
                               vc_vect = seq(-.1, 0.6, 0.1), ## Posible values of var-covar (cormat) elemets
