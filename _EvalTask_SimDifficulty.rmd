@@ -50,8 +50,18 @@ df_pcaVar <- data.frame(
 ```
 # Cluster seperation and task evalution
 
+In general defining feature importance is a common task. Though it is typically model dependant is 
+
+- The relative magnitude of the eigen values, as visualized in a scree plot ("Screeplot" R. Cattell, 1966)
+- Slope of $p-$dim line seperating two clusters scaled by the inverse of the variance-covariance matrix ("LDA" R. Fishce, 1936)
+- As ratios of F-values for features ("ANOVA" R. Fisher 1918) or as interactions of features ("MANOVA" S. Wilks  1932)
+- Percent increase in misclassification rate when a feature is removed. ("Random forests" L. Breiman, 2001)
+- _Raw importance_, is the $(untouched~count - feature_m~count) / Number~of~trees$, ("Auto-WEKA" C. Thornton, 2013)
+- _Model reliance_, is the fraction each feature is used over all permutations. (A. Fisher, 2018)
+
 ## Measuring which variables are sensitive to cluster seperation
 
+We'll take inspiration from the Scree plot and try to apply it to the LDA-like approach
 Consider a sree plot of flea data. This shows which componets are contributing to the *full sample, full dimensionality,* $[n,p]$ variation of the data.
 
 ```{r Screeplot}
@@ -133,6 +143,7 @@ kable(round(df_clusterSep_CH, 2))
 
 This is the remaining variable coefficents that best describe the *full sample, full dimensionality* seperation of the cluster means between *Concinna* and *Heptapot* after controling for variance and covariances. We discard the sign as we only care about magnitude of seperation. Now let's visualize this similar to the screeplot.
 
+
 ```{r clSepScreeplot}
 .clSep <- abs(df_clusterSep_CH)
 .clSep_rate <- t(.clSep[order(.clSep, decreasing = T)]) / sum(.clSep)
@@ -196,6 +207,9 @@ We make a $p$-length answer vector for the data set and find the variable-wise d
 
 $$MarksOff = \sum_{i = 1}^{p}(Answer_i - Response_i)^2$$
 
+
+$$Marks = \sum_{i = 1}^{p}(\sqrt{ClusterSeperation_i} / (p - 1)) * I(Response_i)~~~~~~~-~Approach~2$$
+
 ```{r exampleScoring}
 df_Scree_ClSep$ptile_clSep <- df_Scree_ClSep$rate_clSep / bar100
 df_taskEval <- data.frame(
@@ -237,15 +251,15 @@ Let's try to evaluate our current generation of data simulations against these p
 #### USES EVAL
 
 ## Series spans from 301:312
-dat              <- readRDS("./apps/data/simulation_data301.rds")
-dat_clusters     <- attributes(dat)$cl_lvl
-dat_pca_rot      <- prcomp(dat)$rotation
-proj_dat_pca_rot <- as.data.frame(as.matrix(dat) %*% dat_pca_rot)
-
+dat          <- readRDS("./apps/data/simulation_data301.rds")
+dat_clusters <- attributes(dat)$cl_lvl
+dat_std      <- tourr::rescale(as.matrix(dat))
+dat_pca_rot  <- prcomp(dat)$rotation
+proj_dat_pca <- as.data.frame(dat_std %*% dat_pca_rot)
 
 library(GGally)
 ggparis_proj_dat_pca <- 
-  ggpairs(proj_dat_pca_rot[, 1:4], 
+  ggpairs(proj_dat_pca[, 1:4], 
           title = "ggpairs of PC1:4 for simulation_data301",
           ggplot2::aes(colour = dat_clusters))
 #scale_color_brewer("Dark2") ## scale_color/fill* don't work as explected on ggpairs()
@@ -261,63 +275,67 @@ Seems sufficent to be complex enough not to be seen as a pair of components with
 
 _note: spinifex needs cleanup_
 
-```{r simRadialTours, eval=TRUE}
+```{r simRadialTours, eval=FALSE}
 #### USES EVAL
 
-## radial tours from a basis of PC1:2:
-bas_pca <- dat_pca_rot[, 1:2]
-dat_std <- tourr::rescale(dat) ## cl_lvls: class <- dat_clusters
 library("spinifex")
 
+### Create local function, spinifex not assigning theta correctly atm 
+ns_play_radial_tour <- function(data,
+                                basis,
+                                manip_var = sample(1:ncol(data)),
+                                theta = NULL,
+                                render_type = render_gganimate,
+                                ...) {
+  ### Test examples
+  # data <- flea_std;basis <- rb; manip_var <- 1; theta = NULL; 
+  # render_type <- render_gganimate;
+  manip_space <- create_manip_space(basis = basis, manip_var = manip_var)
+  mv_sp <- manip_space[manip_var, ]
+  theta <- NULL
+  if (is.null(theta)) {
+    theta <- atan(basis[manip_var, 2] / basis[manip_var, 1])
+    ### Was trying to incorprate the below this after CRAN ver, but not working. 
+    # ang_minor <- atan(mv_sp[2] / mv_sp[1])
+    # offset <- 270 + sign(mv_sp[1]) * 90
+    # theta <- (offset + sign(mv_sp[1]) * sign(mv_sp[2]) * ang_minor) %% 360
+  }
+  tour_hist <- manual_tour(basis = basis, manip_var = manip_var, theta = theta, ...)
+  tour_df   <- array2df(array = tour_hist, data = data)
+  render_type(slides = tour_df, ...)
+}
 
-if(F) {
-  ns_play_radial_tour <- function(data,
-                                  basis,
-                                  manip_var = sample(1:ncol(data)),
-                                  theta = NULL,
-                                  render_type = render_gganimate,
-                                  ...) {
-    ### Test examples
-    # data <- flea_std;basis <- rb; manip_var <- 1; theta = NULL; 
-    # render_type <- render_gganimate;
-    manip_space <- create_manip_space(basis = basis, manip_var = manip_var)
-    mv_sp <- manip_space[manip_var, ]
-    theta <- NULL
-    if (is.null(theta)) {
-      theta <- atan(basis[manip_var, 2] / basis[manip_var, 1])
-      ### Was trying to incorprate the below this after CRAN ver, but not working. 
-      # ang_minor <- atan(mv_sp[2] / mv_sp[1])
-      # offset <- 270 + sign(mv_sp[1]) * 90
-      # theta <- (offset + sign(mv_sp[1]) * sign(mv_sp[2]) * ang_minor) %% 360
-    }
-    tour_hist <- manual_tour(basis = basis, manip_var = manip_var, theta = theta, ...)
-    tour_df   <- array2df(array = tour_hist, data = data)
-    render_type(slides = tour_df, ...)
-  }
+### Init for radial tour:
+dat          <- readRDS("./apps/data/simulation_data301.rds")
+dat_clusters <- attributes(dat)$cl_lvl
+dat_std      <- tourr::rescale(as.matrix(dat))
+bas_pca      <- prcomp(dat)$rotation[, 1:2]
+
+i_s <- 1:ncol(dat)
+# ls_dat_radial_tour <- list()
+for(i in i_s) {
+  .this_radial_tour <- 
+    ns_play_radial_tour(basis = bas_pca, data = dat_std, manip_var = i,
+                        render_type = render_gganimate, 
+                        col = col_of(dat_clusters), 
+                        pch = pch_of(dat_clusters), 
+                        axes = "left", fps = 8)
   
-  i_s <- 1:ncol(dat)
-  # ls_dat_radial_tour <- list()
-  for(i in i_s) {
-    .this_radial_tour <- 
-      ns_play_radial_tour(basis = bas_pca, data = dat_std, manip_var = i,
-                          render_type = render_gganimate, 
-                          col = col_of(dat_clusters), pch = pch_of(dat_clusters), 
-                          axes = "bottomleft", fps = 8)
-    .gif_filepath <- paste(".output/radialTour_sim301_mv", i, ".gif")
-    gganimate::anim_save(.gif_filepath, .this_radial_tour)
-    # ## store gganimate in a list obj that isn't currently used
-    # ls_dat_radial_tour[[i]] <- .this_radial_tour 
-    .this_radial_tour ## explicitly call the gganimate tour
-  }
+  #TODO: BREAK INTO NAME AND PATH.
+  .gif_filepath <- paste(".output/radialTour_sim301_mv", i, ".gif")
+  ?gganimate::anim_save(.gif_filepath, .this_radial_tour)
+  # ## store gganimate in a list obj that isn't currently used
+  # ls_dat_radial_tour[[i]] <- .this_radial_tour 
+  # .this_radial_tour ## explicitly call the gganimate tour
 }
 ```
-![](output/radialTour_sim301_mv1.gif)
-![](output/radialTour_sim301_mv2.gif)
-![](output/radialTour_sim301_mv3.gif)
-![](output/radialTour_sim301_mv4.gif)
-![](output/radialTour_sim301_mv5.gif)
-![](output/radialTour_sim301_mv6.gif)
-![](output/radialTour_sim301_mv7.gif)
+<!-- ![](output/radialTour_sim301_mv1.gif) -->
+<!-- ![](output/radialTour_sim301_mv2.gif) -->
+<!-- ![](output/radialTour_sim301_mv3.gif) -->
+<!-- ![](output/radialTour_sim301_mv4.gif) -->
+<!-- ![](output/radialTour_sim301_mv5.gif) -->
+<!-- ![](output/radialTour_sim301_mv6.gif) -->
+<!-- ![](output/radialTour_sim301_mv7.gif) -->
 
 # References
 
