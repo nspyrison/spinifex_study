@@ -6,6 +6,9 @@ output:
     toc_depth: 2
 ---
 
+For S3D and 4D meta-analysis see (K. Kim, et al. 2017).
+
+
 ```{r setup_condensed, include=F}
 ## Setup
 library("knitr")
@@ -27,6 +30,7 @@ library("spinifex")
 library("tourr")
 library("ggplot2")
 library("tibble")
+library("dplyr")
 
 dat <- tourr::rescale(tourr::flea[,1:6])
 rb       <- basis_random(n = ncol(dat))
@@ -55,7 +59,8 @@ In general defining feature importance is a common task. Though it is typically 
 - The relative magnitude of the eigen values, as visualized in a scree plot ("Screeplot" R. Cattell, 1966)
 - Slope of $p-$dim line seperating two clusters scaled by the inverse of the variance-covariance matrix ("LDA" R. Fishce, 1936)
 - As ratios of F-values for features ("ANOVA" R. Fisher 1918) or as interactions of features ("MANOVA" S. Wilks  1932)
-- Percent increase in misclassification rate when a feature is removed. ("Random forests" L. Breiman, 2001)
+- _feature imporance_ Percent increase in misclassification rate when a feature is removed. ("Random forests" L. Breiman, 2001)
+- _permutation feature importance_ diffence between importance of the real variable and that of OOB re-sampling of 1 variable (holding the remaining data constant) [Interpretable Machine Learning (ebook), 5.5) feature-importance](https://christophm.github.io/interpretable-ml-book/feature-importance.html) ("PIMP", Altmann et al. 2010)
 - _Raw importance_, is the $(untouched~count - feature_m~count) / Number~of~trees$, ("Auto-WEKA" C. Thornton, 2013)
 - _Model reliance_, is the fraction each feature is used over all permutations. (A. Fisher, 2018)
 
@@ -103,28 +108,30 @@ library(MASS)
 This happens to be precisely the setup for Linear Discriminant Analysis (LDA) (Fisher, 1936). Start by finding cluster means (originally had considered median). We have:
 
 ```{r clusterMeans}
-mat_clusterMeans <- NULL
+df_clusterMeans <- NULL
 for (i in 1:k_cl) {
   .cl  <- unique(class)[i]
   .sub <- dat[class == .cl, ]
   .row <- apply(.sub, 2, mean)
-  mat_clusterMeans <- rbind(mat_clusterMeans, .row)
+  df_clusterMeans <- rbind(df_clusterMeans, .row)
 }
+df_clusterMeans <- as.data.frame(df_clusterMeans)
+rownames(df_clusterMeans) <- unique(class)
 
-## Prep display
-.disp_df_clusterMeans <- round(mat_clusterMeans, 2)
-rownames(.disp_df_clusterMeans) <- unique(class)
-kable(.disp_df_clusterMeans)
+kable(df_clusterMeans, digits = 2)
 ``` 
 
 
 Suppose the clusters in questions are *Concinna* and *Heptapot*, now let's find the $p$-dim line between the cluster means. Let of the cluster mean of *Concinna* be the constant vetor (offset from origin). The vector between the cluser means is the slope, the $p$-dim, coefficients.
 
 ```{r clMeansAsPLine}
-df_pLine_clusterMeans_CH <- as.data.frame(mat_clusterMeans[1:2, ])
-rownames(df_pLine_clusterMeans_CH) <- c(("constants_ConcinnaHeptapot"), ("coefficients_ConcinnaHeptapot"))
+df_pLine_clusterMeans_CH <- rbind(df_clusterMeans[1, ],
+                                  df_clusterMeans[2, ] - df_clusterMeans[1, ])
+rownames(df_pLine_clusterMeans_CH) <- 
+  c(paste0("constants: ClMn_", unique(class)[1]),
+    paste0("coefficients: ClMn_", unique(class)[2], "-", unique(class)[1]))
 
-kable(round(df_pLine_clusterMeans_CH, 2))
+kable(df_pLine_clusterMeans_CH, digits = 2)
 ``` 
 
 We have a vector of variable-coffecients corisponding to the sepration of the cluster means. Now we need to account for the variation held within the variables. To do so we need scale each variable the reciporical of the covariance matrix:
@@ -136,9 +143,10 @@ $$ Cluster Seperation_{[1,p]} = Coefficients{[1, p]} * 1/Covariance(flea)_{[p, p
 ```{r clusterSep}
 .inverse_covar <- 1 / cov(dat)
 df_clusterSep_CH <- .inverse_covar * df_pLine_clusterMeans_CH[2, ]
-rownames(df_clusterSep_CH) <- "clusterSeperation_ConcinnaHeptapot"
+rownames(df_clusterSep_CH) <- rownames(paste0(
+  "clusterSeperation_", unique(class)[1], unique(class)[2]))
 
-kable(round(df_clusterSep_CH, 2))
+kable(df_clusterSep_CH, digits = 2)
 ```
 
 This is the remaining variable coefficents that best describe the *full sample, full dimensionality* seperation of the cluster means between *Concinna* and *Heptapot* after controling for variance and covariances. We discard the sign as we only care about magnitude of seperation. Now let's visualize this similar to the screeplot.
@@ -147,11 +155,12 @@ This is the remaining variable coefficents that best describe the *full sample, 
 ```{r clSepScreeplot}
 .clSep <- abs(df_clusterSep_CH)
 .clSep_rate <- t(.clSep[order(.clSep, decreasing = T)]) / sum(.clSep)
-.var_nm_ord <- factor(row.names(.clSep_rate), levels=unique(row.names(.clSep_rate)))
+.var_nm_ord <- factor(row.names(.clSep_rate), 
+                      levels = unique(row.names(.clSep_rate)))
 
 df_Scree_ClSep <- data.frame(variable = .var_nm_ord,
-                       rate_clSep = as.vector(.clSep_rate),
-                       cumsum_rate_clSep = cumsum(.clSep_rate))
+                             rate_clSep = as.vector(.clSep_rate),
+                             cumsum_rate_clSep = cumsum(.clSep_rate))
 
 (g2 <- ggplot(data = df_Scree_ClSep) + 
     ## Individual clSep bars
@@ -177,53 +186,60 @@ df_Scree_ClSep <- data.frame(variable = .var_nm_ord,
 
 ## Evaluating the response
 
-Now that we have a measure we want to define an objective cutoff for evaluation. We bin the seperation of clusters into 3 even bands relative to the max and assigned values of 0, 1, and 2 with increaing importance. Note that at least 1 variable must be "very important".
+Now that we have a measure we want to define an objective cutoff for evaluation. We want the measure to a few attributes:
 
-```{r answer}
-bar100 <- max(.clSep_rate)
-bar.66 <- 2 / 3 * bar100
-bar.33 <- 1 / 3 * bar100
+- Continuous relative to the cluster seperation
+- Sum of squares should equal 1
+- Symetric, diverging around uniform weight
+
+Following these, we define a measure to be:
+
+$$Marks = \sum_{i = 1}^{p}(\sqrt{ClusterSeperation_i} - (1 / (p - 1)) * I(Response_i)$$
+
+```{r answer, results="hold"}
+bar_unif <- 1/(p-1)
+
+df_taskEval <- select(df_Scree_ClSep, variable, rate_clSep)
+df_taskEval <- mutate(df_taskEval, .keep = "none",
+                      variable = variable,
+                      ClSep    = rate_clSep,
+                      Weight   = sqrt(rate_clSep) - bar_unif,
+                      exampleResponse = c(1, 1, 0, 1, 0, 1),
+                      Marks    = Weight * exampleResponse)
 
 g2 +
-  geom_rect(fill = "#7570B3", alpha = 0.05,
-            mapping = aes(xmin = .3, xmax = 6.8, ymin = bar.66, ymax = bar100)) +
-    geom_text(aes(x = 6.5, y = bar100 +.04, 
-                  label = "max(single variable cluster seperation) | sample"), 
-              size = 4, hjust = 1) +
-  geom_hline(yintercept = bar100) +
-  geom_text(aes(x = 6.5, y = bar.66 + .07, label = "very important -> 2"), 
+  geom_hline(yintercept = bar_unif, size= 1) +
+  geom_text(aes(x = 7, y = bar_unif + .04, 
+                label = "Uniform Wt, 1/(p-1) = .2"),
             size = 4, hjust = 1) +
-  geom_rect(fill = "#E7298A", alpha = 0.05,
-            mapping = aes(xmin = .3, xmax = 6.8, ymin = bar.33, ymax = bar.66)) +
-  geom_text(aes(x = 6.5, y = bar.33 + .07, label = "somewhat important -> 1"), 
-            size = 4, hjust = 1) +
-  geom_rect(fill = "#66A61E", alpha = 0.05,
-            mapping = aes(xmin = .3, xmax = 6.8, ymin = 0, ymax = bar.33)) +
-  geom_text(aes(x = 6.5, y = 0 + .07, label = "not important -> 0"), 
-            size = 4, hjust = 1)
+  geom_segment(data = df_taskEval, colour = "green", size = 2,
+               aes(x = 1, y = bar_unif, xend = 1, yend = Weight[1] + bar_unif) 
+  ) +
+  geom_segment(data = df_taskEval, colour = "green", size = 2,
+               aes(x = 2, y = bar_unif, xend = 2, yend = Weight[2] + bar_unif), 
+  ) +
+  geom_segment(data = df_taskEval, colour = "green", size = 2,
+               aes(x = 3, y = bar_unif, xend = 3, yend = Weight[3] + bar_unif), 
+  ) +
+  geom_segment(data = df_taskEval, colour = "green", size = 2,
+               aes(x = 4, y = bar_unif, xend = 4, yend = Weight[4] + bar_unif), 
+  ) +
+  geom_segment(data = df_taskEval, colour = "red", size = 2,
+               aes(x = 5, y = bar_unif, xend = 5, yend = Weight[5] + bar_unif), 
+  ) +
+  geom_segment(data = df_taskEval, colour = "red", size = 2,
+               aes(x = 6, y = bar_unif, xend = 6, yend = Weight[6] + bar_unif), 
+  )
+
+  
 ```
 
-We make a $p$-length answer vector for the data set and find the variable-wise differnece with the response vector and aggregate over each variable acording to a measure where a larger value is worse.
-
-$$MarksOff = \sum_{i = 1}^{p}(Answer_i - Response_i)^2$$
-
-
-$$Marks = \sum_{i = 1}^{p}(\sqrt{ClusterSeperation_i} / (p - 1)) * I(Response_i)~~~~~~~-~Approach~2$$
+Here, we add lines indicating the weight of each variable if selected as important. we then apply our measure to evalue task responses, we review an example response below:
 
 ```{r exampleScoring}
-df_Scree_ClSep$ptile_clSep <- df_Scree_ClSep$rate_clSep / bar100
-df_taskEval <- data.frame(
-  variable = df_Scree_ClSep$variable,
-  answer =  dplyr::case_when(df_Scree_ClSep$rate_clSep > bar.66 ~ 2,
-                             df_Scree_ClSep$rate_clSep > bar.33 ~ 1,
-                             df_Scree_ClSep$rate_clSep >= 0 ~ 0),
-  exampleResponse = c(2, 1, 1, 2, 0, 1))
-df_taskEval$delta <- df_taskEval$answer - df_taskEval$exampleResponse
-df_taskEval$var_marksOff <- df_taskEval$delta^2
-
-kable(df_taskEval)
-message(paste0("total MarksOff = ", sum(df_taskEval$var_marksOff)))
+kable(df_taskEval, digits = 2)
 ```
+`r paste0("Total Marks = ", round(sum(df_taskEval$Marks),2))`
 
 ## Projected data view
 
@@ -236,6 +252,24 @@ _finish this thought_
 ## Mental task
 
 _todo_
+
+## Further application on toy data
+
+In order to stress test this sort of screeplot visualization of the Cluster seperation to other toy datasets.
+
+
+### Wine
+
+```{r}
+require("ggplot2")
+source("./geom_clustsep_screeplot.r")
+palette(RColorBrewer::brewer.pal(3, "Dark2"))
+theme_set(theme_minimal())
+
+dat <- spinifex::wine[, 2:ncol(spinifex::wine)]
+clas <- spinifex::wine[, 1]
+ggplot() + ggproto_screeplot_ClSep(dat, clas, 1, 2)
+```
 
 # Simulation difficulty
 
