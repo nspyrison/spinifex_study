@@ -1,41 +1,48 @@
-#' Produce a screeplot of the variance explained by the Principal Component.
+#' Creates a data frame of the variance explained by the Principal Components.
 #' 
 #' @examples 
-#' dat  <- tourr::flea[, 1:6]
-#' palette(RColorBrewer::brewer.pal(3, "Dark2")) 
-#' ggplot2::ggplot() + ggproto_screeplot_pca(dat)
-#' 
-#' ggplot2::ggplot() +
-#'   ggproto_screeplot_pca(data = dat, rescale = FALSE) +
-#'   ggplot2::theme_bw()
+#' dat <- tourr::flea[, 1:6]
+#' df_scree_pca(dat)
 
-ggproto_screeplot_pca <- function(data = NULL, 
-                                  rescale = TRUE){
-  if (rescale == TRUE) data <- tourr::rescale(as.matrix(data))
+df_scree_pca <- function(data){
   data <- as.data.frame(data)
   p <- ncol(data)
   
   ## PCA VARIANCE EXPLAINED
   pca_obj <- prcomp(data)
-  df_scree_pcaVar <- data.frame(
-    pc_num = paste0("PC", 1:p),
-    PC_var = pca_obj$sdev^2 / sum(pca_obj$sdev^2),
-    cumsum_var = cumsum(pca_obj$sdev^2) / sum(pca_obj$sdev^2)
+  data.frame(pc_num = paste0("PC", 1:p),
+             PC_var = pca_obj$sdev^2 / sum(pca_obj$sdev^2),
+             cumsum_var = cumsum(pca_obj$sdev^2) / sum(pca_obj$sdev^2)
   )
+}
+
+#' Creates a screeplot of the variance explained by the Principal Components.
+#' 
+#' @examples 
+#' dat <- tourr::flea[, 1:6]
+#' palette(RColorBrewer::brewer.pal(3, "Dark2")) 
+#' ggplot2::ggplot() + ggproto_screeplot_pca(dat)
+#' 
+#' ggplot2::ggplot() +
+#'   ggproto_screeplot_pca(data = dat, rescale = TRUE) +
+#'   ggplot2::theme_bw()
+
+ggproto_screeplot_pca <- function(data){
+  .df_scree_pca <- df_scree_pca(data = data)
   
   axis_labs <- c("Principal component", "Variance explained")
   lgnd_labs <- c("PC variance explained", "Cummulative variance explained")
   ## List of ggproto's that is addable to a ggplot object.
   list(
     ## Individual feature bars
-    ggplot2::geom_bar(data = df_scree_pcaVar, stat = "identity", 
+    ggplot2::geom_bar(data = .df_scree_pca, stat = "identity", 
                       mapping = ggplot2::aes(x = pc_num, y = PC_var, 
                                              fill = lgnd_labs[1])),
     ## Cummulative feature line
-    ggplot2::geom_line(data = df_scree_pcaVar, lwd = 1.2,
+    ggplot2::geom_line(data = .df_scree_pca, lwd = 1.2,
                        mapping = ggplot2::aes(x = pc_num, y = cumsum_var,
                                               color = lgnd_labs[2], group = 1)),
-    ggplot2::geom_point(data = df_scree_pcaVar, shape = 18, size = 4,
+    ggplot2::geom_point(data = .df_scree_pca, shape = 18, size = 4,
                         mapping = ggplot2::aes(
                           x = pc_num, y = cumsum_var,
                           color = lgnd_labs[2])),
@@ -47,4 +54,3 @@ ggproto_screeplot_pca <- function(data = NULL,
     ggplot2::scale_colour_manual(values = palette()[2])
   )
 }
-

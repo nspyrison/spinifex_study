@@ -1,22 +1,15 @@
-#' Produce a screeplot of the cluster seperation between 2 selected levels. 
+#' Creates a data frame of the variance explained by the Principal Components.
 #' 
 #' @examples 
-#' dat  <- tourr::flea[, 1:6]
+#' dat <- tourr::flea[, 1:6]
 #' clas <- tourr::flea$species
-#' palette(RColorBrewer::brewer.pal(3, "Dark2")) 
-#' ggplot2::ggplot() + ggproto_screeplot_ClSep(dat, clas, 1, 2)
 #' 
-#' ggplot2::ggplot() +
-#'   ggproto_screeplot_pca(data = dat, class = clas, rescale = FALSE,
-#'                         num_class_lvl_A = 2, num_class_lvl_B = 3) +
-#'   ggplot2::theme_bw()
+#' df_scree_ClSep(dat, clas, 1, 2)
 
-ggproto_screeplot_ClSep <- function(data = NULL, 
-                                    class = NULL,
-                                    num_class_lvl_A = 1,
-                                    num_class_lvl_B = 2,
-                                    rescale = TRUE){
-  if (rescale == TRUE) data <- tourr::rescale(as.matrix(data))
+df_scree_ClSep <- function(data, 
+                           class,
+                           num_class_lvl_A = 1,
+                           num_class_lvl_B = 2) {
   data <- as.data.frame(data)
   p <- ncol(data)
   
@@ -51,9 +44,30 @@ ggproto_screeplot_ClSep <- function(data = NULL,
   var_ord <- factor(x = rownames(clSep_rate), 
                     levels = unique(rownames(clSep_rate)))
   
-  df_scree_ClSep <- data.frame(var = var_ord,
-                               var_clSep = as.vector(clSep_rate),
-                               cumsum_clSep = cumsum(clSep_rate))
+  data.frame(var = var_ord,
+             var_clSep = as.vector(clSep_rate),
+             cumsum_clSep = cumsum(clSep_rate)
+  )
+}
+
+#' Creates a screeplot of the cluster seperation between 2 selected levels. 
+#' 
+#' @examples 
+#' dat <- tourr::flea[, 1:6]
+#' clas <- tourr::flea$species
+#' palette(RColorBrewer::brewer.pal(3, "Dark2")) 
+#' ggplot2::ggplot() + ggproto_screeplot_ClSep(dat, clas, 1, 2)
+#' 
+#' ggplot2::ggplot() +
+#'   ggproto_screeplot_pca(data = dat, class = clas, rescale = TRUE,
+#'                         num_class_lvl_A = 2, num_class_lvl_B = 3) +
+#'   ggplot2::theme_bw()
+
+ggproto_screeplot_ClSep <- function(data, 
+                                    class,
+                                    num_class_lvl_A = 1,
+                                    num_class_lvl_B = 2) {
+  .df_scree_ClSep <- df_scree_ClSep()
   
   axis_labs <- c("Variable", "Variance explained")
   lgnd_labs <- c("Variable cluster seperation explained", 
@@ -61,14 +75,14 @@ ggproto_screeplot_ClSep <- function(data = NULL,
   ## List of ggproto's that is addable to a ggplot object..
   list(
     ## Individual feature bars
-    ggplot2::geom_bar(data = df_scree_ClSep, stat = "identity", 
+    ggplot2::geom_bar(data = .df_scree_ClSep, stat = "identity", 
                       mapping = ggplot2::aes(x = var, y = var_clSep, 
                                              fill = lgnd_labs[1])),
     ## Cummulative feature line
-    ggplot2::geom_line(data = df_scree_ClSep, lwd = 1.2,
+    ggplot2::geom_line(data = .df_scree_ClSep, lwd = 1.2,
                        mapping = ggplot2::aes(x = var, y = cumsum_clSep,
                                               color = lgnd_labs[2], group = 1)),
-    ggplot2::geom_point(data = df_scree_ClSep, shape = 18, size = 4,
+    ggplot2::geom_point(data = .df_scree_ClSep, shape = 18, size = 4,
                         mapping = ggplot2::aes(
                           x = var, y = cumsum_clSep,
                           color = lgnd_labs[2])),
