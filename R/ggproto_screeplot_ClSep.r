@@ -1,27 +1,24 @@
 #' Produce a screeplot of the cluster seperation between 2 selected levels. 
 #' 
 #' @examples 
-#' data  <- tourr::flea[, 1:6]
-#' class <- tourr::flea$species
+#' dat  <- tourr::flea[, 1:6]
+#' clas <- tourr::flea$species
 #' palette(RColorBrewer::brewer.pal(3, "Dark2")) 
-#' ggplot2::ggplot() + ggproto_screeplot_ClSep(data, class, 1, 2)
+#' ggplot2::ggplot() + ggproto_screeplot_ClSep(dat, clas, 1, 2)
+#' 
+#' ggplot2::ggplot() +
+#'   ggproto_screeplot_pca(data = dat, class = clas, rescale = FALSE,
+#'                         num_class_lvl_A = 2, num_class_lvl_B = 3) +
+#'   ggplot2::theme_bw()
 
 ggproto_screeplot_ClSep <- function(data = NULL, 
                                     class = NULL,
                                     num_class_lvl_A = 1,
                                     num_class_lvl_B = 2,
                                     rescale = TRUE){
-  data <- as.matrix(data)
-  if (rescale == TRUE) data <-as.data.frame(tourr::rescale(data))
+  if (rescale == TRUE) data <- tourr::rescale(as.matrix(data))
+  data <- as.data.frame(data)
   p <- ncol(data)
-  
-  ### PCA VARIANCE EXPLAINED
-  # pca_obj <- prcomp(data)
-  # df_pcaVar <- data.frame(
-  #   pc_number = 1:p,
-  #   rate_var_explained = pca_obj$sdev^2 / sum(pca_obj$sdev^2),
-  #   cumsum_rate_var_explained = cumsum(pca_obj$sdev^2) / sum(pca_obj$sdev^2)
-  # )
   
   ### CLUSTER SEPERATION EXPLAINED
   ## Identify and subset
@@ -46,7 +43,7 @@ ggproto_screeplot_ClSep <- function(data = NULL,
     paste0("constants: ClMn ", tgt_lvls[1]),
     paste0("coefficients: ClMn ", tgt_lvls[2], "-", tgt_lvls[1]))
   
-  ##TODO: SHOULD THE INVERSE COVAR BE ON THE FULL, OR CL SUBSET OF THE DATA??
+  ##TODO: SHOULD THE INVERSE COVAR BE ON THE FULL, OR WITHIN CL??
   df_ClSep <- df_pLine_AB[2,] * (1 / cov(data))
   
   a_ClSep <- abs(df_ClSep)
@@ -56,30 +53,31 @@ ggproto_screeplot_ClSep <- function(data = NULL,
   
   df_scree_ClSep <- data.frame(var = var_ord,
                                var_clSep = as.vector(clSep_rate),
-                               cumsum_var_clSep = cumsum(clSep_rate))
+                               cumsum_clSep = cumsum(clSep_rate))
   
-  labs <- c("Individual var", "Cumsum of var explained")
-  ## List of ggproto's that is addable to a ggplot.
+  axis_labs <- c("Variable", "Variance explained")
+  lgnd_labs <- c("Variable cluster seperation explained", 
+                 "Cummulative cluster seperation explained")
+  ## List of ggproto's that is addable to a ggplot object..
   list(
-    ## Individual variance bars
+    ## Individual feature bars
     ggplot2::geom_bar(data = df_scree_ClSep, stat = "identity", 
                       mapping = ggplot2::aes(x = var, y = var_clSep, 
-                                             fill = labs[1])),
-    ## Cummulative var line
+                                             fill = lgnd_labs[1])),
+    ## Cummulative feature line
     ggplot2::geom_line(data = df_scree_ClSep, lwd = 1.2,
-                       mapping = ggplot2::aes(x = var, y = cumsum_var_clSep,
-                                              color = labs[2], group = 1)),
+                       mapping = ggplot2::aes(x = var, y = cumsum_clSep,
+                                              color = lgnd_labs[2], group = 1)),
     ggplot2::geom_point(data = df_scree_ClSep, shape = 18, size = 4,
                         mapping = ggplot2::aes(
-                          x = var, y = cumsum_var_clSep,
-                          color = labs[2])),
-    ## Titles, and colors 
-    ggplot2::labs(x = "Variable", 
-                  y = paste0("Cluster seperation (B/T ", tgt_lvls[1], ", ", tgt_lvls[2], ")"), 
+                          x = var, y = cumsum_clSep,
+                          color = lgnd_labs[2])),
+    ## Titles and colors
+    ggplot2::labs(x = axis_labs[1], y = axis_labs[2], 
                   colour = "", fill = ""),
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30)),
     ggplot2::scale_fill_manual(values = palette()[1]),
     ggplot2::scale_colour_manual(values = palette()[2])
-    
   )
 }
 
