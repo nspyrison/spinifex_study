@@ -24,14 +24,14 @@ df_scree_pca <- function(data){
 #' ggplot2::ggplot() + ggproto_screeplot_pca(dat)
 #' 
 #' ggplot2::ggplot() +
-#'   ggproto_screeplot_pca(data = dat, rescale = TRUE) +
+#'   ggproto_screeplot_pca(data = dat) +
 #'   ggplot2::theme_bw()
 
 ggproto_screeplot_pca <- function(data){
   .df_scree_pca <- df_scree_pca(data = data)
   
-  axis_labs <- c("Principal component", "Variance explained")
-  lgnd_labs <- c("PC variance explained", "Cummulative variance explained")
+  axis_labs <- c("Principal component", "Variance")
+  lgnd_labs <- c("PC variance", "Cummulative variance")
   ## List of ggproto's that is addable to a ggplot object.
   list(
     ## Individual feature bars
