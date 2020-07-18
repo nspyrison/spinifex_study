@@ -35,6 +35,7 @@ rep_permute_var_ClSep <- function(data = NULL,
                                   num_class_lvl_B = 2,
                                   permute_var_num = NULL,
                                   n_reps = 500) {
+  require("ggplot2")
   data <- as.data.frame(data)
   n <- nrow(data)
   p <- ncol(data)
@@ -69,29 +70,56 @@ rep_permute_var_ClSep <- function(data = NULL,
   .alp <- .5
   .cols <- rep("grey", p)
   .cols[permute_var_num] <- "black"
+  .errbar_cols <- rep("darkgrey", p)
+  .errbar_cols[permute_var_num] <- "red"
   for (i in 1:p){
     .tgt_var <- real_var_ord[i]
     .tgt_df <- df_permuted_df_scree_ClSep[df_permuted_df_scree_ClSep$var %in% .tgt_var, ]
+    .n <- nrow(.tgt_df)
+    .df <- with(.tgt_df, data.frame(
+      .tgt_df,
+      mean = mean(var_clSep),
+      ci95_min = mean(var_clSep) - 1.96 * sd(var_clSep) / sqrt(.n),
+      ci95_max = mean(var_clSep) + 1.96 * sd(var_clSep) / sqrt(.n)
+    ))
     
+    ## Add jitter'd points
     proto_perm_jitter[[i]] <-
-      ggplot2::geom_jitter(.tgt_df$var_clSep, color = .cols[i], 
-                           alpha = .alp, shape = 3,
-                           mapping = ggplot2::aes(x = var, y = var_clSep)
-    )
+      geom_jitter(.tgt_df$var_clSep, color = .cols[i],
+                  alpha = .alp, shape = 3,
+                  mapping = aes(x = var, y = var_clSep[i])
+    ) 
+    ## Add cross bar for 95% CI (picture box of a boxplot)
+    proto_perm_jitter[[p + i]] <-
+      geom_crossbar(aes(ymin = ci95_min, ymax = ci95_max), 
+                    width = .8, size = 1.1, fatten = 3, color = .errbar_cols[i])
   }
   
+  
+  tgt_lvls <- levels(as.factor(class))[num_class_lvl_A:num_class_lvl_B]
   palette(RColorBrewer::brewer.pal(3, "Dark2")) 
   real_ggproto_screeplot_ClSep <- 
     ggproto_screeplot_ClSep(data = data, class = class,
-                            num_class_lvl_A = num_class_lvl_A, 
+                            num_class_lvl_A = num_class_lvl_A,
                             num_class_lvl_B = num_class_lvl_B)
   
-  ggplot2::ggplot() + real_ggproto_screeplot_ClSep + 
-    ggplot2::geom_jitter(ls_permuted_df_scree_ClSep[[i]], color = "black",
-                         mapping = ggplot2::aes(x = i, y = i), ) +
-    ggplot2::geom_jitter(z, mapping = ggplot2::aes(x = 1, y = x), color = "grey")
+  ggplot() + real_ggproto_screeplot_ClSep + 
+    proto_perm_jitter + 
+    labs(title = "95% CI of the mean of single-variable permuted ClSep", 
+         subtitle = paste0(
+           "Against real ClSep between ", tgt_lvls[1], " and ", tgt_lvls[2]))
 }
 
 library("ggplot2")  
-z <- data.frame(x = rnorm(500))
-ggplot2::ggplot() + ggplot2::geom_jitter(z, mapping = ggplot2::aes(x = 1, y = x), color = "black")
+x <- rnorm(500)
+df <- data.frame(x,
+                 mean = mean(x),
+                 Z95sd.sqrtn = 1.96*sd(x)/sqrt(500),
+                 ymin = mean(x) - 1.96*sd(x)/sqrt(500),
+                 ymax = mean(x) + 1.96*sd(x)/sqrt(500)
+)
+ggplot(df, mapping = aes(x = 1, y = x)) + geom_jitter(alpha = .5) +
+  theme_minimal() + 
+  geom_point(aes(x = 1, y = mean), size = 4, shape = 8) +
+  geom_errorbar(aes(ymin = ymin, ymax = ymax), 
+                width = .8, size=1.1, color = "red", alpha=.3)
