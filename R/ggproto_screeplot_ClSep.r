@@ -44,8 +44,8 @@ df_scree_ClSep <- function(data,
                     levels = unique(rownames(clSep_rate)))
   
   data.frame(var = var_ord,
-             var_clSep = as.vector(clSep_rate),
-             cumsum_clSep = cumsum(clSep_rate)
+             var_ClSep = as.vector(clSep_rate),
+             cumsum_ClSep = cumsum(clSep_rate)
   )
 }
 
@@ -74,15 +74,15 @@ ggproto_screeplot_ClSep <- function(data,
   list(
     ## Individual feature bars
     ggplot2::geom_bar(data = .df_scree_ClSep, stat = "identity", 
-                      mapping = ggplot2::aes(x = var, y = var_clSep, 
+                      mapping = ggplot2::aes(x = var, y = var_ClSep, 
                                              fill = lgnd_labs[1])),
     ## Cummulative feature line
     ggplot2::geom_line(data = .df_scree_ClSep, lwd = 1.2,
-                       mapping = ggplot2::aes(x = var, y = cumsum_clSep,
+                       mapping = ggplot2::aes(x = var, y = cumsum_ClSep,
                                               color = lgnd_labs[2], group = 1)),
     ggplot2::geom_point(data = .df_scree_ClSep, shape = 18, size = 4,
                         mapping = ggplot2::aes(
-                          x = var, y = cumsum_clSep,
+                          x = var, y = cumsum_ClSep,
                           color = lgnd_labs[2])),
     ## Titles and colors
     ggplot2::labs(x = axis_labs[1], y = axis_labs[2], 

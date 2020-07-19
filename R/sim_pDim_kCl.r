@@ -30,6 +30,7 @@ sim_pDim_kCl <- function(means,
 ) {
   means <- as.list(means)
   sigmas <- as.list(sigmas)
+  method <- match.arg(method)
   n_points <- as.list(n_points)
   p <- length(means[[1]])
   k <- length(means)
