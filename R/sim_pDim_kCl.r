@@ -67,12 +67,12 @@ sim_pDim_kCl <- function(means,
   }
   df_sim <- as.data.frame(df_sim)
   
-  ## Capture input args for attributed before anything could be  reshuffled.
+  ## Capture input args for attributed before anything could be reshuffled.
   input_args <- list(means = means, sigmas = sigmas, n_points = n_points, 
                      method = method, do_shuffle = do_shuffle)
   cl_lvl <- paste0("cl ", rep(letters[1:k], unlist(n_points)))
   
-  ## Reorder rows and columns if needed.
+  ## Reorder rows and columns if needed
   if(do_shuffle == TRUE) {
     row_ord <- sample(1:nrow(df_sim))
     col_ord <- sample(1:p)
@@ -100,10 +100,20 @@ sim_pDim_kCl <- function(means,
 }
 
 
-mns <- list(c(10, 3, rep(0, 3)), c(2, 1, rep(0, 3)))
-covs <- list(diag(5), diag(5))
-mySim <- sim_pDim_kCl(means = mns, sigmas = covs)
-
-
-
+# ### Saving off simulations for the PoC app.
+# mns <- list(c(4, 6, sample(1:3, size = 3)),
+#             c(5, 4, sample(1:3, size = 3)))
+# .p <- length(mns[[1]])
+# covar <- diag(.p) 
+# uppertri_ind <- upper.tri(covar)
+# covar[uppertri_ind] <- sample(seq(-.2, .2, by = .1), sum(uppertri_ind), replace = T)
+# covar[uppertri_ind] <- t(covar)[uppertri_ind]
+# lqmm::make.positive.definite(covar)
+# 
+# covs <- list(covar, 
+#              covar)
+# mySim <- sim_pDim_kCl(means = mns, sigmas = covs)
+# 
+# ex3 <- mySim
+# save(ex3, file = "../PoC_WebGL_shiny/_NicholasSpyrison_rgl/data/ex3_5var2Cl_noise.r")
 

@@ -16,7 +16,7 @@ df_scree_ClSep <- function(data,
   ### CLUSTER SEPERATION EXPLAINED
   ## Identify and subset
   tgt_lvls <- levels(as.factor(class))[num_class_lvl_A:num_class_lvl_B]
-
+  
   ## Find Cluster means
   df_clMns_AB <- NULL
   for (i in 1:length(tgt_lvls)) {
@@ -39,17 +39,19 @@ df_scree_ClSep <- function(data,
   df_ClSep <- df_pLine_AB[2,] * (1 / cov(data))
   
   a_ClSep <- abs(df_ClSep)
-  clSep_rate <- t(a_ClSep[order(a_ClSep, decreasing = T)]) / sum(a_ClSep)
-  var_ord <- factor(x = rownames(clSep_rate), 
-                    levels = unique(rownames(clSep_rate)))
+  .ord <- order(a_ClSep, decreasing = T)
+  clSep_rate <- t(a_ClSep[.ord]) / sum(a_ClSep)
+  ordered_fct <- factor(x = rownames(clSep_rate),
+                        levels = unique(rownames(clSep_rate)))
   
-  data.frame(var = var_ord,
+  data.frame(data_colnum = (1:p)[.ord],
+             var = ordered_fct,
              var_ClSep = as.vector(clSep_rate),
              cumsum_ClSep = cumsum(clSep_rate)
   )
 }
 
-#' Creates a screeplot of the cluster seperation between 2 selected levels. 
+#' Creates a screeplot of the cluster seperation between 2 selected levels.
 #' 
 #' @examples 
 #' dat <- tourr::flea[, 1:6]
@@ -62,19 +64,19 @@ df_scree_ClSep <- function(data,
 #'                           num_class_lvl_A = 2, num_class_lvl_B = 3) +
 #'   ggplot2::theme_bw()
 
-ggproto_screeplot_ClSep <- function(data, 
+ggproto_screeplot_ClSep <- function(data,
                                     class,
                                     num_class_lvl_A = 1,
                                     num_class_lvl_B = 2) {
   .df_scree_ClSep <- df_scree_ClSep(data, class, num_class_lvl_A, num_class_lvl_B)
   axis_labs <- c("Variable", "Cluster seperation")
-  lgnd_labs <- c("Variable cluster seperation", 
-                 "Cummulative cluster seperation ")
+  lgnd_labs <- c("Variable cluster seperation",
+                 "Cummulative cluster seperation")
   ## List of ggproto's that is addable to a ggplot object.
   list(
     ## Individual feature bars
-    ggplot2::geom_bar(data = .df_scree_ClSep, stat = "identity", 
-                      mapping = ggplot2::aes(x = var, y = var_ClSep, 
+    ggplot2::geom_bar(data = .df_scree_ClSep, stat = "identity",
+                      mapping = ggplot2::aes(x = var, y = var_ClSep,
                                              fill = lgnd_labs[1])),
     ## Cummulative feature line
     ggplot2::geom_line(data = .df_scree_ClSep, lwd = 1.2,

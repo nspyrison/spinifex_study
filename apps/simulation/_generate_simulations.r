@@ -37,9 +37,9 @@ simulate_clusters <- function(p = sample(5:7, 1),      ## Number of columns
     if (i <= n_cl_complexshape){n <- round(full_samp_n / 3)}
     
     ## Make a cluster 
-    vc <- matrix(sample(vc_vect, p * p, replace = T), nrow = p) 
-    ind <- lower.tri(vc) 
-    vc[ind] <- t(vc)[ind] 
+    vc <- matrix(sample(vc_vect, p * p, replace = T), nrow = p)
+    ind <- upper.tri(vc)
+    vc[ind] <- t(vc)[ind]
     vc <- lqmm::make.positive.definite(vc)
     diag(vc) <- 1
     mn <- c(sample(mn_vect * sample(c(-1, 1), 1), p_signal, replace = T), rep(0, p - p_signal))
@@ -79,7 +79,7 @@ simulate_clusters <- function(p = sample(5:7, 1),      ## Number of columns
   vc_reord <- vc[y.indx, y.indx]
   cl_lvl_reord <- factor(rep(letters[1:cl], cl_n))
   cl_lvl_reord <- cl_lvl_reord[x.indx]
-  params <- list(p = p, p_signal = p_signal, cl = cl, 
+  params <- list(p = p, p_signal = p_signal, cl = cl,
                        vc_vect = vc_vect, mn_vect = mn_vect)
   
   ## Record attributes; AFTER REORDER
@@ -87,8 +87,6 @@ simulate_clusters <- function(p = sample(5:7, 1),      ## Number of columns
   attr(x, "cl_lvl") <- cl_lvl_reord ## Cluster levels
   attr(x, "cl_mn")  <- cl_mn_reord  ## Mean of each cluster*variable
   attr(x, "vc")     <- vc_reord     ## Variance-covariance matrix
-  # attr(x, "col_reorder") <- y.indx ## Order variables were scrambled in
-  # attr(x, "row_reorder") <- x.indx ## Order rows were scrambled in
   
   return(x)
 }

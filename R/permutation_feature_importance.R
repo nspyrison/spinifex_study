@@ -29,8 +29,10 @@ permute_var <- function(data,
 #' clas <- tourr::flea$species
 #' 
 #' rep_permute_var_ClSep(data = dat, class = clas, permute_var_num = 4)
+if(F) ## 10 sec to run then another 12 sec to render in Plots window 
+  require("tictoc");tic("Run rep_permute_var_ClSep()");rep_permute_var_ClSep(dat,clas,permute_var_num=4);toc()
 if(F)
-  source("./R/ggproto_screeplot_ClSep.r");data=tourr::flea[, 1:6];class=tourr::flea$species;permute_var_num=1;n_reps=100;
+  data=tourr::flea[, 1:6];class=tourr::flea$species;permute_var_num=1;n_reps=100;
 rep_permute_var_ClSep <- function(data,
                                   class,
                                   num_class_lvl_A = 1,
@@ -42,9 +44,9 @@ rep_permute_var_ClSep <- function(data,
   n <- nrow(data)
   p <- ncol(data)
   
-  ## Long df for the data frames of single variable permuted data.
+  ## Long df for the data frames of single variable permuted data
   df_permuted_data <- NULL
-  ## Long df for the df_scree_ClSep: var, var_ClSep, cumsum_ClSep of the pemputed data.
+  ## Long df for the df_scree_ClSep: var, var_ClSep, cumsum_ClSep of the pemputed data
   df_permuted_scree_ClSep <- NULL
   for(i in 1:n_reps) {
     ## Permuted data, i-th iteration
@@ -60,17 +62,20 @@ rep_permute_var_ClSep <- function(data,
   }
   
   real_df_scree_ClSep <- df_scree_ClSep(data, clas, num_class_lvl_A, num_class_lvl_B)
-  real_var_ord <- real_df_scree_ClSep$var
-    
+  .ord <- real_df_scree_ClSep$data_colnum
+  
   ## List of the geom_jitters for the repitions on the permuted data
   proto_perm_jitter <- list()
   .alp <- .5
   .cols <- rep("grey", p)
   .cols[permute_var_num] <- "black"
+  .cols <- .cols[.ord] ## Apply the ordering of ClSep rank
   .errbar_cols <- rep("darkgrey", p)
   .errbar_cols[permute_var_num] <- "red"
+  .errbar_cols <- .errbar_cols[.ord] ## Apply the ordering of ClSep rank
+
   for (i in 1:p){
-    .tgt_var <- real_var_ord[i]
+    .tgt_var <- real_df_scree_ClSep$var[i]
     .tgt_df <- df_permuted_scree_ClSep[df_permuted_scree_ClSep$var == .tgt_var, ]
     .n <- nrow(.tgt_df)
     
@@ -83,15 +88,15 @@ rep_permute_var_ClSep <- function(data,
     
     ## Add jitter'd points
     proto_perm_jitter[[i]] <-
-      geom_jitter(aes(x = .tgt_var, y = var_ClSep), .tgt_df, width = .3, height = 0,
+      geom_jitter(aes(x = !!enquo(i), y = var_ClSep), .tgt_df, width = .3, height = 0,
                   color = .cols[i], alpha = .alp, shape = 3)
     ## Add cross bar for 95% CI (picture box of a boxplot)
     proto_perm_jitter[[p + i]] <-
-      geom_crossbar(aes(x = .tgt_var, y = mean, ymin = ci95_min, ymax = ci95_max), 
+      geom_crossbar(aes(x = !!enquo(i), y = mean, ymin = ci95_min, ymax = ci95_max), 
                     .tgt_stats, width = .8, size = 1, fatten = 1, color = .errbar_cols[i])
   }
   
-  ## palette, labels, and screeplot of ClSep on unpermuted (real) data.
+  ## Palette, labels, and screeplot of ClSep on unpermuted (real) data
   tgt_lvls <- levels(as.factor(class))[num_class_lvl_A:num_class_lvl_B]
   palette(RColorBrewer::brewer.pal(3, "Dark2")) 
   real_ggproto_screeplot_ClSep <- 
