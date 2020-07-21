@@ -15,13 +15,13 @@ df_scree_clSep <- function(data,
                            num_class_lvl_b = 2) {
   data <- as.data.frame(data)
   p <- ncol(data)
-  tgt_lvls <- levels(as.factor(class))[num_class_lvl_a:num_class_lvl_b]
+  .tgt_lvls <- levels(as.factor(class))[c(num_class_lvl_a, num_class_lvl_b)]
   
   ## Find Cluster means
   ls_clMns_ab <- list()
   ls_clCov_ab <- list()
-  for (i in 1:length(tgt_lvls)) {
-    .lvl_rows <- class ==tgt_lvls[i]
+  for (i in 1:length(.tgt_lvls)) {
+    .lvl_rows <- class == .tgt_lvls[i]
     .lvl_sub  <- data[.lvl_rows, ]
     .row_clMns <- apply(.lvl_sub, 2, mean)
     .row_clCov <- cov(.lvl_sub)

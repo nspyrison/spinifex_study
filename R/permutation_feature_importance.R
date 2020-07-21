@@ -29,22 +29,19 @@ permute_var <- function(data,
 #' clas <- tourr::flea$species
 #' 
 #' rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 2)
-if(F) ## 10 sec to run then another 12 sec to render in Plots window 
-  require("tictoc");tic("Run rep_permute_var_clSep()");rep_permute_var_clSep(dat,clas,permute_rank_num=4);toc()
-if(F)
-  data=tourr::flea[, 1:6];class=tourr::flea$species;permute_rank_num=1;n_reps=100;
 rep_permute_var_clSep <- function(data,
                                   class,
                                   permute_rank_num = 1,
                                   num_class_lvl_a = 1,
                                   num_class_lvl_b = 2,
-                                  n_reps = 500) {
+                                  n_reps = 500,
+                                  confidence = .99) {
   require("ggplot2")
   data <- as.data.frame(data)
   n <- nrow(data)
   p <- ncol(data)
   
-  ## Init original data clSep, 
+  ## Init original data clSep
   real_df_scree_clSep <- df_scree_clSep(data, clas, num_class_lvl_a, num_class_lvl_b)
   ## Decode rank_num to var_num
   .ord <- real_df_scree_clSep$data_colnum
@@ -79,12 +76,14 @@ rep_permute_var_clSep <- function(data,
     .tgt_df <- df_permuted_scree_clSep[df_permuted_scree_clSep$var == .tgt_var, ]
     .n <- nrow(.tgt_df)
     
-    ## Create 95% condfidence interval on the mean of the permuted data.
+    ## Create condfidence interval on the mean for the permuted data
+    .single_tail_p <- (1 - confidence)/2
+    .z_val <- qnorm(.single_tail_p, lower.tail = FALSE)
     .tgt_stats <- with(.tgt_df, data.frame(
       var = .tgt_var,
       mean = mean(var_clSep),
-      ci95_min = mean(var_clSep) - 1.96 * sd(var_clSep) / sqrt(.n),
-      ci95_max = mean(var_clSep) + 1.96 * sd(var_clSep) / sqrt(.n)
+      ci_min = mean(var_clSep) - .z_val * sd(var_clSep) / sqrt(.n),
+      ci_max = mean(var_clSep) + .z_val * sd(var_clSep) / sqrt(.n)
     ))
     
     ## Add jitter'd points
@@ -93,37 +92,40 @@ rep_permute_var_clSep <- function(data,
                   color = .cols[i], alpha = .alp, shape = 3)
     ## Add cross bar for 95% CI (picture box of a boxplot)
     proto_perm_jitter[[p + i]] <-
-      geom_crossbar(aes(x = !!enquo(i), y = mean, ymin = ci95_min, ymax = ci95_max), 
+      geom_crossbar(aes(x = !!enquo(i), y = mean, ymin = ci_min, ymax = ci_max), 
                     .tgt_stats, width = .8, size = 1, fatten = 1, color = .errbar_cols[i])
   }
   
-  ## Palette, labels, and screeplot of clSep on unpermuted (real) data
-  tgt_lvls <- levels(as.factor(class))[num_class_lvl_a:num_class_lvl_b]
-  palette(RColorBrewer::brewer.pal(3, "Dark2")) 
-  real_ggproto_screeplot_clSep <- 
-    ggproto_screeplot_clSep(data, class, num_class_lvl_a, num_class_lvl_b)
   
-  ## Return
-  list(
-    real_ggproto_screeplot_clSep,
-    proto_perm_jitter,
-    labs(title = "95% CI of the mean* of single-variable permuted clSep", 
-         subtitle = paste0(
-           "Against real clSep between ", tgt_lvls[1], " and ", tgt_lvls[2]))
-  )
+  ## Palette, labels, and screeplot of clSep on unpermuted (real) data
+  .tgt_lvls <- levels(as.factor(class))[c(num_class_lvl_a, num_class_lvl_b)]
+  .var_nm <- colnames(data)[permute_var_num]
+  .title <- paste0(100 * confidence, "% CI of the mean for ", 
+                   .var_nm, "-permuted clSep (n_reps=", n_reps, ")")
+  .subtitle <- paste0("Against original clSep sreeplot between the clusters ", .tgt_lvls[1], " and ", .tgt_lvls[2])
+  palette(RColorBrewer::brewer.pal(3, "Dark2"))
+  
+  proto_scree_clSep <- ggproto_screeplot_clSep(data, class, num_class_lvl_a, num_class_lvl_b)
+  
+  ## Return ggproto list
+  ggplot() +
+    proto_scree_clSep +
+    proto_perm_jitter +
+    labs(title = .title, subtitle = .subtitle)
 }
 
-## example Errorbars/crossbars
-# library("ggplot2")
-# x <- rnorm(500)
-# df <- data.frame(x,
-#                  mean = mean(x),
-#                  Z95sd.sqrtn = 1.96*sd(x)/sqrt(500),
-#                  ymin = mean(x) - 1.96*sd(x)/sqrt(500),
-#                  ymax = mean(x) + 1.96*sd(x)/sqrt(500)
-# )
-# ggplot(df, mapping = aes(x = 1, y = x)) + geom_jitter(alpha = .5) +
-#   theme_minimal() +
-#   geom_point(aes(x = 1, y = mean), size = 4, shape = 8) +
-#   geom_errorbar(aes(ymin = ymin, ymax = ymax),
-#                 width = .8, size=1.1, color = "red", alpha=.3)
+if(F){
+  require("tictoc")
+  tic(1);gg_perm1 <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1);toc()
+  tic(2);gg_perm2 <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 2);toc()
+  tic(3);gg_perm3 <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 3);toc()
+  tic(4);gg_perm4 <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 4);toc()
+  tic(5);gg_perm5 <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 5);toc()
+  tic(6);gg_perm6 <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 6);toc()
+  tic(1);gg_perm1;toc()
+  tic(2);gg_perm2;toc()
+  tic(3);gg_perm3;toc()
+  tic(4);gg_perm4;toc()
+  tic(5);gg_perm5;toc()
+  tic(6);gg_perm6;toc()
+}
