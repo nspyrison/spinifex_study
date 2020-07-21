@@ -4,50 +4,53 @@
 #' dat <- tourr::flea[, 1:6]
 #' clas <- tourr::flea$species
 #' 
-#' df_scree_ClSep(dat, clas, 1, 2)
-
-df_scree_ClSep <- function(data, 
+#' df_scree_clSep(dat, clas, 1, 2)
+if (F)
+  data=dat;class=clas;num_class_lvl_a=1;num_class_lvl_b=2;
+if (F)
+  debugonce(df_scree_clSep(dat, clas, 1, 2))
+df_scree_clSep <- function(data, 
                            class,
-                           num_class_lvl_A = 1,
-                           num_class_lvl_B = 2) {
+                           num_class_lvl_a = 1,
+                           num_class_lvl_b = 2) {
   data <- as.data.frame(data)
   p <- ncol(data)
-  
-  ### CLUSTER SEPERATION EXPLAINED
-  ## Identify and subset
-  tgt_lvls <- levels(as.factor(class))[num_class_lvl_A:num_class_lvl_B]
+  tgt_lvls <- levels(as.factor(class))[num_class_lvl_a:num_class_lvl_b]
   
   ## Find Cluster means
-  df_clMns_AB <- NULL
+  ls_clMns_ab <- list()
+  ls_clCov_ab <- list()
   for (i in 1:length(tgt_lvls)) {
     .lvl_rows <- class ==tgt_lvls[i]
-    .lvl_sub <- data[.lvl_rows, ]
-    .row_ClMns <- apply(.lvl_sub, 2, mean)
-    df_clMns_AB <- rbind(df_clMns_AB, .row_ClMns)
+    .lvl_sub  <- data[.lvl_rows, ]
+    .row_clMns <- apply(.lvl_sub, 2, mean)
+    .row_clCov <- cov(.lvl_sub)
+    ls_clMns_ab[[i]] <- .row_clMns
+    ls_clCov_ab[[i]] <- .row_clCov
   }
-  df_clMns_AB <- as.data.frame(df_clMns_AB)
-  rownames(df_clMns_AB) <- paste0("ClMn ", tgt_lvls)
   
-  ## p-dim line between ClMns
-  df_pLine_AB <- rbind(df_clMns_AB[1, ],
-                       df_clMns_AB[2, ] - df_clMns_AB[1, ])
-  rownames(df_pLine_AB) <- c(
-    paste0("constants: ClMn ", tgt_lvls[1]),
-    paste0("coefficients: ClMn ", tgt_lvls[2], "-", tgt_lvls[1]))
+  ##### Fisher's linear discriminant
+  ### Like LDA, but doesn't assume equal covariances within group.
+  ## square of the differnece of means over (cov(cl1) + cov(cl2))
+  .numerator_vect  <- matrix((ls_clMns_ab[[2]] - ls_clMns_ab[[1]])^2, ncol = p)
+  .denominator_mat <- (ls_clCov_ab[[1]] + ls_clCov_ab[[2]])
+  ## The cluster seperation of a and b
+  ### When accounting for the difference in their means and their within cluster covariances.
+  clSep <- .numerator_vect %*% solve(.denominator_mat)
   
-  ##TODO: SHOULD THE INVERSE COVAR BE ON THE FULL, OR WITHIN CL??
-  df_ClSep <- df_pLine_AB[2,] * (1 / cov(data))
+  ## Looking at magnidue seperation alone:
+  a_clSep <- abs(clSep)
+  .ord <- order(a_clSep, decreasing = T)
+  clSep_rate  <- t(a_clSep[.ord]) / sum(a_clSep)
+  colnames(clSep_rate) <- colnames(clSep)[.ord]
+  vars_fct <- factor(x = colnames(clSep_rate),
+                     levels = unique(colnames(clSep_rate)))
   
-  a_ClSep <- abs(df_ClSep)
-  .ord <- order(a_ClSep, decreasing = T)
-  clSep_rate <- t(a_ClSep[.ord]) / sum(a_ClSep)
-  ordered_fct <- factor(x = rownames(clSep_rate),
-                        levels = unique(rownames(clSep_rate)))
-  
+  ## Return data frame of scree table for cluster seperation
   data.frame(data_colnum = (1:p)[.ord],
-             var = ordered_fct,
-             var_ClSep = as.vector(clSep_rate),
-             cumsum_ClSep = cumsum(clSep_rate)
+             var = vars_fct,
+             var_clSep = as.vector(clSep_rate),
+             cumsum_clSep = cumsum(clSep_rate)
   )
 }
 
@@ -57,35 +60,33 @@ df_scree_ClSep <- function(data,
 #' dat <- tourr::flea[, 1:6]
 #' clas <- tourr::flea$species
 #' palette(RColorBrewer::brewer.pal(3, "Dark2")) 
-#' ggplot2::ggplot() + ggproto_screeplot_ClSep(data = dat, clas, 1, 2)
+#' ggplot2::ggplot() + ggproto_screeplot_clSep(data = dat, clas, 1, 2)
 #' 
 #' ggplot2::ggplot() +
-#'   ggproto_screeplot_ClSep(data = dat, class = clas,
-#'                           num_class_lvl_A = 2, num_class_lvl_B = 3) +
+#'   ggproto_screeplot_clSep(data = dat, class = clas,
+#'                           num_class_lvl_a = 2, num_class_lvl_b = 3) +
 #'   ggplot2::theme_bw()
 
-ggproto_screeplot_ClSep <- function(data,
+ggproto_screeplot_clSep <- function(data,
                                     class,
-                                    num_class_lvl_A = 1,
-                                    num_class_lvl_B = 2) {
-  .df_scree_ClSep <- df_scree_ClSep(data, class, num_class_lvl_A, num_class_lvl_B)
+                                    num_class_lvl_a = 1,
+                                    num_class_lvl_b = 2) {
+  .df_scree_clSep <- df_scree_clSep(data, class, num_class_lvl_a, num_class_lvl_b)
   axis_labs <- c("Variable", "Cluster seperation")
   lgnd_labs <- c("Variable cluster seperation",
                  "Cummulative cluster seperation")
+  
   ## List of ggproto's that is addable to a ggplot object.
   list(
     ## Individual feature bars
-    ggplot2::geom_bar(data = .df_scree_ClSep, stat = "identity",
-                      mapping = ggplot2::aes(x = var, y = var_ClSep,
-                                             fill = lgnd_labs[1])),
+    ggplot2::geom_bar(ggplot2::aes(x = var, y = var_clSep, fill = lgnd_labs[1]),
+                      .df_scree_clSep, stat = "identity"),
     ## Cummulative feature line
-    ggplot2::geom_line(data = .df_scree_ClSep, lwd = 1.2,
-                       mapping = ggplot2::aes(x = var, y = cumsum_ClSep,
-                                              color = lgnd_labs[2], group = 1)),
-    ggplot2::geom_point(data = .df_scree_ClSep, shape = 18, size = 4,
-                        mapping = ggplot2::aes(
-                          x = var, y = cumsum_ClSep,
-                          color = lgnd_labs[2])),
+    ggplot2::geom_line(ggplot2::aes(x = var, y = cumsum_clSep,
+                                    color = lgnd_labs[2], group = 1),
+                       .df_scree_clSep, lwd = 1.2),
+    ggplot2::geom_point(ggplot2::aes(x = var, y = cumsum_clSep, color = lgnd_labs[2]),
+                        .df_scree_clSep, shape = 18, size = 4),
     ## Titles and colors
     ggplot2::labs(x = axis_labs[1], y = axis_labs[2], 
                   colour = "", fill = ""),
