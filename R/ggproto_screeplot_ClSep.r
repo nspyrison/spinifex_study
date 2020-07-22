@@ -12,7 +12,8 @@ if (F)
 df_scree_clSep <- function(data, 
                            class,
                            num_class_lvl_a = 1,
-                           num_class_lvl_b = 2) {
+                           num_class_lvl_b = 2,
+                           do_scale_to_1 = TRUE) {
   data <- as.data.frame(data)
   p <- ncol(data)
   .tgt_lvls <- levels(as.factor(class))[c(num_class_lvl_a, num_class_lvl_b)]
@@ -41,7 +42,8 @@ df_scree_clSep <- function(data,
   ## Looking at magnidue seperation alone:
   a_clSep <- abs(clSep)
   .ord <- order(a_clSep, decreasing = T)
-  clSep_rate  <- t(a_clSep[.ord]) / sum(a_clSep)
+  clSep_rate <- t(a_clSep[.ord])
+  if (do_scale_to_1 == TRUE) clSep_rate <- clSep_rate / sum(clSep_rate)
   colnames(clSep_rate) <- colnames(clSep)[.ord]
   vars_fct <- factor(x = colnames(clSep_rate),
                      levels = unique(colnames(clSep_rate)))

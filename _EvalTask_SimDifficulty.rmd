@@ -32,16 +32,15 @@ library("ggplot2")
 library("tibble")
 library("dplyr")
 
-dat <- tourr::rescale(tourr::flea[,1:6])
-rb       <- basis_random(n = ncol(dat))
-class    <- tourr::flea$species
+dat  <- flea[, 1:6]
+clas <- flea$species
 
 invisible(capture.output(holes_path <- save_history(dat, tour_path = guided_tour(holes()))))
 holes_basis <- as.matrix(holes_path[,, dim(holes_path)[3]])
 
 n <- nrow(dat)
 p <- ncol(dat)
-k_cl <- length(unique(class))
+k_cl <- length(unique(clas))
 pca_obj <- prcomp(dat)
 
 pca_var_rate <- pca_obj$sdev^2 / sum(pca_obj$sdev^2)
@@ -74,17 +73,17 @@ Consider a sree plot of flea data. This shows which componets are contributing t
    ## Individual var bars
    geom_bar(stat = "identity", 
             mapping = aes(x = pc_number, y = rate_var_explained, 
-                          fill = "Individual var explained")) + 
+                          fill = "Variable variance")) + 
    ## Cummulative var line
    geom_line(mapping = aes(x = pc_number, y = cumsum_rate_var_explained,
-                           color = "Cumsum of var explained", group = 1),lwd = 1.2) +
+                           color = "Cummulative variance", group = 1),lwd = 1.2) +
    geom_point(mapping = aes(x = pc_number, y = cumsum_rate_var_explained,
-                            color = "Cumsum of var explained"), shape = 18, size = 4) +
+                            color = "Cummulative variance"), shape = 18, size = 4) +
    ## Themes, legends and colors 
    theme_minimal() +
-   labs(title = "pca screeplot of normalized flea data",
+   labs(title = "variance by principal component, flea data",
         x = "Component number", 
-        y = "Variance explained",
+        y = "Variance",
         colour = "", fill = "") + 
    # theme(legend.position = c(0.9, 0.5)) + ## legend position doesn't work now because different geoms??
    scale_fill_manual(values = "#1B9E77") + 
@@ -92,96 +91,47 @@ Consider a sree plot of flea data. This shows which componets are contributing t
 # RColorBrewer::brewer.pal(n=2, "Dark2")
 ```
 
-The user study task trys to explore the *full sample, full dimensionality* $[n,p]$ seperation of two specified clusters. In an analogous manner, __let's try to create a screeplot-like output to evalute the contributions of the original variables.__
-
-```{r lda, eval=FALSE}
-#### USES EVAL
-
-.cl  <- unique(class)[1:2]
-.sub <- dat[class == .cl, ]
-.lda_dat <- data.frame(.sub, species = class[class == .cl]) 
-
-library(MASS)
-(lda_obj <- lda(species~., data = .lda_dat))
-```
-
-This happens to be precisely the setup for Linear Discriminant Analysis (LDA) (Fisher, 1936). Start by finding cluster means (originally had considered median). We have:
+The user study task trys to explore the *full sample, full dimensionality* $[n,p]$ seperation of two specified clusters. In an analogous manner, __let's try to create a screeplot-like output to evalute the contributions of the original variables.__ Note that this is related to what R. Fisher is attempting in his 1936 paper. Similarly we start by finding cluster means and covariances.
 
 ```{r clusterMeans}
 df_clusterMeans <- NULL
+ls_clusterSigmas <- list()
 for (i in 1:k_cl) {
-  .cl  <- unique(class)[i]
-  .sub <- dat[class == .cl, ]
+  .cl  <- unique(clas)[i]
+  .sub <- dat[clas == .cl, ]
   .row <- apply(.sub, 2, mean)
   df_clusterMeans <- rbind(df_clusterMeans, .row)
+  ls_clusterSigmas[[i]] <- cov(.sub)
 }
 df_clusterMeans <- as.data.frame(df_clusterMeans)
-rownames(df_clusterMeans) <- unique(class)
-
-kable(df_clusterMeans, digits = 2)
-``` 
-
-
-Suppose the clusters in questions are *Concinna* and *Heptapot*, now let's find the $p$-dim line between the cluster means. Let of the cluster mean of *Concinna* be the constant vetor (offset from origin). The vector between the cluser means is the slope, the $p$-dim, coefficients.
-
-```{r clMeansAsPLine}
-df_pLine_clusterMeans_CH <- rbind(df_clusterMeans[1, ],
-                                  df_clusterMeans[2, ] - df_clusterMeans[1, ])
-rownames(df_pLine_clusterMeans_CH) <- 
-  c(paste0("constants: ClMn_", unique(class)[1]),
-    paste0("coefficients: ClMn_", unique(class)[2], "-", unique(class)[1]))
-
-kable(df_pLine_clusterMeans_CH, digits = 2)
-``` 
-
-We have a vector of variable-coffecients corisponding to the sepration of the cluster means. Now we need to account for the variation held within the variables. To do so we need scale each variable the reciporical of the covariance matrix:
-
-Solving for the product
-
-$$ Cluster Seperation_{[1,p]} = Coefficients{[1, p]} * 1/Covariance(flea)_{[p, p]}$$
-
-```{r clusterSep}
-.inverse_covar <- 1 / cov(dat)
-df_clusterSep_CH <- .inverse_covar * df_pLine_clusterMeans_CH[2, ]
-rownames(df_clusterSep_CH) <- rownames(paste0(
-  "clusterSeperation_", unique(class)[1], unique(class)[2]))
-
-kable(df_clusterSep_CH, digits = 2)
+rownames(df_clusterMeans) <- paste0("Cluster means of: ", unique(clas))
+names(ls_clusterSigmas) <- paste0("Cluster covariances of: ", unique(clas))
 ```
 
-This is the remaining variable coefficents that best describe the *full sample, full dimensionality* seperation of the cluster means between *Concinna* and *Heptapot* after controling for variance and covariances. We discard the sign as we only care about magnitude of seperation. Now let's visualize this similar to the screeplot.
+__Cluster means:__
+`r kable(df_clusterMeans, digits = 2)`
 
+__Cluster variance-covariance matrices:__
+For `r paste0(unique(clas), collapse = ", ")` respectively
+`r kable(ls_clusterSigmas, digits = 4)` 
+
+Suppose the clusters in questions are *Concinna* and *Heptapot*. The line between the the cluster means of these groups is their difference. This is sufficeint for Linear Discriminant Analysis (LDA) which assumes homogenious variation between clusters. We'll follow Fisher's Discriminant Analysis, which accounts for within cluster variance.
+
+$$ Cluster Seperation_{[1,p]} = (\mu_{b[1,p]} - \mu_{a[1,p]})^2~/~(\Sigma_{a[p, p]} + \Sigma_{b[p, p]})~~~;~a,~b~are~clusters \in X_{[n,p]}$$
+
+```{r clusterSep}
+source('./R/ggproto_screeplot_ClSep.r')
+df_clSep_CH <- df_scree_clSep(dat, clas, do_scale_to_1 = FALSE)
+df_clSep_CH <- df_clSep_CH %>% select(-data_colnum)
+
+kable(df_clSep_CH, digits = 2)
+```
+
+We discard the sign as we only care about magnitude each variable contributed to the seperation of the specified clusters. We scale the absolute terms by the inverse of the sumation. Now let's visualize this similar to the screeplot.
 
 ```{r clSepScreeplot}
-.clSep <- abs(df_clusterSep_CH)
-.clSep_rate <- t(.clSep[order(.clSep, decreasing = T)]) / sum(.clSep)
-.var_nm_ord <- factor(row.names(.clSep_rate), 
-                      levels = unique(row.names(.clSep_rate)))
-
-df_Scree_ClSep <- data.frame(variable = .var_nm_ord,
-                             rate_clSep = as.vector(.clSep_rate),
-                             cumsum_rate_clSep = cumsum(.clSep_rate))
-
-(g2 <- ggplot(data = df_Scree_ClSep) + 
-    ## Individual clSep bars
-    geom_bar(stat = "identity", 
-             mapping = aes(x = variable, y = rate_clSep, 
-                           fill = "Individual clSep explained")) + 
-    ## Cummulative clSep line
-    geom_line(mapping = aes(x = variable, y = cumsum_rate_clSep, group = 1,
-                            color = "Cumsum of clSep explained"), lwd = 1.2) +
-    geom_point(mapping = aes(x = variable, y = cumsum_rate_clSep,
-                             color = "Cumsum of clSep explained"), shape = 18, size = 4) +
-    ## Themes, legends and colors 
-    theme_minimal() +
-    labs(title = "Variables contributions to the seperation of cluster means [Concinna-Heptapot]",
-         x = "Variable", 
-         y = "Seperation of cluster means", 
-         colour = "", fill = "") + 
-    # theme(legend.position = c(0.9, 0.5)) + ## legend position doesn't work now because different geoms??
-    scale_fill_manual(values = "#1B9E77") + 
-    scale_colour_manual(values = "#D95F02"))
-# RColorBrewer::brewer.pal(n=5, "Dark2")
+palette(RColorBrewer::brewer.pal(3, "Dark2")) 
+(g2 <- ggplot2::ggplot() + ggproto_screeplot_clSep(dat, clas) + theme_minimal())
 ```
 
 ## Evaluating the response
@@ -196,80 +146,164 @@ Following these, we define a measure to be:
 
 $$Marks = \sum_{i = 1}^{p}(\sqrt{ClusterSeperation_i} - (1 / (p - 1)) * I(Response_i)$$
 
-```{r answer, results="hold"}
+```{r answerWeights, results="hold"}
 bar_unif <- 1/(p-1)
 
-df_taskEval <- select(df_Scree_ClSep, variable, rate_clSep)
-df_taskEval <- mutate(df_taskEval, .keep = "none",
-                      variable = variable,
-                      ClSep    = rate_clSep,
-                      Weight   = sqrt(rate_clSep) - bar_unif,
-                      exampleResponse = c(1, 1, 0, 1, 0, 1),
-                      Marks    = Weight * exampleResponse)
+df_clSep_eval <- mutate(df_clSep_CH, .keep = "none",
+                        variable        = var,
+                        var_clSep       = var_clSep,
+                        Weight          = sqrt(var_clSep) - bar_unif,
+                        exampleResponse = c(1, 1, 0, 1, 0, 1),
+                        Marks           = Weight * exampleResponse)
 
-g2 +
-  geom_hline(yintercept = bar_unif, size= 1) +
+(g3 <- g2 +
+  geom_hline(yintercept = bar_unif, size = 1) +
   geom_text(aes(x = 7, y = bar_unif + .04, 
                 label = "Uniform Wt, 1/(p-1) = .2"),
             size = 4, hjust = 1) +
-  geom_segment(data = df_taskEval, colour = "green", size = 2,
+  geom_segment(data = df_clSep_eval, colour = "green", size = 2,
                aes(x = 1, y = bar_unif, xend = 1, yend = Weight[1] + bar_unif) 
   ) +
-  geom_segment(data = df_taskEval, colour = "green", size = 2,
+  geom_segment(data = df_clSep_eval, colour = "green", size = 2,
                aes(x = 2, y = bar_unif, xend = 2, yend = Weight[2] + bar_unif), 
   ) +
-  geom_segment(data = df_taskEval, colour = "green", size = 2,
+  geom_segment(data = df_clSep_eval, colour = "green", size = 2,
                aes(x = 3, y = bar_unif, xend = 3, yend = Weight[3] + bar_unif), 
   ) +
-  geom_segment(data = df_taskEval, colour = "green", size = 2,
+  geom_segment(data = df_clSep_eval, colour = "green", size = 2,
                aes(x = 4, y = bar_unif, xend = 4, yend = Weight[4] + bar_unif), 
   ) +
-  geom_segment(data = df_taskEval, colour = "red", size = 2,
+  geom_segment(data = df_clSep_eval, colour = "red", size = 2,
                aes(x = 5, y = bar_unif, xend = 5, yend = Weight[5] + bar_unif), 
   ) +
-  geom_segment(data = df_taskEval, colour = "red", size = 2,
+  geom_segment(data = df_clSep_eval, colour = "red", size = 2,
                aes(x = 6, y = bar_unif, xend = 6, yend = Weight[6] + bar_unif), 
   )
-
-  
+)
 ```
 
 Here, we add lines indicating the weight of each variable if selected as important. we then apply our measure to evalue task responses, we review an example response below:
 
-```{r exampleScoring}
-kable(df_taskEval, digits = 2)
-```
-`r paste0("Total Marks = ", round(sum(df_taskEval$Marks),2))`
+`r kable(df_clSep_eval, digits = 2)`
+`r paste0("Total Marks = ", round(sum(df_clSep_eval$Marks), 2))`
 
 ## Projected data view
 
 All linear projections are nesciarily a lossy representation of the full data. By this we mean that no single 2D frame can show the whole set of infromation for $p>=3$ -dimensional sample. Any pair of Pricipal Components nessciaronly shows less than all the variation, namely the sum of their contributions, typicaly stated as percentage of full sample variation. Analogously any single projection cannot show the full information explain the cluster seperation of 2 given clusters.
 
-In applcation, viewing a PC1 by PC2 biplot of flea data contains `r round(100*df_pcaVar[2,3],2)` percent of the variation explained in the sample. While viewing (an orthogonal project) the top 2 variables (namely: `r as.character(df_Scree_ClSep[1:2, 1])` ) explain `r round(100*df_Scree_ClSep[2, 3],2)` percent of the within sample cluster seperation between *Concinna* and *Heptapot*.
+In applcation, viewing a PC1 by PC2 biplot of flea data contains `r round(100 * df_pcaVar[2,3], 2)` percent of the variation explained in the sample. While viewing (an orthogonal project) the top 2 variables (namely: `r as.character(df_clSep_CH[1:2, 1])` ) explain `r round(100 * df_clSep_CH[2, 3], 2)` percent of the within sample cluster seperation between *Concinna* and *Heptapot*.
 
-_finish this thought_
+<!-- _finish this thought_ -->
 
-## Mental task
+<!-- ## Mental task -->
 
-_todo_
+<!-- _todo_ -->
 
-## Further application on toy data
+## Cluster seperation on single-variable permuted data
 
-In order to stress test this sort of screeplot visualization of the Cluster seperation to other toy datasets.
+```{r permFeatImp, eval=FALSE}
+#### USES EVAL
 
-
-### Wine
-
-```{r}
+source('./R/permutation_feature_importance.r')
 require("ggplot2")
-source("./geom_clustsep_screeplot.r")
+for (i in 1:6){
+  .gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = i)
+  ggsave(filename = paste0("permute_clSep", i, ".png"),
+         plot =  .gg,
+         path = "./output/")
+}
+```
+![](output/permute_clSep1.png)
+![](output/permute_clSep2.png)
+![](output/permute_clSep3.png)
+![](output/permute_clSep4.png)
+![](output/permute_clSep5.png)
+![](output/permute_clSep6.png)
+
+
+## Application to other toy sets
+
+In order to stress test this Cluster seperation viewed by a screeplot we apply it to other toy datasets.
+
+```{r toyPermFeatImp, eval=FALSE}
+#### USES EVAL
+
+require("ggplot2")
+source('./R/permutation_feature_importance.r')
+
 palette(RColorBrewer::brewer.pal(3, "Dark2"))
 theme_set(theme_minimal())
 
 dat <- spinifex::wine[, 2:ncol(spinifex::wine)]
 clas <- spinifex::wine[, 1]
-ggplot() + ggproto_screeplot_ClSep(dat, clas, 1, 2)
+.gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
+ggsave(filename = paste0("wine_permute_clSep1.png"),
+       plot =  .gg,
+       path = "./output/")
+
+dat <- spinifex::breastcancer[, 2:9]
+clas <- spinifex::breastcancer[, 10]
+.gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
+ggsave(filename = paste0("breastcancer_permute_clSep1.png"),
+       plot =  .gg,
+       path = "./output/")
+
+dat <- tourr::olive[, 3:ncol(tourr::olive)]
+clas <- tourr::olive[, 1]
+.gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
+ggsave(filename = paste0("olive_permute_clSep1.png"),
+       plot =  .gg,
+       path = "./output/")
+
+dat <- tourr::ratcns[, 1:9]
+clas <- tourr::ratcns[, 10]
+.gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
+ggsave(filename = paste0("ratcns_permute_clSep1.png"),
+       plot =  .gg,
+       path = "./output/")
+
+pengu <- as.data.frame(palmerpenguins::penguins)
+pengu <- pengu[complete.cases(pengu), ]
+dat <- pengu[, 3:6]
+clas <- pengu$species
+.gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
+ggsave(filename = paste0("penguins_permute_clSep1.png"),
+       plot =  .gg,
+       path = "./output/")
+clas <- pengu$sex
+.gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
+ggsave(filename = paste0("penguins_InvalidAssumptions_permute_clSep1.png"),
+       plot =  .gg,
+       path = "./output/")
+pengu2 <- pengu[pengu$species == unique(pengu$species)[1], ]
+dat <- pengu2[, 3:6]
+clas <- pengu2$sex
+.gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
+ggsave(filename = paste0("penguins_sexIn1Species_permute_clSep1.png"),
+       plot =  .gg,
+       path = "./output/")
 ```
+
+### Penguins, between 2 levels of spieces
+![](output/penguins_permute_clSep1.png)
+
+### Penguins, between 2 levels of sex (invalid)
+(invalid assumptions, as there are 3 species clusters for each sex)
+![](output/penguins_InvalidAssumptions_permute_clSep1.png)
+### Penguins, between 2 levels of sex with 1 species
+![](output/penguins_sexIn1Species_permute_clSep1.png)
+
+### Wine, between 2 levels of type of wine
+![](output/wine_permute_clSep1.png)
+
+### Breastcancer, between benign/malignant tumors
+![](output/breastcancer_permute_clSep1.png)
+
+### Olive, between 2 levels of region of Italy
+![](output/olive_permute_clSep1.png)
+
+### Rat CNS gene expression, between 2 levels of "the high-level classes"
+![](output/ratcns_permute_clSep1.png)
 
 # Simulation difficulty
 
@@ -281,7 +315,7 @@ In order to properly distinguish a difference between the 3 vizualization factor
 
 Let's try to evaluate our current generation of data simulations against these properties
 
-```{r simPcaPairs, eval=TRUE}
+```{r simPcaPairs, eval=FALSE}
 #### USES EVAL
 
 ## Series spans from 301:312
@@ -312,33 +346,7 @@ _note: spinifex needs cleanup_
 ```{r simRadialTours, eval=FALSE}
 #### USES EVAL
 
-library("spinifex")
-
-### Create local function, spinifex not assigning theta correctly atm 
-ns_play_radial_tour <- function(data,
-                                basis,
-                                manip_var = sample(1:ncol(data)),
-                                theta = NULL,
-                                render_type = render_gganimate,
-                                ...) {
-  ### Test examples
-  # data <- flea_std;basis <- rb; manip_var <- 1; theta = NULL; 
-  # render_type <- render_gganimate;
-  manip_space <- create_manip_space(basis = basis, manip_var = manip_var)
-  mv_sp <- manip_space[manip_var, ]
-  theta <- NULL
-  if (is.null(theta)) {
-    theta <- atan(basis[manip_var, 2] / basis[manip_var, 1])
-    ### Was trying to incorprate the below this after CRAN ver, but not working. 
-    # ang_minor <- atan(mv_sp[2] / mv_sp[1])
-    # offset <- 270 + sign(mv_sp[1]) * 90
-    # theta <- (offset + sign(mv_sp[1]) * sign(mv_sp[2]) * ang_minor) %% 360
-  }
-  tour_hist <- manual_tour(basis = basis, manip_var = manip_var, theta = theta, ...)
-  tour_df   <- array2df(array = tour_hist, data = data)
-  render_type(slides = tour_df, ...)
-}
-
+require("spinifex")
 ### Init for radial tour:
 dat          <- readRDS("./apps/data/simulation_data301.rds")
 dat_clusters <- attributes(dat)$cl_lvl
@@ -346,30 +354,25 @@ dat_std      <- tourr::rescale(as.matrix(dat))
 bas_pca      <- prcomp(dat)$rotation[, 1:2]
 
 i_s <- 1:ncol(dat)
-# ls_dat_radial_tour <- list()
 for(i in i_s) {
-  .this_radial_tour <- 
-    ns_play_radial_tour(basis = bas_pca, data = dat_std, manip_var = i,
-                        render_type = render_gganimate, 
-                        col = col_of(dat_clusters), 
-                        pch = pch_of(dat_clusters), 
-                        axes = "left", fps = 8)
-  
-  #TODO: BREAK INTO NAME AND PATH.
-  .gif_filepath <- paste(".output/radialTour_sim301_mv", i, ".gif")
-  ?gganimate::anim_save(.gif_filepath, .this_radial_tour)
-  # ## store gganimate in a list obj that isn't currently used
-  # ls_dat_radial_tour[[i]] <- .this_radial_tour 
-  # .this_radial_tour ## explicitly call the gganimate tour
+  .this_radial_tour <-  
+    play_manual_tour(basis = bas_pca, data = dat_std, manip_var = i,
+                     render_type = render_gganimate, 
+                     color = dat_clusters, 
+                     shape = dat_clusters, 
+                     axes = "left", fps = 8,
+                     gif_filename = paste0("radialTour_sim301_mvar.gif", i),
+                     gif_path = "./output",
+    )
 }
 ```
-<!-- ![](output/radialTour_sim301_mv1.gif) -->
-<!-- ![](output/radialTour_sim301_mv2.gif) -->
-<!-- ![](output/radialTour_sim301_mv3.gif) -->
-<!-- ![](output/radialTour_sim301_mv4.gif) -->
-<!-- ![](output/radialTour_sim301_mv5.gif) -->
-<!-- ![](output/radialTour_sim301_mv6.gif) -->
-<!-- ![](output/radialTour_sim301_mv7.gif) -->
+<!-- ![](output/radialTour_sim301_mvar1.gif) -->
+<!-- ![](output/radialTour_sim301_mvar2.gif) -->
+<!-- ![](output/radialTour_sim301_mvar3.gif) -->
+<!-- ![](output/radialTour_sim301_mvar4.gif) -->
+<!-- ![](output/radialTour_sim301_mvar5.gif) -->
+<!-- ![](output/radialTour_sim301_mvar6.gif) -->
+<!-- ![](output/radialTour_sim301_mvar7.gif) -->
 
 # References
 
