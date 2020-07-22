@@ -42,7 +42,7 @@ rep_permute_var_clSep <- function(data,
   p <- ncol(data)
   
   ## Init original data clSep
-  real_df_scree_clSep <- df_scree_clSep(data, clas, num_class_lvl_a, num_class_lvl_b)
+  real_df_scree_clSep <- df_scree_clSep(data, class, num_class_lvl_a, num_class_lvl_b)
   ## Decode rank_num to var_num
   .ord <- real_df_scree_clSep$data_colnum
   permute_var_num <- .ord[permute_rank_num]
@@ -58,7 +58,7 @@ rep_permute_var_clSep <- function(data,
     
     ## Scree values of clSep for the permuted data, i-th iteration
     .df_scree <- data.frame(
-      df_scree_clSep(.df, clas, num_class_lvl_a, num_class_lvl_b),
+      df_scree_clSep(.df, class, num_class_lvl_a, num_class_lvl_b),
       rep = i
     )
     df_permuted_scree_clSep <- rbind(df_permuted_scree_clSep, .df_scree)
@@ -112,20 +112,4 @@ rep_permute_var_clSep <- function(data,
     proto_scree_clSep +
     proto_perm_jitter +
     labs(title = .title, subtitle = .subtitle)
-}
-
-if(F){
-  require("tictoc")
-  tic(1);gg_perm1 <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1);toc()
-  tic(2);gg_perm2 <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 2);toc()
-  tic(3);gg_perm3 <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 3);toc()
-  tic(4);gg_perm4 <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 4);toc()
-  tic(5);gg_perm5 <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 5);toc()
-  tic(6);gg_perm6 <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 6);toc()
-  tic(1);gg_perm1;toc()
-  tic(2);gg_perm2;toc()
-  tic(3);gg_perm3;toc()
-  tic(4);gg_perm4;toc()
-  tic(5);gg_perm5;toc()
-  tic(6);gg_perm6;toc()
 }

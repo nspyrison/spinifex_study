@@ -5,10 +5,7 @@
 #' clas <- tourr::flea$species
 #' 
 #' df_scree_clSep(dat, clas, 1, 2)
-if (F)
-  data=dat;class=clas;num_class_lvl_a=1;num_class_lvl_b=2;
-if (F)
-  debugonce(df_scree_clSep(dat, clas, 1, 2))
+
 df_scree_clSep <- function(data, 
                            class,
                            num_class_lvl_a = 1,
@@ -62,7 +59,7 @@ df_scree_clSep <- function(data,
 #' dat <- tourr::flea[, 1:6]
 #' clas <- tourr::flea$species
 #' palette(RColorBrewer::brewer.pal(3, "Dark2")) 
-#' ggplot2::ggplot() + ggproto_screeplot_clSep(data = dat, clas, 1, 2)
+#' ggplot2::ggplot() + ggproto_screeplot_clSep(dat, clas)
 #' 
 #' ggplot2::ggplot() +
 #'   ggproto_screeplot_clSep(data = dat, class = clas,

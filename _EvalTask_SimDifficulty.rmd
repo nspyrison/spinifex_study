@@ -284,26 +284,54 @@ ggsave(filename = paste0("penguins_sexIn1Species_permute_clSep1.png"),
        path = "./output/")
 ```
 
-### Penguins, between 2 levels of spieces
+### Penguins, between levels of spieces
 ![](output/penguins_permute_clSep1.png)
 
-### Penguins, between 2 levels of sex (invalid)
+### Penguins, between levels of sex (invalid)
 (invalid assumptions, as there are 3 species clusters for each sex)
 ![](output/penguins_InvalidAssumptions_permute_clSep1.png)
-### Penguins, between 2 levels of sex with 1 species
+### Penguins, between levels of sex with 1 species
 ![](output/penguins_sexIn1Species_permute_clSep1.png)
 
-### Wine, between 2 levels of type of wine
+### Wine, between levels of type of wine
 ![](output/wine_permute_clSep1.png)
 
 ### Breastcancer, between benign/malignant tumors
 ![](output/breastcancer_permute_clSep1.png)
 
-### Olive, between 2 levels of region of Italy
+### Olive, between levels of region of Italy
 ![](output/olive_permute_clSep1.png)
 
-### Rat CNS gene expression, between 2 levels of "the high-level classes"
+### Rat CNS gene expression, between levels of "the high-level classes"
 ![](output/ratcns_permute_clSep1.png)
+
+## Testing our expectations
+
+Can we simulate the Cluster seperation that we expect? Let's create a simmulation that has variable contributions close to a target of: .8, .2, 0, 0, 0
+
+```{r}
+source('./R/sim_pDim_kCl.r')
+
+mns <- list(c(8, 2, rep(0, 3)), rep(0, 5)) ## differences of 8, 2, 0, 0, 0
+covs <- list(diag(5), diag(5))
+
+set.seed(1234555)
+sim8020 <- sim_pDim_kCl(means = mns, sigmas = covs)
+#str(sim8020) ## cluster levels stored in attribute "cl_lvl". Try attr(sim8020, "cl_lvl")
+
+require("ggplot2")
+source('./R/permutation_feature_importance.r')
+palette(RColorBrewer::brewer.pal(3, "Dark2"))
+theme_set(theme_minimal())
+
+dat <- sim8020
+clas <- attr(sim8020, "cl_lvl")
+
+ggplot() + ggproto_screeplot_clSep(dat, clas)
+```
+
+
+
 
 # Simulation difficulty
 
@@ -314,6 +342,11 @@ In order to properly distinguish a difference between the 3 vizualization factor
 2. Must not be so complex as to preclude any meaningful response given the factor visuals and time constraints.
 
 Let's try to evaluate our current generation of data simulations against these properties
+
+## User study simulation 301
+This was a 300 series simulation done at the end of the generation 1 user study shiny app.
+
+### PCA
 
 ```{r simPcaPairs, eval=FALSE}
 #### USES EVAL
@@ -338,41 +371,51 @@ ggplot2::ggsave(filename = "ggpairs_pca_sim301.png",
 ```
 ![](output/ggpairs_pca_sim301.png)
 
+Seems sufficent to be complex enough not to be seen as a pair of components within the first 4 Principal Components. Now to see if we can see anything in radial tours of all variables. We'll view cl Sep to explore which variables should contain contributions.
 
-Seems sufficent to be complex enough not to be seen as a pair of components within the first 4 Principal Components. Now to see if we can see anything in radial tours of all variables.
+```{r sim301clSep}
+require("ggplot2")
+source('./R/permutation_feature_importance.r')
+palette(RColorBrewer::brewer.pal(3, "Dark2"))
+theme_set(theme_minimal())
 
-_note: spinifex needs cleanup_
-
-```{r simRadialTours, eval=FALSE}
-#### USES EVAL
-
-require("spinifex")
 ### Init for radial tour:
 dat          <- readRDS("./apps/data/simulation_data301.rds")
 dat_clusters <- attributes(dat)$cl_lvl
 dat_std      <- tourr::rescale(as.matrix(dat))
 bas_pca      <- prcomp(dat)$rotation[, 1:2]
 
+ggplot() + ggproto_screeplot_clSep(dat, dat_clusters)
+```
+
+### Cluster Seperation
+
+```{r simRadialTours, eval=FALSE}
+#### USES EVAL
+
+require("spinifex"); require("ggplot2");
+
 i_s <- 1:ncol(dat)
 for(i in i_s) {
-  .this_radial_tour <-  
-    play_manual_tour(basis = bas_pca, data = dat_std, manip_var = i,
-                     render_type = render_gganimate, 
-                     color = dat_clusters, 
-                     shape = dat_clusters, 
-                     axes = "left", fps = 8,
-                     gif_filename = paste0("radialTour_sim301_mvar.gif", i),
-                     gif_path = "./output",
-    )
+  play_manual_tour(basis = bas_pca, data = dat_std, manip_var = i,
+                   render_type = render_gganimate, 
+                   color = dat_clusters, 
+                   shape = dat_clusters, 
+                   axes = "left", fps = 8,
+                   gif_filename = paste0("radialTour_sim301_mvar", i, ".gif"),
+                   gif_path = "./output",
+  )
 }
 ```
-<!-- ![](output/radialTour_sim301_mvar1.gif) -->
-<!-- ![](output/radialTour_sim301_mvar2.gif) -->
-<!-- ![](output/radialTour_sim301_mvar3.gif) -->
-<!-- ![](output/radialTour_sim301_mvar4.gif) -->
-<!-- ![](output/radialTour_sim301_mvar5.gif) -->
-<!-- ![](output/radialTour_sim301_mvar6.gif) -->
-<!-- ![](output/radialTour_sim301_mvar7.gif) -->
+
+### Radial tour gifs for each manip var
+![](output/radialTour_sim301_mvar1.gif)
+![](output/radialTour_sim301_mvar2.gif)
+![](output/radialTour_sim301_mvar3.gif)
+![](output/radialTour_sim301_mvar4.gif)
+![](output/radialTour_sim301_mvar5.gif)
+![](output/radialTour_sim301_mvar6.gif)
+![](output/radialTour_sim301_mvar7.gif)
 
 # References
 
