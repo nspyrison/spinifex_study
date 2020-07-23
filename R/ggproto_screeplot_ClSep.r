@@ -30,7 +30,7 @@ df_scree_clSep <- function(data,
   ##### Fisher's linear discriminant
   ### Like LDA, but doesn't assume equal covariances within group.
   ## square of the differnece of means over (cov(cl1) + cov(cl2))
-  .numerator_vect  <- matrix((ls_clMns_ab[[2]] - ls_clMns_ab[[1]])^2, ncol = p)
+  .numerator_vect  <- matrix((ls_clMns_ab[[2]] - ls_clMns_ab[[1]]), ncol = p)
   .denominator_mat <- (ls_clCov_ab[[1]] + ls_clCov_ab[[2]])
   ## The cluster seperation of a and b
   ### When accounting for the difference in their means and their within cluster covariances.
