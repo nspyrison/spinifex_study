@@ -1,5 +1,5 @@
 ##### study_v2_online\global.r -----
-### Setup -----
+##### Setup: -----
 library("shiny")
 library("spinifex")
 library("ggplot2")
@@ -17,18 +17,15 @@ do_log             <- F
 do_disp_dev_tools  <- F
 sim_series         <- 300 ## Iteration of data to look at. Expects even hundred.
 
-##### Required inputs -----
+##### _Required inputs -----
 block_difficulties <- c("easy", "hard")
-task_header        <- "Rate the relative importance of ANY/ALL variables in terms of distinugishing between the given clusters."
-task_questions     <- c("Very important distinguishing clusters 'a' from 'b'",
-                        "Somewhat important distinguishing clusters 'a' from 'b'") # ,
-                        # "Very important distinguishing clusters 'b' from 'c'",
-                        # "Somewhat important distinguishing clusters 'b' from 'c'")
+task_header        <- "Mark ANY/ALL variables important to the seperation of clusters 'a' and 'b'."
+task_questions     <- c("Variable is important to cluster seperation")
 ## Survey questions; n = 21 = 9 + (4*3)
 survey_questions   <- c("What sex are you?",
-                        "What age group do you belong to?",
-                        "What is your English proficiency?",
+                        "What age are you?",
                         "What is your highest completed education?",
+                        "What is your English proficiency?",
                         "I am experienced with data visualization.",
                         "I am experienced with tabular data.",
                         "I am experienced with clustering classification techniques.",
@@ -41,20 +38,8 @@ survey_questions   <- c("What sex are you?",
 )
 
 
-##### Startup initialization variables
-## server onStart & onStop() calls;
-message(context_msg)
-loggit("INFO", "=====Spinifex study app start.=====")
 
-onStop(function() {
-  message(context_msg)
-  loggit("INFO", "=====Spinifex study app stop.=====")
-  set_logfile(logfile = NULL, confirm = TRUE)
-  ## Try to autosave if not saved and do_log == T?
-  #### note that reaching rv$resp_tbl is out of scope to the global file.
-})
-
-##### Logging
+##### _Logging -----
 ## Logging format: loggit("INFO", "<main msg>", "<detail>")
 ## Set log file, finding the first unused number, will need to write to a google sheet or otherwise store a file.
 log_base <- paste0("log_", Sys.info()[4], "_")
@@ -75,7 +60,29 @@ if (do_log == T){
 }
 message(paste0("do_log, log_file: ", do_log, log_file))
 
+## Context, "onStart()" and onStop()
+context_line <- paste0("spinifex__userStudy_online, --- (spinifex v", packageVersion("spinifex"),
+                       ") --- Started ", Sys.time())
+this_Sys.info <- paste(Sys.info()[1:5], collapse = ", ")
+context_msg <- paste(sep = " \n",
+                     context_line,
+                     paste0("Log file: ", log_file), 
+                     paste0("Group number: ", log_num, "."),
+                     paste0("Sys.info()[1:5]: ", this_Sys.info)
+)
+## onStart; do:
+loggit("INFO", "=====Spinifex study app start.=====")
+cat(context_msg)
 
+onStop(function() {
+  cat(context_msg)
+  loggit("INFO", "=====Spinifex study app stop.=====")
+  set_logfile(logfile = NULL, confirm = TRUE)
+  ## Try to autosave if not saved and do_log == T?
+  #### note that rv$resp_tbl is out of scope to the global file.
+})
+
+#### _Factor ordering -----
 ## Set group (factor order) based on log number mod 3
 fct_ord_latin_sq <- rbind(c(1, 2, 3), ## grp 1; "pca", "grand", "manual"
                           c(2, 3, 1), ## grp 2; "grand", "manual", "pca"
@@ -85,13 +92,6 @@ this_group <- 1 + (log_num - 1) %% 3  ## Expects [1,2,3]
 this_factor_order    <- fct_ord_latin_sq[this_group, ]
 this_factor_nm_order <- c("pca", "grand", "manual")[this_factor_order]
 
-context_line  <- paste0("Spinifex STUDY, --- (spinifex v", 
-                        packageVersion("spinifex"), ") --- Started ", Sys.time())
-context_msg   <- paste(sep = " \n",
-                       context_line,
-                       paste0("Log file: ", log_file), 
-                       paste0("Group number: ", this_group, ".")
-)
 
 ## Local app js to handle disabling tabs
 app_jscode <- "
@@ -118,6 +118,17 @@ app_css <- "
   border-color: #aaa !important;
 }"
 
+
+##### _Global variable initialization -----
+l_trainings        <- length(task_questions)     ## ~2
+l_factors          <- length(this_factor_order)  ## ~3
+l_tasks            <- length(task_header)        ## ~1
+l_task_questions   <- length(task_questions)     ## ~2
+l_blocks           <- length(block_difficulties) ## ~2
+l_survey_questions <- length(survey_questions)   ## ~21
+PC_cap             <- 4 ## Number of principal components to choose from.
+pal                <- "Dark2"
+
 ## Load training data and tour paths
 t_dat_len <- 4 / l_tasks
 s_t_dat <- s_t_tpath <- list()
@@ -143,18 +154,8 @@ for (i in 1:dat_len) {
 }
 
 
-##### Global variable initialization -----
-l_trainings        <- length(task_questions)     ## ~2
-l_factors          <- length(this_factor_order)  ## ~3
-l_tasks            <- length(task_header)        ## ~1
-l_task_questions   <- length(task_questions)     ## ~2
-l_blocks           <- length(block_difficulties) ## ~2
-l_survey_questions <- length(survey_questions)   ## ~21
-PC_cap             <- 4 ## Number of principal components to choose from.
-pal                <- "Dark2"
-
-##### UI START -----
-##### sidebar_ui ----
+##### Shiny app UI: -----
+##### _Sidebar panels ----
 ##TODO may want to split for training/evaluation
 sidebar_x <- conditionalPanel(
   ##TODO CHANGE CONDITION
@@ -164,6 +165,15 @@ sidebar_x <- conditionalPanel(
     p("Sidebar content here!")
   ) ## Close sidebarPanel()
 ) ## Close conditionalPanel(), end sidebar_ui section
+
+
+
+
+##### _mainpanels -----
+#TODO: Need to break out main panels for each section
+mainpanel_x <- mainPanel(
+  
+)
 
 ##### _Survey mainPanel -----
 ## survey init
@@ -188,7 +198,6 @@ sidebar_x <- conditionalPanel(
                          sliderInput(paste0("survey", .surv_fct_col_start + 4),
                                      label = .surv_lab, min = 1, max = 9, value = 5)
 )
-
 .surv_fct_col2 <- column(4, 
                          h3(this_factor_nm_order[2]),
                          hr(),
@@ -230,19 +239,22 @@ mainpanel_survey <- mainPanel(
                 choices = c("decline to answer", "female", "male",
                             "intersex, non-binary, or other")
     ),
-    selectInput("survey2", label = survey_questions[2],
-                choices = c("decline to answer", "19 or younger", "20 to 29", 
-                            "30 to 39", "40 to 49", "50 or older")
-    ),
+    numericInput("survey2", label = survey_questions[2], 
+                 min = 18, max = 100, step = 1, value = 30),
+    # selectInput("survey2", label = survey_questions[2], ## DISCRETE AGE
+    #             choices = c("decline to answer", "19 or younger", "20 to 29", 
+    #                         "30 to 39", "40 to 49", "50 or older")
+    # ),
     selectInput("survey3", label = survey_questions[3],
+                choices = c("decline to answer", "high school", 
+                            "undergraduate", "honors, masters, mba", "doctorate")
+    ),
+    selectInput("survey4", label = survey_questions[4],
                 choices = c("decline to answer", "fluent and used from birth",
                             "fluent, but not used from birth", 
                             "conversational", "less than conversational")
     ),
-    selectInput("survey4", label = survey_questions[4],
-                choices = c("decline to answer", "high school", 
-                            "undergraduate", "honors, masters, mba", "doctorate")
-    ),
+    
     h3("To what extent do you agree with the following statements?"),
     strong(survey_questions[5]),
     sliderInput("survey5", label = .surv_lab,
@@ -272,14 +284,6 @@ mainpanel_survey <- mainPanel(
     )
   ) ## close survey condition panel
 ) ## close mainPanel() End of main_ui section.
-
-
-##### main_ui -----
-#TODO: Need to break out main panels for each section
-mainpanel_x <- mainPanel(
-  
-)
-
 
 ### DEV helping displays:
 dev_tools <- p("") ## FALSE/default, don't display anything
@@ -314,7 +318,7 @@ ui <- fluidPage(
 ) ## Close ui fluidpage
 
 
-### Response table structure -----
+##### Response table initialization -----
 resp_tbl <- reactive({
   ## Init columns
   col_factor <- 

@@ -49,7 +49,7 @@ server <- function(input, output, session) {
     }
     if (section_nm() == "survey") {return(1)}
   })
-  period <- reactive({1 + ((section_pg() - 1) %/% (n_tasks * n_blocks))})
+  period <- reactive({1 + ((section_pg() - 1) %/% (l_tasks * l_blocks))})
   factor_nm <- reactive({ ## ~ for group 1: PCA, gtour, mtour
     if (section_nm() == "training") return(input$factor)
     if (section_nm() == "task") return(this_factor_nm_order[period()])
@@ -58,11 +58,11 @@ server <- function(input, output, session) {
   task <- reactive({ ## in 1,2
     # req(section_nm(), section_pg(), period())
     if (section_nm() == "training") return(c(0, 1, 1, 2, 2, 0)[section_pg()])
-    return(1 + ((section_pg() - 1) %/% n_blocks) - 2 * (period() - 1))
+    return(1 + ((section_pg() - 1) %/% l_blocks) - 2 * (period() - 1))
   })
   block <- reactive({ ## in 1,2
     if (section_nm() == "training") return(c(0, "t", "t", "t", "t", 0)[section_pg()])
-    return((section_pg() - (n_blocks * (task() - 1))) %% (n_tasks * n_blocks))
+    return((section_pg() - (l_blocks * (task() - 1))) %% (l_tasks * l_blocks))
   })
   sim <- reactive({ 
     return( (period() - 1) * 6 + (task() - 1) * 3 + block() )
@@ -1222,7 +1222,7 @@ server <- function(input, output, session) {
       if (task() == 1){def <- "0 (default)"}
       if (task() == 2){def <- "none (default)"}
       if (section_nm() == "survey") {def <- c(rep("decline to answer (default)", 3),
-                                              rep("5 (default)", n_survey_questions - 3))}
+                                              rep("5 (default)", l_survey_questions - 3))}
       rv$task_response <- rep(def, n_rows)
       rv$task_ttr <- rep("(default)", n_rows)
       loggit("INFO", paste0("Next page:"),
@@ -1239,7 +1239,7 @@ server <- function(input, output, session) {
     prefix = ""
     
     ## Write survey responses to rv$resp_tbl
-    ins_row_start <- nrow(rv$resp_tbl) - n_survey_questions + 1
+    ins_row_start <- nrow(rv$resp_tbl) - l_survey_questions + 1
     ins_row_end   <- nrow(rv$resp_tbl)
     rv$resp_tbl$response[ins_row_start:ins_row_end] <- rv$task_response
     rv$resp_tbl$ttr[ins_row_start:ins_row_end] <- rv$task_ttr
