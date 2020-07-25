@@ -4,6 +4,8 @@ output:
   html_document:
     toc: true
     toc_depth: 2
+editor_options: 
+  chunk_output_type: console
 ---
 
 For S3D and 4D meta-analysis see (K. Kim, et al. 2017).
@@ -14,42 +16,39 @@ For S3D and 4D meta-analysis see (K. Kim, et al. 2017).
 library("knitr")
 knitr::opts_chunk$set(
   echo = F,
-  message   = F, warning = F, error = F,
+  message   = FALSE, warning = FALSE, error = FALSE,
   results   = "asis",                # Opts: "asis", "markup", "hold", "hide"
   fig.align = "center",              # Opts: "left", "right", "center", "default"
   fig.width = 8, fig.height = 5,
   out.width = "100%",
   fig.pos   = "h", out.extra   = "", # Figures forced closer to chunk location.
-  collapse  = TRUE, cache = FALSE, cache.lazy  = FALSE
+  collapse  = TRUE, cache = FALSE, cache.lazy = FALSE
 )
 ```
 
 ```{r init}
 ## Initialize
-library("spinifex")
-library("tourr")
-library("ggplot2")
-library("tibble")
-library("dplyr")
+require("spinifex")
+require("tourr")
+require("ggplot2")
+require("tibble")
+require("dplyr")
+source("./R/ggproto_screeplot_pca.r")
+source("./R/ggproto_screeplot_clSep.r")
+source("./R/permutation_feature_importance.r")
+source("./R/sim_pDim_kCl.r") ## cluster levels stored in attribute "cl_lvl". Try attr(mySim, "cl_lvl")
+set.seed(20200725)
+theme_set(theme_minimal())
+palette(RColorBrewer::brewer.pal(3, "Dark2")) 
 
 dat  <- flea[, 1:6]
 clas <- flea$species
-
-invisible(capture.output(holes_path <- save_history(dat, tour_path = guided_tour(holes()))))
-holes_basis <- as.matrix(holes_path[,, dim(holes_path)[3]])
-
-n <- nrow(dat)
-p <- ncol(dat)
+p    <- ncol(dat)
 k_cl <- length(unique(clas))
-pca_obj <- prcomp(dat)
 
-pca_var_rate <- pca_obj$sdev^2 / sum(pca_obj$sdev^2)
-
-df_pcaVar <- data.frame(
-  pc_number = paste0("PC", 1:p),
-  rate_var_explained = pca_var_rate,
-  cumsum_rate_var_explained = cumsum(pca_var_rate)
-)
+## if trying in tours:
+# invisible(capture.output(holes_path <- save_history(dat, tour_path = guided_tour(holes()))))
+# holes_basis <- as.matrix(holes_path[,, dim(holes_path)[3]])
 ```
 # Cluster seperation and task evalution
 
@@ -65,35 +64,16 @@ In general defining feature importance is a common task. Though it is typically 
 
 ## Measuring which variables are sensitive to cluster seperation
 
-We'll take inspiration from the Scree plot and try to apply it to the LDA-like approach
+We take inspiration from the Scree plot and try to apply it to the LDA-like approach
 Consider a sree plot of flea data. This shows which componets are contributing to the *full sample, full dimensionality,* $[n,p]$ variation of the data.
 
-```{r Screeplot}
-(g1 <- ggplot(data = df_pcaVar) + 
-   ## Individual var bars
-   geom_bar(stat = "identity", 
-            mapping = aes(x = pc_number, y = rate_var_explained, 
-                          fill = "Variable variance")) + 
-   ## Cummulative var line
-   geom_line(mapping = aes(x = pc_number, y = cumsum_rate_var_explained,
-                           color = "Cummulative variance", group = 1),lwd = 1.2) +
-   geom_point(mapping = aes(x = pc_number, y = cumsum_rate_var_explained,
-                            color = "Cummulative variance"), shape = 18, size = 4) +
-   ## Themes, legends and colors 
-   theme_minimal() +
-   labs(title = "variance by principal component, flea data",
-        x = "Component number", 
-        y = "Variance",
-        colour = "", fill = "") + 
-   # theme(legend.position = c(0.9, 0.5)) + ## legend position doesn't work now because different geoms??
-   scale_fill_manual(values = "#1B9E77") + 
-   scale_colour_manual(values = "#D95F02"))
-# RColorBrewer::brewer.pal(n=2, "Dark2")
+```{r pcaScreeplot}
+ggplot2::ggplot() + ggproto_screeplot_pca(dat)
 ```
 
-The user study task trys to explore the *full sample, full dimensionality* $[n,p]$ seperation of two specified clusters. In an analogous manner, __let's try to create a screeplot-like output to evalute the contributions of the original variables.__ Note that this is related to what R. Fisher is attempting in his 1936 paper. Similarly we start by finding cluster means and covariances.
+The user study task trys to explore the *full sample, full dimensionality* $[n,p]$ seperation of two specified clusters. In an analogous manner, __create a screeplot-like output to evalute the contributions of the variables the cluster seperation described in the data.__ This is related to what R Fisher is attempting in his 1936 paper on discriminant analysis. Similarly we start by finding cluster means and covariances.
 
-```{r clusterMeans}
+```{r clusterMeansCov}
 df_clusterMeans <- NULL
 ls_clusterSigmas <- list()
 for (i in 1:k_cl) {
@@ -105,7 +85,7 @@ for (i in 1:k_cl) {
 }
 df_clusterMeans <- as.data.frame(df_clusterMeans)
 rownames(df_clusterMeans) <- paste0("Cluster means of: ", unique(clas))
-names(ls_clusterSigmas) <- paste0("Cluster covariances of: ", unique(clas))
+names(ls_clusterSigmas)   <- paste0("Cluster covariances of: ", unique(clas))
 ```
 
 __Cluster means:__
@@ -115,22 +95,26 @@ __Cluster variance-covariance matrices:__
 For `r paste0(unique(clas), collapse = ", ")` respectively
 `r kable(ls_clusterSigmas, digits = 4)` 
 
-Suppose the clusters in questions are *Concinna* and *Heptapot*. The line between the the cluster means of these groups is their difference. This is sufficeint for Linear Discriminant Analysis (LDA) which assumes homogenious variation between clusters. We'll follow Fisher's Discriminant Analysis, which accounts for within cluster variance.
+Suppose the clusters in questions are *Concinna* and *Heptapot*. The line between the the cluster means of these groups is their difference. This is sufficeint for Linear Discriminant Analysis which assumes homogenious variation between clusters. We start from  Fisher's Discriminant Analysis, which accounts for within cluster variance.
 
 $$ Cluster Seperation_{[1,p]} = (\mu_{b[1,p]} - \mu_{a[1,p]})^2~/~(\Sigma_{a[p, p]} + \Sigma_{b[p, p]})~~~;~a,~b~are~clusters \in X_{[n,p]}$$
 
-```{r clusterSep}
-source('./R/ggproto_screeplot_ClSep.r')
-df_clSep_CH <- df_scree_clSep(dat, clas, do_scale_to_1 = FALSE)
-df_clSep_CH <- df_clSep_CH %>% select(-data_colnum)
+They we alter the sum of the within cluster covariances to its pooled equivalant (take the weighted average of them.)
 
-kable(df_clSep_CH, digits = 2)
+$$ Cluster Seperation_{[1,p]} = (\mu_{b[1,p]} - \mu_{a[1,p]})^2~/~
+(\Sigma_{a[p, p]} * n_a + \Sigma_{b[p, p]} * n_b) / (n_a + n_b) ~~~;~a,~b~are~clusters \in X_{[n,p]}$$
+
+```{r clusterSep}
+df_clSep <- df_scree_clSep(dat, clas, do_scale = TRUE)
+df_clSep <- df_clSep %>% select(-data_colnum)
+
+kable(df_clSep, digits = 2)
 ```
 
-We discard the sign as we only care about magnitude each variable contributed to the seperation of the specified clusters. We scale the absolute terms by the inverse of the sumation. Now let's visualize this similar to the screeplot.
+We discard the sign as we only care about magnitude each variable contributed to the seperation of the specified clusters. We scale the absolute terms by the inverse of the sumation. Now lets visualize this similar to the screeplot.
 
 ```{r clSepScreeplot}
-palette(RColorBrewer::brewer.pal(3, "Dark2")) 
+df_pcaVar <- df_scree_pca(dat)
 (g2 <- ggplot2::ggplot() + ggproto_screeplot_clSep(dat, clas) + theme_minimal())
 ```
 
@@ -143,41 +127,28 @@ Now that we have a measure we want to define an objective cutoff for evaluation.
 - Symetric, diverging around uniform weight
 
 Following these, we define a measure to be:
-
-$$Marks = \sum_{i = 1}^{p}(\sqrt{ClusterSeperation_i} - (1 / (p - 1)) * I(Response_i)$$
+$$diff_i = ClusterSeperation_i - (1 / (p - 1))$$
+$$marks = \sum_{i=1}^{p} I(response_i) * sgn(diff_i) * \sqrt{|diff_i|}$$
 
 ```{r answerWeights, results="hold"}
 bar_unif <- 1/(p-1)
 
-df_clSep_eval <- mutate(df_clSep_CH, .keep = "none",
+df_clSep_eval <- mutate(df_clSep, .keep = "none",
                         variable        = var,
                         var_clSep       = var_clSep,
-                        Weight          = sqrt(var_clSep) - bar_unif,
+                        diff            = var_clSep - bar_unif,
+                        weight          = sign(diff) * sqrt(abs(diff)),
                         exampleResponse = c(1, 1, 0, 1, 0, 1),
-                        Marks           = Weight * exampleResponse)
+                        marks           = weight * exampleResponse)
+col <- c(rep("green", 2), rep("red", p - 2))
 
 (g3 <- g2 +
   geom_hline(yintercept = bar_unif, size = 1) +
-  geom_text(aes(x = 7, y = bar_unif + .04, 
+  geom_text(aes(x = 7, y = bar_unif + .03, 
                 label = "Uniform Wt, 1/(p-1) = .2"),
             size = 4, hjust = 1) +
-  geom_segment(data = df_clSep_eval, colour = "green", size = 2,
-               aes(x = 1, y = bar_unif, xend = 1, yend = Weight[1] + bar_unif) 
-  ) +
-  geom_segment(data = df_clSep_eval, colour = "green", size = 2,
-               aes(x = 2, y = bar_unif, xend = 2, yend = Weight[2] + bar_unif), 
-  ) +
-  geom_segment(data = df_clSep_eval, colour = "green", size = 2,
-               aes(x = 3, y = bar_unif, xend = 3, yend = Weight[3] + bar_unif), 
-  ) +
-  geom_segment(data = df_clSep_eval, colour = "green", size = 2,
-               aes(x = 4, y = bar_unif, xend = 4, yend = Weight[4] + bar_unif), 
-  ) +
-  geom_segment(data = df_clSep_eval, colour = "red", size = 2,
-               aes(x = 5, y = bar_unif, xend = 5, yend = Weight[5] + bar_unif), 
-  ) +
-  geom_segment(data = df_clSep_eval, colour = "red", size = 2,
-               aes(x = 6, y = bar_unif, xend = 6, yend = Weight[6] + bar_unif), 
+  geom_segment(data = df_clSep_eval, colour = col, size = 2,
+               aes(x = 1:p, y = bar_unif, xend = 1:p, yend = weight + bar_unif) 
   )
 )
 ```
@@ -185,13 +156,13 @@ df_clSep_eval <- mutate(df_clSep_CH, .keep = "none",
 Here, we add lines indicating the weight of each variable if selected as important. we then apply our measure to evalue task responses, we review an example response below:
 
 `r kable(df_clSep_eval, digits = 2)`
-`r paste0("Total Marks = ", round(sum(df_clSep_eval$Marks), 2))`
+`r paste0("Total marks = ", round(sum(df_clSep_eval$marks), 2))`
 
 ## Projected data view
 
 All linear projections are nesciarily a lossy representation of the full data. By this we mean that no single 2D frame can show the whole set of infromation for $p>=3$ -dimensional sample. Any pair of Pricipal Components nessciaronly shows less than all the variation, namely the sum of their contributions, typicaly stated as percentage of full sample variation. Analogously any single projection cannot show the full information explain the cluster seperation of 2 given clusters.
 
-In applcation, viewing a PC1 by PC2 biplot of flea data contains `r round(100 * df_pcaVar[2,3], 2)` percent of the variation explained in the sample. While viewing (an orthogonal project) the top 2 variables (namely: `r as.character(df_clSep_CH[1:2, 1])` ) explain `r round(100 * df_clSep_CH[2, 3], 2)` percent of the within sample cluster seperation between *Concinna* and *Heptapot*.
+In applcation, viewing a PC1 by PC2 biplot of flea data contains `r round(100 * df_pcaVar[2,3], 2)` percent of the variation explained in the sample. While viewing (an orthogonal project) the top 2 variables (namely: `r as.character(df_clSep[1:2, 1])` ) explain `r round(100 * df_clSep[2, 3], 2)` percent of the within sample cluster seperation between *Concinna* and *Heptapot*.
 
 <!-- _finish this thought_ -->
 
@@ -204,8 +175,6 @@ In applcation, viewing a PC1 by PC2 biplot of flea data contains `r round(100 * 
 ```{r permFeatImp, eval=FALSE}
 #### USES EVAL
 
-source('./R/permutation_feature_importance.r')
-require("ggplot2")
 for (i in 1:6){
   .gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = i)
   ggsave(filename = paste0("permute_clSep", i, ".png"),
@@ -227,12 +196,6 @@ In order to stress test this Cluster seperation viewed by a screeplot we apply i
 
 ```{r toyPermFeatImp, eval=FALSE}
 #### USES EVAL
-
-require("ggplot2")
-source('./R/permutation_feature_importance.r')
-
-palette(RColorBrewer::brewer.pal(3, "Dark2"))
-theme_set(theme_minimal())
 
 dat <- spinifex::wine[, 2:ncol(spinifex::wine)]
 clas <- spinifex::wine[, 1]
@@ -307,7 +270,7 @@ ggsave(filename = paste0("penguins_sexIn1Species_permute_clSep1.png"),
 
 ## Testing our expectations
 
-Can we simulate the Cluster seperation that we expect? Let's create a simmulation that has variable contributions for the following cases:
+Can we simulate the Cluster seperation that we expect? Lets create a simmulation that has variable contributions for the following cases:
 
 Observe how changing the variance-covariances changes cluster seperation given that cluster means differ as 80, 20, rep(0) (singal from means is large relative to variance)
 1. 2 varaibles
@@ -316,12 +279,6 @@ Observe how changing the variance-covariances changes cluster seperation given t
 4. 5 variables, Cluster 1 covariance: all off diagonal set to .7, diagonals set to 5. Cluster 1 covariance: diag(5)
 
 ```{r}
-source('./R/sim_pDim_kCl.r') ## cluster levels stored in attribute "cl_lvl". Try attr(mySim, "cl_lvl")
-set.seed(1234555)
-source('./R/permutation_feature_importance.r')
-require("ggplot2")
-palette(RColorBrewer::brewer.pal(3, "Dark2"))
-theme_set(theme_minimal())
 
 mns2 <- list(c(80, 20), rep(0,2)) ## differences of 8, 2, 0, 0, 0
 mns5 <- list(c(80, 20, rep(0, 3)), rep(0, 5)) ## differences of 8, 2, 0, 0, 0
@@ -370,7 +327,7 @@ In order to properly distinguish a difference between the 3 vizualization factor
 1. Must be complex enough not to see within the any pair of the first 4 Principal Components; such that PCA is not sufficent for exploring cluster seperation
 2. Must not be so complex as to preclude any meaningful response given the factor visuals and time constraints.
 
-Let's try to evaluate our current generation of data simulations against these properties
+Lets try to evaluate our current generation of data simulations against these properties
 
 ## User study simulation 301
 This was a 300 series simulation done at the end of the generation 1 user study shiny app.
@@ -392,7 +349,7 @@ ggparis_proj_dat_pca <-
   ggpairs(proj_dat_pca[, 1:4], 
           title = "ggpairs of PC1:4 for simulation_data301",
           ggplot2::aes(colour = dat_clusters))
-#scale_color_brewer("Dark2") ## scale_color/fill* don't work as explected on ggpairs()
+#scale_color_brewer("Dark2") ## scale_color/fill* does not work as explected on ggpairs()
 
 ggplot2::ggsave(filename = "ggpairs_pca_sim301.png",
                 plot =  ggparis_proj_dat_pca,
@@ -400,11 +357,11 @@ ggplot2::ggsave(filename = "ggpairs_pca_sim301.png",
 ```
 ![](output/ggpairs_pca_sim301.png)
 
-Seems sufficent to be complex enough not to be seen as a pair of components within the first 4 Principal Components. Now to see if we can see anything in radial tours of all variables. We'll view cl Sep to explore which variables should contain contributions.
+Seems sufficent to be complex enough not to be seen as a pair of components within the first 4 Principal Components. Now to see if we can see anything in radial tours of all variables. We view cl Sep to explore which variables should contain contributions.
 
 ```{r sim301clSep}
 require("ggplot2")
-source('./R/permutation_feature_importance.r')
+source("./R/permutation_feature_importance.r")
 palette(RColorBrewer::brewer.pal(3, "Dark2"))
 theme_set(theme_minimal())
 

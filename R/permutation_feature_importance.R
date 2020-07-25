@@ -82,8 +82,8 @@ rep_permute_var_clSep <- function(data,
     .tgt_stats <- with(.tgt_df, data.frame(
       var = .tgt_var,
       mean = mean(var_clSep),
-      ci_min = mean(var_clSep) - .z_val * sd(var_clSep) / sqrt(.n),
-      ci_max = mean(var_clSep) + .z_val * sd(var_clSep) / sqrt(.n)
+      pi_min = mean(var_clSep) - .z_val * sd(var_clSep),
+      pi_max = mean(var_clSep) + .z_val * sd(var_clSep)
     ))
     
     ## Add jitter'd points
@@ -100,7 +100,7 @@ rep_permute_var_clSep <- function(data,
   ## Palette, labels, and screeplot of clSep on unpermuted (real) data
   .tgt_lvls <- levels(as.factor(class))[c(num_class_lvl_a, num_class_lvl_b)]
   .var_nm <- colnames(data)[permute_var_num]
-  .title <- paste0(100 * confidence, "% CI of the mean for ", 
+  .title <- paste0(100 * confidence, "% PI for an addition permuted cluster seperation", 
                    .var_nm, "-permuted clSep (n_reps=", n_reps, ")")
   .subtitle <- paste0("Against original clSep sreeplot between the clusters ", .tgt_lvls[1], " and ", .tgt_lvls[2])
   palette(RColorBrewer::brewer.pal(3, "Dark2"))

@@ -305,14 +305,11 @@ ui <- fluidPage(
                       p("Intro content")
              ),
              tabPanel(title = "Training", ## id and value args not needed
-                      p("Training  content here.")
-             ),
+                      p("Training content here."), sidebar_x, mainpanel_x),
              tabPanel(title = "Evaluation", ## id and value args not needed
-                      p("Evaluation content here.")
-             ),
+                      sidebar_x, mainpanel_x),
              tabPanel(title = "Survey", ## id and value args not needed
-                      p("Survey content here.")
-             ),
+                      mainpanel_survey),
              dev_tools
   ) ## Close content navbarPage
 ) ## Close ui fluidpage
@@ -320,62 +317,62 @@ ui <- fluidPage(
 
 ##### Response table initialization -----
 resp_tbl <- reactive({
-  ## Init columns
-  col_factor <- 
-    c(rep("training", l_trainings * l_task_questions),           ## Training
-      rep(this_factor_nm_order[1], l_task_questions * l_blocks), ## Task across factor
-      rep(this_factor_nm_order[2], l_task_questions * l_blocks),
-      rep(this_factor_nm_order[3], l_task_questions * l_blocks),
-      rep("survey", l_survey_questions)                          ## Survey
-    )
-  col_block <- 
-    c(rep("training", l_trainings * l_task_questions),   ## Training
-      rep(rep(1:l_blocks, l_task_questions), l_factors), ## Task across factors
-      rep(NA, l_survey_questions)                        ## Survey
-    )
-  .st  <- sim_series + 1
-  .gap <- l_blocks * l_task_questions # ~2
-  .sim_set <- c(rep(.st + 2, l_task_questions), ## Task 2
-                rep(.st + 3, l_task_questions))
-  col_data_num <- 
-    as.character(
-      c(rep(paste0("t", 1:l_trainings), l_task_questions), ## Training
-        .sim_set + 0 * .gap,                                 ## Tasks across factors
-        .sim_set + 1 * .gap,
-        .sim_set + 2 * .gap,
-        rep(NA, l_survey_questions)                        ## Survey
-      )
-    )
-  col_question <-
-    c(rep(task_questions, l_trainings),          ## Training
-      rep(task_questions, l_blocks * l_factors), ## Task Across factors
-      survey_questions                           ## Survey
-    )
-  
-  if (F) { ## don't run: testing columns for same length
-    lapply(list(col_factor, col_block, col_data_num, col_question), length)
-  }
-  ## Structure and ids:
-  data.frame(log_num         = log_num,
-             group_num       = this_group,
-             nodename        = Sys.info()[4],
-             data_num        = col_data_num,
-             question        = col_question,
-             factor          = col_factor,
-             block           = col_block,
-             ## User responses
-             pca_inter       = NA,
-             manual_inter    = NA,
-             resp_inter      = NA,
-             plot_elapsed    = NA,
-             ttr             = NA,
-             response        = NA,
-             answer          = NA,
-             task_score      = NA,
-             clust_score     = NA,
-             intensity_score = NA,
-             line_score      = NA,
-             concern         = NA)
+  # ## Init columns
+  # col_factor <- 
+  #   c(rep("training", l_trainings * l_task_questions),           ## Training
+  #     rep(this_factor_nm_order[1], l_task_questions * l_blocks), ## Task across factor
+  #     rep(this_factor_nm_order[2], l_task_questions * l_blocks),
+  #     rep(this_factor_nm_order[3], l_task_questions * l_blocks),
+  #     rep("survey", l_survey_questions)                          ## Survey
+  #   )
+  # col_block <- 
+  #   c(rep("training", l_trainings * l_task_questions),   ## Training
+  #     rep(rep(1:l_blocks, l_task_questions), l_factors), ## Task across factors
+  #     rep(NA, l_survey_questions)                        ## Survey
+  #   )
+  # .st  <- sim_series + 1
+  # .gap <- l_blocks * l_task_questions # ~2
+  # .sim_set <- c(rep(.st + 2, l_task_questions), ## Task 2
+  #               rep(.st + 3, l_task_questions))
+  # col_data_num <- 
+  #   as.character(
+  #     c(rep(paste0("t", 1:l_trainings), l_task_questions), ## Training
+  #       .sim_set + 0 * .gap,                                 ## Tasks across factors
+  #       .sim_set + 1 * .gap,
+  #       .sim_set + 2 * .gap,
+  #       rep(NA, l_survey_questions)                        ## Survey
+  #     )
+  #   )
+  # col_question <-
+  #   c(rep(task_questions, l_trainings),          ## Training
+  #     rep(task_questions, l_blocks * l_factors), ## Task Across factors
+  #     survey_questions                           ## Survey
+  #   )
+  # 
+  # if (F) { ## don't run: testing columns for same length
+  #   lapply(list(col_factor, col_block, col_data_num, col_question), length)
+  # }
+  # ## Structure and ids:
+  # data.frame(log_num         = log_num,
+  #            group_num       = this_group,
+  #            nodename        = Sys.info()[4],
+  #            data_num        = col_data_num,
+  #            question        = col_question,
+  #            factor          = col_factor,
+  #            block           = col_block,
+  #            ## User responses
+  #            pca_inter       = NA,
+  #            manual_inter    = NA,
+  #            resp_inter      = NA,
+  #            plot_elapsed    = NA,
+  #            ttr             = NA,
+  #            response        = NA,
+  #            answer          = NA,
+  #            task_score      = NA,
+  #            clust_score     = NA,
+  #            intensity_score = NA,
+  #            line_score      = NA,
+  #            concern         = NA)
 })
 
 ##### App local functions: -----
