@@ -39,7 +39,9 @@ source("./R/permutation_feature_importance.r")
 source("./R/sim_pDim_kCl.r") ## cluster levels stored in attribute "cl_lvl". Try attr(mySim, "cl_lvl")
 set.seed(20200725)
 theme_set(theme_minimal())
-palette(RColorBrewer::brewer.pal(3, "Dark2")) 
+palette(RColorBrewer::brewer.pal(3, "Dark2"))
+DO_RERUN_HEAVY_OUTPUT            <- FALSE
+DO_RERUN_SIM301_PAIRS_n_TOURGIFS <- FALSE
 
 dat  <- flea[, 1:6]
 clas <- flea$species
@@ -172,14 +174,14 @@ In applcation, viewing a PC1 by PC2 biplot of flea data contains `r round(100 * 
 
 ## Cluster seperation on single-variable permuted data
 
-```{r permFeatImp, eval=FALSE}
-#### USES EVAL
-
-for (i in 1:6){
-  .gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = i)
-  ggsave(filename = paste0("permute_clSep", i, ".png"),
-         plot =  .gg,
-         path = "./output/")
+```{r permFeatImp}
+if (DO_RERUN_HEAVY_OUTPUT == TRUE) {
+  for (i in 1:6) {
+    .gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = i)
+    ggsave(filename = paste0("permute_clSep", i, ".png"),
+           plot =  .gg,
+           path = "./output/")
+  }
 }
 ```
 ![](output/permute_clSep1.png)
@@ -194,57 +196,57 @@ for (i in 1:6){
 
 In order to stress test this Cluster seperation viewed by a screeplot we apply it to other toy datasets.
 
-```{r toyPermFeatImp, eval=FALSE}
-#### USES EVAL
-
-dat <- spinifex::wine[, 2:ncol(spinifex::wine)]
-clas <- spinifex::wine[, 1]
-.gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
-ggsave(filename = paste0("wine_permute_clSep1.png"),
-       plot =  .gg,
-       path = "./output/")
-
-dat <- spinifex::breastcancer[, 2:9]
-clas <- spinifex::breastcancer[, 10]
-.gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
-ggsave(filename = paste0("breastcancer_permute_clSep1.png"),
-       plot =  .gg,
-       path = "./output/")
-
-dat <- tourr::olive[, 3:ncol(tourr::olive)]
-clas <- tourr::olive[, 1]
-.gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
-ggsave(filename = paste0("olive_permute_clSep1.png"),
-       plot =  .gg,
-       path = "./output/")
-
-dat <- tourr::ratcns[, 1:9]
-clas <- tourr::ratcns[, 10]
-.gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
-ggsave(filename = paste0("ratcns_permute_clSep1.png"),
-       plot =  .gg,
-       path = "./output/")
-
-pengu <- as.data.frame(palmerpenguins::penguins)
-pengu <- pengu[complete.cases(pengu), ]
-dat <- pengu[, 3:6]
-clas <- pengu$species
-.gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
-ggsave(filename = paste0("penguins_permute_clSep1.png"),
-       plot =  .gg,
-       path = "./output/")
-clas <- pengu$sex
-.gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
-ggsave(filename = paste0("penguins_InvalidAssumptions_permute_clSep1.png"),
-       plot =  .gg,
-       path = "./output/")
-pengu2 <- pengu[pengu$species == unique(pengu$species)[1], ]
-dat <- pengu2[, 3:6]
-clas <- pengu2$sex
-.gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
-ggsave(filename = paste0("penguins_sexIn1Species_permute_clSep1.png"),
-       plot =  .gg,
-       path = "./output/")
+```{r toyPermFeatImp}
+if (DO_RERUN_HEAVY_OUTPUT == TRUE) {
+  dat <- spinifex::wine[, 2:ncol(spinifex::wine)]
+  clas <- spinifex::wine[, 1]
+  .gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
+  ggsave(filename = paste0("wine_permute_clSep1.png"),
+         plot =  .gg,
+         path = "./output/")
+  
+  dat <- spinifex::breastcancer[, 2:9]
+  clas <- spinifex::breastcancer[, 10]
+  .gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
+  ggsave(filename = paste0("breastcancer_permute_clSep1.png"),
+         plot =  .gg,
+         path = "./output/")
+  
+  dat <- tourr::olive[, 3:ncol(tourr::olive)]
+  clas <- tourr::olive[, 1]
+  .gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
+  ggsave(filename = paste0("olive_permute_clSep1.png"),
+         plot =  .gg,
+         path = "./output/")
+  
+  dat <- tourr::ratcns[, 1:9]
+  clas <- tourr::ratcns[, 10]
+  .gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
+  ggsave(filename = paste0("ratcns_permute_clSep1.png"),
+         plot =  .gg,
+         path = "./output/")
+  
+  pengu <- as.data.frame(palmerpenguins::penguins)
+  pengu <- pengu[complete.cases(pengu), ]
+  dat <- pengu[, 3:6]
+  clas <- pengu$species
+  .gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
+  ggsave(filename = paste0("penguins_permute_clSep1.png"),
+         plot =  .gg,
+         path = "./output/")
+  clas <- pengu$sex
+  .gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
+  ggsave(filename = paste0("penguins_InvalidAssumptions_permute_clSep1.png"),
+         plot =  .gg,
+         path = "./output/")
+  pengu2 <- pengu[pengu$species == unique(pengu$species)[1], ]
+  dat <- pengu2[, 3:6]
+  clas <- pengu2$sex
+  .gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
+  ggsave(filename = paste0("penguins_sexIn1Species_permute_clSep1.png"),
+         plot =  .gg,
+         path = "./output/")
+}
 ```
 
 ### Penguins, between levels of spieces
@@ -273,30 +275,52 @@ ggsave(filename = paste0("penguins_sexIn1Species_permute_clSep1.png"),
 Can we simulate the Cluster seperation that we expect? Lets create a simmulation that has variable contributions for the following cases:
 
 Observe how changing the variance-covariances changes cluster seperation given that cluster means differ as 80, 20, rep(0) (singal from means is large relative to variance)
+
 1. 2 varaibles
 2. 5 varaibles
 3. 5 variables, within each cluster V1-V2 covariance set to .3
-4. 5 variables, Cluster 1 covariance: all off diagonal set to .7, diagonals set to 5. Cluster 1 covariance: diag(5)
 
-```{r}
+Each cluster's covariance:
+```{r case3covar}
+.cov <- as.data.frame(diag(5))
+.cov[1, 2] <- .cov[2, 1] <- .3
+rownames(.cov) <- colnames(.cov)
+knitr::kable(as.data.frame(.cov))
+```
 
+4. 5 variables, Cluster a covariance: all off diagonal set to .7, diagonals set to 5. Cluster 'a' covariance: diag(5)
+
+Cluster 'a' covariance:
+```{r case4covar}
+.cov1 <- matrix(rep(.7, 25), ncol = 5)
+diag(.cov1) <- 5
+.cov1 <- as.data.frame(.cov1)
+.cov2 <- diag(5)
+.cov2 <- as.data.frame(.cov2)
+rownames(.cov1) <- rownames(.cov2) <- colnames(.cov1)
+knitr::kable(.cov1)
+```
+Cluster 'b' covariance:
+`r knitr::kable(.cov2)`
+
+```{r simCases}
 mns2 <- list(c(80, 20), rep(0,2)) ## differences of 8, 2, 0, 0, 0
 mns5 <- list(c(80, 20, rep(0, 3)), rep(0, 5)) ## differences of 8, 2, 0, 0, 0
-## 2 variable 80-20
+## case 1) 2 variable 80-20
 covs <- list(diag(2), diag(2))
 sim_case1 <- sim_pDim_kCl(means = mns2, sigmas = covs, do_shuffle = FALSE)
 dat <- sim_case1
 clas <- attr(sim_case1, "cl_lvl")
 ggplot() + ggproto_screeplot_clSep(dat, clas)
 
-## 5 variable "80-20"
+## case 2) 5 variable "80-20"
 covs <- list(diag(5), diag(5))
 sim_case2 <- sim_pDim_kCl(means = mns5, sigmas = covs, do_shuffle = FALSE)
 dat <- sim_case2
 clas <- attr(sim_case2, "cl_lvl")
 ggplot() + ggproto_screeplot_clSep(dat, clas)
 
-## 5 variable "80-20", V1-V2 covariance set to .3
+## case 3) 5 variable "80-20", V1-V2 covariance set to .3
 .cov <- diag(5)
 .cov[1, 2] <- .cov[2, 1] <- .3
 covs <- list(.cov, .cov)
@@ -305,7 +329,7 @@ dat <- sim_case3
 clas <- attr(sim_case3, "cl_lvl")
 ggplot() + ggproto_screeplot_clSep(dat, clas)
 
-## 5 variable "80-20", Cluster 1 covariance, all off-diagonal set to .4
+## case 4) 5 variable "80-20", Cluster 1 covariance, all off-diagonal set to .4
 .cov1 <- matrix(rep(.7, 25), ncol = 5)
 diag(.cov1) <- 5
 .cov2 <- diag(5)
@@ -317,10 +341,7 @@ ggplot() + ggproto_screeplot_clSep(dat, clas)
 ```
 
 
-
-
 # Simulation difficulty
-
 
 In order to properly distinguish a difference between the 3 vizualization factors the data must be of suitable complexity, such that it has the following properties:
 
@@ -334,63 +355,53 @@ This was a 300 series simulation done at the end of the generation 1 user study 
 
 ### PCA
 
-```{r simPcaPairs, eval=FALSE}
-#### USES EVAL
-
-## Series spans from 301:312
-dat          <- readRDS("./apps/data/simulation_data301.rds")
-dat_clusters <- attributes(dat)$cl_lvl
-dat_std      <- tourr::rescale(as.matrix(dat))
-dat_pca_rot  <- prcomp(dat)$rotation
-proj_dat_pca <- as.data.frame(dat_std %*% dat_pca_rot)
-
-library(GGally)
-ggparis_proj_dat_pca <- 
-  ggpairs(proj_dat_pca[, 1:4], 
-          title = "ggpairs of PC1:4 for simulation_data301",
-          ggplot2::aes(colour = dat_clusters))
-#scale_color_brewer("Dark2") ## scale_color/fill* does not work as explected on ggpairs()
-
-ggplot2::ggsave(filename = "ggpairs_pca_sim301.png",
-                plot =  ggparis_proj_dat_pca,
-                path = "./output/")
+```{r simPcaPairs}
+if (DO_RERUN_SIM301_PAIRS_n_TOURGIFS == TRUE) {
+  ## Series spans from 301:312
+  dat          <- readRDS("./apps/data/simulation_data301.rds")
+  dat_clusters <- attributes(dat)$cl_lvl
+  dat_std      <- tourr::rescale(as.matrix(dat))
+  dat_pca_rot  <- prcomp(dat)$rotation
+  proj_dat_pca <- as.data.frame(dat_std %*% dat_pca_rot)
+  
+  ggparis_proj_dat_pca <- 
+    GGally::ggpairs(proj_dat_pca[, 1:4], 
+                    title = "ggpairs of PC1:4 for simulation_data301",
+                    ggplot2::aes(colour = dat_clusters))
+  #+ scale_color_brewer("Dark2") ## scale_color/fill* does not work as explected on ggpairs()
+  
+  ggplot2::ggsave(filename = "ggpairs_pca_sim301.png",
+                  plot =  ggparis_proj_dat_pca,
+                  path = "./output/")
+}
 ```
 ![](output/ggpairs_pca_sim301.png)
 
 Seems sufficent to be complex enough not to be seen as a pair of components within the first 4 Principal Components. Now to see if we can see anything in radial tours of all variables. We view cl Sep to explore which variables should contain contributions.
 
 ```{r sim301clSep}
-require("ggplot2")
-source("./R/permutation_feature_importance.r")
-palette(RColorBrewer::brewer.pal(3, "Dark2"))
-theme_set(theme_minimal())
-
-### Init for radial tour:
-dat          <- readRDS("./apps/data/simulation_data301.rds")
-dat_clusters <- attributes(dat)$cl_lvl
-dat_std      <- tourr::rescale(as.matrix(dat))
-bas_pca      <- prcomp(dat)$rotation[, 1:2]
-
-ggplot() + ggproto_screeplot_clSep(dat, dat_clusters)
+### Initialization for sim 301, 
+dat  <- readRDS("./apps/data/simulation_data301.rds")
+clas <- attributes(dat)$cl_lvl
+ggplot() + ggproto_screeplot_clSep(dat, clas)
 ```
 
 ### Cluster Seperation
 
-```{r simRadialTours, eval=FALSE}
-#### USES EVAL
-
-require("spinifex"); require("ggplot2");
-
-i_s <- 1:ncol(dat)
-for(i in i_s) {
-  play_manual_tour(basis = bas_pca, data = dat_std, manip_var = i,
-                   render_type = render_gganimate, 
-                   color = dat_clusters, 
-                   shape = dat_clusters, 
-                   axes = "left", fps = 8,
-                   gif_filename = paste0("radialTour_sim301_mvar", i, ".gif"),
-                   gif_path = "./output",
-  )
+```{r simRadialTours}
+if (DO_RERUN_SIM301_PAIRS_n_TOURGIFS == TRUE) {
+  i_s <- 1:ncol(dat)
+  for(i in i_s) {
+    spinifex::play_manual_tour(
+      basis = bas_pca, data = dat_std, manip_var = i,
+      render_type = render_gganimate, 
+      color = dat_clusters, 
+      shape = dat_clusters, 
+      axes = "left", fps = 8,
+      gif_filename = paste0("radialTour_sim301_mvar", i, ".gif"),
+      gif_path = "./output",
+    )
+  }
 }
 ```
 
