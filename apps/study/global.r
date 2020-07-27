@@ -9,7 +9,7 @@ library("tidyr")
 library("dplyr")
 library("plotly")
 library("GGally")
-# library("shinyjs")   ## help with handling conditionalPanels.
+library("shinyjs")   ## help with handling conditionalPanels.
 library("lubridate") ## For timer
 library("loggit")    ## For logging
 
@@ -18,9 +18,9 @@ library("loggit")    ## For logging
 ## browseURL("https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/")
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## Uncomment the following line to apply logging
-do_log <- F
-do_disp_dev_tools <- F
-#### Simulated data series, 
+do_log <- FALSE
+do_disp_dev_tools <- TRUE
+#### Simulated data series,
 ## "series" or iteration of data to look at. Should be an even hundred
 sim_series <- 300
 cat(do_log)
@@ -40,12 +40,13 @@ if (do_log == T){
   set_logfile(log_file)
 } else { ## when do_log != T
   log_num  <- sample(1:3, 1)
+  log_name <- "<NOT LOGGING>"
   log_file <- "Logging is off! Log and responses not being recorded."
 }
 cat("do_log, log_file: ", do_log, log_file, " /n")
 
 ## Set group (factor order) based on log number mod 3
-this_group <- 1 + (log_num - 1) %% 3 ## Expects [1,2,3] 
+this_group <- 1 + (log_num - 1) %% 3 ## Expects [1,2,3]
 fct_ord_latin_sq <- rbind(c(1, 2, 3), ## ~ grp 1; "pca", "grand", "manual"
                           c(2, 3, 1), ## ~ grp 2; "grand", "manual", "pca"
                           c(3, 1, 2)  ## ~ grp 3; "manual", "pca", "grand"
@@ -61,7 +62,7 @@ context_line <- paste0("Spinifex STUDY, --- (spinifex v", packageVersion("spinif
 this_Sys.info <- paste(Sys.info()[1:5], collapse = ", ")
 context_msg <- paste(sep = " \n",
                      context_line,
-                     paste0("Log file: ", log_file), 
+                     paste0("Log file: ", log_file),
                      paste0("Group number: ", log_num, "."),
                      paste0("Sys.info()[1:5]: ", this_Sys.info)
 )
@@ -81,7 +82,7 @@ onStop(function() {
 ## Tasks, and block difficulty
 s_difficulty      <- c("easy", "hard")
 s_task_prompts    <- c("How many clusters do you see?",
-                       "Rate the relative importance of ANY/ALL variables in terms of 
+                       "Rate the relative importance of ANY/ALL variables in terms of
                        distinugishing between the given clusters.")
 s_task2_questions <- c("Very important distinguishing clusters 'a' from 'b'",
                        "Somewhat important distinguishing clusters 'a' from 'b'",
@@ -117,8 +118,8 @@ for (i in 1:t_dat_len) {
 }
 
 ## Load data and tour paths
-dat_len   <- 12
-s_dat <- s_tpath <-  list()
+dat_len <- 12
+s_dat <- s_tpath <- list()
 for (i in 1:dat_len) {
   s_dat[[i]] <- readRDS(
     paste0("../data/simulation_data", sim_series + i, ".rds")
@@ -140,21 +141,20 @@ n_survey_questions <- length(s_survey_questions) ## ~18
 PC_cap             <- 4 ## Number of principal components to choose from.
 pal                <- "Dark2"
 
-#### Define section start pages, 
+#### Define section start pages,
 ## may need manual changes when changing section sizes
 ## intro is pg 1; video training is pg 2
 training_start_pg <- 3
 task_start_pg     <- (training_start_pg + n_trainings * n_tasks + 1) + 1
 ## ~ pg9;(3+2*2+1+1; train_st, 2*2 task*blocks, splash pg, start on new pg)
 survey_start_pg   <- task_start_pg + n_factors * n_blocks * n_tasks + 1
-## ~ pg22, (9+3*3*2+1; task_st, 3*2*2 factor*task*block, start on new pg) 
+## ~ pg22, (9+3*3*2+1; task_st, 3*2*2 factor*task*block, start on new pg)
 
 ##### UI START -----
 ### header_ui -----
 header_ui <- fluidPage(
-  titlePanel("Multivariate data visualization study"),
+  # titlePanel("Multivariate data visualization study"),
   actionButton("next_pg_button", "Next page"),
-  verbatimTextOutput("test_next_pg_button"),
   p("testing that text was added.")
 )
 
@@ -203,7 +203,7 @@ sidebar_ui <- conditionalPanel(
                the 2 clusters.")
       ),
       hr()
-    ), ### end training text 
+    ), ### end training text
     
     ##### _Training control inputs -----
     ## Factor selection
@@ -280,11 +280,11 @@ sidebar_ui <- conditionalPanel(
                     <div style=\"float:right;\">strongly agree</div>
                   </div>")
 .s_fct_start <- 9
-col_p1 <- column(4, 
+col_p1 <- column(4,
                  h3(this_factor_nm_order[1]),
                  hr(),
                  h4(s_survey_questions[.s_fct_start + 1]),
-                 sliderInput(paste0("survey", .s_fct_start + 1), 
+                 sliderInput(paste0("survey", .s_fct_start + 1),
                              label = .surv_lab, min = 1, max = 9, value = 5),
                  h4(s_survey_questions[.s_fct_start + 2]),
                  sliderInput(paste0("survey", .s_fct_start + 2),
@@ -297,11 +297,11 @@ col_p1 <- column(4,
                              label = .surv_lab, min = 1, max = 9, value = 5)
 )
 
-col_p2 <- column(4, 
+col_p2 <- column(4,
                  h3(this_factor_nm_order[2]),
                  hr(),
                  h4(s_survey_questions[.s_fct_start + 5]),
-                 sliderInput(paste0("survey", .s_fct_start + 5), 
+                 sliderInput(paste0("survey", .s_fct_start + 5),
                              label = .surv_lab, min = 1, max = 9, value = 5),
                  h4(s_survey_questions[.s_fct_start + 6]),
                  sliderInput(paste0("survey", .s_fct_start + 6),
@@ -313,11 +313,11 @@ col_p2 <- column(4,
                  sliderInput(paste0("survey", .s_fct_start + 8),
                              label = .surv_lab, min = 1, max = 9, value = 5)
 )
-col_p3 <- column(4, 
+col_p3 <- column(4,
                  h3(this_factor_nm_order[3]),
                  hr(),
                  h4(s_survey_questions[.s_fct_start + 9]),
-                 sliderInput(paste0("survey", .s_fct_start + 9), 
+                 sliderInput(paste0("survey", .s_fct_start + 9),
                              label = .surv_lab, min = 1, max = 9, value = 5),
                  h4(s_survey_questions[.s_fct_start + 10]),
                  sliderInput(paste0("survey", .s_fct_start + 10),
@@ -373,9 +373,9 @@ main_ui <- mainPanel(
       p("Watch the following video before proceeding:"), br(),
       ## Adding the 'a' tag to the sidebar linking external file
       p("Minimize the study and watch the training video."),
-       a(href='training.mp4', target='blank', 'training video (4:17)'),
+      a(href='training.mp4', target='blank', 'training video (4:17)'),
       br(), br(),
-       p("If this link only contains audio let the invigilator know.")
+      p("If this link only contains audio let the invigilator know.")
     ) ## End of video
   ), ## Close conditionalPanel -- intro section text
   
@@ -442,15 +442,15 @@ main_ui <- mainPanel(
                               "intersex, non-binary, or other")
       ),
       selectInput("survey2", label = s_survey_questions[2],
-                  choices = c("decline to answer", "19 or younger", "20 to 29", 
+                  choices = c("decline to answer", "19 or younger", "20 to 29",
                               "30 to 39", "40 or older")
       ),
       selectInput("survey3", label = s_survey_questions[3],
-                  choices = c("decline to answer", "fluent", 
+                  choices = c("decline to answer", "fluent",
                               "conversational", "less than conversational")
       ),
       selectInput("survey4", label = s_survey_questions[4],
-                  choices = c("decline to answer", "high school", 
+                  choices = c("decline to answer", "high school",
                               "undergraduate", "honors, masters, mba", "doctorate")
       ),
       h3("To what extent do you agree with the following statements?"),
@@ -485,20 +485,15 @@ main_ui <- mainPanel(
 
 
 ##### UI, combine panels -----
-if (do_disp_dev_tools == F){
-  ui <- fluidPage(#useShinyjs(), ## Required in ui to use shinyjs.
-                  header_ui,
-                  sidebar_ui,
-                  main_ui
-  )
-} else { ## if do_disp_dev_tools == T
-  ui <- fluidPage(#useShinyjs(), ## Required in ui to use shinyjs.
-                  header_ui,
-                  sidebar_ui,
-                  main_ui, 
-                  ### DEV helping displays:
+ui <- fluidPage(useShinyjs(), ## Required in ui to use shinyjs.
+                header_ui,
+                sidebar_ui,
+                #main_ui
+)
+if (do_disp_dev_tools == TRUE) { ## Then append DEV helper displays
+  ui <- fluidPage(ui,
                   actionButton("browser", "browser()"),
-                  verbatimTextOutput("dev_msg"),
+                  textOutput("dev_msg"),
                   tableOutput("resp_tbl")
   )
 }
@@ -524,7 +519,7 @@ app_render_ <- function(slides, ## paste over spinifex render to add size
   if (axes != "off"){
     zero         <- app_set_axes_position(0, axes)
     circ         <- app_set_axes_position(circ, axes)
-    basis_slides <- data.frame(app_set_axes_position(basis_slides[, 1:2], axes), 
+    basis_slides <- data.frame(app_set_axes_position(basis_slides[, 1:2], axes),
                                basis_slides[, (d+1):ncol(basis_slides)])
   }
   ## manip var axes asethetics
@@ -532,15 +527,15 @@ app_render_ <- function(slides, ## paste over spinifex render to add size
   axes_siz <- rep(0.3, p)
   axes_col[manip_var] <- "blue"
   axes_siz[manip_var] <- .6
-  
+
   x_max <- max(data_slides[, 1], circ[, 1])
   x_min <- min(data_slides[, 1], circ[, 1])
   y_max <- max(data_slides[, 2], circ[, 2])
   y_min <- min(data_slides[, 2], circ[, 2])
   x_range <- x_max - x_min
   y_range <- y_max - y_min
-  
-  gg <- 
+
+  gg <-
     ## ggplot settings
     ggplot2::ggplot() +
     ggplot2::theme_void() +
@@ -550,7 +545,7 @@ app_render_ <- function(slides, ## paste over spinifex render to add size
                    axis.text.y  = element_blank(),     ## Remove axis marks
                    axis.title.x = element_blank(),     ## Remove axis titles for gtour
                    axis.title.y = element_blank(),     ## Remove axis titles for gtour
-                   aspect.ratio = y_range / x_range, 
+                   aspect.ratio = y_range / x_range,
                    legend.box.background = element_rect(),
                    legend.title = element_text(size = 18, face = "bold"),
                    legend.text  = element_text(size = 18, face = "bold")) +
@@ -559,42 +554,42 @@ app_render_ <- function(slides, ## paste over spinifex render to add size
     ggplot2::ylim(y_min, y_max) +
     ## Projected data points
     suppressWarnings( ## Suppress for unused aes "frame".
-      ggplot2::geom_point( 
+      ggplot2::geom_point(
         data = data_slides, size = 3, alpha = alpha,
         mapping = ggplot2::aes(x = x, y = y, frame = slide,
-                               color = cluster, 
-                               fill  = cluster, 
+                               color = cluster,
+                               fill  = cluster,
                                shape = cluster)
       )
     )
-  
+
   if (axes != "off"){
     gg <- gg +
-      ## Circle path 
+      ## Circle path
       ggplot2::geom_path(
         data = circ, color = "grey80", size = .3, inherit.aes = F,
         mapping = ggplot2::aes(x = x, y = y)
       ) +
       ## Basis axes segments
       suppressWarnings( ## Suppress for unused aes "frame".
-        ggplot2::geom_segment( 
+        ggplot2::geom_segment(
           data = basis_slides, size = axes_siz, colour = axes_col,
           mapping = ggplot2::aes(x = x,
-                                 y = y, 
-                                 xend = zero[, 1], yend = zero[, 2], 
+                                 y = y,
+                                 xend = zero[, 1], yend = zero[, 2],
                                  frame = slide)
         )
       ) +
       ## Basis axes text labels
       suppressWarnings( ## Suppress for unused aes "frame".
         ggplot2::geom_text(
-          data = basis_slides, 
-          mapping = ggplot2::aes(x = x, y = y, 
+          data = basis_slides,
+          mapping = ggplot2::aes(x = x, y = y,
                                  frame = slide, label = lab),
           colour = axes_col, size = 6, vjust = "outward", hjust = "outward")
       )
   }
-  
+
   gg + theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
 }
 
@@ -607,16 +602,16 @@ app_oblique_frame <-
            lab          = NULL,
            rescale_data = FALSE,
            ...) {
-    
+
     if (is.null(basis) & !is.null(data)) {
       message("NULL basis passed. Initializing random basis.")
       basis <- tourr::basis_random(n = ncol(data))
     }
-    
+
     p <- nrow(basis)
     m_sp <- create_manip_space(basis, manip_var)
     r_m_sp <- rotate_manip_space(manip_space = m_sp, theta, phi)
-    
+
     basis_slides <- cbind(as.data.frame(r_m_sp), slide = 1)
     colnames(basis_slides) <- c("x", "y", "z", "slide")
     if(!is.null(data)){
@@ -626,26 +621,26 @@ app_oblique_frame <-
       data_slides[, 2] <- scale(data_slides[, 2], scale = FALSE)
       colnames(data_slides) <- c("x", "y", "z", "slide")
     }
-    
+
     ## Add labels, attribute, and list
-    basis_slides$lab <- 
+    basis_slides$lab <-
       if(!is.null(lab)){
         rep(lab, nrow(basis_slides) / length(lab))
       } else {
         if(!is.null(data)) {abbreviate(colnames(data), 3)
         } else {paste0("V", 1:p)}
       }
-    
+
     attr(basis_slides, "manip_var") <- manip_var
-    
+
     slide <- if(!is.null(data)) {
       list(basis_slides = basis_slides, data_slides = data_slides)
     } else list(basis_slides = basis_slides)
-    
+
     gg <- app_render_(slides = slide, ...) +
       ggplot2::coord_fixed() +
       theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
-    
+
     return(gg)
   }
 
@@ -661,10 +656,10 @@ app_set_axes_position <- function(x, axes) {
     x_off <- y_off <- -2 / 3
   } else if (position == "left") {
     scale <- 2 / 3
-    x_off <- -5 / 3 
+    x_off <- -5 / 3
     y_off <- 0
   }
-  
+
   ret <- as.data.frame(scale * x)
   ret[, 1] <- ret[, 1] + x_off
   ret[, 2] <- ret[, 2] + y_off
@@ -680,3 +675,5 @@ app_vect2str <- function(vect){
 app_html_red <- function(string){
   paste0("<strong><span style='color:red'>", string, "</span><strong>")
 }
+
+
