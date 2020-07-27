@@ -40,7 +40,7 @@ source("./R/sim_pDim_kCl.r") ## cluster levels stored in attribute "cl_lvl". Try
 set.seed(20200725)
 theme_set(theme_minimal())
 palette(RColorBrewer::brewer.pal(3, "Dark2"))
-DO_RERUN_HEAVY_OUTPUT            <- FALSE
+DO_RERUN_HEAVY_OUTPUT            <- TRUE
 DO_RERUN_SIM301_PAIRS_n_TOURGIFS <- FALSE
 
 dat  <- flea[, 1:6]
@@ -177,7 +177,7 @@ In applcation, viewing a PC1 by PC2 biplot of flea data contains `r round(100 * 
 ```{r permFeatImp}
 if (DO_RERUN_HEAVY_OUTPUT == TRUE) {
   for (i in 1:6) {
-    .gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = i)
+    .gg <- ggplot() + ggproto_rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = i)
     ggsave(filename = paste0("permute_clSep", i, ".png"),
            plot =  .gg,
            path = "./output/")
@@ -200,28 +200,28 @@ In order to stress test this Cluster seperation viewed by a screeplot we apply i
 if (DO_RERUN_HEAVY_OUTPUT == TRUE) {
   dat <- spinifex::wine[, 2:ncol(spinifex::wine)]
   clas <- spinifex::wine[, 1]
-  .gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
+  .gg <- ggplot() + ggproto_rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
   ggsave(filename = paste0("wine_permute_clSep1.png"),
          plot =  .gg,
          path = "./output/")
   
   dat <- spinifex::breastcancer[, 2:9]
   clas <- spinifex::breastcancer[, 10]
-  .gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
+  .gg <- ggplot() + ggproto_rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
   ggsave(filename = paste0("breastcancer_permute_clSep1.png"),
          plot =  .gg,
          path = "./output/")
   
   dat <- tourr::olive[, 3:ncol(tourr::olive)]
   clas <- tourr::olive[, 1]
-  .gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
+  .gg <- ggplot() + ggproto_rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
   ggsave(filename = paste0("olive_permute_clSep1.png"),
          plot =  .gg,
          path = "./output/")
   
   dat <- tourr::ratcns[, 1:9]
   clas <- tourr::ratcns[, 10]
-  .gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
+  .gg <- ggplot() + ggproto_rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
   ggsave(filename = paste0("ratcns_permute_clSep1.png"),
          plot =  .gg,
          path = "./output/")
@@ -230,19 +230,19 @@ if (DO_RERUN_HEAVY_OUTPUT == TRUE) {
   pengu <- pengu[complete.cases(pengu), ]
   dat <- pengu[, 3:6]
   clas <- pengu$species
-  .gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
+  .gg <- ggplot() + ggproto_rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
   ggsave(filename = paste0("penguins_permute_clSep1.png"),
          plot =  .gg,
          path = "./output/")
   clas <- pengu$sex
-  .gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
+  .gg <- ggplot() + ggproto_rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
   ggsave(filename = paste0("penguins_InvalidAssumptions_permute_clSep1.png"),
          plot =  .gg,
          path = "./output/")
   pengu2 <- pengu[pengu$species == unique(pengu$species)[1], ]
   dat <- pengu2[, 3:6]
   clas <- pengu2$sex
-  .gg <- rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
+  .gg <- ggplot() + ggproto_rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
   ggsave(filename = paste0("penguins_sexIn1Species_permute_clSep1.png"),
          plot =  .gg,
          path = "./output/")

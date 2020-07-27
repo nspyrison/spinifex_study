@@ -1,6 +1,6 @@
 #' Creates a data frame of the variance explained by the Principal Components.
 #' 
-#' @examples 
+#' @examples
 #' dat <- tourr::flea[, 1:6]
 #' clas <- tourr::flea$species
 #' 
@@ -28,7 +28,7 @@ df_scree_clSep <- function(data,
   }
   
   ##### Close to Fisher's linear discriminant
-  #### Like LDA, but doesn't assume equal covariances within group.
+  #### Like LDA, but doesn't assume equal covariances within group
   ## p-dim vector, different of cluster means
   .numerator_vect <- matrix((ls_clMns_ab[[2]] - ls_clMns_ab[[1]]), ncol = p) 
   .tgt_lvls_n <- ls_n_ab[[1]] + ls_n_ab[[2]]
@@ -58,10 +58,10 @@ df_scree_clSep <- function(data,
 
 #' Creates a screeplot of the cluster seperation between 2 selected levels.
 #' 
-#' @examples 
+#' @examples
 #' dat <- tourr::flea[, 1:6]
 #' clas <- tourr::flea$species
-#' palette(RColorBrewer::brewer.pal(3, "Dark2")) 
+#' palette(RColorBrewer::brewer.pal(3, "Dark2"))
 #' ggplot2::ggplot() + ggproto_screeplot_clSep(dat, clas)
 #' 
 #' ggplot2::ggplot() +
@@ -98,4 +98,50 @@ ggproto_screeplot_clSep <- function(data,
     ggplot2::scale_colour_manual(values = palette()[2])
   )
 }
+
+
+
+#' Creates a screeplot of the cluster seperation AND  between 2 selected levels.
+#' 
+#' @examples 
+#' dat <- tourr::flea[, 1:6]
+#' clas <- tourr::flea$species
+#' palette(RColorBrewer::brewer.pal(3, "Dark2"))
+#' ggplot2::ggplot() + ggproto_screeplot_clSep(dat, clas)
+#' 
+#' ggplot2::ggplot() +
+#'   ggproto_screeplot_clSep(data = dat, class = clas,
+#'                           num_class_lvl_a = 2, num_class_lvl_b = 3) +
+#'   ggplot2::theme_bw()
+
+ggproto_screeplot_clSep <- function(data,
+                                    class,
+                                    num_class_lvl_a = 1,
+                                    num_class_lvl_b = 2) {
+  .df_scree_clSep <- df_scree_clSep(data, class, num_class_lvl_a, num_class_lvl_b)
+  axis_labs <- c("Variable", "Cluster seperation")
+  lgnd_labs <- c("Variable cluster seperation",
+                 "Cummulative cluster seperation")
+  
+  ## List of ggproto's that is addable to a ggplot object.
+  list(
+    ## Individual feature bars
+    ggplot2::geom_bar(ggplot2::aes(x = var, y = var_clSep, fill = lgnd_labs[1]),
+                      .df_scree_clSep, stat = "identity"),
+    ## Cummulative feature line
+    ggplot2::geom_line(ggplot2::aes(x = var, y = cumsum_clSep,
+                                    color = lgnd_labs[2], group = 1),
+                       .df_scree_clSep, lwd = 1.2),
+    ggplot2::geom_point(ggplot2::aes(x = var, y = cumsum_clSep, color = lgnd_labs[2]),
+                        .df_scree_clSep, shape = 18, size = 4),
+    ## Titles and colors
+    ggplot2::labs(x = axis_labs[1], y = axis_labs[2], colour = "", fill = ""),
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30),
+                   legend.position = "bottom"),
+    ggplot2::scale_fill_manual(values = palette()[1]),
+    ggplot2::scale_colour_manual(values = palette()[2])
+  )
+}
+
+
 
