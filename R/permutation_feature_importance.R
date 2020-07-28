@@ -152,55 +152,63 @@ ggproto_exhaustive_clSep <- function(data,
       df_rep_permute_var_clSep(data, class, permute_rank_num = i,
                                num_class_lvl_a, num_class_lvl_b, n_reps)
     ## Aggregated means of n_reps of permuted clSep
-    df_perm_mean_clSep <- dplyr::group_by(df_permuted_clSep, var) %>%
-      dplyr::summarise(mean_perm_clSep = mean(var_clSep)) %>%
-      dplyr::ungroup() %>%
-      data.frame(permute_rank_num = i)
+    suppressMessages( ## Suppress ungroup output message.
+      df_perm_mean_clSep <- dplyr::group_by(df_permuted_clSep, var) %>%
+        dplyr::summarise(mean_perm_clSep = mean(var_clSep)) %>%
+        dplyr::ungroup() %>%
+        data.frame(permute_rank_num = i)
+    )
     df_exhaus_mean <- rbind(df_exhaus_mean, df_perm_mean_clSep)
+    
   }
   df_exhaus_max_mean <- dplyr::group_by(df_exhaus_mean, var) %>%
     dplyr::filter(mean_perm_clSep == max(mean_perm_clSep)) %>%
     dplyr::mutate(.keep = "unused", max_mean_perm_clSep = mean_perm_clSep) %>%
-    dplyr::ungroup() %>% 
-    dplyr::arrange(desc(max_mean_perm_clSep))
-  df_exhaus_max_mean$cumsum_max_mean_perm_clSep <-
-    cumsum(df_exhaus_max_mean$max_mean_perm_clSep)
+    dplyr::ungroup()
   
   df_real_clSep <- cbind(df_real_clSep, var_rank_num = 1:p)
   ## Left join aggregated permuted data
   df_clSep_real_n_perm <-
-    dplyr::left_join(df_real_clSep, df_exhaus_max_mean, by = "var")
+    dplyr::left_join(df_real_clSep, df_exhaus_max_mean, by = "var") %>% 
+    dplyr::mutate(diff = max_mean_perm_clSep - var_clSep,
+                  adj_clSep = var_clSep + .5* diff,
+                  cumsum_adj_clSep = cumsum(adj_clSep))
+  
   ## Subset to var_clSep, max_mean_perm_clSep and pivot longer; df1
-  .df_long1_clSep_real_n_perm <-
-    dplyr::select(df_clSep_real_n_perm, data_colnum, var, var_rank_num, 
-                  permute_rank_num, var_clSep, max_mean_perm_clSep) %>%
+  df_long_clSep_real_n_perm <- df_clSep_real_n_perm %>% 
     tidyr::pivot_longer(cols = c(var_clSep, max_mean_perm_clSep),
                         names_to = "clSep_type", values_to = "clSep")
-  ## Subset to cumsum_clSep, cumsum_max_mean_perm_clSep and pivot longer; df2
-  .df_long2_clSep_real_n_perm <-
-    dplyr::select(df_clSep_real_n_perm, cumsum_clSep, cumsum_max_mean_perm_clSep) %>%
-    tidyr::pivot_longer(cols = c(cumsum_clSep, cumsum_max_mean_perm_clSep),
-                        names_to = "cumsum_clSep_type", values_to = "cumsum_clSep")
-  ## Rejoin after pivoting longer
-  df_long_clSep_real_n_perm <-
-    cbind(.df_long1_clSep_real_n_perm, .df_long2_clSep_real_n_perm)
+  df_long_clSep_real_n_perm$clSep_type <- 
+    factor(df_long_clSep_real_n_perm$clSep_type, 
+           levels = c("var_clSep", "max_mean_perm_clSep"))
   
   axis_labs <- c("Variable", "Cluster seperation")
-  lgnd_labs <- c("Variable cluster seperation", "Cummulative cluster seperation")
+  fill_labs <- c("Variable cluster seperation", "Max mean permutation cluster seperation")
+  col_labs <- c("Cummulative cluster seperation", "Cummulative adj. (half-difference) cluster seperation")
   list(
     ggplot2::geom_bar(ggplot2::aes(x = var, y = clSep, fill = clSep_type),
                       df_long_clSep_real_n_perm,
                       position = "dodge", stat = "identity"),
-    ggplot2::geom_line(ggplot2::aes(x = var+.33, y = cumsum_clSep, color = lgnd_labs[2], 
-                                    group = 1),
-                       df_long_clSep_real_n_perm, lwd = 1.2, position = "dodge"),
-    ggplot2::geom_point(ggplot2::aes(x = var, y = cumsum_clSep, color = lgnd_labs[2]),
+    ## Cumsum variable cluster seperation
+    ggplot2::geom_line(ggplot2::aes(x = var, y = cumsum_clSep, 
+                                    color = "3", group = 1),
+                       df_long_clSep_real_n_perm, lwd = 1.2),
+    ggplot2::geom_point(ggplot2::aes(x = var, y = cumsum_clSep, color = "3"),
                         df_long_clSep_real_n_perm, shape = 18, size = 4),
+    ## Cumsum variable cluster seperation
+    ggplot2::geom_line(ggplot2::aes(x = var, y = cumsum_adj_clSep, 
+                                    color = "4", group = 1),
+                       df_long_clSep_real_n_perm, lwd = 1.2),
+    ggplot2::geom_point(ggplot2::aes(x = var, y = cumsum_adj_clSep, color = "4"),
+                        df_long_clSep_real_n_perm, shape = 17, size = 4),
+    ## Adj cluster sep mid pts
+    ggplot2::geom_point(ggplot2::aes(x = var, y = adj_clSep, color = "5"),
+                        df_long_clSep_real_n_perm, shape = 7, size = 4),
     ## Titles and colors
-    ggplot2::labs(x = axis_labs[1], y = axis_labs[2], colour = "", fill = ""),
+    ggplot2::labs(x = axis_labs[1], y = axis_labs[2], colour = col_labs, fill = fill_labs),
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30),
                    legend.position = "bottom"),
     ggplot2::scale_fill_manual(values = palette()[1:2]),
-    ggplot2::scale_colour_manual(values = palette()[3])
+    ggplot2::scale_colour_manual(values = palette()[3:5])
   )
 }
