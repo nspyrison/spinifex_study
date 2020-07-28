@@ -20,7 +20,7 @@ df_scree_pca <- function(data){
 #' 
 #' @examples 
 #' dat <- tourr::flea[, 1:6]
-#' palette(RColorBrewer::brewer.pal(3, "Dark2")) 
+#' palette(RColorBrewer::brewer.pal(8, "Dark2")) 
 #' ggplot2::ggplot() + ggproto_screeplot_pca(dat)
 #' 
 #' ggplot2::ggplot() +
@@ -35,20 +35,17 @@ ggproto_screeplot_pca <- function(data){
   ## List of ggproto's that is addable to a ggplot object.
   list(
     ## Individual feature bars
-    ggplot2::geom_bar(data = .df_scree_pca, stat = "identity", 
-                      mapping = ggplot2::aes(x = pc_num, y = PC_var, 
-                                             fill = lgnd_labs[1])),
+    ggplot2::geom_bar(ggplot2::aes(x = pc_num, y = PC_var, fill = lgnd_labs[1]),
+                      .df_scree_pca, stat = "identity"),
     ## Cummulative feature line
-    ggplot2::geom_line(data = .df_scree_pca, lwd = 1.2,
-                       mapping = ggplot2::aes(x = pc_num, y = cumsum_var,
-                                              color = lgnd_labs[2], group = 1)),
-    ggplot2::geom_point(data = .df_scree_pca, shape = 18, size = 4,
-                        mapping = ggplot2::aes(
-                          x = pc_num, y = cumsum_var,
-                          color = lgnd_labs[2])),
+    ggplot2::geom_line(ggplot2::aes(x = pc_num, y = cumsum_var,
+                                    color = lgnd_labs[2], group = 1),
+                       .df_scree_pca, lwd = 1.2),
+    ggplot2::geom_point(ggplot2::aes(x = pc_num, y = cumsum_var, 
+                                     color = lgnd_labs[2]), 
+                        .df_scree_pca, shape = 18, size = 4),
     ## Titles and colors
-    ggplot2::labs(x = axis_labs[1], y = axis_labs[2], 
-                  colour = "", fill = ""),
+    ggplot2::labs(x = axis_labs[1], y = axis_labs[2], colour = "", fill = ""),
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30)),
     ggplot2::scale_fill_manual(values = palette()[1]),
     ggplot2::scale_colour_manual(values = palette()[2])

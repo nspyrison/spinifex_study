@@ -39,7 +39,7 @@ source("./R/permutation_feature_importance.r")
 source("./R/sim_pDim_kCl.r") ## cluster levels stored in attribute "cl_lvl". Try attr(mySim, "cl_lvl")
 set.seed(20200725)
 theme_set(theme_minimal())
-palette(RColorBrewer::brewer.pal(3, "Dark2"))
+palette(RColorBrewer::brewer.pal(8, "Dark2"))
 DO_RERUN_HEAVY_OUTPUT            <- TRUE
 DO_RERUN_SIM301_PAIRS_n_TOURGIFS <- FALSE
 

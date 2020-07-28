@@ -61,7 +61,7 @@ df_scree_clSep <- function(data,
 #' @examples
 #' dat <- tourr::flea[, 1:6]
 #' clas <- tourr::flea$species
-#' palette(RColorBrewer::brewer.pal(3, "Dark2"))
+#' palette(RColorBrewer::brewer.pal(8, "Dark2"))
 #' ggplot2::ggplot() + ggproto_screeplot_clSep(dat, clas)
 #' 
 #' ggplot2::ggplot() +
@@ -106,7 +106,7 @@ ggproto_screeplot_clSep <- function(data,
 #' @examples 
 #' dat <- tourr::flea[, 1:6]
 #' clas <- tourr::flea$species
-#' palette(RColorBrewer::brewer.pal(3, "Dark2"))
+#' palette(RColorBrewer::brewer.pal(8, "Dark2"))
 #' ggplot2::ggplot() + ggproto_screeplot_clSep(dat, clas)
 #' 
 #' ggplot2::ggplot() +
@@ -120,8 +120,7 @@ ggproto_screeplot_clSep <- function(data,
                                     num_class_lvl_b = 2) {
   .df_scree_clSep <- df_scree_clSep(data, class, num_class_lvl_a, num_class_lvl_b)
   axis_labs <- c("Variable", "Cluster seperation")
-  lgnd_labs <- c("Variable cluster seperation",
-                 "Cummulative cluster seperation")
+  lgnd_labs <- c("Variable cluster seperation", "Cummulative cluster seperation")
   
   ## List of ggproto's that is addable to a ggplot object.
   list(
