@@ -66,14 +66,13 @@ In general defining feature importance is a common task. Though it is typically 
 
 ## Measuring which variables are sensitive to cluster seperation
 
-We take inspiration from the Scree plot and try to apply it to the LDA-like approach
-Consider a sree plot of flea data. This shows which componets are contributing to the *full sample, full dimensionality,* $[n,p]$ variation of the data.
+We take inspiration from the Scree plot and try to apply it to the LDA-like approach. Consider a sree plot of flea data. This shows which componets are contributing to the *full sample, full dimensionality,* $[n,p]$ variation of the data.
 
 ```{r pcaScreeplot}
 ggplot2::ggplot() + ggproto_screeplot_pca(dat)
 ```
 
-The user study task trys to explore the *full sample, full dimensionality* $[n,p]$ seperation of two specified clusters. In an analogous manner, __create a screeplot-like output to evalute the contributions of the variables the cluster seperation described in the data.__ This is related to what R Fisher is attempting in his 1936 paper on discriminant analysis. Similarly we start by finding cluster means and covariances.
+The user study task trys to explore the *full sample, full dimensionality* $[n,p]$ seperation of two specified clusters. In an analogous manner, __create a screeplot-like output to evalute the contributions of the variables the cluster seperation (clSep) described in the data.__ This is related to what R Fisher is attempting in his 1936 paper on discriminant analysis. Similarly we start by finding cluster means and covariances.
 
 ```{r clusterMeansCov}
 df_clusterMeans <- NULL
@@ -99,7 +98,7 @@ For `r paste0(unique(clas), collapse = ", ")` respectively
 
 Suppose the clusters in questions are *Concinna* and *Heptapot*. The line between the the cluster means of these groups is their difference. This is sufficeint for Linear Discriminant Analysis which assumes homogenious variation between clusters. We start from  Fisher's Discriminant Analysis, which accounts for within cluster variance.
 
-$$ Cluster Seperation_{[1,p]} = (\mu_{b[1,p]} - \mu_{a[1,p]})^2~/~(\Sigma_{a[p, p]} + \Sigma_{b[p, p]})~~~;~a,~b~are~clusters \in X_{[n,p]}$$
+$$ clSep_{[1,p]} = (\mu_{b[1,p]} - \mu_{a[1,p]})^2~/~(\Sigma_{a[p, p]} + \Sigma_{b[p, p]})~~~;~a,~b~are~clusters \in X_{[n,p]}$$
 
 They we alter the sum of the within cluster covariances to its pooled equivalant (take the weighted average of them.)
 
@@ -129,11 +128,11 @@ Now that we have a measure we want to define an objective cutoff for evaluation.
 - Symetric, diverging around uniform weight
 
 Following these, we define a measure to be:
-$$diff_i = ClusterSeperation_i - (1 / (p - 1))$$
+$$diff_i = clSep_i - (1 / p)$$
 $$marks = \sum_{i=1}^{p} I(response_i) * sgn(diff_i) * \sqrt{|diff_i|}$$
 
 ```{r answerWeights, results="hold"}
-bar_unif <- 1/(p-1)
+bar_unif <- 1 / p
 
 df_clSep_eval <- mutate(df_clSep, .keep = "none",
                         variable        = var,
@@ -142,15 +141,15 @@ df_clSep_eval <- mutate(df_clSep, .keep = "none",
                         weight          = sign(diff) * sqrt(abs(diff)),
                         exampleResponse = c(1, 1, 0, 1, 0, 1),
                         marks           = weight * exampleResponse)
-col <- c(rep("green", 2), rep("red", p - 2))
+col <- c(rep("green", 3), rep("red", p - 3))
 
 (g3 <- g2 +
   geom_hline(yintercept = bar_unif, size = 1) +
   geom_text(aes(x = 7, y = bar_unif + .03, 
-                label = "Uniform Wt, 1/(p-1) = .2"),
+                label = "Uniform Wt, 1/p = .17"),
             size = 4, hjust = 1) +
   geom_segment(data = df_clSep_eval, colour = col, size = 2,
-               aes(x = 1:p, y = bar_unif, xend = 1:p, yend = weight + bar_unif) 
+               aes(x = 1:p, y = bar_unif, xend = 1:p, yend = weight + bar_unif)
   )
 )
 ```
@@ -165,12 +164,6 @@ Here, we add lines indicating the weight of each variable if selected as importa
 All linear projections are nesciarily a lossy representation of the full data. By this we mean that no single 2D frame can show the whole set of infromation for $p>=3$ -dimensional sample. Any pair of Pricipal Components nessciaronly shows less than all the variation, namely the sum of their contributions, typicaly stated as percentage of full sample variation. Analogously any single projection cannot show the full information explain the cluster seperation of 2 given clusters.
 
 In applcation, viewing a PC1 by PC2 biplot of flea data contains `r round(100 * df_pcaVar[2,3], 2)` percent of the variation explained in the sample. While viewing (an orthogonal project) the top 2 variables (namely: `r as.character(df_clSep[1:2, 1])` ) explain `r round(100 * df_clSep[2, 3], 2)` percent of the within sample cluster seperation between *Concinna* and *Heptapot*.
-
-<!-- _finish this thought_ -->
-
-<!-- ## Mental task -->
-
-<!-- _todo_ -->
 
 ## Cluster seperation on single-variable permuted data
 
@@ -191,6 +184,33 @@ if (DO_RERUN_HEAVY_OUTPUT == TRUE) {
 ![](output/permute_clSep5.png)
 ![](output/permute_clSep6.png)
 
+Permuting some variables can significantly impact the cluster seperation explained by other variables. especially when they are correlated and a variable with a large contribution is permuted.
+
+```{r ggcorr}
+if (DO_RERUN_HEAVY_OUTPUT == TRUE) {
+  .gg <- GGally::ggcorr(dat, label = TRUE, label_alpha = TRUE)
+  ggsave(filename = "ggcorr.png",
+         plot =  .gg,
+         path = "./output/")
+}
+```
+![](output/ggcorr.png)
+
+Let's compare the contribution of the real data with the largest mean of the permuted (LMP)clSep datasets. If we only look at the former we miss the correlation between aede1 and head, we undervalue head even though it is sufficent to explain the seperation in the absence of aede1. However if we look only at the max permuted importace we claim that head is more important that aede1, which is also wrong. We create a measure of compromise that is the half way between these values.
+
+$$LMP~clSep_i = max_i(mean_i(permuted~reps)) $$
+$$Adj.~clSep_i = clSep_i + (LMP~clSep_i - clSep_i)/2$$
+
+```{r exhaustive}
+if (DO_RERUN_HEAVY_OUTPUT == TRUE) {
+  .gg <- ggplot2::ggplot() + ggproto_exhaustive_clSep(data = dat, class = clas)
+  ggsave(filename = paste0("exhaustive_clSep.png"),
+         plot =  .gg,
+         path = "./output/")
+}
+```
+![](output/exhaustive_clSep.png)
+
 
 ## Application to other toy sets
 
@@ -200,29 +220,29 @@ In order to stress test this Cluster seperation viewed by a screeplot we apply i
 if (DO_RERUN_HEAVY_OUTPUT == TRUE) {
   dat <- spinifex::wine[, 2:ncol(spinifex::wine)]
   clas <- spinifex::wine[, 1]
-  .gg <- ggplot() + ggproto_rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
-  ggsave(filename = paste0("wine_permute_clSep1.png"),
+  .gg <- ggplot() + ggproto_exhaustive_clSep(data = dat, class = clas)
+  ggsave(filename = paste0("wine_exhaustive_clSep.png"),
          plot =  .gg,
          path = "./output/")
   
   dat <- spinifex::breastcancer[, 2:9]
   clas <- spinifex::breastcancer[, 10]
-  .gg <- ggplot() + ggproto_rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
-  ggsave(filename = paste0("breastcancer_permute_clSep1.png"),
+  .gg <- ggplot() + ggproto_exhaustive_clSep(data = dat, class = clas)
+  ggsave(filename = paste0("breastcancer_exhaustive_clSep.png"),
          plot =  .gg,
          path = "./output/")
   
   dat <- tourr::olive[, 3:ncol(tourr::olive)]
   clas <- tourr::olive[, 1]
-  .gg <- ggplot() + ggproto_rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
-  ggsave(filename = paste0("olive_permute_clSep1.png"),
+  .gg <- ggplot() + ggproto_exhaustive_clSep(data = dat, class = clas)
+  ggsave(filename = paste0("olive_exhaustive_clSep.png"),
          plot =  .gg,
          path = "./output/")
   
   dat <- tourr::ratcns[, 1:9]
   clas <- tourr::ratcns[, 10]
-  .gg <- ggplot() + ggproto_rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
-  ggsave(filename = paste0("ratcns_permute_clSep1.png"),
+  .gg <- ggplot() + ggproto_exhaustive_clSep(data = dat, class = clas)
+  ggsave(filename = paste0("ratcns_exhaustive_clSep.png"),
          plot =  .gg,
          path = "./output/")
   
@@ -230,45 +250,45 @@ if (DO_RERUN_HEAVY_OUTPUT == TRUE) {
   pengu <- pengu[complete.cases(pengu), ]
   dat <- pengu[, 3:6]
   clas <- pengu$species
-  .gg <- ggplot() + ggproto_rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
-  ggsave(filename = paste0("penguins_permute_clSep1.png"),
+  .gg <- ggplot() + ggproto_exhaustive_clSep(data = dat, class = clas)
+  ggsave(filename = paste0("penguins_exhaustive_clSep.png"),
          plot =  .gg,
          path = "./output/")
   clas <- pengu$sex
-  .gg <- ggplot() + ggproto_rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
-  ggsave(filename = paste0("penguins_InvalidAssumptions_permute_clSep1.png"),
+  .gg <- ggplot() + ggproto_exhaustive_clSep(data = dat, class = clas)
+  ggsave(filename = paste0("penguins_InvalidAssumptions_exhaustive_clSep.png"),
          plot =  .gg,
          path = "./output/")
   pengu2 <- pengu[pengu$species == unique(pengu$species)[1], ]
   dat <- pengu2[, 3:6]
   clas <- pengu2$sex
-  .gg <- ggplot() + ggproto_rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = 1)
-  ggsave(filename = paste0("penguins_sexIn1Species_permute_clSep1.png"),
+  .gg <- ggplot() + ggproto_exhaustive_clSep(data = dat, class = clas)
+  ggsave(filename = paste0("penguins_sexIn1Species_exhaustive_clSep.png"),
          plot =  .gg,
          path = "./output/")
 }
 ```
 
 ### Penguins, between levels of spieces
-![](output/penguins_permute_clSep1.png)
+![](output/penguins_exhaustive_clSep.png)
 
 ### Penguins, between levels of sex (invalid)
 (invalid assumptions, as there are 3 species clusters for each sex)
-![](output/penguins_InvalidAssumptions_permute_clSep1.png)
+![](output/penguins_InvalidAssumptions_exhaustive_clSep.png)
 ### Penguins, between levels of sex with 1 species
-![](output/penguins_sexIn1Species_permute_clSep1.png)
+![](output/penguins_sexIn1Species_exhaustive_clSep.png)
 
 ### Wine, between levels of type of wine
-![](output/wine_permute_clSep1.png)
+![](output/wine_exhaustive_clSep.png)
 
 ### Breastcancer, between benign/malignant tumors
-![](output/breastcancer_permute_clSep1.png)
+![](output/breastcancer_exhaustive_clSep.png)
 
 ### Olive, between levels of region of Italy
-![](output/olive_permute_clSep1.png)
+![](output/olive_exhaustive_clSep.png)
 
 ### Rat CNS gene expression, between levels of "the high-level classes"
-![](output/ratcns_permute_clSep1.png)
+![](output/ratcns_exhaustive_clSep.png)
 
 ## Testing our expectations
 

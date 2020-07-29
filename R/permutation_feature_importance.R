@@ -113,7 +113,7 @@ ggproto_rep_permute_var_clSep <- function(data,
   ## Palette, labels, and screeplot of clSep on unpermuted (real) data
   .tgt_lvls <- levels(as.factor(class))[c(num_class_lvl_a, num_class_lvl_b)]
   .var_nm <- colnames(data)[permute_rank_num]
-  .title <- paste0(.var_nm, "-permuted cluster seperation clSep (n_reps=", n_reps, ")")
+  .title <- paste0(.var_nm, "-permuted cluster seperation (n_reps=", n_reps, ")")
   .subtitle <- paste0("Against original clSep sreeplot between the clusters ",
                       .tgt_lvls[1], " and ", .tgt_lvls[2])
   
@@ -211,13 +211,12 @@ ggproto_exhaustive_clSep <- function(data,
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30),
                    legend.position = "bottom",
                    legend.direction = "vertical"),
-    ggplot2::scale_fill_manual(
-      values = palette()[1:3],
-      name = "Variable cluster seperation",
-      labels = c("Full sample", "Largest permuted mean", "Adj. largest permuted mean")),
-    ggplot2::scale_colour_manual(
-      values = palette()[4:5],
-      name = "Cummulative cluster seperation",
-      labels = c("Cum. full sample", "Adj. largest permuted mean", "Adj. largest permuted mean"))
+    ggplot2::scale_fill_manual(values = palette()[1:3],
+                               name = "Variable cluster seperation",
+                               labels = c("original", "LMP", "adjusted")),
+    ggplot2::scale_colour_manual(values = palette()[4:5],
+                                 name = "Cummulative cluster seperation",
+                                 labels = c("original", "adjusted"))
+
   )
 }
