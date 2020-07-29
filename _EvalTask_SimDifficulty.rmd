@@ -40,7 +40,7 @@ source("./R/sim_pDim_kCl.r") ## cluster levels stored in attribute "cl_lvl". Try
 set.seed(20200725)
 theme_set(theme_minimal())
 palette(RColorBrewer::brewer.pal(8, "Dark2"))
-DO_RERUN_HEAVY_OUTPUT            <- TRUE
+DO_RERUN_HEAVY_OUTPUT            <- FALSE
 DO_RERUN_SIM301_PAIRS_n_TOURGIFS <- FALSE
 
 dat  <- flea[, 1:6]

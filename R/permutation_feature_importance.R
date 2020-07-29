@@ -140,6 +140,7 @@ ggproto_exhaustive_clSep <- function(data,
                                      num_class_lvl_a = 1,
                                      num_class_lvl_b = 2,
                                      n_reps = 500) {
+  require("magrittr") ## For %>% namespace.
   data <- as.data.frame(data)
   p <- ncol(data)
   ## clSep on original dataset
@@ -159,8 +160,8 @@ ggproto_exhaustive_clSep <- function(data,
         data.frame(permute_rank_num = i)
     )
     df_exhaus_mean <- rbind(df_exhaus_mean, df_perm_mean_clSep)
-    
   }
+  
   df_exhaus_max_mean <- dplyr::group_by(df_exhaus_mean, var) %>%
     dplyr::filter(mean_perm_clSep == max(mean_perm_clSep)) %>%
     dplyr::mutate(.keep = "unused", max_mean_perm_clSep = mean_perm_clSep) %>%
@@ -171,10 +172,10 @@ ggproto_exhaustive_clSep <- function(data,
   df_clSep_real_n_perm <-
     dplyr::left_join(df_real_clSep, df_exhaus_max_mean, by = "var") %>% 
     dplyr::mutate(diff = max_mean_perm_clSep - var_clSep,
-                  adj_clSep = var_clSep + .5* diff,
+                  adj_clSep = var_clSep + .5 * diff,
                   cumsum_adj_clSep = cumsum(adj_clSep))
   
-  ## Subset to var_clSep, max_mean_perm_clSep and pivot longer; df1
+  ## Pivot longer for side-by-side barcharts
   df_long_clSep_real_n_perm <- df_clSep_real_n_perm %>% 
     tidyr::pivot_longer(cols = c(var_clSep, max_mean_perm_clSep),
                         names_to = "clSep_type", values_to = "clSep")
@@ -182,33 +183,41 @@ ggproto_exhaustive_clSep <- function(data,
     factor(df_long_clSep_real_n_perm$clSep_type, 
            levels = c("var_clSep", "max_mean_perm_clSep"))
   
-  axis_labs <- c("Variable", "Cluster seperation")
-  fill_labs <- c("Variable cluster seperation", "Max mean permutation cluster seperation")
-  col_labs <- c("Cummulative cluster seperation", "Cummulative adj. (half-difference) cluster seperation")
   list(
     ggplot2::geom_bar(ggplot2::aes(x = var, y = clSep, fill = clSep_type),
                       df_long_clSep_real_n_perm,
                       position = "dodge", stat = "identity"),
-    ## Cumsum variable cluster seperation
-    ggplot2::geom_line(ggplot2::aes(x = var, y = cumsum_clSep, 
-                                    color = "3", group = 1),
+    ## Cumsum clSep
+    ggplot2::geom_line(ggplot2::aes(x = as.integer(var) - .0, y = cumsum_clSep, ## -.1 for dodge
+                                    color = "z col1 -Cumsum clSep", group = 1),
                        df_long_clSep_real_n_perm, lwd = 1.2),
-    ggplot2::geom_point(ggplot2::aes(x = var, y = cumsum_clSep, color = "3"),
+    ggplot2::geom_point(ggplot2::aes(x = as.integer(var) - .0, y = cumsum_clSep, ## -.1 for dodge
+                                     color = "z col1 -Cumsum clSep"),
                         df_long_clSep_real_n_perm, shape = 18, size = 4),
-    ## Cumsum variable cluster seperation
+    ## Cumsum adj. clSep
     ggplot2::geom_line(ggplot2::aes(x = var, y = cumsum_adj_clSep, 
-                                    color = "4", group = 1),
+                                    color = "z col2 -Cumsum adj. clSep", group = 1),
                        df_long_clSep_real_n_perm, lwd = 1.2),
-    ggplot2::geom_point(ggplot2::aes(x = var, y = cumsum_adj_clSep, color = "4"),
+    ggplot2::geom_point(ggplot2::aes(x = var, y = cumsum_adj_clSep, 
+                                     color = "z col2 -Cumsum adj. clSep"),
                         df_long_clSep_real_n_perm, shape = 17, size = 4),
     ## Adj cluster sep mid pts
-    ggplot2::geom_point(ggplot2::aes(x = var, y = adj_clSep, color = "5"),
-                        df_long_clSep_real_n_perm, shape = 7, size = 4),
+    ggplot2::geom_bar(ggplot2::aes(x = var, y = .5 * adj_clSep, ## Halfed b/c it gets doubled in the pivot_longer.
+                                   fill = "z fill col3"),
+                      df_long_clSep_real_n_perm, 
+                      width = .2, alpha = .5, stat = "identity"),
     ## Titles and colors
-    ggplot2::labs(x = axis_labs[1], y = axis_labs[2], colour = col_labs, fill = fill_labs),
+    ggplot2::labs(x = "Variable", y = "Cluster seperation"),
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30),
-                   legend.position = "bottom"),
-    ggplot2::scale_fill_manual(values = palette()[1:2]),
-    ggplot2::scale_colour_manual(values = palette()[3:5])
+                   legend.position = "bottom",
+                   legend.direction = "vertical"),
+    ggplot2::scale_fill_manual(
+      values = palette()[1:3],
+      name = "Variable cluster seperation",
+      labels = c("Full sample", "Largest permuted mean", "Adj. largest permuted mean")),
+    ggplot2::scale_colour_manual(
+      values = palette()[4:5],
+      name = "Cummulative cluster seperation",
+      labels = c("Cum. full sample", "Adj. largest permuted mean", "Adj. largest permuted mean"))
   )
 }
