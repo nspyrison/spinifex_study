@@ -145,9 +145,9 @@ pal                <- "Dark2"
 ## may need manual changes when changing section sizes
 ## intro is pg 1; video training is pg 2
 training_start_pg <- 3
-task_start_pg     <- (training_start_pg + n_trainings * n_tasks + 1) + 1
-## ~ pg9;(3+2*2+1+1; train_st, 2*2 task*blocks, splash pg, start on new pg)
-survey_start_pg   <- task_start_pg + n_factors * n_blocks * n_tasks + 1
+evaluation_start_pg <- (training_start_pg + 2 + 1) + 1
+## ~ pg9;(3+2*+1+1; train_st, 2 task, splash pg, start on new pg)
+survey_start_pg <- evaluation_start_pg + n_factors * n_blocks * n_tasks + 1
 ## ~ pg22, (9+3*3*2+1; task_st, 3*2*2 factor*task*block, start on new pg)
 
 ##### UI START -----

@@ -17,19 +17,36 @@ server <- function(input, output, session) {
   rv$task_ttr         <- NULL
   rv$task_response    <- NULL
   rv$save_file        <- NULL
-  rv$resp_tbl         <- NULL
   rv$training_aes     <- FALSE
   rv$second_training  <- FALSE
   rv$curr_basis       <- NULL
   rv$manual_ls        <- list()
   rv$basis_ls         <- list()
-  
+  rv$resp_tbl         <- data.frame(
+    user_uid     = substr(log_name, 5, nchar(log_name)),
+    group        = substr(log_name, 5, 5),
+    factor       = c(rep(this_factor_nm_order[1], 4),
+                     rep(this_factor_nm_order[2], 4),
+                     rep(this_factor_nm_order[3], 4)),
+    block        = rep(rep(s_difficulty[1], 2), rep(s_difficulty[3], 2), 3),
+    sim_id       = 301:312,
+    pca_inter    = NA,
+    manual_inter = NA,
+    grand_inter  = NA, 
+    resp_inter   = NA,
+    plot_elapsed = NA,
+    ttr          = NA,
+    response     = NA,
+    answer       = NA,
+    marks        = NA,
+  )
+    
   ##### Reactives -----
   p <- reactive({ ncol(dat()) })
   n_cl <- reactive({ length(unique(attributes(s_dat[[block()]])$cl_lvl)) })
   
   section_nm <- reactive({ ## text name of section
-    # req(rv$pg)
+    req(rv$pg)
     if (rv$pg == 1) {return("intro")}
     if (rv$pg == 2) {return("video")}
     .pgs <- training_start_pg:(task_start_pg - 2)
@@ -57,11 +74,6 @@ server <- function(input, output, session) {
     if (section_nm() == "training") return(input$factor)
     if (section_nm() == "task") return(this_factor_nm_order[period()])
     return("NONE / NA")
-  })
-  task <- reactive({ ## in 1,2
-    # req(section_nm(), section_pg(), period())
-    if (section_nm() == "training") return(c(0, 1, 1, 2, 2, 0)[section_pg()])
-    return(1 + ((section_pg() - 1) %/% n_blocks) - 2 * (period() - 1))
   })
   block <- reactive({ ## in 1,2
     if (section_nm() == "training") return(c(0, "t", "t", "t", "t", 0)[section_pg()])
@@ -560,90 +572,90 @@ server <- function(input, output, session) {
   })
   
   
-  ### resp_tbl() reactive -----
-  resp_tbl <- reactive({
-    # ## Init columns
-    # col_factor <-
-    #   c(rep("training", n_blocks + n_task2_questions * n_blocks),              ## Training
-    #     rep(this_factor_nm_order[1], n_blocks + n_task2_questions * n_blocks), ## Tasks across factor
-    #     rep(this_factor_nm_order[2], n_blocks + n_task2_questions * n_blocks),
-    #     rep(this_factor_nm_order[3], n_blocks + n_task2_questions * n_blocks),
-    #     rep("survey", n_survey_questions)                                      ## Survey
-    #   )
-    # col_task <-
-    #   c(rep(1, n_tasks),                             ## Training
-    #     rep(2, n_tasks * n_task2_questions),
-    #     rep(c(rep(1, n_blocks ),                     ## Task 1
-    #           rep(2, n_blocks * n_task2_questions)), ## Task 2
-    #         n_factors                                ## Across factors
-    #     ),
-    #     paste0("survey", 1:6),                       ## Survey
-    #     paste0("survey", 7:10, "_", this_factor_nm_order[1]),
-    #     paste0("survey", 7:10, "_", this_factor_nm_order[2]),
-    #     paste0("survey", 7:10, "_", this_factor_nm_order[3])
-    #   )
-    # col_block <-
-    #   c("t", "t",                                  ## Training
-    #     rep("t", n_tasks * n_task2_questions),
-    #     rep(c(1:n_blocks,                          ## Task 1
-    #           rep(1:n_blocks, n_task2_questions)), ## Task 2
-    #         n_factors                              ## Across factors
-    #     ),
-    #     rep(NA, n_survey_questions)                ## Survey
-    #   )
-    # st  <- sim_series + 1
-    # gap <- n_blocks * n_tasks # ~4
-    # sim_set <- c(st, st + 1,                     ## Task 1
-    #              rep(st + 2, n_task2_questions), ## Task 2
-    #              rep(st + 3, n_task2_questions)
-    # )
-    # col_sim_id <-
-    #   as.character(
-    #     c("t1", "t2",
-    #       rep("t3", n_task2_questions), ## Training 1
-    #       rep("t4", n_task2_questions), ## Training 2
-    #       sim_set,                      ## Tasks across factors
-    #       sim_set + gap,
-    #       sim_set + 2 * gap,
-    #       rep(NA, n_survey_questions)   ## Survey
-    #     )
-    #   )
-    # col_question <-
-    #   c(
-    #     rep(s_task_prompts[1], n_blocks),
-    #     rep(s_task2_questions, n_blocks),     ## Training
-    #     rep(
-    #       c(rep(s_task_prompts[1], n_blocks), ## Task 1
-    #         rep(s_task2_questions, n_blocks)  ## Task 2
-    #       ),
-    #       n_factors                           ## Across factors
-    #     ),
-    #     s_survey_questions                    ## Survey
-    #   )
-    # browser()
-    # # length(col_factor);length(col_task);length(col_block);length(col_sim_id);length(col_question);
-    # data.frame(user_uid        = substr(log_name, 5, nchar(log_name)),
-    #            group           = substr(log_name, 5, 5),
-    #            factor          = col_factor,
-    #            task            = col_task,
-    #            block           = col_block,
-    #            sim_id          = col_sim_id,
-    #            question        = col_question,
-    #            pca_inter       = NA,
-    #            manual_inter    = NA,
-    #            resp_inter      = NA,
-    #            plot_elapsed    = NA,
-    #            ttr             = NA,
-    #            response        = NA,
-    #            answer          = NA,
-    #            task_score      = NA,
-    #            clust_score     = NA,
-    #            intensity_score = NA,
-    #            line_score      = NA,
-    #            concern         = NA
-    # )
-    "NEEDS TO BE RESTORED"
-  })
+  ## resp_tbl() reactive -----
+  # resp_tbl <- reactive({
+  #   ## Init columns
+  #   col_factor <-
+  #     c(rep("training", n_blocks + n_task2_questions * n_blocks),              ## Training
+  #       rep(this_factor_nm_order[1], n_blocks + n_task2_questions * n_blocks), ## Tasks across factor
+  #       rep(this_factor_nm_order[2], n_blocks + n_task2_questions * n_blocks),
+  #       rep(this_factor_nm_order[3], n_blocks + n_task2_questions * n_blocks),
+  #       rep("survey", n_survey_questions)                                      ## Survey
+  #     )
+  #   col_task <-
+  #     c(rep(1, n_tasks),                             ## Training
+  #       rep(2, n_tasks * n_task2_questions),
+  #       rep(c(rep(1, n_blocks ),                     ## Task 1
+  #             rep(2, n_blocks * n_task2_questions)), ## Task 2
+  #           n_factors                                ## Across factors
+  #       ),
+  #       paste0("survey", 1:6),                       ## Survey
+  #       paste0("survey", 7:10, "_", this_factor_nm_order[1]),
+  #       paste0("survey", 7:10, "_", this_factor_nm_order[2]),
+  #       paste0("survey", 7:10, "_", this_factor_nm_order[3])
+  #     )
+  #   col_block <-
+  #     c("t", "t",                                  ## Training
+  #       rep("t", n_tasks * n_task2_questions),
+  #       rep(c(1:n_blocks,                          ## Task 1
+  #             rep(1:n_blocks, n_task2_questions)), ## Task 2
+  #           n_factors                              ## Across factors
+  #       ),
+  #       rep(NA, n_survey_questions)                ## Survey
+  #     )
+  #   st  <- sim_series + 1
+  #   gap <- n_blocks * n_tasks # ~4
+  #   sim_set <- c(st, st + 1,                     ## Task 1
+  #                rep(st + 2, n_task2_questions), ## Task 2
+  #                rep(st + 3, n_task2_questions)
+  #   )
+  #   col_sim_id <-
+  #     as.character(
+  #       c("t1", "t2",
+  #         rep("t3", n_task2_questions), ## Training 1
+  #         rep("t4", n_task2_questions), ## Training 2
+  #         sim_set,                      ## Tasks across factors
+  #         sim_set + gap,
+  #         sim_set + 2 * gap,
+  #         rep(NA, n_survey_questions)   ## Survey
+  #       )
+  #     )
+  #   col_question <-
+  #     c(
+  #       rep(s_task_prompts[1], n_blocks),
+  #       rep(s_task2_questions, n_blocks),     ## Training
+  #       rep(
+  #         c(rep(s_task_prompts[1], n_blocks), ## Task 1
+  #           rep(s_task2_questions, n_blocks)  ## Task 2
+  #         ),
+  #         n_factors                           ## Across factors
+  #       ),
+  #       s_survey_questions                    ## Survey
+  #     )
+  #   browser()
+  #   # length(col_factor);length(col_task);length(col_block);length(col_sim_id);length(col_question);
+  #   col_factor <- col_task <- col_block <- col_sim_id <- col_question <- rep(-99,99)
+  #   data.frame(user_uid        = substr(log_name, 5, nchar(log_name)),
+  #              group           = substr(log_name, 5, 5),
+  #              factor          = col_factor,
+  #              task            = col_task,
+  #              block           = col_block,
+  #              sim_id          = col_sim_id,
+  #              question        = col_question,
+  #              pca_inter       = NA,
+  #              manual_inter    = NA,
+  #              resp_inter      = NA,
+  #              plot_elapsed    = NA,
+  #              ttr             = NA,
+  #              response        = NA,
+  #              answer          = NA,
+  #              task_score      = NA,
+  #              clust_score     = NA,
+  #              intensity_score = NA,
+  #              line_score      = NA,
+  #              concern         = NA
+  #   )
+  # })
   ##### End of reactives
   
   
@@ -1120,8 +1132,8 @@ server <- function(input, output, session) {
   ### Obs next page button -----
   observeEvent(input$next_pg_button, {
     if ((rv$stopwatch > 2 & do_log == TRUE) | do_log == FALSE){
-      ## Init rv$resp_tbl <- resp_tbl() first press
-      if (is.null(rv$resp_tbl)){ rv$resp_tbl <- resp_tbl() }
+      # ## Init rv$resp_tbl <- resp_tbl() first press
+      # if (is.null(rv$resp_tbl)){ rv$resp_tbl <- resp_tbl() }
       ## if <on last task> {<do nothing>}. Also shouldn't be visible
       if (rv$pg >= survey_start_pg){ return() }
       
