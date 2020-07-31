@@ -2,9 +2,10 @@
 #' 
 #' @examples 
 #' dat <- tourr::flea[, 1:6]
-#' df_scree_pca(dat)
-
-df_scree_pca <- function(data){
+#' df_scree_pca(data = dat)
+df_scree_pca <- function(data, 
+                         do_rescale = TRUE){
+  if(do_rescale == TRUE) data <- tourr::rescale(data)
   data <- as.data.frame(data)
   p <- ncol(data)
   
@@ -27,8 +28,9 @@ df_scree_pca <- function(data){
 #'   ggproto_screeplot_pca(data = dat) +
 #'   ggplot2::theme_bw()
 
-ggproto_screeplot_pca <- function(data){
-  df_screetable_pca <- df_scree_pca(data = data)
+ggproto_screeplot_pca <- function(data,
+                                  do_rescale = TRUE){
+  df_screetable_pca <- df_scree_pca(data, do_rescale)
   
   lab_fill <- "PC variance"
   lab_col  <- "Cummulative variance"

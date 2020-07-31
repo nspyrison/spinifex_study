@@ -1,10 +1,10 @@
 ---
 title: "Evaluating task and vet sim difficulty."
-output: 
+output:
   html_document:
     toc: true
     toc_depth: 2
-editor_options: 
+editor_options:
   chunk_output_type: console
 ---
 
@@ -40,7 +40,7 @@ source("./R/sim_pDim_kCl.r") ## cluster levels stored in attribute "cl_lvl". Try
 set.seed(20200725)
 theme_set(theme_minimal())
 palette(RColorBrewer::brewer.pal(8, "Dark2"))
-DO_RERUN_HEAVY_OUTPUT            <- FALSE
+DO_RERUN_HEAVY_OUTPUT            <- TRUE
 DO_RERUN_SIM301_PAIRS_n_TOURGIFS <- FALSE
 
 dat  <- flea[, 1:6]
@@ -116,56 +116,24 @@ We discard the sign as we only care about magnitude each variable contributed to
 
 ```{r clSepScreeplot}
 df_pcaVar <- df_scree_pca(dat)
-(g2 <- ggplot2::ggplot() + ggproto_screeplot_clSep(dat, clas) + theme_minimal())
+ggplot2::ggplot() + ggproto_screeplot_clSep(dat, clas) + theme_minimal()
 ```
 
-## Evaluating the response
-
-Now that we have a measure we want to define an objective cutoff for evaluation. We want the measure to a few attributes:
-
-- Continuous relative to the cluster seperation
-- Sum of squares should equal 1
-- Symetric, diverging around uniform weight
-
-Following these, we define a measure to be:
-$$diff_i = clSep_i - (1 / p)$$
-$$marks = \sum_{i=1}^{p} I(response_i) * sgn(diff_i) * \sqrt{|diff_i|}$$
-
-```{r answerWeights, results="hold"}
-bar_unif <- 1 / p
-
-df_clSep_eval <- mutate(df_clSep, .keep = "none",
-                        variable        = var,
-                        var_clSep       = var_clSep,
-                        diff            = var_clSep - bar_unif,
-                        weight          = sign(diff) * sqrt(abs(diff)),
-                        exampleResponse = c(1, 1, 0, 1, 0, 1),
-                        marks           = weight * exampleResponse)
-col <- c(rep("green", 3), rep("red", p - 3))
-
-(g3 <- g2 +
-  geom_hline(yintercept = bar_unif, size = 1) +
-  geom_text(aes(x = 7, y = bar_unif + .03, 
-                label = "Uniform Wt, 1/p = .17"),
-            size = 4, hjust = 1) +
-  geom_segment(data = df_clSep_eval, colour = col, size = 2,
-               aes(x = 1:p, y = bar_unif, xend = 1:p, yend = weight + bar_unif)
-  )
-)
-```
-
-Here, we add lines indicating the weight of each variable if selected as important. we then apply our measure to evalue task responses, we review an example response below:
-
-`r kable(df_clSep_eval, digits = 2)`
-`r paste0("Total marks = ", round(sum(df_clSep_eval$marks), 2))`
-
-## Projected data view
-
-All linear projections are nesciarily a lossy representation of the full data. By this we mean that no single 2D frame can show the whole set of infromation for $p>=3$ -dimensional sample. Any pair of Pricipal Components nessciaronly shows less than all the variation, namely the sum of their contributions, typicaly stated as percentage of full sample variation. Analogously any single projection cannot show the full information explain the cluster seperation of 2 given clusters.
-
-In applcation, viewing a PC1 by PC2 biplot of flea data contains `r round(100 * df_pcaVar[2,3], 2)` percent of the variation explained in the sample. While viewing (an orthogonal project) the top 2 variables (namely: `r as.character(df_clSep[1:2, 1])` ) explain `r round(100 * df_clSep[2, 3], 2)` percent of the within sample cluster seperation between *Concinna* and *Heptapot*.
+However, we are concerned about the following case: if the singal of one variable is sufficent to explian the seperation of the clusters, but is dwarfed by the contribution of another variable. We review the correlation matrix to see if our concerns are valid, then we try to about for this by permuting (or shuffling) the values in a single column and watching how the contributions change.
 
 ## Cluster seperation on single-variable permuted data
+
+```{r ggcorr}
+if (DO_RERUN_HEAVY_OUTPUT == TRUE) {
+  .gg <- GGally::ggcorr(dat, label = TRUE, label_alpha = TRUE)
+  ggsave(filename = "ggcorr.png",
+         plot =  .gg,
+         path = "./output/")
+}
+```
+![](output/ggcorr.png)
+
+It's seems our concerns are valid, at least in this case.
 
 ```{r permFeatImp}
 if (DO_RERUN_HEAVY_OUTPUT == TRUE) {
@@ -184,32 +152,79 @@ if (DO_RERUN_HEAVY_OUTPUT == TRUE) {
 ![](output/permute_clSep5.png)
 ![](output/permute_clSep6.png)
 
-Permuting some variables can significantly impact the cluster seperation explained by other variables. especially when they are correlated and a variable with a large contribution is permuted.
+Permuting some variables can significantly impact the cluster seperation explained by other variables. especially when they are correlated and a variable with a large contribution is permuted. We save the means of all permuted clSeps over the `p` permutations into a matrix$[pxp]$. We then find the mean of these means of single-variable permututations for a metric we call mean, mean permuted cluster seperation, or _MMP clSep_. Comparing with the original full sample clSep we find:
 
-```{r ggcorr}
+
+$$MMP~clSep_i = mean_i(mean_i(permuted~reps)) $$
+
+```{r origxMMP}
 if (DO_RERUN_HEAVY_OUTPUT == TRUE) {
-  .gg <- GGally::ggcorr(dat, label = TRUE, label_alpha = TRUE)
-  ggsave(filename = "ggcorr.png",
+  .gg <- ggplot2::ggplot() + ggproto_origxMMP_clSep(data = dat, class = clas)
+  ggsave(filename = paste0("origxMMP_clSep.png"),
          plot =  .gg,
          path = "./output/")
 }
 ```
-![](output/ggcorr.png)
+![](output/origxMMP_clSep.png)
 
-Let's compare the contribution of the real data with the largest mean of the permuted (LMP)clSep datasets. If we only look at the former we miss the correlation between aede1 and head, we undervalue head even though it is sufficent to explain the seperation in the absence of aede1. However if we look only at the max permuted importace we claim that head is more important that aede1, which is also wrong. We create a measure of compromise that is the half way between these values.
+We note that the varable head is a significant case. If we plot MMP clSep be it's self and order the screeplot accordingly we have
 
-$$LMP~clSep_i = max_i(mean_i(permuted~reps)) $$
-$$Adj.~clSep_i = clSep_i + (LMP~clSep_i - clSep_i)/2$$
-
-```{r exhaustive}
+```{r MMP}
 if (DO_RERUN_HEAVY_OUTPUT == TRUE) {
-  .gg <- ggplot2::ggplot() + ggproto_exhaustive_clSep(data = dat, class = clas)
-  ggsave(filename = paste0("exhaustive_clSep.png"),
+  .gg <- ggplot2::ggplot() + ggproto_MMP_clSep(data = dat, class = clas)
+  ggsave(filename = paste0("MMP_clSep.png"),
          plot =  .gg,
          path = "./output/")
 }
 ```
-![](output/exhaustive_clSep.png)
+
+## Evaluating the response
+
+Now that we have a measure we want to define an objective cutoff for evaluation. We want the measure to a few attributes:
+
+- Continuous relative to the cluster seperation
+- Sum of squares should equal 1
+- Symetric, diverging around uniform weight
+
+Following these, we define a measure to be:
+$$diff_i = MMP~clSep_i - (1 / p)$$
+$$marks = \sum_{i=1}^{p} I(response_i) * sgn(diff_i) * \sqrt{|diff_i|}$$
+
+```{r answerWeights, results="hold"}
+## MMP clSep
+df_MMP <- df_scree_MMP_clSep(dat, clas, do_reorder_by_MMP = TRUE)
+## Add example response, cause not working in mutate...
+df_MMP$exampleResponse <- c(1, 1, 0, 1, 0, 1)
+bar_unif <- 1 / p
+
+df_MMP_eval <- df_MMP %>% 
+  mutate(.keep = "all",
+         diff   = MMP_clSep - bar_unif,
+         weight = sign(diff) * sqrt(abs(diff)),
+         marks  = weight * exampleResponse) %>% 
+  arrange(desc(MMP_clSep))
+
+col <- c(rep("green", 3), rep("red", p - 3))
+ggplot() + ggproto_MMP_clSep(dat, clas) +
+  geom_hline(yintercept = bar_unif, size = 1) +
+  geom_text(aes(x = 7, y = bar_unif + .03, 
+                label = "Uniform Wt, 1/p = .17"),
+            size = 4, hjust = 1) +
+  geom_segment(data = df_MMP_eval, colour = col, size = 2,
+               aes(x = 1:p, y = bar_unif, xend = 1:p, yend = weight + bar_unif)
+  )
+```
+
+Here, we add lines indicating the weight of each variable if selected as important. we then apply our measure to evalue task responses, we review an example response below:
+
+`r kable(df_MMP_eval, digits = 2)`
+`r paste0("Total marks = ", round(sum(df_MMP_eval$marks), 2))`
+
+## Projected data view
+
+All linear projections are nesciarily a lossy representation of the full data. By this we mean that no single 2D frame can show the whole set of infromation for $p>=3$ -dimensional sample. Any pair of Pricipal Components nessciaronly shows less than all the variation, namely the sum of their contributions, typicaly stated as percentage of full sample variation. Analogously any single projection cannot show the full information explain the cluster seperation of 2 given clusters.
+
+In applcation, viewing a PC1 by PC2 biplot of flea data contains `r round(100 * df_pcaVar[2,3], 2)` percent of the variation explained in the sample. While viewing (an orthogonal project) the top 2 variables (namely: `r as.character(df_clSep[1:2, 1])` ) explain `r round(100 * df_clSep[2, 3], 2)` percent of the within sample cluster seperation between *Concinna* and *Heptapot*.
 
 
 ## Application to other toy sets
@@ -220,29 +235,29 @@ In order to stress test this Cluster seperation viewed by a screeplot we apply i
 if (DO_RERUN_HEAVY_OUTPUT == TRUE) {
   dat <- spinifex::wine[, 2:ncol(spinifex::wine)]
   clas <- spinifex::wine[, 1]
-  .gg <- ggplot() + ggproto_exhaustive_clSep(data = dat, class = clas)
-  ggsave(filename = paste0("wine_exhaustive_clSep.png"),
+  .gg <- ggplot() + ggproto_MMP_clSep(data = dat, class = clas)
+  ggsave(filename = paste0("wine_MMP_clSep.png"),
          plot =  .gg,
          path = "./output/")
   
   dat <- spinifex::breastcancer[, 2:9]
   clas <- spinifex::breastcancer[, 10]
-  .gg <- ggplot() + ggproto_exhaustive_clSep(data = dat, class = clas)
-  ggsave(filename = paste0("breastcancer_exhaustive_clSep.png"),
+  .gg <- ggplot() + ggproto_MMP_clSep(data = dat, class = clas)
+  ggsave(filename = paste0("breastcancer_MMP_clSep.png"),
          plot =  .gg,
          path = "./output/")
   
   dat <- tourr::olive[, 3:ncol(tourr::olive)]
   clas <- tourr::olive[, 1]
-  .gg <- ggplot() + ggproto_exhaustive_clSep(data = dat, class = clas)
-  ggsave(filename = paste0("olive_exhaustive_clSep.png"),
+  .gg <- ggplot() + ggproto_MMP_clSep(data = dat, class = clas)
+  ggsave(filename = paste0("olive_MMP_clSep.png"),
          plot =  .gg,
          path = "./output/")
   
   dat <- tourr::ratcns[, 1:9]
   clas <- tourr::ratcns[, 10]
-  .gg <- ggplot() + ggproto_exhaustive_clSep(data = dat, class = clas)
-  ggsave(filename = paste0("ratcns_exhaustive_clSep.png"),
+  .gg <- ggplot() + ggproto_MMP_clSep(data = dat, class = clas)
+  ggsave(filename = paste0("ratcns_MMP_clSep.png"),
          plot =  .gg,
          path = "./output/")
   
@@ -250,45 +265,45 @@ if (DO_RERUN_HEAVY_OUTPUT == TRUE) {
   pengu <- pengu[complete.cases(pengu), ]
   dat <- pengu[, 3:6]
   clas <- pengu$species
-  .gg <- ggplot() + ggproto_exhaustive_clSep(data = dat, class = clas)
-  ggsave(filename = paste0("penguins_exhaustive_clSep.png"),
+  .gg <- ggplot() + ggproto_MMP_clSep(data = dat, class = clas)
+  ggsave(filename = paste0("penguins_MMP_clSep.png"),
          plot =  .gg,
          path = "./output/")
   clas <- pengu$sex
-  .gg <- ggplot() + ggproto_exhaustive_clSep(data = dat, class = clas)
-  ggsave(filename = paste0("penguins_InvalidAssumptions_exhaustive_clSep.png"),
+  .gg <- ggplot() + ggproto_MMP_clSep(data = dat, class = clas)
+  ggsave(filename = paste0("penguins_InvalidAssumptions_MMP_clSep.png"),
          plot =  .gg,
          path = "./output/")
   pengu2 <- pengu[pengu$species == unique(pengu$species)[1], ]
   dat <- pengu2[, 3:6]
   clas <- pengu2$sex
-  .gg <- ggplot() + ggproto_exhaustive_clSep(data = dat, class = clas)
-  ggsave(filename = paste0("penguins_sexIn1Species_exhaustive_clSep.png"),
+  .gg <- ggplot() + ggproto_MMP_clSep(data = dat, class = clas)
+  ggsave(filename = paste0("penguins_sexIn1Species_MMP_clSep.png"),
          plot =  .gg,
          path = "./output/")
 }
 ```
 
 ### Penguins, between levels of spieces
-![](output/penguins_exhaustive_clSep.png)
+![](output/penguins_MMP_clSep.png)
 
 ### Penguins, between levels of sex (invalid)
 (invalid assumptions, as there are 3 species clusters for each sex)
-![](output/penguins_InvalidAssumptions_exhaustive_clSep.png)
+![](output/penguins_InvalidAssumptions_MMP_clSep.png)
 ### Penguins, between levels of sex with 1 species
-![](output/penguins_sexIn1Species_exhaustive_clSep.png)
+![](output/penguins_sexIn1Species_MMP_clSep.png)
 
 ### Wine, between levels of type of wine
-![](output/wine_exhaustive_clSep.png)
+![](output/wine_MMP_clSep.png)
 
 ### Breastcancer, between benign/malignant tumors
-![](output/breastcancer_exhaustive_clSep.png)
+![](output/breastcancer_MMP_clSep.png)
 
 ### Olive, between levels of region of Italy
-![](output/olive_exhaustive_clSep.png)
+![](output/olive_MMP_clSep.png)
 
 ### Rat CNS gene expression, between levels of "the high-level classes"
-![](output/ratcns_exhaustive_clSep.png)
+![](output/ratcns_MMP_clSep.png)
 
 ## Testing our expectations
 
@@ -324,6 +339,7 @@ Cluster 'b' covariance:
 `r knitr::kable(.cov2)`
 
 ```{r simCases}
+if (DO_RERUN_HEAVY_OUTPUT == TRUE) {
 mns2 <- list(c(80, 20), rep(0,2)) ## differences of 8, 2, 0, 0, 0
 mns5 <- list(c(80, 20, rep(0, 3)), rep(0, 5)) ## differences of 8, 2, 0, 0, 0
 ## case 1) 2 variable 80-20
@@ -331,14 +347,20 @@ covs <- list(diag(2), diag(2))
 sim_case1 <- sim_pDim_kCl(means = mns2, sigmas = covs, do_shuffle = FALSE)
 dat <- sim_case1
 clas <- attr(sim_case1, "cl_lvl")
-ggplot() + ggproto_screeplot_clSep(dat, clas)
+.gg <- ggplot() + ggproto_MMP_clSep(dat, clas)
+ggsave(filename = paste0("sim_case1_MMP_clSep.png"),
+       plot =  .gg,
+       path = "./output/")
 
 ## case 2) 5 variable "80-20"
 covs <- list(diag(5), diag(5))
 sim_case2 <- sim_pDim_kCl(means = mns5, sigmas = covs, do_shuffle = FALSE)
 dat <- sim_case2
 clas <- attr(sim_case2, "cl_lvl")
-ggplot() + ggproto_screeplot_clSep(dat, clas)
+.gg <- ggplot() + ggproto_MMP_clSep(dat, clas)
+ggsave(filename = paste0("sim_case2_MMP_clSep.png"),
+       plot =  .gg,
+       path = "./output/")
 
 ## case 3) 5 variable "80-20", V1-V2 covariance set to .3
 .cov <- diag(5)
@@ -347,7 +369,10 @@ covs <- list(.cov, .cov)
 sim_case3 <- sim_pDim_kCl(means = mns5, sigmas = covs, do_shuffle = FALSE)
 dat <- sim_case3
 clas <- attr(sim_case3, "cl_lvl")
-ggplot() + ggproto_screeplot_clSep(dat, clas)
+.gg <- ggplot() + ggproto_MMP_clSep(dat, clas)
+ggsave(filename = paste0("sim_case3_MMP_clSep.png"),
+       plot =  .gg,
+       path = "./output/")
 
 ## case 4) 5 variable "80-20", Cluster 1 covariance, all off-diagonal set to .4
 .cov1 <- matrix(rep(.7, 25), ncol = 5)
@@ -357,9 +382,16 @@ covs <- list(.cov1, .cov2)
 sim_case4 <- sim_pDim_kCl(means = mns5, sigmas = covs, do_shuffle = FALSE)
 dat <- sim_case4
 clas <- attr(sim_case4, "cl_lvl")
-ggplot() + ggproto_screeplot_clSep(dat, clas)
+.gg <- ggplot() + ggproto_MMP_clSep(dat, clas)
+ggsave(filename = paste0("sim_case4_MMP_clSep.png"),
+       plot =  .gg,
+       path = "./output/")
+}
 ```
-
+![](output/sim_case1_MMP_clSep.png)
+![](output/sim_case2_MMP_clSep.png)
+![](output/sim_case3_MMP_clSep.png)
+![](output/sim_case4_MMP_clSep.png)
 
 # Simulation difficulty
 
@@ -372,6 +404,22 @@ Lets try to evaluate our current generation of data simulations against these pr
 
 ## User study simulation 301
 This was a 300 series simulation done at the end of the generation 1 user study shiny app.
+
+### MMP cluster seperation
+
+```{r sim301clSep}
+### Initialization for sim 301, 
+dat  <- readRDS("./apps/data/simulation_data301.rds")
+clas <- attributes(dat)$cl_lvl
+if (DO_RERUN_HEAVY_OUTPUT == TRUE) {
+  .gg <- ggplot() + ggproto_MMP_clSep(dat, clas)
+  ggsave(filename = paste0("sim301_MMP_clSep.png"),
+         plot =  .gg,
+         path = "./output/")
+}
+```
+![](output/sim301_MMP_clSep.png)
+
 
 ### PCA
 
@@ -399,31 +447,6 @@ if (DO_RERUN_SIM301_PAIRS_n_TOURGIFS == TRUE) {
 
 Seems sufficent to be complex enough not to be seen as a pair of components within the first 4 Principal Components. Now to see if we can see anything in radial tours of all variables. We view cl Sep to explore which variables should contain contributions.
 
-```{r sim301clSep}
-### Initialization for sim 301, 
-dat  <- readRDS("./apps/data/simulation_data301.rds")
-clas <- attributes(dat)$cl_lvl
-ggplot() + ggproto_screeplot_clSep(dat, clas)
-```
-
-### Cluster Seperation
-
-```{r simRadialTours}
-if (DO_RERUN_SIM301_PAIRS_n_TOURGIFS == TRUE) {
-  i_s <- 1:ncol(dat)
-  for(i in i_s) {
-    spinifex::play_manual_tour(
-      basis = bas_pca, data = dat_std, manip_var = i,
-      render_type = render_gganimate, 
-      color = dat_clusters, 
-      shape = dat_clusters, 
-      axes = "left", fps = 8,
-      gif_filename = paste0("radialTour_sim301_mvar", i, ".gif"),
-      gif_path = "./output",
-    )
-  }
-}
-```
 
 ### Radial tour gifs for each manip var
 ![](output/radialTour_sim301_mvar1.gif)
