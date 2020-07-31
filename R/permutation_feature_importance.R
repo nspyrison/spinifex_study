@@ -11,12 +11,10 @@ permute_var <- function(data,
                         permute_var_num) {
   data <- as.data.frame(data)
   n <- nrow(data)
-  
   ## Draw the permutation order
   row_ord <- sample(1:n, size = n)
   ## Apply the ordering
   data[, permute_var_num] <- data[, permute_var_num][row_ord]
-  
   data
 }
 
@@ -127,96 +125,169 @@ ggproto_rep_permute_var_clSep <- function(data,
 
 
 #' Produces a ggproto object; side-by-side bars of the original clSep and the
-#' max of the mean raise in permuted clSep.
+#' mean, mean permuted (MMP) clSep. As ordered, by the original clSep, rather than MMP. 
+#' Also adds their respective cummulative lines.
 #' 
 #' @examples
 #' dat <- tourr::flea[, 1:6]
 #' clas <- tourr::flea$species
 #' palette(RColorBrewer::brewer.pal(8, "Dark2"))
 #' 
-#' ggplot2::ggplot() + ggproto_exhaustive_clSep(data = dat, class = clas)
-ggproto_exhaustive_clSep <- function(data,
-                                     class,
-                                     num_class_lvl_a = 1,
-                                     num_class_lvl_b = 2,
-                                     n_reps = 500) {
+#' ggplot2::ggplot() + ggproto_origxMMP_clSep(data = dat, class = clas)
+ggproto_origxMMP_clSep <- function(data,
+                                   class,
+                                   num_class_lvl_a = 1,
+                                   num_class_lvl_b = 2,
+                                   n_reps = 500) {
   require("magrittr") ## For %>% namespace.
   data <- as.data.frame(data)
   p <- ncol(data)
   ## clSep on original dataset
   df_real_clSep <- df_scree_clSep(data, class, num_class_lvl_a, num_class_lvl_b)
+  df_real_clSep$var_rank_num <- 1:p
   
   ## clSep on all permuted datasets
-  df_exhaus_mean <- NULL
+  df_mean_perm <- NULL
   for (i in 1:p){
-    df_permuted_clSep <-
+    this_df_permuted_clSep <-
       df_rep_permute_var_clSep(data, class, permute_rank_num = i,
                                num_class_lvl_a, num_class_lvl_b, n_reps)
     ## Aggregated means of n_reps of permuted clSep
-    suppressMessages( ## Suppress ungroup output message.
-      df_perm_mean_clSep <- dplyr::group_by(df_permuted_clSep, var) %>%
-        dplyr::summarise(mean_perm_clSep = mean(var_clSep)) %>%
-        dplyr::ungroup() %>%
-        data.frame(permute_rank_num = i)
-    )
-    df_exhaus_mean <- rbind(df_exhaus_mean, df_perm_mean_clSep)
+    this_df_mean_perm_clSep <- dplyr::group_by(this_df_permuted_clSep, var) %>%
+      dplyr::summarise(.groups = "drop_last",
+                       mean_perm_clSep = mean(var_clSep)) %>%
+      data.frame(permute_rank_num = i)
+    df_mean_perm <- rbind(df_mean_perm, this_df_mean_perm_clSep)
   }
   
-  df_exhaus_max_mean <- dplyr::group_by(df_exhaus_mean, var) %>%
-    dplyr::filter(mean_perm_clSep == max(mean_perm_clSep)) %>%
-    dplyr::mutate(.keep = "unused", max_mean_perm_clSep = mean_perm_clSep) %>%
-    dplyr::ungroup()
-  
-  df_real_clSep <- cbind(df_real_clSep, var_rank_num = 1:p)
+  ## Aggregate for LMP (largest, mean permuted) and MMP (mean, mean permuted) or "very mean permuted"
+  df_dim_MMP <- dplyr::group_by(df_mean_perm, var) %>%
+    dplyr::summarise(.groups = "drop_last",
+                     MMP_clSep = mean(mean_perm_clSep))
   ## Left join aggregated permuted data
-  df_clSep_real_n_perm <-
-    dplyr::left_join(df_real_clSep, df_exhaus_max_mean, by = "var") %>% 
-    dplyr::mutate(diff = max_mean_perm_clSep - var_clSep,
-                  adj_clSep = var_clSep + .5 * diff,
-                  cumsum_adj_clSep = cumsum(adj_clSep))
-  
+  df_lj_origxMMP <-
+    dplyr::left_join(df_real_clSep, df_dim_MMP, by = "var") %>% 
+    dplyr::mutate(cumsum_MMP_clSep = cumsum(MMP_clSep))
   ## Pivot longer for side-by-side barcharts
-  df_long_clSep_real_n_perm <- df_clSep_real_n_perm %>% 
-    tidyr::pivot_longer(cols = c(var_clSep, max_mean_perm_clSep),
+  df_long_origxMMP <- df_lj_origxMMP %>% 
+    tidyr::pivot_longer(cols = c(var_clSep, MMP_clSep),
                         names_to = "clSep_type", values_to = "clSep")
-  df_long_clSep_real_n_perm$clSep_type <- 
-    factor(df_long_clSep_real_n_perm$clSep_type, 
-           levels = c("var_clSep", "max_mean_perm_clSep"))
+  ## Factor ordering
+  df_long_origxMMP$clSep_type <- 
+    factor(df_long_origxMMP$clSep_type, 
+           levels = c("var_clSep", "MMP_clSep"))
   
+  ## Initalize color handling
+  lab_col  <- c("original", "MMP") ## Cummulative: geom_pt & geom_line colors; orig, adj LMP
+  lab_fill <- c("original", "MMP") ## geom_bar fills; orig, MMP, adj LMP
+  n_col    <- length(lab_col)
+  n_fill   <- length(lab_fill)
+  if(length(palette()) < n_col + n_fill) 
+    warning("Using more colors than the palette() has. May need to set new palette, similar to `palette(RColorBrewer::brewer.pal(8, 'Dark2'))`.")
+  ## List of ggproto objects
   list(
     ggplot2::geom_bar(ggplot2::aes(x = var, y = clSep, fill = clSep_type),
-                      df_long_clSep_real_n_perm,
+                      df_long_origxMMP,
                       position = "dodge", stat = "identity"),
     ## Cumsum clSep
-    ggplot2::geom_line(ggplot2::aes(x = as.integer(var) - .0, y = cumsum_clSep, ## -.1 for dodge
+    ggplot2::geom_line(ggplot2::aes(x = as.integer(var), y = cumsum_clSep,
                                     color = "z col1 -Cumsum clSep", group = 1),
-                       df_long_clSep_real_n_perm, lwd = 1.2),
-    ggplot2::geom_point(ggplot2::aes(x = as.integer(var) - .0, y = cumsum_clSep, ## -.1 for dodge
+                       df_long_origxMMP, lwd = 1.2),
+    ggplot2::geom_point(ggplot2::aes(x = as.integer(var), y = cumsum_clSep,
                                      color = "z col1 -Cumsum clSep"),
-                        df_long_clSep_real_n_perm, shape = 18, size = 4),
+                        df_long_origxMMP, shape = 18, size = 4),
     ## Cumsum adj. clSep
-    ggplot2::geom_line(ggplot2::aes(x = var, y = cumsum_adj_clSep, 
+    ggplot2::geom_line(ggplot2::aes(x = var, y = cumsum_MMP_clSep, 
                                     color = "z col2 -Cumsum adj. clSep", group = 1),
-                       df_long_clSep_real_n_perm, lwd = 1.2),
-    ggplot2::geom_point(ggplot2::aes(x = var, y = cumsum_adj_clSep, 
+                       df_long_origxMMP, lwd = 1.2),
+    ggplot2::geom_point(ggplot2::aes(x = var, y = cumsum_MMP_clSep, 
                                      color = "z col2 -Cumsum adj. clSep"),
-                        df_long_clSep_real_n_perm, shape = 17, size = 4),
-    ## Adj cluster sep mid pts
-    ggplot2::geom_bar(ggplot2::aes(x = var, y = .5 * adj_clSep, ## Halfed b/c it gets doubled in the pivot_longer.
-                                   fill = "z fill col3"),
-                      df_long_clSep_real_n_perm, 
-                      width = .2, alpha = .5, stat = "identity"),
+                        df_long_origxMMP, shape = 17, size = 4),
     ## Titles and colors
     ggplot2::labs(x = "Variable", y = "Cluster seperation"),
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30),
                    legend.position = "bottom",
                    legend.direction = "vertical"),
-    ggplot2::scale_fill_manual(values = palette()[1:3],
+    ggplot2::scale_fill_manual(values = palette()[1:n_fill],
                                name = "Variable cluster seperation",
-                               labels = c("original", "LMP", "adjusted")),
-    ggplot2::scale_colour_manual(values = palette()[4:5],
+                               labels = lab_fill),
+    ggplot2::scale_colour_manual(values = palette()[(n_fill + 1):(n_fill + n_col)],
                                  name = "Cummulative cluster seperation",
-                                 labels = c("original", "adjusted"))
-
+                                 labels = lab_col)
   )
 }
+
+
+
+#' Produces a ggproto object; barchart of the mean, mean permuted (MMP) clSep 
+#' and cummulative MMP.
+#' 
+#' @examples
+#' dat <- tourr::flea[, 1:6]
+#' clas <- tourr::flea$species
+#' palette(RColorBrewer::brewer.pal(8, "Dark2"))
+#' 
+#' ggplot2::ggplot() + ggproto_MMP_clSep(data = dat, class = clas)
+ggproto_MMP_clSep <- function(data,
+                              class,
+                              num_class_lvl_a = 1,
+                              num_class_lvl_b = 2,
+                              n_reps = 500) {
+  require("magrittr") ## For %>% namespace.
+  data <- as.data.frame(data)
+  p <- ncol(data)
+  ## clSep on original dataset
+  df_real_clSep <- df_scree_clSep(data, class, num_class_lvl_a, num_class_lvl_b)
+  df_real_clSep$var_rank_num <- 1:p
+  
+  ## clSep on all permuted datasets
+  df_mean_perm <- NULL
+  for (i in 1:p){
+    this_df_permuted_clSep <-
+      df_rep_permute_var_clSep(data, class, permute_rank_num = i,
+                               num_class_lvl_a, num_class_lvl_b, n_reps)
+    ## Aggregated means of n_reps of permuted clSep
+    this_df_mean_perm_clSep <- 
+      dplyr::group_by(this_df_permuted_clSep, data_colnum, var) %>%
+      dplyr::summarise(.groups = "drop_last",
+                       mean_perm_clSep = mean(var_clSep)) %>%
+      data.frame(permute_rank_num = i)
+    df_mean_perm <- rbind(df_mean_perm, this_df_mean_perm_clSep)
+  }
+  
+  ## Aggregate for LMP (largest, mean permuted) and MMP (mean, mean permuted) or "very mean permuted"
+  df_MMP <- dplyr::group_by(df_mean_perm, data_colnum, var) %>%
+    dplyr::summarise(.groups = "drop_last", 
+                     MMP_clSep = mean(mean_perm_clSep))
+  ## Order and find cummulative
+  .ord <- order(df_MMP$MMP_clSep, decreasing = T)
+  df_MMP <- df_MMP[.ord, ]
+  df_MMP$cumsum_MMP_clSep <- cumsum(df_MMP$MMP_clSep)
+  df_MMP$var <- factor(x = df_MMP$var, levels = unique(df_MMP$var))
+  
+  ## List of ggproto objects
+  lab_fill <- "Variable MMP"
+  lab_col  <- "Cummulative MMP"
+  list(
+    ggplot2::geom_bar(ggplot2::aes(x = var, y = MMP_clSep, fill = lab_fill),
+                      df_MMP,
+                      position = "dodge", stat = "identity"),
+    ## Cumsum clSep
+    ggplot2::geom_line(ggplot2::aes(x = as.integer(var), y = cumsum_MMP_clSep,
+                                    color = lab_col, group = 1),
+                       df_MMP, lwd = 1.2),
+    ggplot2::geom_point(ggplot2::aes(x = as.integer(var), y = cumsum_MMP_clSep,
+                                     color = lab_col),
+                        df_MMP, shape = 18, size = 4),
+    ## Titles and colors
+    ggplot2::labs(x = "Variable", y = "Cluster seperation"),
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30),
+                   legend.position = "bottom",
+                   legend.direction = "vertical"),
+    ggplot2::scale_fill_manual(values = palette()[1],
+                               name = "", labels = lab_fill),
+    ggplot2::scale_colour_manual(values = palette()[2],
+                                 name = "", labels = lab_col)
+  )
+}
+

@@ -45,7 +45,7 @@ df_scree_clSep <- function(data,
   clSep_rate <- t(a_clSep[.ord])
   if (do_scale == TRUE) clSep_rate <- clSep_rate / sum(clSep_rate)
   colnames(clSep_rate) <- colnames(clSep)[.ord]
-  vars_fct <- factor(x = colnames(clSep_rate),
+  vars_fct <- factor(x = colnames(clSep_rate), 
                      levels = unique(colnames(clSep_rate)))
   
   ## Return data frame of scree table for cluster seperation
@@ -74,73 +74,30 @@ ggproto_screeplot_clSep <- function(data,
                                     num_class_lvl_a = 1,
                                     num_class_lvl_b = 2) {
   .df_scree_clSep <- df_scree_clSep(data, class, num_class_lvl_a, num_class_lvl_b)
-  axis_labs <- c("Variable", "Cluster seperation")
-  lgnd_labs <- c("Variable cluster seperation",
-                 "Cummulative cluster seperation")
+  lab_fill <- "Variable cluster seperation"
+  lab_col  <- "Cummulative cluster seperation"
   
   ## List of ggproto's that is addable to a ggplot object.
   list(
     ## Individual feature bars
-    ggplot2::geom_bar(ggplot2::aes(x = var, y = var_clSep, fill = lgnd_labs[1]),
+    ggplot2::geom_bar(ggplot2::aes(x = var, y = var_clSep, fill = lab_fill),
                       .df_scree_clSep, stat = "identity"),
     ## Cummulative feature line
     ggplot2::geom_line(ggplot2::aes(x = var, y = cumsum_clSep,
-                                    color = lgnd_labs[2], group = 1),
+                                    color = lab_col, group = 1),
                        .df_scree_clSep, lwd = 1.2),
-    ggplot2::geom_point(ggplot2::aes(x = var, y = cumsum_clSep, color = lgnd_labs[2]),
+    ggplot2::geom_point(ggplot2::aes(x = var, y = cumsum_clSep, color = lab_col),
                         .df_scree_clSep, shape = 18, size = 4),
     ## Titles and colors
-    ggplot2::labs(x = axis_labs[1], y = axis_labs[2], 
+    ggplot2::labs(x = "Variable", y = "Cluster seperation", 
                   colour = "", fill = ""),
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30),
                    legend.position = "bottom"),
-    ggplot2::scale_fill_manual(values = palette()[1]),
-    ggplot2::scale_colour_manual(values = palette()[2])
+    ggplot2::scale_fill_manual(values = palette()[1],
+                               name = "", labels = lab_fill),
+    ggplot2::scale_colour_manual(values = palette()[2],
+                                 name = "", labels = lab_col)
   )
 }
-
-
-
-#' Creates a screeplot of the cluster seperation AND  between 2 selected levels.
-#' 
-#' @examples 
-#' dat <- tourr::flea[, 1:6]
-#' clas <- tourr::flea$species
-#' palette(RColorBrewer::brewer.pal(8, "Dark2"))
-#' ggplot2::ggplot() + ggproto_screeplot_clSep(dat, clas)
-#' 
-#' ggplot2::ggplot() +
-#'   ggproto_screeplot_clSep(data = dat, class = clas,
-#'                           num_class_lvl_a = 2, num_class_lvl_b = 3) +
-#'   ggplot2::theme_bw()
-
-ggproto_screeplot_clSep <- function(data,
-                                    class,
-                                    num_class_lvl_a = 1,
-                                    num_class_lvl_b = 2) {
-  .df_scree_clSep <- df_scree_clSep(data, class, num_class_lvl_a, num_class_lvl_b)
-  axis_labs <- c("Variable", "Cluster seperation")
-  lgnd_labs <- c("Variable cluster seperation", "Cummulative cluster seperation")
-  
-  ## List of ggproto's that is addable to a ggplot object.
-  list(
-    ## Individual feature bars
-    ggplot2::geom_bar(ggplot2::aes(x = var, y = var_clSep, fill = lgnd_labs[1]),
-                      .df_scree_clSep, stat = "identity"),
-    ## Cummulative feature line
-    ggplot2::geom_line(ggplot2::aes(x = var, y = cumsum_clSep,
-                                    color = lgnd_labs[2], group = 1),
-                       .df_scree_clSep, lwd = 1.2),
-    ggplot2::geom_point(ggplot2::aes(x = var, y = cumsum_clSep, color = lgnd_labs[2]),
-                        .df_scree_clSep, shape = 18, size = 4),
-    ## Titles and colors
-    ggplot2::labs(x = axis_labs[1], y = axis_labs[2], colour = "", fill = ""),
-    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30),
-                   legend.position = "bottom"),
-    ggplot2::scale_fill_manual(values = palette()[1]),
-    ggplot2::scale_colour_manual(values = palette()[2])
-  )
-}
-
 
 
