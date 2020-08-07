@@ -439,7 +439,8 @@ main_ui <- mainPanel(
 ui <- fluidPage(useShinyjs(), ## Required in ui to use shinyjs.
                 header_ui,
                 sidebar_ui,
-                #main_ui
+                #TODO: THIS CAUSE THE JS NOT TO EVALUATE.
+                #main_ui 
 )
 if (do_disp_dev_tools == TRUE) { ## Then append DEV helper displays
   ui <- fluidPage(ui,

@@ -155,18 +155,23 @@ server <- function(input, output, session) {
     dat <- dat()
     cl_dat <- data.frame(dat, cluster = attr(dat, "cl_lvl"))
     #TODO need to bring in latest clSep function
-    return(NA)
+    rep(0, p())
   })
   ### Response
   task_resp <- reactive({
-    ## Vector of the numbers without 'V'
-    as.integer(gsub(' |V', '', input$task_response))
+    if(section_nm() %in% c("training", "task")) 
+      ## Vector of the numbers without 'V'
+      return(as.integer(gsub(' |V', '', input$task_response)))
+    return(0)
   })
   task_score <- reactive({
-    ans  <- task_ans()
-    resp <- task_resp()
-    #TODO need to look at clSep .rmd
-    
+    if(section_nm() %in% c("training", "task")) {
+      ans  <- task_ans()
+      resp <- task_resp()
+      #TODO need to look at clSep .rmd
+      "<stuff here>"
+    }
+    return(0)
   })
   
   ### PCA plot reactive -----
@@ -878,13 +883,13 @@ server <- function(input, output, session) {
       ### _Training evaluation -----
       ## if training section, evaluate response
       if (section_nm() == "training") {
-        this_msg <- ""
+        this_char <- ""
         ## Evaluation of the training for task
         if (rv$training_aes == FALSE) {
           rv$training_aes <- TRUE
           bar   <- -.5
           if (task_score < bar){ ## score not passing
-            this_msg <-
+            this_char <-
               "That seems a little off. Remember that the importance of a
               variable for distinguishing a group is related to variables in a
               separating direction with large magnitudes in the projection, but
@@ -892,7 +897,7 @@ server <- function(input, output, session) {
               projections most be looked at."
           }
           if (task_score >= bar){ ## score is passing
-            this_msg <-
+            this_char <-
               "Very good! As a reminder, the importance of a variable for
               distinguishing a group is related to variables in a separating
               direction with large magnidutes in the projection, but variables
@@ -900,7 +905,7 @@ server <- function(input, output, session) {
               projections most be looked at."
           }
           output$plot_msg <- renderText(
-            app_html_red(this_msg)
+            app_html_red(this_char)
           )
           return()
         }
@@ -929,6 +934,7 @@ server <- function(input, output, session) {
           if (time_elapsed() <= task_time()) plot_elapsed <- 0L
         }
         
+        if(rv$pg == 3) browser()
         rv$resp_tbl$pca_inter[ins_row]    <- rv$pca_inter
         rv$resp_tbl$manual_inter[ins_row] <- rv$manual_inter
         rv$resp_tbl$resp_inter[ins_row]   <- rv$resp_inter

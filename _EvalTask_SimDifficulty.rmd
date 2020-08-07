@@ -69,6 +69,7 @@ In general defining feature importance is a common task. Though it is typically 
 We take inspiration from the Scree plot and try to apply it to the LDA-like approach. Consider a sree plot of flea data. This shows which componets are contributing to the *full sample, full dimensionality,* $[n,p]$ variation of the data.
 
 ```{r pcaScreeplot}
+df_pcaVar <- df_scree_pca(dat)
 ggplot2::ggplot() + ggproto_screeplot_pca(dat)
 ```
 
@@ -115,8 +116,7 @@ kable(df_clSep, digits = 2)
 We discard the sign as we only care about magnitude each variable contributed to the seperation of the specified clusters. We scale the absolute terms by the inverse of the sumation. Now lets visualize this similar to the screeplot.
 
 ```{r clSepScreeplot}
-df_pcaVar <- df_scree_pca(dat)
-ggplot2::ggplot() + ggproto_screeplot_clSep(dat, clas) + theme_minimal()
+ggplot() + ggproto_screeplot_clSep(dat, clas) + theme_minimal()
 ```
 
 However, we are concerned about the following case: if the singal of one variable is sufficent to explian the seperation of the clusters, but is dwarfed by the contribution of another variable. We review the correlation matrix to see if our concerns are valid, then we try to about for this by permuting (or shuffling) the values in a single column and watching how the contributions change.
