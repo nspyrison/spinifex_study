@@ -10,7 +10,6 @@ editor_options:
 
 For S3D and 4D meta-analysis see (K. Kim, et al. 2017).
 
-
 ```{r setup_condensed, include=F}
 ## Setup
 library("knitr")
@@ -40,7 +39,7 @@ source("./R/sim_pDim_kCl.r") ## cluster levels stored in attribute "cl_lvl". Try
 set.seed(20200725)
 theme_set(theme_minimal())
 palette(RColorBrewer::brewer.pal(8, "Dark2"))
-DO_RERUN_HEAVY_OUTPUT            <- TRUE
+DO_RERUN_HEAVY_OUTPUT            <- FALSE
 DO_RERUN_SIM301_PAIRS_n_TOURGIFS <- FALSE
 
 dat  <- flea[, 1:6]
@@ -204,7 +203,8 @@ df_MMP_eval <- df_MMP %>%
          marks  = weight * exampleResponse) %>% 
   arrange(desc(MMP_clSep))
 
-col <- c(rep("green", 3), rep("red", p - 3))
+n_pos <- 2
+col <- c(rep("green", n_pos), rep("red", p - n_pos))
 ggplot() + ggproto_MMP_clSep(dat, clas) +
   geom_hline(yintercept = bar_unif, size = 1) +
   geom_text(aes(x = 7, y = bar_unif + .03, 

@@ -14,12 +14,11 @@
 #' to the rows and columns, Such that cluster rows are not all together and 
 #' signal columns are not in the same order.
 #' @examples 
-#' ## Goal ClSep: ~c(.8, 2, 0,0,0)
 #' mns <- list(c(10, 3, rep(0, 3)), c(2, 1, rep(0, 3)))
 #' covs <- list(diag(5), diag(5))
 #' sim_pDim_kCl(means = mns, sigmas = covs)
 #' 
-#' zz<- sim_pDim_kCl(means = mns, sigmas = covs, n_points = list(200, 50),
+#' sim_pDim_kCl(means = mns, sigmas = covs, n_points = list(200, 50),
 #'              method = "svd", do_shuffle = FALSE)
 
 sim_pDim_kCl <- function(means, 
