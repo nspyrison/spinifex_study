@@ -3,11 +3,10 @@ title: "Simulating data and it's cluster Seperation"
 output:
   html_document:
     toc: true
-    toc_depth: 2
+    toc_depth: 3
 editor_options:
   chunk_output_type: console
 ---
-
 
 ```{r setup_condensed, include=F}
 ## Setup
@@ -15,7 +14,7 @@ library("knitr")
 knitr::opts_chunk$set(
   echo = F,
   message   = FALSE, warning = FALSE, error = FALSE,
-  results   = "asis",                # Opts: "asis", "markup", "hold", "hide"
+  results   = "markup",                # Opts: "asis", "markup", "hold", "hide"
   fig.align = "center",              # Opts: "left", "right", "center", "default"
   fig.width = 8, fig.height = 5,
   out.width = "100%",
@@ -59,30 +58,58 @@ k_cl <- length(unique(clas))
 #   n_cl_complexshape <<- sample(1:2, 1)
 # }
 ```
+
 # Simulation from sim_pDim_kCl()
 
 ## View simulation
+
 ```{r View}
-tibble::as.tibble(dat)
-str(dat)
-
-ls_cl_clmns <- NULL
+ls_cl_clmns  <- NULL
 ls_cl_cov    <- NULL
+ls_cl_ggcorr <- NULL
+ls_header    <- NULL
 for (i in 1:k_cl){
-  sub <- dat[clas == lvls[1], ]
-  print(paste0("cluster#", i, ", level: ", lvls[i]))
-  print("cluster column means:")
-  kable((ls_cl_clmns[[i]] <- colMeans(sub)), digits = 2)
-  print("cluster covariances:")
-  (ls_cl_cov[[i]] <- cov(sub) )
-  GGally::ggcorr(sub, label = TRUE, label_alpha = TRUE)
+  sub <- dat[clas == lvls[i], ]
+  ls_header[[i]] <- paste0("Cluster #", i, ", level: ", lvls[i])
+  ls_cl_clmns[[i]] <- colMeans(sub)
+  ls_cl_cov[[i]] <- cov(sub)
+  ls_cl_ggcorr[[i]] <- GGally::ggcorr(sub, label = TRUE, label_alpha = TRUE)
 }
+```
 
-print(paste0("cluster#", i, ", level: ", lvls[i]))
-print("CHANGE IN cluster column means:")
-kable(ls_cl_clmns[[2]] - ls_cl_clmns[[1]], digits = 2)
-print("CHANGE IN cluster covariances:")
-# Supply your own correlation matrix
+### `r ls_header[[1]]`
+
+__column means:__
+```{r} 
+ls_cl_clmns[[1]]
+```
+
+__column ggcorr:__
+```{r} 
+ls_cl_ggcorr[[1]]
+```
+
+### `r ls_header[[2]]`
+
+__column means:__
+```{r} 
+ls_cl_clmns[[2]]
+```
+
+__column ggcorr:__
+```{r} 
+ls_cl_ggcorr[[2]]
+```
+
+### Cluster differneces; cluster 2 - cluster 1
+
+__column means:__
+```{r} 
+ls_cl_clmns[[2]] - ls_cl_clmns[[1]]
+```
+
+__column ggcorr:__
+```{r} 
 GGally::ggcorr(data = NULL,
                cor_matrix = ls_cl_cov[[2]] - ls_cl_cov[[1]],
                label = TRUE, label_alpha = TRUE)
@@ -101,12 +128,13 @@ ggplot() + ggproto_screeplot_pca(dat)
 ```
 
 ## clSep; orig, orig vs MMP, MMp
+
+__Original variable cluster seperation:__
 ```{r clSepScreeplot}
 ggplot() + ggproto_screeplot_clSep(dat, clas) + theme_minimal()
 ```
 
-
-## Orig vs MMP ClSep
+__Original vs MMP cluster seperation:__
 ```{r origxMMP}
 if (DO_REFRESH_FIGURES == TRUE) {
   .gg <- ggplot() + ggproto_origxMMP_clSep(data = dat, class = clas)
@@ -117,7 +145,7 @@ if (DO_REFRESH_FIGURES == TRUE) {
 ```
 ![](output_sim_clSep/origxMMP_clSep.png)
 
-## MMP
+__MMP cluster seperation:__
 ```{r MMP}
 if (DO_REFRESH_FIGURES == TRUE) {
   .gg <- ggplot2::ggplot() + ggproto_MMP_clSep(data = dat, class = clas)
@@ -185,7 +213,7 @@ if (DO_REFRESH_FIGURES == TRUE) {
 
 ```{r permFeatImp}
 if (DO_REFRESH_FIGURES == TRUE) {
-  for (i in 1:6) {
+  for (i in 1:p) {
     .gg <- ggplot() + ggproto_rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = i)
     ggsave(filename = paste0("permute_clSep", i, ".png"),
            plot = .gg,
@@ -198,4 +226,4 @@ if (DO_REFRESH_FIGURES == TRUE) {
 ![](output_sim_clSep/permute_clSep3.png)
 ![](output_sim_clSep/permute_clSep4.png)
 ![](output_sim_clSep/permute_clSep5.png)
-![](output_sim_clSep/permute_clSep6.png)
+

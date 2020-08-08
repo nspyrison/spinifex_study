@@ -40,8 +40,8 @@ source("./R/sim_pDim_kCl.r") ## cluster levels stored in attribute "cl_lvl". Try
 set.seed(20200725)
 theme_set(theme_minimal())
 palette(RColorBrewer::brewer.pal(8, "Dark2"))
-DO_RERUN_HEAVY_OUTPUT            <- TRUE
-DO_RERUN_SIM301_PAIRS_n_TOURGIFS <- FALSE
+DO_RERUN_HEAVY_OUTPUT            <- FALSE
+DO_RERUN_SIM302_PAIRS_n_TOURGIFS <- FALSE
 
 dat  <- flea[, 1:6]
 clas <- flea$species
@@ -123,15 +123,22 @@ However, we are concerned about the following case: if the singal of one variabl
 
 ## Cluster seperation on single-variable permuted data
 
-```{r ggcorr}
-if (DO_RERUN_HEAVY_OUTPUT == TRUE) {
-  .gg <- GGally::ggcorr(dat, label = TRUE, label_alpha = TRUE)
-  ggsave(filename = "ggcorr.png",
-         plot =  .gg,
-         path = "./output/")
-}
-```
-![](output/ggcorr.png)
+<!-- ### ggcorr within clusters -->
+<!-- # ```{r ggcorr} -->
+<!-- # if (DO_RERUN_HEAVY_OUTPUT == TRUE) { -->
+<!-- #   for (i in 1:2) { -->
+<!-- #     .cl  <- unique(clas)[i] -->
+<!-- #     .sub <- dat[clas == .cl, ] -->
+<!-- #     .gg <- GGally::ggcorr(.sub, label = TRUE, label_alpha = TRUE) -->
+<!-- #     ggsave(filename = paste0("ggcorr_cl", .cl, ".png"), -->
+<!-- #            plot =  .gg, -->
+<!-- #            path = "./output/") -->
+<!-- #   } -->
+<!-- # } -->
+<!-- # ``` -->
+<!-- # ![](output/ggcorr_clConcinna .png) -->
+<!-- # ![](output/ggcorr_clHeptapot. .png) -->
+<!-- # ![](output/ggcorr_clHeikert. .png) -->
 
 It's seems our concerns are valid, at least in this case.
 
@@ -402,64 +409,76 @@ In order to properly distinguish a difference between the 3 vizualization factor
 
 Lets try to evaluate our current generation of data simulations against these properties
 
-## User study simulation 301
+## User study simulation 302
 This was a 300 series simulation done at the end of the generation 1 user study shiny app.
 
 ### MMP cluster seperation
 
-```{r sim301clSep}
-### Initialization for sim 301, 
-dat  <- readRDS("./apps/data/simulation_data301.rds")
+```{r sim302clSep}
+### Initialization for sim 302, 
+dat  <- readRDS("./apps/data/simulation_data302.rds")
 clas <- attributes(dat)$cl_lvl
 if (DO_RERUN_HEAVY_OUTPUT == TRUE) {
   .gg <- ggplot() + ggproto_MMP_clSep(dat, clas)
-  ggsave(filename = paste0("sim301_MMP_clSep.png"),
+  ggsave(filename = paste0("sim302_MMP_clSep.png"),
          plot =  .gg,
          path = "./output/")
 }
 ```
-![](output/sim301_MMP_clSep.png)
-
+![](output/sim302_MMP_clSep.png)
 
 ### PCA
 
 ```{r simPcaPairs}
-if (DO_RERUN_SIM301_PAIRS_n_TOURGIFS == TRUE) {
+if (DO_RERUN_SIM302_PAIRS_n_TOURGIFS == TRUE) {
   ## Series spans from 301:312
-  dat          <- readRDS("./apps/data/simulation_data301.rds")
-  dat_clusters <- attributes(dat)$cl_lvl
   dat_std      <- tourr::rescale(as.matrix(dat))
   dat_pca_rot  <- prcomp(dat)$rotation
   proj_dat_pca <- as.data.frame(dat_std %*% dat_pca_rot)
   
   ggparis_proj_dat_pca <- 
     GGally::ggpairs(proj_dat_pca[, 1:4], 
-                    title = "ggpairs of PC1:4 for simulation_data301",
-                    ggplot2::aes(colour = dat_clusters))
-  #+ scale_color_brewer("Dark2") ## scale_color/fill* does not work as explected on ggpairs()
-  
-  ggplot2::ggsave(filename = "ggpairs_pca_sim301.png",
+                    title = "ggpairs of PC1:4 for simulation_data302",
+                    ggplot2::aes(colour = clas))
+
+  ggplot2::ggsave(filename = "ggpairs_pca_sim302.png",
                   plot =  ggparis_proj_dat_pca,
                   path = "./output/")
 }
 ```
-![](output/ggpairs_pca_sim301.png)
+![](output/ggpairs_pca_sim302.png)
 
 Seems sufficent to be complex enough not to be seen as a pair of components within the first 4 Principal Components. Now to see if we can see anything in radial tours of all variables. We view cl Sep to explore which variables should contain contributions.
 
+```{r radialTour_sim302}
+if (DO_RERUN_SIM302_PAIRS_n_TOURGIFS == TRUE) {
+  pca_bas <- as.matrix(prcomp(dat)$rotation[, 1:2])
+  for (i in 1:ncol(dat)){
+    play_manual_tour(basis = pca_bas, data = dat, manip_var = 1)
+    play_manual_tour(basis = pca_bas, 
+                     data = dat, 
+                     manip_var = i,
+                     render_type = render_gganimate, 
+                     col = clas, pch = clas,
+                     axes = "left",
+                     gif_filename = paste0("radialTour_sim302_mvar", i, ".gif"),
+                     gif_path = "./output/")
+  }
+}
+```
 
 ### Radial tour gifs for each manip var
-![](output/radialTour_sim301_mvar1.gif)
-![](output/radialTour_sim301_mvar2.gif)
-![](output/radialTour_sim301_mvar3.gif)
-![](output/radialTour_sim301_mvar4.gif)
-![](output/radialTour_sim301_mvar5.gif)
-![](output/radialTour_sim301_mvar6.gif)
-![](output/radialTour_sim301_mvar7.gif)
+
+![](output/radialTour_sim302_mvar1.gif)
+![](output/radialTour_sim302_mvar2.gif)
+![](output/radialTour_sim302_mvar3.gif)
+![](output/radialTour_sim302_mvar4.gif)
+![](output/radialTour_sim302_mvar5.gif)
+![](output/radialTour_sim302_mvar6.gif)
+
 
 # References
 
 
 Fisher, Ronald A. "The Use of Multiple Measurements in Taxonomic Problems." Annals of Eugenics 7, no. 2 (September 1936): 179-88. https://doi.org/10.1111/j.1469-1809.1936.tb02137.x.
-
 
