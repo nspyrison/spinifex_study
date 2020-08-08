@@ -16,7 +16,7 @@ permute_var <- function(data,
   ## Draw the permutation order
   row_ord <- sample(1:n, size = n)
   ## Apply the ordering
-  data[, permute_var_num] <- data[, permute_var_num][row_ord]
+  data[, permute_var_num] <- data[row_ord, permute_var_num]
   data
 }
 
@@ -178,6 +178,8 @@ df_scree_MMP_clSep <- function(data,
     df_mean_perm <- rbind(df_mean_perm, this_df_mean_perm_clSep)
   }
   
+  ## Remove the diagonal elements from the aggregation, because they are the permuted variables.
+  diag(df_mean_perm) <- NULL ## mean on NULL works as expected.
   ## Aggregate for LMP (largest, mean permuted) and MMP (mean, mean permuted) or "very mean permuted"
   df_MMP <- dplyr::group_by(df_mean_perm, var, data_colnum) %>%
     dplyr::summarise(.groups = "drop_last",
