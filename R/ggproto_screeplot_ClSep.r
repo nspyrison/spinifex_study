@@ -71,20 +71,22 @@ df_scree_clSep <- function(data,
 #' 
 #' ggplot2::ggplot() +
 #'   ggproto_screeplot_clSep(data = dat, class = clas,
-#'                           num_class_lvl_a = 2, num_class_lvl_b = 3) +
+#'                           num_class_lvl_a = 2, num_class_lvl_b = 3,
+#'                           do_rescale = TRUE, do_overlay_answer = TRUE) +
 #'   ggplot2::theme_bw()
 ggproto_screeplot_clSep <- function(data,
                                     class,
                                     num_class_lvl_a = 1,
                                     num_class_lvl_b = 2, 
-                                    do_rescale = TRUE) {
+                                    do_rescale = TRUE,
+                                    do_overlay_answer = FALSE) {
   .df_scree_clSep <- 
     df_scree_clSep(data, class, num_class_lvl_a, num_class_lvl_b, do_rescale)
   lab_fill <- "Variable cluster seperation"
   lab_col  <- "Cummulative cluster seperation"
   
   ## List of ggproto's that is addable to a ggplot object.
-  list(
+  ret <- list(
     ## Individual feature bars
     ggplot2::geom_bar(ggplot2::aes(x = var, y = var_clSep, fill = lab_fill),
                       .df_scree_clSep, stat = "identity"),
@@ -104,6 +106,34 @@ ggproto_screeplot_clSep <- function(data,
     ggplot2::scale_colour_manual(values = palette()[2],
                                  name = "", labels = lab_col)
   )
+  
+  if (do_overlay_answer == TRUE){
+    p <- ncol(data)
+    bar_unif <- 1 / p
+    
+    df_MMP$exampleResponse <- sample(c(0,1), size = p, replace = TRUE)
+    df_MMP_eval <- df_MMP %>% 
+      dplyr::mutate(.keep = "all",
+                    diff   = var_clSep - bar_unif,
+                    weight = sign(diff) * sqrt(abs(diff)),
+                    marks  = weight * exampleResponse) %>% 
+      dplyr::arrange(desc(var_clSep))
+    
+    col <- dplyr::if_else(sign(df_MMP_eval$diff) == 1, "green", "red")
+    ggproto_overlay <- 
+      list(
+        ggplot2::geom_hline(yintercept = bar_unif, size = 1), 
+        ggplot2::geom_text(ggplot2::aes(x = 7, y = bar_unif + .03, 
+                                        label = paste0("Uniform Wt, 1/p = ", bar_unif)),
+                           size = 4, hjust = 1), 
+        ggplot2::geom_segment(data = df_MMP_eval, colour = col, size = 2,
+                              ggplot2::aes(x = 1:p, y = bar_unif, xend = 1:p, yend = weight + bar_unif))
+      )
+    
+    ret <- c(ret, ggproto_overlay)
+  }
+  
+  return(ret)
 }
 
 

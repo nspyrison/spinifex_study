@@ -1,5 +1,5 @@
 ---
-title: "Simulating data and it's cluster Seperation"
+title: "Simulating data and it's cluster seperation"
 output:
   html_document:
     toc: true
@@ -33,23 +33,47 @@ require("dplyr")
 source("./R/ggproto_screeplot_pca.r")
 source("./R/ggproto_screeplot_clSep.r")
 source("./R/permutation_feature_importance.r")
+source("./R/MMP_clSep.r")
 source("./R/sim_pDim_kCl.r") ## cluster levels stored in attribute "cl_lvl". Try attr(mySim, "cl_lvl")
 set.seed(20200725)
 theme_set(theme_minimal())
 palette(RColorBrewer::brewer.pal(8, "Dark2"))
-DO_REFRESH_FIGURES <- TRUE ## Causes sizable run time.
+DO_REFRESH_FIGURES <- FALSE ## Causes sizable run time.
+output_path <- "./output_sim_clSep/"
 
+## Local decreasing Poisson func
+myDecrPois <- function(len){
+  out <- NULL
+  for (i in 1:len)
+    out <- c(out, rpois(1, i))
+  return(rev(scales::rescale(out, to = c(-.3, .7))))
+}
 
-mns <- list(c(10, 3, rep(0, 3)), c(2, 1, rep(0, 3)))
-covs <- list(diag(5),
-             diag(5))
+## Init for simulation
+n_cl <- list(66, 33)
+p <- 6
+mns <- list(rpois(p, 1), rpois(p, 1))
+diag_p <- diag(p)
+diag(diag_p) <- rpois(p, 1)
+indx_ut <- upper.tri(diag_p)
+indx_lt <- lower.tri(diag_p)
+len_ut <- sum(indx_ut)
 
-dat  <- sim_pDim_kCl(means = mns, sigmas = covs)
+## Make symetric cov matrices
+cov1 <- cov2 <- diag_p
+cov1[indx_ut] <- myDecrPois(len_ut)
+cov1[indx_lt] <- t(cov1)[indx_lt]
+cov2[indx_ut] <- myDecrPois(len_ut) 
+cov2[indx_lt] <- t(cov2)[indx_lt]
+covs <- list(cov1, cov2)
+
+dat  <- sim_pDim_kCl(means = mns, sigmas = covs, n_points = n_cl)
 clas <- attr(dat, "cl_lvl")
 clas <- factor(clas, levels = unique(clas))
 lvls <- levels(clas)
 p    <- ncol(dat)
 k_cl <- length(unique(clas))
+dat  <- dat %>% as.matrix %>% tourr::rescale() %>% as.data.frame()
 
 ## for the 300 series, even number sims are hard, with; not that we may want to remove the modal complex shape and built the difficulty into the difference of the covariance matrices.
 # hard <- function(){
@@ -65,14 +89,14 @@ k_cl <- length(unique(clas))
 
 ```{r View}
 ls_cl_clmns  <- NULL
-ls_cl_cov    <- NULL
+ls_cl_cor    <- NULL
 ls_cl_ggcorr <- NULL
 ls_header    <- NULL
 for (i in 1:k_cl){
   sub <- dat[clas == lvls[i], ]
   ls_header[[i]] <- paste0("Cluster #", i, ", level: ", lvls[i])
   ls_cl_clmns[[i]] <- colMeans(sub)
-  ls_cl_cov[[i]] <- cov(sub)
+  ls_cl_cor[[i]] <- cor(sub)
   ls_cl_ggcorr[[i]] <- GGally::ggcorr(sub, label = TRUE, label_alpha = TRUE)
 }
 ```
@@ -111,7 +135,7 @@ ls_cl_clmns[[2]] - ls_cl_clmns[[1]]
 __column ggcorr:__
 ```{r} 
 GGally::ggcorr(data = NULL,
-               cor_matrix = ls_cl_cov[[2]] - ls_cl_cov[[1]],
+               cor_matrix = ls_cl_cor[[2]] - ls_cl_cor[[1]],
                label = TRUE, label_alpha = TRUE)
 ```
 
@@ -137,10 +161,10 @@ ggplot() + ggproto_screeplot_clSep(dat, clas) + theme_minimal()
 __Original vs MMP cluster seperation:__
 ```{r origxMMP}
 if (DO_REFRESH_FIGURES == TRUE) {
-  .gg <- ggplot() + ggproto_origxMMP_clSep(data = dat, class = clas)
+  .gg <- ggplot() + ggproto_origxMMP_clSep(dat, clas)
   ggsave(filename = paste0("origxMMP_clSep.png"),
          plot = .gg,
-         path = "./output_sim_clSep/")
+         path = output_path)
 }
 ```
 ![](output_sim_clSep/origxMMP_clSep.png)
@@ -148,64 +172,89 @@ if (DO_REFRESH_FIGURES == TRUE) {
 __MMP cluster seperation:__
 ```{r MMP}
 if (DO_REFRESH_FIGURES == TRUE) {
-  .gg <- ggplot2::ggplot() + ggproto_MMP_clSep(data = dat, class = clas)
+  .gg <- ggplot2::ggplot() + ggproto_MMP_clSep(dat, clas)
   ggsave(filename = paste0("MMP_clSep.png"),
          plot = .gg,
-         path = "./output_sim_clSep/")
+         path = output_path)
 }
 ```
 ![](output_sim_clSep/MMP_clSep.png)
 
 
-<!-- # User study simulation 302 -->
-<!-- This was a 300 series simulations done at the end of the generation 1 user study shiny app. -->
-<!-- the odd numbered simulation are "easy" with 1 noise variables, while the even numbered simulations are "hard with 3-5 signal variables, and multi-modal complexity. Note that data sets in the wild may be more likely to have complex covariance matrices rather than this sort of multi modal structures in them. -->
+# As factors in the user study
 
-<!-- ## MMP cluster seperation -->
-<!-- ```{r sim302clSep} -->
-<!-- ### Initialization for sim 302,  -->
-<!-- dat  <- readRDS("./apps/data/simulation_data302.rds") -->
-<!-- clas <- attributes(dat)$cl_lvl -->
-<!-- if (DO_REFRESH_FIGURES == TRUE) { -->
-<!--   .gg <- ggplot() + ggproto_MMP_clSep(dat, clas) -->
-<!--   ggsave(filename = paste0("sim301_MMP_clSep.png"), -->
-<!--          plot = .gg, -->
-<!--          path = "./output_sim_clSep/") -->
-<!-- } -->
-<!-- ``` -->
-<!-- ![](output_sim_clSep/sim301_MMP_clSep.png) -->
+## Answer
+```{r mmpAnswerLines}
+if (DO_REFRESH_FIGURES == TRUE) {
+ .gg <- ggplot2::ggplot() + ggproto_MMP_clSep(dat, clas, do_overlay_answer = TRUE)
+  ggsave(filename = paste0("MMP_clSep_answers.png"),
+         plot = .gg,
+         path = output_path)
+}
+```
+![](output_sim_clSep/MMP_clSep_answers.png)
 
-<!-- ## PCA -->
+## PCA
+```{r factorPCA}
+if (DO_REFRESH_FIGURES == TRUE) {
+  dat_pca_rot  <- prcomp(dat)$rotation
+  proj_dat_pca <- as.data.frame(as.matrix(dat) %*% dat_pca_rot)
+  
+  .gg <- GGally::ggpairs(proj_dat_pca[, 1:4],
+                         title = "ggpairs of PC1:4 for simulation_data301",
+                         ggplot2::aes(colour = clas)) +
+    ggplot2::scale_color_manual(values = palette()[1:k_cl]) +
+    ggplot2::scale_fill_manual( values = palette()[1:k_cl])
+  
+  ggplot2::ggsave(filename = "ggpairs_sim.png",
+                  plot = .gg,
+                  path = output_path)
+}
+```
+![](output_sim_clSep/ggpairs_sim.png)
 
-<!-- ```{r simPcaPairs} -->
-<!-- if (DO_REFRESH_FIGURES == TRUE) { -->
-<!--   ## Series spans from 301:312 -->
-<!--   dat_std      <- tourr::rescale(as.matrix(dat)) -->
-<!--   dat_pca_rot  <- prcomp(dat)$rotation -->
-<!--   proj_dat_pca <- as.data.frame(dat_std %*% dat_pca_rot) -->
+## Manual tour (radial)
 
-<!--   .gg <- GGally::ggpairs(proj_dat_pca[, 1:4],  -->
-<!--                          title = "ggpairs of PC1:4 for simulation_data301", -->
-<!--                          ggplot2::aes(colour = dat_clusters)) -->
+```{r factorManual}
+if (DO_REFRESH_FIGURES == TRUE) {
+  pca_bas <- as.matrix(prcomp(dat)$rotation[, 1:2])
+  for (i in 1:ncol(dat)){
+    play_manual_tour(basis = pca_bas, data = dat, manip_var = i)
+    play_manual_tour(basis = pca_bas, 
+                     data = dat, 
+                     manip_var = i,
+                     render_type = render_gganimate, 
+                     col = clas, pch = clas,
+                     axes = "left",
+                     gif_filename = paste0("radialTour_sim_mvar", i, ".gif"),
+                     gif_path = output_path)
+  }
+}
+```
+![](output_sim_clSep/radialTour_sim_mvar1.gif)
+![](output_sim_clSep/radialTour_sim_mvar2.gif)
+![](output_sim_clSep/radialTour_sim_mvar3.gif)
+![](output_sim_clSep/radialTour_sim_mvar4.gif)
+![](output_sim_clSep/radialTour_sim_mvar5.gif)
+![](output_sim_clSep/radialTour_sim_mvar6.gif)
 
-<!--   ggplot2::ggsave(filename = "ggpairs_pca_sim302.png", -->
-<!--                   plot = .gg, -->
-<!--                   path = "./output_sim_clSep/") -->
-<!-- } -->
-<!-- ``` -->
-<!-- ![](output_sim_clSep/ggpairs_pca_sim302.png) -->
+## Grand tour
 
-<!-- Seems sufficent to be complex enough not to be seen as a pair of components within the first 4 Principal Components. Now to see if we can see anything in radial tours of all variables. We view cl Sep to explore which variables should contain contributions. -->
+```{r factorGrand}
+if (DO_REFRESH_FIGURES == TRUE) {
+  dat_std <- tourr::rescale(dat)
+  tpath <- save_history(dat_std, tour_path = grand_tour(), max = 7)
+  
+  .gg <- play_tour_path(tour_path = tpath, data = dat, angle = .08, fps = 5,
+                        render_type = render_gganimate, col = clas, pch = clas, 
+                        axes = "left") +#,
+                        # gif_filename = "grandTour_sim_max7fps5.gif",
+                        # gif_path = output_path) +
+    ggplot2::scale_color_manual(values = palette()[1:k_cl])
+}
+```
+![](output_sim_clSep/grandTour_sim_max7fps5.gif)
 
-
-<!-- ## Radial tour gifs for each manip var -->
-<!-- ![](output_sim_clSep/radialTour_sim301_mvar1.gif) -->
-<!-- ![](output/radialTour_sim301_mvar2.gif) -->
-<!-- ![](output_sim_clSep/radialTour_sim301_mvar3.gif) -->
-<!-- ![](output/radialTour_sim301_mvar4.gif) -->
-<!-- ![](output_sim_clSep/radialTour_sim301_mvar5.gif) -->
-<!-- ![](output/radialTour_sim301_mvar6.gif) -->
-<!-- ![](output_sim_clSep/radialTour_sim301_mvar7.gif) -->
 
 # Apendix
 
@@ -217,7 +266,7 @@ if (DO_REFRESH_FIGURES == TRUE) {
     .gg <- ggplot() + ggproto_rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = i)
     ggsave(filename = paste0("permute_clSep", i, ".png"),
            plot = .gg,
-           path = "./output_sim_clSep/")
+           path = output_path)
   }
 }
 ```

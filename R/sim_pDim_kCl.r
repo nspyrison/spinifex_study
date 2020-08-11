@@ -37,10 +37,8 @@ sim_pDim_kCl <- function(means,
   stopifnot(all(k == c(length(means), length(sigmas)))) 
   ## elements of means and elements covariances have length, rows/cols p, number of numeric variables.
   stopifnot(all(p == c(length(means[[1]]), nrow(sigmas[[1]]), ncol(sigmas[[1]]))))
-  
   require("mvtnorm")
   require("lqmm")
-  set.seed(20200717)
   
   ## Create each cluster
   df_sim <- NULL
@@ -57,6 +55,7 @@ sim_pDim_kCl <- function(means,
       warning(paste0("sigmas[[", i, "]] wasn't a positive definite matrix. Applied lqmm::make.positive.definite()."))
       .cov <- lqmm::make.positive.definite(.cov)
     }
+    if (isSymmetric.matrix(.cov) == FALSE) stop(paste0("sigma[[", i, "]] is not a symetric matrix, all covariance metrices must be symetric and positive definate."))
     
     ## Sample and store outputs
     .k <- mvtnorm::rmvnorm(n = .n, mean = .mn, sigma = .cov, method = method)
