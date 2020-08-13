@@ -69,7 +69,7 @@ df_scree_MMP_clSep <- function(data,
 #' @examples
 #' dat <- tourr::flea[, 1:6]
 #' clas <- tourr::flea$species
-#' palette(RColorBrewer::brewer.pal(8, "Dark2"))
+#' palette(RColorBrewer::brewer.pal(12, "Dark2"))
 #' 
 #' ggplot2::ggplot() + ggproto_origxMMP_clSep(data = dat, class = clas)
 #' 
@@ -150,7 +150,7 @@ ggproto_origxMMP_clSep <- function(data,
 #' @examples
 #' dat <- tourr::flea[, 1:6]
 #' clas <- tourr::flea$species
-#' palette(RColorBrewer::brewer.pal(8, "Dark2"))
+#' palette(RColorBrewer::brewer.pal(12, "Dark2"))
 #' 
 #' ggplot2::ggplot() + ggproto_MMP_clSep(dat, clas)
 #' 

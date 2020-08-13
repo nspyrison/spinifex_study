@@ -129,23 +129,29 @@ sim_pDim_kCl <- function(means,
 #' to the rows and columns, Such that cluster rows are not all together and 
 #' signal columns are not in the same order.
 #' @examples )
-#' sim_exp_seg(p = 5)
+#' sim_func_seg(p = 5)
 #' 
-#' sim_exp_seg(p = 10, sigmas = covs, cl_points = list(200, 50, 100),
-#'            do_shuffle = FALSE)
+#' sim_func_seg(p = 10, cl_points = list(200, 50, 100),
+#'              do_shuffle = FALSE)
 #' 
-#' x <-  sim_exp_seg(p = 4)
+#' x <-  sim_func_seg(p = 4)
 #' clas <- attr(x, "cl_lvl")
 #' GGally::ggpairs(x, ggplot2::aes(color = clas))
-
-sim_exp_seg <- function(p,
-                        cl_points = rep(list(100), 2),
-                        do_shuffle = TRUE
+sim_func_seg <- function(p,
+                         cl_points = rep(list(100), 2),
+                         do_shuffle = TRUE
 ) {
   cl_points <- as.list(cl_points)
   require(magrittr)
 
   k <- length(cl_points)
+  ls_funcs <- list(function(x) x^2,
+                   function(x) exp(x),
+                   function(x) abs(x),
+                   function(x) 1 / x,
+                   function(x) sign(x) * log(abs(x)),
+                   function(x) sign(x) * sqrt(abs(x))
+  )
   
   ## Init for loops
   df_sim   <- NULL
@@ -159,21 +165,28 @@ sim_exp_seg <- function(p,
     this_cl <- data.frame(V1 = x + rnorm(cl_n, sd = 1))
     ## make V2:Vp
     for (j in 2:p){
+      this_func <- ls_funcs[[sample(1:length(ls_funcs), size = 1)]]
       var <- .8 + rgamma(10, shape = .7)
-      dim <- x^2 + rnorm(cl_n, sd = sqrt(var))
+      dim <- this_func(x) + rnorm(cl_n, sd = sqrt(var))
+      dim[is.nan(dim)] <- 0
+      dim[is.na(dim)] <- 0
+      if(any(is.nan(dim))) browser()
+      if(any(is.na(dim))) browser()
+      
       this_cl <- cbind(this_cl, dim)
     }
-    ## Rotative if not the first cluster, each dim rotated between 45 and 135 degrees
-    if (i > 1){
-      angs <- runif(n = p, min = .33 * pi, max = .66 * pi)
-      init_rot <- diag(p)
-      diag(init_rot) <- angs
-      this_rot <- last_rot + init_rot
-      this_cl <- (as.matrix(this_cl) %*% this_rot) %>% as.data.frame()
-      last_rot <- this_rot
-    }
+    # ## Rotative if not the first cluster, each dim rotated between 45 and 135 degrees
+    # if (i > 1){
+    #   angs <- runif(n = p, min = .33 * pi, max = .66 * pi)
+    #   init_rot <- diag(p)
+    #   diag(init_rot) <- angs
+    #   this_rot <- last_rot + init_rot
+    #   this_cl <- (as.matrix(this_cl) %*% this_rot) %>% as.data.frame()
+    #   last_rot <- this_rot
+    # }
+    colnames(this_cl) <- NULL
     ## Rescale within cluster, after rotation
-    this_cl <- tourr::rescale(this_cl) 
+    this_cl <- tourr::rescale(this_cl)
     
     cl_means[[i]]  <- as.vector(colMeans(this_cl))
     cl_sigmas[[i]] <- cov(this_cl)
@@ -184,7 +197,7 @@ sim_exp_seg <- function(p,
   
   ## Capture input args for attributed before anything could be reshuffled.
   input_args <- list(p = p, cl_points = cl_points,
-                     do_shuffle = do_shuffle, sim_func = sim_exp_seg)
+                     do_shuffle = do_shuffle, sim_func = sim_func_seg)
   cl_lvl <- paste0("cl ", rep(letters[1:k], unlist(cl_points)))
 
   ## Reorder rows and columns if needed
@@ -212,9 +225,4 @@ sim_exp_seg <- function(p,
   
   return(df_sim)
 }
-
-# check pca
-pca_obj <- prcomp(sim)
-pca_obj$x %>%  as.data.frame() %>% GGally::ggpairs()
-######
 
