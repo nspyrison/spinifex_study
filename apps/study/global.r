@@ -18,7 +18,7 @@ library("loggit")    ## For logging
 ## browseURL("https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/")
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## Uncomment the following line to apply logging
-do_log <- FALSE
+do_log            <- FALSE
 do_disp_dev_tools <- TRUE
 #### Simulated data series,
 ## "series" or iteration of data to look at. Should be an even hundred
@@ -29,7 +29,9 @@ cat(do_log)
 log_base <- paste0("log_", Sys.info()[4], "_")
 log_num  <- 1
 log_file <- ""
-if (do_log == T){
+log_name <- "abcdefg"
+
+if (do_log == TRUE){
   log_name <- sprintf(paste0(log_base, "%03d"), log_num)
   log_file <- paste0(log_name, ".json")
   while (file.exists(log_file)) { ## Find an unused log number
@@ -66,28 +68,24 @@ context_msg <- paste(sep = " \n",
                      paste0("Group number: ", log_num, "."),
                      paste0("Sys.info()[1:5]: ", this_Sys.info)
 )
-loggit("INFO", "=====Spinifex study app start.=====")
+if (do_log == TRUE) loggit("INFO", "=====Spinifex study app start.=====")
 cat(context_msg)
 
 onStop(function() {
   cat(context_msg)
-  loggit("INFO", "=====Spinifex study app stop.=====")
-  set_logfile(logfile = NULL, confirm = TRUE)
+  if (do_log == TRUE) {
+    loggit("INFO", "=====Spinifex study app stop.=====")
+    set_logfile(logfile = NULL, confirm = TRUE)
+  }
   ## Try to autosave if not saved and do_log == T?
   #### note that rv$resp_tbl is out of scope to the global file.
 })
 
 
 ##### Required inputs -----
-## Tasks, and block difficulty
-s_difficulty      <- c("easy", "hard")
-s_task_prompts    <- c("How many clusters do you see?",
-                       "Rate the relative importance of ANY/ALL variables in terms of
-                       distinugishing between the given clusters.")
-s_task2_questions <- c("Very important distinguishing clusters 'a' from 'b'",
-                       "Somewhat important distinguishing clusters 'a' from 'b'",
-                       "Very important distinguishing clusters 'b' from 'c'",
-                       "Somewhat important distinguishing clusters 'b' from 'c'")
+## Task, and block (difficulty)
+s_blocks        <- c("easy", "hard")
+s_task_question <- c("Which variables contribute more than average to the cluster seperation between 'a' and 'b'.")
 
 ## Survey questions; n = 21 = 9 + 12
 s_survey_questions <- c("What sex are you?",
@@ -133,10 +131,7 @@ for (i in 1:dat_len) {
 ##### Global variable initialization -----
 n_trainings        <- length(s_t_dat)            ## ~4
 n_factors          <- length(fct_nm_vect)        ## ~3
-n_tasks            <- 2                          ## ~2
-n_task2_questions  <- length(s_task2_questions)  ## ~4
-n_difficulty       <- length(s_difficulty)       ## ~3
-n_blocks           <- 2                          ## ~2
+n_blocks           <- length(s_blocks)       ## ~2
 n_survey_questions <- length(s_survey_questions) ## ~18
 PC_cap             <- 4 ## Number of principal components to choose from.
 pal                <- "Dark2"
@@ -145,10 +140,10 @@ pal                <- "Dark2"
 ## may need manual changes when changing section sizes
 ## intro is pg 1; video training is pg 2
 training_start_pg <- 3
-evaluation_start_pg <- (training_start_pg + 2 + 1) + 1
-## ~ pg9;(3+2*+1+1; train_st, 2 task, splash pg, start on new pg)
-survey_start_pg <- evaluation_start_pg + n_factors * n_blocks * n_tasks + 1
-## ~ pg22, (9+3*3*2+1; task_st, 3*2*2 factor*task*block, start on new pg)
+task_start_pg <- (training_start_pg + 2 + 1) + 1
+## ~ pg7;(3+2+1+1; train_st, 2 task sets, splash pg, start on new pg)
+survey_start_pg <- task_start_pg + n_factors * n_blocks + 1
+## ~ pg14, (9+3*3*2+1; task_st, 3*2*2 factor*block, start on new pg)
 
 ##### UI START -----
 ### header_ui -----
@@ -186,15 +181,9 @@ sidebar_ui <- conditionalPanel(
           change the y-axis to PC3 and back, notice that this resets the
           projection."),
       ),
-      conditionalPanel( ## Rraining task 1, pg 1
-        condition = "output.task == 1",
-        strong("Now the data points are not colored by their cluster. How
-        many clusters do you see in this training set?
-        Make sure to use the controls and different factors.")
-      ),
       conditionalPanel( ## Rraining task 1, pg 2
         condition = "output.task == 2",
-        strong("The data points are now colored by their cluster again.
+        strong("The data points are colored by their cluster again.
                Variables that have a large
                contribution in line with two clusters are important to
                distinguish them. However, you cannot rule out that variables
@@ -231,103 +220,73 @@ sidebar_ui <- conditionalPanel(
     
     ##### _Task response input -----
     ## Task 1
-    conditionalPanel(condition = "(output.task == 1 || output.task == 2)
-                                 && output.factor_nm != 'grand'",
+    conditionalPanel(condition = "output.factor_nm != 'grand'",
                      hr()
     ),
-    conditionalPanel(condition = "output.task == 1",
-                     strong(s_task_prompts[1]),
-                     br(),
-                     numericInput("tsk1_resp", "",
-                                  value = 0, min = 0, max = 10)
-    ), ## Task 2
-    conditionalPanel(condition = "output.task == 2",
-                     strong(s_task_prompts[2]),
-                     br(), br(),
-                     checkboxGroupInput(
-                       inputId = "tsk2_resp_very_ab",
-                       label   = s_task2_questions[1],
-                       choices = "V1",
-                       inline  = TRUE
-                     ),
-                     checkboxGroupInput(
-                       inputId = "tsk2_resp_some_ab",
-                       label   = s_task2_questions[2],
-                       choices = "V1",
-                       inline  = TRUE
-                     ),
-                     hr(),
-                     checkboxGroupInput(
-                       inputId = "tsk2_resp_very_bc",
-                       label   = s_task2_questions[3],
-                       choices = "V1",
-                       inline  = TRUE
-                     ),
-                     checkboxGroupInput(
-                       inputId = "tsk2_resp_some_bc",
-                       label   = s_task2_questions[4],
-                       choices = "V1",
-                       inline  = TRUE
-                     )
+    ## Task 2
+    checkboxGroupInput(
+      inputId = "task_response",
+      label   = s_task_question,
+      choices = "V1",
+      inline  = TRUE
     )
-    
   ) ## Close sidebarPanel()
 ) ## Close conditionalPanel(), end sidebar_ui section
 
 ##### Init survey columns -----
-.surv_lab <- HTML("<div style=\"width:300px;\">
+surv_lab <- HTML("<div style=\"width:300px;\">
                     <div style=\"float:left;\">strongly disagree</div>
                     <div style=\"float:right;\">strongly agree</div>
                   </div>")
-.s_fct_start <- 9
+s_fct_start <- 9
 col_p1 <- column(4,
                  h3(this_factor_nm_order[1]),
                  hr(),
-                 h4(s_survey_questions[.s_fct_start + 1]),
-                 sliderInput(paste0("survey", .s_fct_start + 1),
-                             label = .surv_lab, min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[.s_fct_start + 2]),
-                 sliderInput(paste0("survey", .s_fct_start + 2),
-                             label = .surv_lab, min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[.s_fct_start + 3]),
-                 sliderInput(paste0("survey", .s_fct_start + 3),
-                             label = .surv_lab, min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[.s_fct_start + 4]),
-                 sliderInput(paste0("survey", .s_fct_start + 4),
-                             label = .surv_lab, min = 1, max = 9, value = 5)
+                 h4(s_survey_questions[s_fct_start + 1]),
+                 sliderInput(paste0("survey", s_fct_start + 1),
+                             label = surv_lab, min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[s_fct_start + 2]),
+                 sliderInput(paste0("survey", s_fct_start + 2),
+                             label = surv_lab, min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[s_fct_start + 3]),
+                 sliderInput(paste0("survey", s_fct_start + 3),
+                             label = surv_lab, min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[s_fct_start + 4]),
+                 sliderInput(paste0("survey", s_fct_start + 4),
+                             label = surv_lab, min = 1, max = 9, value = 5)
 )
 
 col_p2 <- column(4,
                  h3(this_factor_nm_order[2]),
                  hr(),
-                 h4(s_survey_questions[.s_fct_start + 5]),
-                 sliderInput(paste0("survey", .s_fct_start + 5),
-                             label = .surv_lab, min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[.s_fct_start + 6]),
-                 sliderInput(paste0("survey", .s_fct_start + 6),
-                             label = .surv_lab, min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[.s_fct_start + 7]),
-                 sliderInput(paste0("survey", .s_fct_start + 7),
-                             label = .surv_lab, min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[.s_fct_start + 8]),
-                 sliderInput(paste0("survey", .s_fct_start + 8),
-                             label = .surv_lab, min = 1, max = 9, value = 5)
+                 h4(s_survey_questions[s_fct_start + 5]),
+                 sliderInput(paste0("survey", s_fct_start + 5),
+                             label = surv_lab, min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[s_fct_start + 6]),
+                 sliderInput(paste0("survey", s_fct_start + 6),
+                             label = surv_lab, min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[s_fct_start + 7]),
+                 sliderInput(paste0("survey", s_fct_start + 7),
+                             label = surv_lab, min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[s_fct_start + 8]),
+                 sliderInput(paste0("survey", s_fct_start + 8),
+                             label = surv_lab, min = 1, max = 9, value = 5)
 )
 col_p3 <- column(4,
                  h3(this_factor_nm_order[3]),
                  hr(),
-                 h4(s_survey_questions[.s_fct_start + 9]),
-                 sliderInput(paste0("survey", .s_fct_start + 9),
-                             label = .surv_lab, min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[.s_fct_start + 10]),
-                 sliderInput(paste0("survey", .s_fct_start + 10),
-                             label = .surv_lab, min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[.s_fct_start + 11]),
-                 sliderInput(paste0("survey", .s_fct_start + 11),
-                             label = .surv_lab, min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[.s_fct_start + 12]),
-                 sliderInput(paste0("survey", .s_fct_start + 12),
-                             label = .surv_lab, min = 1, max = 9, value = 5)
+                 h4(s_survey_questions[s_fct_start + 9]),
+                 sliderInput(paste0("survey", s_fct_start + 9),
+                             label = surv_lab, min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[s_fct_start + 10]),
+                 sliderInput(paste0("survey", s_fct_start + 10),
+                             label = surv_lab, min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[s_fct_start + 11]),
+                 sliderInput(paste0("survey", s_fct_start + 11),
+                             label = surv_lab, min = 1, max = 9, value = 5),
+                 h4(s_survey_questions[s_fct_start + 12]),
+                 sliderInput(paste0("survey", s_fct_start + 12),
+                             label = surv_lab, min = 1, max = 9, value = 5)
 )
 
 ##### main_ui -----
@@ -357,8 +316,7 @@ main_ui <- mainPanel(
             </ul>"),
       p("Evaluation, for each of the 3 visuals -- independent effort with no questions"),
       HTML("<ul>
-              <li>Task 1 (x2 difficulties, 60 sec)</li>
-              <li>Task 2 (x2 difficulties, 180 sec)</li>
+              <li>Cluster seperation task (x2 difficulties, 180 sec)</li>
             </ul>"),
       p("Wrap up study"),
       HTML("<ul>
@@ -385,17 +343,11 @@ main_ui <- mainPanel(
     conditionalPanel(condition = "output.section_pg == 1", ## ui intro
                      h2("Training -- interface")
     ),
-    conditionalPanel(condition = "output.section_pg == 2",
-                     h2("Training -- task 1")
-    ),
-    conditionalPanel(condition = "output.section_pg == 3",
-                     h2("Training -- task 1, set 2")
-    ),
     conditionalPanel(condition = "output.section_pg == 4",
-                     h2("Training -- task 2")
+                     h2("Training -- cluster seperation task")
     ),
     conditionalPanel(condition = "output.section_pg == 5",
-                     h2("Training -- task 2, set 2")
+                     h2("Training -- cluster seperation task, set 2")
     ),
     conditionalPanel( ## splash page
       condition = "output.section_pg == 6",
@@ -403,12 +355,11 @@ main_ui <- mainPanel(
       h1("Training complete, Great job!"),
       h4("Take a break and strech if you feel like it."),
       HTML("<h3><span style='color:red'>
-          Keep in mind that we are evaluating the factors, not your performance.
-          Don't worry if you don't fully understand the theory or find a task difficult.
+          Keep in mind that we are evaluating the factors, not you.
+          Don't worry if you don't fully understand a visualization or find the task difficult.
            </span></h3>"),
       h4("Ask any final clarification questions. Then continue on to the
-        evaluation section. Task 1 is limited to 1 minute, and task 2 is limited
-        to 3 minutes (time displayed on top).")
+        evaluation section. The task is timed, with a time remaining displayed on top.")
     ),
     textOutput('timer_disp'),
     hr()
@@ -455,19 +406,19 @@ main_ui <- mainPanel(
       ),
       h3("To what extent do you agree with the following statements?"),
       strong(s_survey_questions[5]),
-      sliderInput("survey5", label = .surv_lab,
+      sliderInput("survey5", label = surv_lab,
                   min = 1, max = 9, value = 5),
       strong(s_survey_questions[6]),
-      sliderInput("survey6",label = .surv_lab,
+      sliderInput("survey6",label = surv_lab,
                   min = 1, max = 9, value = 5),
       strong(s_survey_questions[7]),
-      sliderInput("survey7",label = .surv_lab,
+      sliderInput("survey7",label = surv_lab,
                   min = 1, max = 9, value = 5),
       strong(s_survey_questions[8]),
-      sliderInput("survey8",label = .surv_lab,
+      sliderInput("survey8",label = surv_lab,
                   min = 1, max = 9, value = 5),
       strong(s_survey_questions[9]),
-      sliderInput("survey9",label = .surv_lab,
+      sliderInput("survey9",label = surv_lab,
                   min = 1, max = 9, value = 5),
       fluidRow(col_p1, col_p2, col_p3),
       hr(),
@@ -488,7 +439,8 @@ main_ui <- mainPanel(
 ui <- fluidPage(useShinyjs(), ## Required in ui to use shinyjs.
                 header_ui,
                 sidebar_ui,
-                #main_ui
+                #TODO: THIS CAUSE THE JS NOT TO EVALUATE.
+                #main_ui 
 )
 if (do_disp_dev_tools == TRUE) { ## Then append DEV helper displays
   ui <- fluidPage(ui,

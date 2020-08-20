@@ -21,7 +21,7 @@ df_scree_pca <- function(data,
 #' 
 #' @examples 
 #' dat <- tourr::flea[, 1:6]
-#' palette(RColorBrewer::brewer.pal(8, "Dark2")) 
+#' palette(RColorBrewer::brewer.pal(12, "Dark2")) 
 #' ggplot2::ggplot() + ggproto_screeplot_pca(dat)
 #' 
 #' ggplot2::ggplot() +

@@ -24,12 +24,12 @@ server <- function(input, output, session) {
   rv$basis_ls         <- list()
   rv$resp_tbl         <- data.frame(
     user_uid     = substr(log_name, 5, nchar(log_name)),
-    group        = substr(log_name, 5, 5),
-    factor       = c(rep(this_factor_nm_order[1], 4),
-                     rep(this_factor_nm_order[2], 4),
-                     rep(this_factor_nm_order[3], 4)),
-    block        = rep(rep(s_difficulty[1], 2), rep(s_difficulty[3], 2), 3),
-    sim_id       = 301:312,
+    group        = this_group,
+    factor       = c(rep(this_factor_nm_order[1L], 4L),
+                     rep(this_factor_nm_order[2L], 4L),
+                     rep(this_factor_nm_order[3L], 4L)),
+    block        = rep(c(rep(s_blocks[1L], 2L), rep(s_blocks[2L], 2L)), 3L),
+    sim_id       = 301L:312L,
     pca_inter    = NA,
     manual_inter = NA,
     grand_inter  = NA, 
@@ -38,7 +38,7 @@ server <- function(input, output, session) {
     ttr          = NA,
     response     = NA,
     answer       = NA,
-    marks        = NA,
+    marks        = NA
   )
     
   ##### Reactives -----
@@ -47,13 +47,11 @@ server <- function(input, output, session) {
   
   section_nm <- reactive({ ## text name of section
     req(rv$pg)
-    if (rv$pg == 1) {return("intro")}
-    if (rv$pg == 2) {return("video")}
-    .pgs <- training_start_pg:(task_start_pg - 2)
+    if (rv$pg %in% 1L:2L) {return("intro")}
+    .pgs <- training_start_pg:(task_start_pg - 1L)
     if (rv$pg %in% .pgs) {return("training")}
-    .pgs <- task_start_pg - 1
-    if (rv$pg %in% .pgs) {return("splash")}
-    .pgs <- task_start_pg:(survey_start_pg - 1)
+
+    .pgs <- task_start_pg:(survey_start_pg - 1L)
     if (rv$pg %in% .pgs) {return("task")}
     if (rv$pg == survey_start_pg) {return("survey")}
     return("!!SECTION NOT DEFINED!!")
@@ -62,33 +60,32 @@ server <- function(input, output, session) {
     # req(rv$pg)
     if (section_nm() == "intro") {return(rv$pg)}
     if (section_nm() == "training"){
-      return(rv$pg - (training_start_pg - 1))
+      return(rv$pg - (training_start_pg - 1L))
     }
     if (section_nm() == "task"){
-      return(rv$pg - (task_start_pg - 1))
+      return(rv$pg - (task_start_pg - 1L))
     }
-    if (section_nm() == "survey") {return(1)}
+    if (section_nm() == "survey") {return(1L)}
   })
-  period <- reactive({1 + ((section_pg() - 1) %/% (n_tasks * n_blocks))})
+  period <- reactive({1L + ((section_pg() - 1L) %/% (n_blocks))})
   factor_nm <- reactive({ ## ~ for group 1: PCA, gtour, mtour
     if (section_nm() == "training") return(input$factor)
     if (section_nm() == "task") return(this_factor_nm_order[period()])
     return("NONE / NA")
   })
   block <- reactive({ ## in 1,2
-    if (section_nm() == "training") return(c(0, "t", "t", "t", "t", 0)[section_pg()])
-    return((section_pg() - (n_blocks * (task() - 1))) %% (n_tasks * n_blocks))
+    if (section_nm() == "training") return(c(0L, "t", "t", "t", "t", 0L)[section_pg()])
+    return((section_pg() - n_blocks) %% (n_blocks))
   })
   sim <- reactive({
-    return( (period() - 1) * 6 + (task() - 1) * 3 + block() )
+    if (section_nm() == "training") return("NA - training")
+    return( (period() - 1L) * 6L + 3L + block() )
   })
   task_time <- reactive({
-    req(task(), factor_nm()) ## Yay, can req() reactive functions!
-    if (factor_nm() == "grand") {adj <- 1
-    } else adj <- 0
-    if (task() == 1) return(60  + adj)
-    if (task() == 2) return(180 + adj)
-    return(999)
+    req(factor_nm()) ## Yay, can req() reactive functions!
+    if (factor_nm() == "grand") {adj <- 1L
+    } else adj <- 0L
+    return(180L + adj)
   })
   time_elapsed <- reactive({ as.integer(task_time() - rv$timer) })
   dat <- reactive({ ## Simulation df with attachments.
@@ -130,11 +127,7 @@ server <- function(input, output, session) {
       return(TRUE)
     } else return(FALSE)
   })
-  task_header <- reactive({
-    paste0("Evaluation -- factor: ", factor_nm(), ", task ", task()
-           # , ", difficulty: ", s_difficulty[block()] ## Don't show difficulty to participants.
-    )
-  })
+  task_header <- reactive({paste0("Evaluation -- factor: ", factor_nm())})
   timer_info <- reactive({
     paste0("time_elapsed() of task_time(): ", time_elapsed(), " of ", task_time())
   })
@@ -146,146 +139,49 @@ server <- function(input, output, session) {
            paste0("task_header(): ", task_header())
     )
   })
-  pftb <- reactive({
-    paste("period(), factor_nm(), task(), block(), sim(): ", period(), factor_nm(), task(), block(), sim())
+  pfbs <- reactive({
+    paste("period(), factor_nm(), block(), sim(): ", period(), factor_nm(), block(), sim())
   })
-  resp_info <- reactive({
-    .t <- task()
-    paste0(sep = " /n",
-           paste0("rv$task_response: ", rv$task_response[.t]),
-           paste0("rv$task_ttr: ", rv$task_ttr[.t]),
-           pftb())
-  })
+
   ## Throttle manip_slider
   manip_slider   <- reactive({
     # req(input$manip_slider)
     input$manip_slider
   })
-  manip_slider_t <- throttle(manip_slider, 10)
+  manip_slider_t <- throttle(manip_slider, 10L)
   
-  ##### Task 1 answer -----
-  task1_ans <- reactive({
-    if (task() == 1){
-      length(attr(dat(), "ncl"))
-    }
+  #### Task answer
+  task_ans <- reactive({
+    dat <- dat()
+    cl_dat <- data.frame(dat, cluster = attr(dat, "cl_lvl"))
+    #TODO need to bring in latest clSep function
+    rep(0, p())
   })
-  task1_score <- reactive({
-    if (task() == 1){
-      abs(input$tsk1_resp - task1_ans())
-    }
+  ### Response
+  task_resp <- reactive({
+    if(section_nm() %in% c("training", "task")) 
+      ## Vector of the numbers without 'V'
+      return(as.integer(gsub(' |V', '', input$task_response)))
+    return(0)
   })
-  
-  #### Task 2 answer
-  ## Task 2 answer by seperation percentile
-  task2_ans_ptile <- reactive({
-    if (task() == 2){
-      .dat <- dat()
-      .supervied_dat <- data.frame(.dat, cluster = attr(.dat, "cl_lvl"))
-      .lda <- MASS::lda(cluster~., data = .supervied_dat)
-      
-      .abs_mean_diff_ab <- abs(.lda$means[1, ] - .lda$means[2, ])
-      .abs_mean_diff_bc <- abs(.lda$means[2, ] - .lda$means[3, ])
-      .ab_ptile <- .abs_mean_diff_ab / max(.abs_mean_diff_ab)
-      .bc_ptile <- .abs_mean_diff_bc / max(.abs_mean_diff_bc)
-      
-      matrix(c(.ab_ptile, .bc_ptile),
-             nrow = 2, ncol = p(), byrow = T)
+  task_score <- reactive({
+    if(section_nm() %in% c("training", "task")) {
+      ans  <- task_ans()
+      resp <- task_resp()
+      #TODO need to look at clSep .rmd
+      "<stuff here>"
     }
-  })
-  ## Task 2 answer by score value
-  task2_ans <- reactive({
-    if (task() == 2){
-      .ptile_mat <- task2_ans_ptile()
-      .ptile <- c(.ptile_mat[1, ], .ptile_mat[2, ])
-      .ans_vect <- dplyr::case_when(
-        .ptile >= .75 ~ 2, ## very important
-        .ptile >= .25 ~ 1, ## somewhat important
-        .ptile >= 0 ~ 0
-      )
-      matrix(.ans_vect, nrow = 2, ncol = p(), byrow = T)
-    }
-  })
-  ## Score responses. Seems like a lot of code, but the distinction is used elsewhere.
-  task2_vars_very_ab <- reactive({
-    if (task() == 2){
-      which(task2_ans()[1, ] == 2)
-    }
-  })
-  task2_vars_some_ab <- reactive({
-    if (task() == 2){
-      which(task2_ans()[1, ] == 1)
-    }
-  })
-  task2_vars_very_bc <- reactive({
-    if (task() == 2){
-      which(task2_ans()[2, ] == 2)
-    }
-  })
-  task2_vars_some_bc <- reactive({
-    if (task() == 2){
-      which(task2_ans()[2, ] == 1)
-    }
-  })
-  task2_score_very_ab <- reactive({
-    if (task() == 2){
-      resp <- as.integer(gsub(' |V', '', input$tsk2_resp_very_ab))
-      ans  <- task2_vars_very_ab()
-      -(length(union(resp, ans)) - length(intersect(resp, ans))) * 2^2
-    }
-  })
-  task2_score_some_ab <- reactive({
-    if (task() == 2){
-      resp <- as.integer(gsub(' |V', '', input$tsk2_resp_some_ab))
-      ans  <- task2_vars_some_ab()
-      -(length(union(resp, ans)) - length(intersect(resp, ans))) * 1^2
-    }
-  })
-  task2_score_very_bc <- reactive({
-    if (task() == 2){
-      resp <- as.integer(gsub(' |V', '', input$tsk2_resp_very_bc))
-      ans  <- task2_vars_very_bc()
-      -(length(union(resp, ans)) - length(intersect(resp, ans))) * 2^2
-    }
-  })
-  task2_score_some_bc <- reactive({
-    if (task() == 2){
-      resp <- as.integer(gsub(' |V', '', input$tsk2_resp_some_bc))
-      ans  <- task2_vars_some_bc()
-      -(length(union(resp, ans)) - length(intersect(resp, ans))) * 1^2
-    }
-  })
-  ### Collated response and scores
-  task2_resp <- reactive({
-    if (task() == 2){
-      resp <- matrix(0, nrow = 2, ncol = p())
-      row.names(resp) <- c("ab", "bc")
-      task2_very_ab <- as.integer(gsub(' |V', '', input$tsk2_resp_very_ab))
-      task2_some_ab <- as.integer(gsub(' |V', '', input$tsk2_resp_some_ab))
-      task2_very_bc <- as.integer(gsub(' |V', '', input$tsk2_resp_very_bc))
-      task2_some_bc <- as.integer(gsub(' |V', '', input$tsk2_resp_some_bc))
-      resp[1, task2_very_ab] <- 2
-      resp[1, task2_some_ab] <- 1
-      resp[2, task2_very_bc] <- 2
-      resp[2, task2_some_bc] <- 1
-      resp
-    }
-  })
-  task2_score <- reactive({
-    if (task() == 2){
-      ans  <- task2_ans()
-      resp <- task2_resp()
-      -sum((ans - resp)^2)
-    }
+    return(0)
   })
   
   ### PCA plot reactive -----
   pca_height <- function(){
-    if (pca_active() == T) {
+    if (pca_active() == TRUE) {
       return(600)
     } else return(1)
   }
   pca_plot <- reactive({
-    if (pca_active() == T) {
+    if (pca_active() == TRUE) {
       dat <- dat()
       dat_std <- tourr::rescale(dat)
       cluster <- attributes(dat)$cl_lvl
@@ -293,29 +189,24 @@ server <- function(input, output, session) {
       axes_position <- "left"
       USE_AXES <- TRUE
       USE_AES  <- TRUE
-      if (task() == 1) {
-        if(rv$training_aes == FALSE) {
-          USE_AES  <- FALSE
-        }
-      }
       
       x_axis <- input$x_axis
       y_axis <- input$y_axis
-      x_num  <- as.integer(substr(x_axis, 3, 3))
-      y_num  <- as.integer(substr(y_axis, 3, 3))
+      x_num  <- as.integer(substr(x_axis, 3L, 3L))
+      y_num  <- as.integer(substr(y_axis, 3L, 3L))
       
       pca     <- prcomp(dat_std)
       pca_x   <- 2 * (data.frame(tourr::rescale(pca$x[ , c(x_num, y_num)])) - .5)
       pca_rot <- data.frame(pca$rotation[ , c(x_num, y_num)])
       pca_rot <- app_set_axes_position(pca_rot, axes_position)
-      pca_pct_var <- round(100 * pca$sdev^2 / sum(pca$sdev^2), 1)
+      pca_pct_var <- round(100L * pca$sdev^2 / sum(pca$sdev^2), 1)
       x_lab <- paste0(x_axis, " (", pca_pct_var[x_num], "% Var)")
       y_lab <- paste0(y_axis, " (", pca_pct_var[y_num], "% Var)")
       
-      angle <- seq(0, 2 * pi, length = 360)
+      angle <- seq(0L, 2L * pi, length = 360L)
       circ  <- app_set_axes_position(data.frame(x = cos(angle), y = sin(angle)),
                                      axes_position)
-      zero  <- app_set_axes_position(0, axes_position)
+      zero  <- app_set_axes_position(0L, axes_position)
       
       ### ggplot2
       gg <- ggplot()
@@ -324,7 +215,7 @@ server <- function(input, output, session) {
         gg <- gg +
           geom_point(pca_x,
                      mapping = aes(x = get(x_axis), y = get(y_axis)),
-                     size = 3)
+                     size = 3L)
       } else { ## if USE_AES == TRUE then apply more aes.
         gg <- gg +
           geom_point(pca_x,
@@ -332,14 +223,14 @@ server <- function(input, output, session) {
                                    color = cluster,
                                    fill  = cluster,
                                    shape = cluster),
-                     size = 3)
+                     size = 3L)
       }
       if (USE_AXES == TRUE) { ## then draw axes
         # axis segments
         gg <- gg +
           geom_segment(pca_rot,
-                       mapping = aes(x = get(x_axis), xend = zero[, 1],
-                                     y = get(y_axis), yend = zero[, 2]),
+                       mapping = aes(x = get(x_axis), xend = zero[, 1L],
+                                     y = get(y_axis), yend = zero[, 2L]),
                        size = .3, colour = "red") +
           # axis label text
           geom_text(pca_rot,
@@ -353,8 +244,8 @@ server <- function(input, output, session) {
                     color = "grey80", size = .3, inherit.aes = F)
       }
       
-      x_range <- max(pca_x[, 1], circ[, 1]) - min(pca_x[, 1], circ[, 1])
-      y_range <- max(pca_x[, 2], circ[, 2]) - min(pca_x[, 2], circ[, 2])
+      x_range <- max(pca_x[, 1L], circ[, 1L]) - min(pca_x[, 1L], circ[, 1L])
+      y_range <- max(pca_x[, 2L], circ[, 2L]) - min(pca_x[, 2L], circ[, 2L])
       # Options
       gg <- gg + theme_minimal() +
         scale_color_brewer(palette = pal) +
@@ -362,12 +253,12 @@ server <- function(input, output, session) {
               panel.grid.minor = element_blank(), # no grid lines
               axis.text.x  = element_blank(),     # no axis marks
               axis.text.y  = element_blank(),     # no axis marks
-              axis.title.x = element_text(size = 22, face = "bold"),
-              axis.title.y = element_text(size = 22, face = "bold"),
+              axis.title.x = element_text(size = 22L, face = "bold"),
+              axis.title.y = element_text(size = 22L, face = "bold"),
               aspect.ratio = y_range / x_range,
               legend.box.background = element_rect(),
-              legend.title = element_text(size = 18, face = "bold"),
-              legend.text  = element_text(size = 18, face = "bold")
+              legend.title = element_text(size = 18L, face = "bold"),
+              legend.text  = element_text(size = 18L, face = "bold")
         ) +
         labs(x = x_lab, y = y_lab)
       
@@ -405,14 +296,6 @@ server <- function(input, output, session) {
       
       ## render init
       axes_position <- "left"
-      USE_AXES <- TRUE
-      USE_AES  <- TRUE
-      if (task() == 1) {
-        if(rv$training_aes == FALSE) { ## During training display/hiding var
-          USE_AES <- FALSE
-        }
-      }
-      if (USE_AXES == FALSE) {axes_position = "off"}
       angle <- seq(0, 2 * pi, length = 360)
       circ  <- app_set_axes_position(data.frame(x = cos(angle), y = sin(angle)),
                                      axes_position)
@@ -427,74 +310,64 @@ server <- function(input, output, session) {
       cluster <- rep(cluster, max_frames)
       
       gg <- ggplot()
-      if (USE_AES == FALSE){
-        ## Projected data points
-        gg <- gg +
-          geom_point(data_df,
-                     mapping = aes(x = x, y = y, frame = slide),
-                     size = 1.7) ## Smaller size for plotly
-      } else { ## if USE_AES == TRUE then apply more aes.
-        gg <- gg +
-          geom_point(data_df,
-                     mapping = aes(x = x, y = y, frame = slide,
-                                   color = cluster,
-                                   fill  = cluster,
-                                   shape = cluster),
-                     size = 1.7) ## smaller size for plotly
-      }
-      if (USE_AXES == TRUE) { ## if USE_AXES == TRUE then draw axes.
+      ## Projected data points with cluster aesthetics
+      gg <- gg +
+        geom_point(data_df,
+                   mapping = aes(x = x, y = y, frame = slide,
+                                 color = cluster,
+                                 fill  = cluster,
+                                 shape = cluster),
+                   size = 1.7) + ## smaller size for plotly
         ## Axis segments
-        gg <- gg +
-          geom_segment(basis_df,
-                       mapping = aes(x = x, xend = zero[, 1],
-                                     y = y, yend = zero[, 2],
-                                     frame = slide),
-                       size = .3, colour = "red") +
-          ## Axis label text
-          geom_text(basis_df,
-                    mapping = aes(x = x,
-                                  y = y,
-                                  frame = slide,
-                                  label = lab),
-                    size = 6, colour = "red", fontface = "bold",
-                    vjust = "outward", hjust = "outward") +
-          ## Cirle path
-          geom_path(circ,
-                    mapping = aes(x = x, y = y),
-                    color = "grey80", size = .3, inherit.aes = F)
-      }
+        geom_segment(basis_df,
+                     mapping = aes(x = x, xend = zero[, 1],
+                                   y = y, yend = zero[, 2],
+                                   frame = slide),
+                     size = .3, colour = "red") +
+        ## Axis label text
+        geom_text(basis_df,
+                  mapping = aes(x = x,
+                                y = y,
+                                frame = slide,
+                                label = lab),
+                  size = 6, colour = "red", fontface = "bold",
+                  vjust = "outward", hjust = "outward") +
+        ## Cirle path
+        geom_path(circ,
+                  mapping = aes(x = x, y = y),
+                  color = "grey80", size = .3, inherit.aes = F)
       
       x_range <- max(data_df[, 1], circ[, 1]) - min(data_df[, 1], circ[, 1])
-      y_range <- max(data_df[, 2], circ[, 2]) - min(data_df[, 2], circ[, 2])
-      ## Options
-      gg <- gg + theme_minimal() +
+      y_range <- max(data_df[, 2], circ[, 2]) - min(data_df[, 2], circ[, 2]) +
+        ## Themes and aesthetic settings
+        theme_minimal() +
         scale_color_brewer(palette = pal) +
-        scale_fill_brewer(palette = pal) +
+        scale_fill_brewer(palette  = pal) +
         theme(panel.grid.major = element_blank(), ## no grid lines
               panel.grid.minor = element_blank(), ## no grid lines
-              axis.text.x = element_blank(),      ## no axis marks
-              axis.text.y = element_blank(),      ## no axis marks
+              axis.text.x  = element_blank(),     ## no axis marks
+              axis.text.y  = element_blank(),     ## no axis marks
               axis.title.x = element_blank(),     ## no axis titles for gtour
               axis.title.y = element_blank(),     ## no axis titles for gtour
               aspect.ratio = y_range / x_range,
-              legend.box.background = element_rect(),
               legend.title = element_text(size = 18, face = "bold"),
-              legend.text  = element_text(size = 18, face = "bold")
+              legend.text  = element_text(size = 18, face = "bold"),
+              legend.box.background = element_rect()
         ) ## end of ggplot2 work
       
       ### plotly
-      ggp <- plotly::ggplotly(p = gg, tooltip = "none")
-      ggp <- plotly::animation_opts(p = ggp, frame = 1 / fps * 1000,
-                                    transition = 0, redraw = FALSE)
-      ggp <- plotly::layout(
-        ggp, showlegend = T, yaxis = list(showgrid = F, showline = F),
-        xaxis = list(scaleanchor = "y", scaleratio = 1, showgrid = F,
-                     showline = F, autorange = TRUE, fixedrange = FALSE),
-        ## added for APP:
-        height = gtour_height(),
-        yaxis = list(autorange = TRUE, fixedrange = FALSE), ## suppose to rescale, I don't think it does.
-        legend = list(x = 0.75, y = 0.7) ## postition the title better
-      )
+      ggp <- plotly::ggplotly(p = gg, tooltip = "none") %>% 
+        plotly::animation_opts(p = ggp, frame = 1 / fps * 1000,
+                               transition = 0, redraw = FALSE) %>% 
+        plotly::layout(
+          ggp, showlegend = T, yaxis = list(showgrid = F, showline = F),
+          xaxis = list(scaleanchor = "y", scaleratio = 1, showgrid = F,
+                       showline = F, autorange = TRUE, fixedrange = FALSE),
+          ## added for APP:
+          height = gtour_height(),
+          yaxis = list(autorange = TRUE, fixedrange = FALSE), ## suppose to rescale, I don't think it does.
+          legend = list(x = 0.75, y = 0.7) ## postition the title better
+        )
       
       return(ggp)
     }
@@ -533,16 +406,9 @@ server <- function(input, output, session) {
         
         ## Render init
         axes_position <- "left"
-        USE_AXES <- TRUE
-        USE_AES  <- TRUE
-        if (task() == 1) {
-          if(rv$training_aes == FALSE) { ## During training
-            USE_AES  <- FALSE
-          }
-        }
+  
         
         for (i in 1:length(rv$basis_ls)){
-          if (USE_AES == TRUE) {
             rv$manual_ls[[i]] <- app_oblique_frame(data      = dat_std,
                                                    basis     = rv$basis_ls[[i]],
                                                    manip_var = m_var,
@@ -551,17 +417,8 @@ server <- function(input, output, session) {
                                                    cluster   = cluster,
                                                    axes      = axes_position
             )
-          } else { ## when USE_AES == FALSE
-            rv$manual_ls[[i]] <- app_oblique_frame(data      = dat_std,
-                                                   basis     = rv$basis_ls[[i]],
-                                                   manip_var = m_var,
-                                                   theta     = 0,
-                                                   phi       = 0,
-                                                   axes      = axes_position
-            )
-          }
         }
-      } ## End of for creating rv$manual_ls
+      } ## End of assigning rv$manual_ls
       
       j <- manip_slider_t() * 10 + 1
       if (time_elapsed() > 1)
@@ -572,95 +429,11 @@ server <- function(input, output, session) {
   })
   
   
-  ## resp_tbl() reactive -----
-  # resp_tbl <- reactive({
-  #   ## Init columns
-  #   col_factor <-
-  #     c(rep("training", n_blocks + n_task2_questions * n_blocks),              ## Training
-  #       rep(this_factor_nm_order[1], n_blocks + n_task2_questions * n_blocks), ## Tasks across factor
-  #       rep(this_factor_nm_order[2], n_blocks + n_task2_questions * n_blocks),
-  #       rep(this_factor_nm_order[3], n_blocks + n_task2_questions * n_blocks),
-  #       rep("survey", n_survey_questions)                                      ## Survey
-  #     )
-  #   col_task <-
-  #     c(rep(1, n_tasks),                             ## Training
-  #       rep(2, n_tasks * n_task2_questions),
-  #       rep(c(rep(1, n_blocks ),                     ## Task 1
-  #             rep(2, n_blocks * n_task2_questions)), ## Task 2
-  #           n_factors                                ## Across factors
-  #       ),
-  #       paste0("survey", 1:6),                       ## Survey
-  #       paste0("survey", 7:10, "_", this_factor_nm_order[1]),
-  #       paste0("survey", 7:10, "_", this_factor_nm_order[2]),
-  #       paste0("survey", 7:10, "_", this_factor_nm_order[3])
-  #     )
-  #   col_block <-
-  #     c("t", "t",                                  ## Training
-  #       rep("t", n_tasks * n_task2_questions),
-  #       rep(c(1:n_blocks,                          ## Task 1
-  #             rep(1:n_blocks, n_task2_questions)), ## Task 2
-  #           n_factors                              ## Across factors
-  #       ),
-  #       rep(NA, n_survey_questions)                ## Survey
-  #     )
-  #   st  <- sim_series + 1
-  #   gap <- n_blocks * n_tasks # ~4
-  #   sim_set <- c(st, st + 1,                     ## Task 1
-  #                rep(st + 2, n_task2_questions), ## Task 2
-  #                rep(st + 3, n_task2_questions)
-  #   )
-  #   col_sim_id <-
-  #     as.character(
-  #       c("t1", "t2",
-  #         rep("t3", n_task2_questions), ## Training 1
-  #         rep("t4", n_task2_questions), ## Training 2
-  #         sim_set,                      ## Tasks across factors
-  #         sim_set + gap,
-  #         sim_set + 2 * gap,
-  #         rep(NA, n_survey_questions)   ## Survey
-  #       )
-  #     )
-  #   col_question <-
-  #     c(
-  #       rep(s_task_prompts[1], n_blocks),
-  #       rep(s_task2_questions, n_blocks),     ## Training
-  #       rep(
-  #         c(rep(s_task_prompts[1], n_blocks), ## Task 1
-  #           rep(s_task2_questions, n_blocks)  ## Task 2
-  #         ),
-  #         n_factors                           ## Across factors
-  #       ),
-  #       s_survey_questions                    ## Survey
-  #     )
-  #   browser()
-  #   # length(col_factor);length(col_task);length(col_block);length(col_sim_id);length(col_question);
-  #   col_factor <- col_task <- col_block <- col_sim_id <- col_question <- rep(-99,99)
-  #   data.frame(user_uid        = substr(log_name, 5, nchar(log_name)),
-  #              group           = substr(log_name, 5, 5),
-  #              factor          = col_factor,
-  #              task            = col_task,
-  #              block           = col_block,
-  #              sim_id          = col_sim_id,
-  #              question        = col_question,
-  #              pca_inter       = NA,
-  #              manual_inter    = NA,
-  #              resp_inter      = NA,
-  #              plot_elapsed    = NA,
-  #              ttr             = NA,
-  #              response        = NA,
-  #              answer          = NA,
-  #              task_score      = NA,
-  #              clust_score     = NA,
-  #              intensity_score = NA,
-  #              line_score      = NA,
-  #              concern         = NA
-  #   )
-  # })
-  ##### End of reactives
+ 
   
   
   ##### Start observes
-  ### Obs update axis/task2 choices -----
+  ### Obs update axis/task choices -----
   observeEvent({
     dat()
     input$factor
@@ -672,18 +445,16 @@ server <- function(input, output, session) {
       updateRadioButtons(session, "y_axis", choices = choices, selected = "PC2")
       loggit("INFO", "Task data changed while axes active; updated PC axes choices.")
     }
-    if (task() == 2) {
-      choices <- paste0("V", 1:p())
-      updateCheckboxGroupInput(session, "tsk2_resp_very_ab",
-                               choices = choices, inline  = TRUE)
-      updateCheckboxGroupInput(session, "tsk2_resp_some_ab",
-                               choices = choices, inline  = TRUE)
-      updateCheckboxGroupInput(session, "tsk2_resp_very_bc",
-                               choices = choices, inline  = TRUE)
-      updateCheckboxGroupInput(session, "tsk2_resp_some_bc",
-                               choices = choices, inline  = TRUE)
-      loggit("INFO", "Task data changed; updated task 2 responce choices.")
-    }
+    choices <- paste0("V", 1:p())
+    updateCheckboxGroupInput(session, "task_resp_very_ab",
+                             choices = choices, inline  = TRUE)
+    updateCheckboxGroupInput(session, "task_resp_some_ab",
+                             choices = choices, inline  = TRUE)
+    updateCheckboxGroupInput(session, "task_resp",
+                             choices = choices, inline  = TRUE)
+    updateCheckboxGroupInput(session, "task_resp_some_bc",
+                             choices = choices, inline  = TRUE)
+    loggit("INFO", "Task data changed; updated task 2 responce choices.")
   })
   ## Bump x_axis when set to the same as y_axis
   observeEvent(input$x_axis, {
@@ -698,7 +469,7 @@ server <- function(input, output, session) {
       updateRadioButtons(session, "x_axis", choices = choices, selected = x_axis_out)
       loggit("INFO", paste0("x_axis set to ", input$x_axis,
                             ", same as y_axis; x_axis bumped to ", x_axis_out, "."),
-             paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+             pfbs()
       )
       
       output$plot_msg <- renderText(
@@ -720,7 +491,7 @@ server <- function(input, output, session) {
       updateRadioButtons(session, "y_axis", choices = choices, selected = y_axis_out)
       loggit("INFO", paste0("y_axis set to ", input$y_axis,
                             ", same as x_axis; y_axis bumped to ", y_axis_out, "."),
-             paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+             pfbs()
       )
       
       output$plot_msg <- renderText(
@@ -750,7 +521,7 @@ server <- function(input, output, session) {
              paste0("New basis set (from dat/axes) "),
              paste0("x_axis: ", x, ", y_axis: ", y, ". rv$curr_basis: ",
                     paste0(round(rv$curr_basis, 2), e = ", "),
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+                    pfbs()
              )
       )
     }
@@ -762,7 +533,7 @@ server <- function(input, output, session) {
       loggit("INFO", paste0("Slider value changed: ", manip_slider_t()),
              paste0("rv$curr_basis updated: ",
                     paste0(round(rv$curr_basis, 2), e = ", "),
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+                    pfbs()
              )
       )
     }
@@ -805,7 +576,7 @@ server <- function(input, output, session) {
         loggit("INFO",
                paste0("New manip slider value (from dat/axes/manip_var)."),
                paste0("manip_slider: ", .val,
-                      paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+                      pfbs()
                )
         )
       }
@@ -813,68 +584,44 @@ server <- function(input, output, session) {
   )
   
   ##### Obs task responses -----
-  ### task 1 response & ttr
-  observeEvent(input$tsk1_resp, {
+  ### task responses & ttr
+  observeEvent(input$task_resp_very_ab, {
     if(time_elapsed() > 1) {
       rv$task_ttr[1] <- time_elapsed()
-      rv$task_response[1] <- input$tsk1_resp
-      loggit("INFO", "Task 1 entered.",
-             paste0("Response: ", rv$task_response[1],
-                    ". ttr: ", rv$task_ttr[1], ".",
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
-             )
-      )
-    }
-  })
-  ### task 2 responses & ttr
-  observeEvent(input$tsk2_resp_very_ab, {
-    if(time_elapsed() > 1) {
-      rv$task_ttr[1] <- time_elapsed()
-      rv$task_response[1] <- paste(input$tsk2_resp_very_ab, collapse = ", ")
+      rv$task_response[1] <- paste(input$task_resp_very_ab, collapse = ", ")
       loggit("INFO", "Task 2, very important, clusters ab response entered.",
              paste0("Response: ", rv$task_response[1],
                     ". ttr: ", rv$task_ttr[1], ".",
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+                    pfbs()
              )
       )
     }
   })
-  observeEvent(input$tsk2_resp_some_ab, {
+  observeEvent(input$task_resp_some_ab, {
     if(time_elapsed() > 1) {
       rv$task_ttr[2] <- time_elapsed()
-      rv$task_response[2] <- paste(input$tsk2_resp_some_ab, collapse = ", ")
+      rv$task_response[2] <- paste(input$task_resp_some_ab, collapse = ", ")
       loggit("INFO", "Task 2, somewhat important clusters ab response entered.",
              paste0("Response: ", rv$task_response[2],
                     ". ttr: ", rv$task_ttr[2], ".",
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+                    pfbs()
              )
       )
     }
   })
-  observeEvent(input$tsk2_resp_very_bc, {
+  observeEvent(input$task_response, {
     if(time_elapsed() > 1) {
       rv$task_ttr[3] <- time_elapsed()
-      rv$task_response[3] <- paste(input$tsk2_resp_very_bc, collapse = ", ")
-      loggit("INFO", "Task 2, very important, clusters bc response entered.",
-             paste0("Response: ", rv$task_response[3],
-                    ". ttr: ", rv$task_ttr[3], ".",
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+      rv$task_response[3] <- paste(input$task_response, collapse = ", ")
+      loggit("INFO", "Task response interacted with",
+             paste0("Response: ", rv$task_response,
+                    ". ttr: ", rv$task_ttr, ".",
+                    pfbs()
              )
       )
     }
   })
-  observeEvent(input$tsk2_resp_some_bc, {
-    if(time_elapsed() > 1) {
-      rv$task_ttr[4] <- time_elapsed()
-      rv$task_response[4] <- paste(input$tsk2_resp_some_bc, collapse = ", ")
-      loggit("INFO", "Task 2, somewhat important, clusters bc response entered.",
-             paste0("Response: ", rv$task_response[4],
-                    ". ttr: ", rv$task_ttr[4], ".",
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
-             )
-      )
-    }
-  })
+
   
   ### Obs interaction count -----
   observeEvent(
@@ -896,11 +643,7 @@ server <- function(input, output, session) {
   )
   observeEvent(
     {
-      input$tsk1_resp
-      input$tsk2_resp_very_ab
-      input$tsk2_resp_some_ab
-      input$tsk2_resp_very_bc
-      input$tsk2_resp_some_bc
+      input$task_resp
     }, {
       rv$resp_inter <- rv$resp_inter + 1L
     }
@@ -915,7 +658,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 1 entered.",
              paste0("Response: ", rv$task_response[i],
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+                    pfbs()
              )
       )
     }
@@ -928,7 +671,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 2 entered.",
              paste0("Response: ", rv$task_response[i],
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+                    pfbs()
              )
       )
     }
@@ -941,7 +684,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 3 entered.",
              paste0("Response: ", rv$task_response[i],
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+                    pfbs()
              )
       )
     }
@@ -954,7 +697,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 4 entered.",
              paste0("Response: ", rv$task_response[i],
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+                    pfbs()
              )
       )
     }
@@ -967,7 +710,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 5 entered.",
              paste0("Response: ", rv$task_response[i],
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+                    pfbs()
              )
       )
     }
@@ -980,7 +723,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 6 entered.",
              paste0("Response: ", rv$task_response[i],
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+                    pfbs()
              )
       )
     }
@@ -993,7 +736,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 7 entered.",
              paste0("Response: ", rv$task_response[i],
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+                    pfbs()
              )
       )
     }
@@ -1006,7 +749,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 8 entered.",
              paste0("Response: ", rv$task_response[i],
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+                    pfbs()
              )
       )
     }
@@ -1019,7 +762,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 9 entered.",
              paste0("Response: ", rv$task_response[i],
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+                    pfbs()
              )
       )
     }
@@ -1032,7 +775,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 10 entered.",
              paste0("Response: ", rv$task_response[i],
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+                    pfbs()
              )
       )
     }
@@ -1045,7 +788,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 11 entered.",
              paste0("Response: ", rv$task_response[i],
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+                    pfbs()
              )
       )
     }
@@ -1058,7 +801,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 12 entered.",
              paste0("Response: ", rv$task_response[i],
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+                    pfbs()
              )
       )
     }
@@ -1071,7 +814,7 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 13 entered.",
              paste0("Response: ", rv$task_response[i],
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+                    pfbs()
              )
       )
     }
@@ -1084,46 +827,46 @@ server <- function(input, output, session) {
       loggit("INFO", "Survey 14 entered.",
              paste0("Response: ", rv$task_response[i],
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+                    pfbs()
              )
       )
     }
   })
   observeEvent(input$survey15, {
     if(time_elapsed() > 1) {
-      i <- 15
+      i <- 15L
       rv$task_ttr[i] <- time_elapsed()
       rv$task_response[i] <- input$survey15
       loggit("INFO", "Survey 15 entered.",
              paste0("Response: ", rv$task_response[i],
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+                    pfbs()
              )
       )
     }
   })
   observeEvent(input$survey16, {
-    if(time_elapsed() > 1) {
-      i <- 16
+    if(time_elapsed() > 1L) {
+      i <- 16L
       rv$task_ttr[i] <- time_elapsed()
       rv$task_response[i] <- input$survey16
       loggit("INFO", "Survey 16 entered.",
              paste0("Response: ", rv$task_response[i],
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+                    pfbs()
              )
       )
     }
   })
   observeEvent(input$survey17, {
-    if(time_elapsed() > 1) {
-      i <- 17
+    if(time_elapsed() > 1L) {
+      i <- 17L
       rv$task_ttr[i] <- time_elapsed()
       rv$task_response[i] <- input$survey17
       loggit("INFO", "Survey 17 entered.",
              paste0("Response: ", rv$task_response[i],
                     ". ttr: ", rv$task_ttr[i], ".",
-                    paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", ")
+                    pfbs()
              )
       )
     }
@@ -1131,67 +874,30 @@ server <- function(input, output, session) {
   
   ### Obs next page button -----
   observeEvent(input$next_pg_button, {
-    if ((rv$stopwatch > 2 & do_log == TRUE) | do_log == FALSE){
-      # ## Init rv$resp_tbl <- resp_tbl() first press
-      # if (is.null(rv$resp_tbl)){ rv$resp_tbl <- resp_tbl() }
-      ## if <on last task> {<do nothing>}. Also shouldn't be visible
-      if (rv$pg >= survey_start_pg){ return() }
+    if ((rv$stopwatch > 1L & do_log == TRUE) | do_log == FALSE){
+      cat(paste0("in loop, top --", rv$pg) )
+      task_resp  <- task_resp()
+      task_ans   <- task_ans()
+      task_score <- task_score()
       
       ### _Training evaluation -----
       ## if training section, evaluate response
       if (section_nm() == "training") {
-        this_msg <- ""
-        ## Evaluate training task 1
-        if (task() == 1 & rv$training_aes == FALSE) {
+        this_char <- ""
+        ## Evaluation of the training for task
+        if (rv$training_aes == FALSE) {
           rv$training_aes <- TRUE
-          ans   <- task1_ans()
-          delta <- input$tsk1_resp - task1_ans()
-          main_msg <-
-            "For PCA make sure to plot several components.
-            Using the grand tour look for groups of points moving together.
-            In the manual tour choose the variables with the largest axes
-            sequentially to manipulate their contribution to the projection."
-          
-          if (delta >= 2){ ## >= 2 clusters too high, retry
-            this_msg <- paste0("That is little high, this data has ", ans, " clusters. ")
-            if(section_pg() %in% c(2, 4)) {this_msg <-
-              paste0(this_msg, "Try again on another training set. ")}
-          }
-          if (delta <= -2){ ## <= 2 clusters too low, retry
-            this_msg <- paste0("That is little low, this data has ", ans, " clusters. ")
-            if(section_pg() %in% c(2, 4)) {this_msg <-
-              paste0(this_msg, "Try again on another training set. ")}
-          }
-          if (abs(delta) == 1){ ## within 1 cluster, passes
-            this_msg <- paste0("Close, this data has ", ans, " clusters.
-            You have the right idea. As a reminder, ")
-          }
-          if (delta == 0){ ## exact answer, passes
-            this_msg <- paste0("That's correct, this data has ", ans, " clusters.
-            As a reminder, ")
-          }
-          output$plot_msg <- renderText(
-            app_html_red(paste0(this_msg, main_msg))
-          )
-          return()
-        }
-        
-        ## Evaluation of the training for tasks 2.
-        if (task() == 2 & rv$training_aes == FALSE) {
-          rv$training_aes <- TRUE
-          score <- task2_score()
-          bar   <- -6
-          
-          if (score < bar){ ## score not passing
-            this_msg <-
+          bar   <- -.5
+          if (task_score < bar){ ## score not passing
+            this_char <-
               "That seems a little off. Remember that the importance of a
               variable for distinguishing a group is related to variables in a
               separating direction with large magnitudes in the projection, but
               variables with small contributions cannot be ruled out, multiple
               projections most be looked at."
           }
-          if (score >= bar){ ## score is passing
-            this_msg <-
+          if (task_score >= bar){ ## score is passing
+            this_char <-
               "Very good! As a reminder, the importance of a variable for
               distinguishing a group is related to variables in a separating
               direction with large magnidutes in the projection, but variables
@@ -1199,141 +905,82 @@ server <- function(input, output, session) {
               projections most be looked at."
           }
           output$plot_msg <- renderText(
-            app_html_red(this_msg)
+            app_html_red(this_char)
           )
           return()
-          
         }
       } ## end of training section evaluation
       
       ##### _rv$resp_tbl -----
       ## Write reponses and ttr to resp_tbl
-      if (section_nm() == "task" |
-          (section_nm() == "training" & task() %in% 1:2)) {
-        .ins_row_start <- which(rv$resp_tbl$factor  == factor_nm() &
-                                  rv$resp_tbl$task  == task() &
-                                  rv$resp_tbl$block == block())[1]
-        .ins_row_end   <- .ins_row_start + length(rv$task_response) - 1
-        .rows          <- .ins_row_start:.ins_row_end
+      if (section_nm() %in% c("task", "training")) {
+        ins_row <- which(rv$resp_tbl$factor  == factor_nm() &
+                           rv$resp_tbl$block == block())[1L]
         
         ## Is response concerning?
-        .task_concern <- "no"
+        task_concern <- "no"
         if (NA %in% rv$task_ttr){
-          .task_concern <- "YES, ttr contains NA. REMOVE."}
+          task_concern <- "YES, ttr contains NA. REMOVE."}
         if (min(rv$task_ttr) == "(default)" & !is.na(time_elapsed())){
-          .task_concern <- "Yes, ttr defaulted. Consider removing."}
-        if (max(rv$task_ttr) > task_time() + 30 &
+          task_concern <- "Some, ttr defaulted, answer not changed,."}
+        if (max(rv$task_ttr) > task_time() + 45L &
             !is.na(time_elapsed()) & factor_nm() == "task"){
-          .task_concern <- "YES, time elaspsed. REMOVE."}
-        if (task() == 2 & !is.na(time_elapsed())){
-          ab_inter <- intersect(input$tsk2_resp_very_ab, input$tsk2_resp_some_ab)
-          ab_inter_len <- length(ab_inter)
-          if (ab_inter_len > 0){
-            .task_concern <- "Some, task2 ab contains same var. 'somewhat' unselected by default"
-            ab_orig <- input$tsk2_resp_some_ab
-            ab_update <- ab_orig[!ab_orig %in% ab_inter]
-            .choices <- paste0("V", 1:p())
-            updateCheckboxGroupInput(session, "tsk2_resp_some_ab",
-                                     choices = .choices, selected = ab_update)
-          }
-          bc_inter <- intersect(input$tsk2_resp_very_bc, input$tsk2_resp_very_bc)
-          bc_inter_len <- length(bc_inter)
-          if (bc_inter_len > 0){
-            .task_concern <- "Some, task2 bc contains same var. 'somewhat' unselected by default"
-            bc_orig <- input$tsk2_resp_some_ab
-            bc_update <- bc_orig[!bc_orig %in% bc_inter]
-            .choices <- paste0("V", 1:p())
-            updateCheckboxGroupInput(session, "tsk2_resp_some_ab",
-                                     choices = .choices, selected = bc_update)
-          }
-        }
-        
-        ## task responses
-        .task_answer <- .task_score <- .line_score <- .clust_score <-
-          .intensity_score<- NA
-        if(task() == 1){
-          .task_answer[1] <- task1_ans()
-          .task_score[1]  <- task1_score()
-        }
-        if(task() == 2){
-          .vars_ls  <- list(task2_vars_very_ab(), task2_vars_some_ab(),
-                            task2_vars_very_bc(), task2_vars_some_bc())
-          .score_ls <- list(task2_score_very_ab(), task2_score_some_ab(),
-                            task2_score_very_bc(), task2_score_some_bc())
-          for (i in 1:4) {
-            .task_answer[i] <- app_vect2str(.vars_ls[[i]])
-            .line_score[i]  <- .score_ls[[i]]
-          }
-          for (i in 1:2){ ## 1&2, 3&4
-            .clust_score[i]      <- .line_score[2 * i - 1] + .line_score[2 * i]
-            .intensity_score[i]  <- .line_score[i] + .line_score[i + 2]
-          }
-          .task_score <- sum(.line_score)
-        }
+          task_concern <- "YES, time elaspsed + >45 sec. answer may not be reliable."}
         
         ## Did task time run out
-        .plot_elapsed <- NA
+        plot_elapsed <- NA
         if (section_nm() == "task"){
-          if (time_elapsed() >  task_time()) .plot_elapsed <- 1
-          if (time_elapsed() <= task_time()) .plot_elapsed <- 0
+          if (time_elapsed() >  task_time()) plot_elapsed <- 1L
+          if (time_elapsed() <= task_time()) plot_elapsed <- 0L
         }
         
-        rv$resp_tbl$pca_inter[.rows]       <- rv$pca_inter
-        rv$resp_tbl$manual_inter[.rows]    <- rv$manual_inter
-        rv$resp_tbl$resp_inter[.rows]      <- rv$resp_inter
-        rv$resp_tbl$plot_elapsed[.rows]    <- .plot_elapsed
-        rv$resp_tbl$ttr[.rows]             <- rv$task_ttr
-        rv$resp_tbl$response[.rows]        <- rv$task_response
-        rv$resp_tbl$answer[.rows]          <- .task_answer
-        rv$resp_tbl$score[.rows]           <- .task_score
-        rv$resp_tbl$line_score[.rows]      <- .line_score
-        rv$resp_tbl$clust_score[.rows]     <- "dont trust" ##.clust_score
-        rv$resp_tbl$intensity_score[.rows] <- "dont trust" ##.intensity_score
-        rv$resp_tbl$concern[.rows]         <- .task_concern
+        if(rv$pg == 3) browser()
+        rv$resp_tbl$pca_inter[ins_row]    <- rv$pca_inter
+        rv$resp_tbl$manual_inter[ins_row] <- rv$manual_inter
+        rv$resp_tbl$resp_inter[ins_row]   <- rv$resp_inter
+        rv$resp_tbl$plot_elapsed[ins_row] <- plot_elapsed
+        rv$resp_tbl$ttr[ins_row]          <- rv$task_ttr
+        rv$resp_tbl$response[ins_row]     <- task_resp
+        rv$resp_tbl$answer[ins_row]       <- task_ans
+        rv$resp_tbl$score[ins_row]        <- task_score
+        rv$resp_tbl$concern[ins_row]      <- task_concern
       } ## End of writing to resp_tbl
-      
+      cat("!!! ITERATED PG!!!")
       ### _New page ----
       ## Advance to the next page, reset variables
-      rv$pg <- rv$pg + 1
+      rv$pg <- rv$pg + 1L
       ## Reset responses, ttr, and timer for next task
       output$plot_msg     <- renderText("")
-      rv$pca_inter        <- 1L
-      rv$manual_inter     <- 1L
-      rv$resp_inter       <- 1L
+      rv$pca_inter        <- 0L
+      rv$manual_inter     <- 0L
+      rv$grand_inter      <- 0L
+      rv$resp_inter       <- 0L
       rv$task_response    <- NULL
       rv$task_ttr         <- NULL
       rv$task_answer      <- NULL
       rv$task_score       <- NULL
       rv$timer            <- task_time()
-      rv$stopwatch        <- 0
+      rv$stopwatch        <- 0L
       rv$timer_active     <- TRUE
       rv$training_aes     <- FALSE
       
       #if (rv$pg == survey_start_pg) shinyjs::hide("next_pg_button")
       
-      ## Clear task 1 response
-      if (section_nm() %in% c("task", "training") & task() == 1) {
-        updateNumericInput(session, "tsk1_resp", "",
-                           value = 0, min = 0, max = 10)
-      }
-      
       ## Set structure for writeing to resp_tbl
-      n_rows <- 0
-      if (task() == 1){n_rows <- 1}
-      if (task() == 2){n_rows <- 4}
-      if (section_nm() == "survey") {n_rows <- 1}
-      def <- "default"
-      if (task() == 1){def <- "0 (default)"}
-      if (task() == 2){def <- "none (default)"}
-      if (section_nm() == "survey") {def <- c(rep("decline to answer (default)", 3),
-                                              rep("5 (default)", n_survey_questions - 3))}
-      rv$task_response <- rep(def, n_rows)
-      rv$task_ttr <- rep("(default)", n_rows)
-      loggit("INFO", paste0("Next page:"),
-             cat("Wrote previous responses to rv$resp_tbl. Next page's page_info(): /n",
-                 page_info())
-      )
+      ## cluster seperation task:
+      ##TODO: responce table writing.
+      n_rows <- 1
+      def <- "none (default)"
+      if (section_nm() == "survey") {
+        def <- c(rep("decline to answer (default)", 3),
+                 rep("5 (default)", n_survey_questions - 3))
+      }
+      rv$task_response <- def
+      rv$task_ttr      <- "(default)"
+      loggit("INFO", paste0("Next page:"), pfbs())
+      cat("bottom of loop -- ")
     }
+    cat("after loop \n")
   })
   
   
@@ -1393,7 +1040,7 @@ server <- function(input, output, session) {
     if(rv$timer < 0 & section_nm() == "task" & rv$timer_active == TRUE){
       rv$timer_active <- FALSE
       loggit("INFO", "Timer elapsed.",
-             paste("factor,task,block,period:@", factor_nm(), task(), block(), period(), sep = ", "))
+             pfbs())
     }
   })
   
@@ -1417,7 +1064,6 @@ server <- function(input, output, session) {
   output$pg         <- reactive(rv$pg)        ## For hiding ui next_task button
   output$section_nm <- reactive(section_nm()) ## For ui between sections
   output$factor_nm  <- reactive(factor_nm())  ## For sidebar inputs
-  output$task       <- reactive(task())       ## For titles, and response inputs
   output$block      <- reactive(block())      ## For training ui
   output$section_pg <- reactive(section_pg()) ## For navigating training
   
@@ -1425,19 +1071,18 @@ server <- function(input, output, session) {
   outputOptions(output, "pg",         suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "section_nm", suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "factor_nm",  suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "task",       suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "block",      suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "section_pg", suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
   
   ### General task outputs
-  output$task_header     <- renderText(task_header())
-  output$pca_plot        <- renderPlot({pca_plot()}, height = pca_height)
-  output$gtour_plot      <- renderPlotly({suppressWarnings(gtour_plot())})
-  output$mtour_plot      <- renderPlot({mtour_plot()}, height = mtour_height)
-  output$resp_tbl        <- renderTable({rv$resp_tbl})
-  output$task2_ans_ptile <- renderPrint({task2_ans_ptile()})
-  output$task2_ans       <- renderPrint({task2_ans()})
-  output$task2_score     <- renderPrint({task2_score()})
+  output$task_header    <- renderText(task_header())
+  output$pca_plot       <- renderPlot({pca_plot()}, height = pca_height)
+  output$gtour_plot     <- renderPlotly({suppressWarnings(gtour_plot())})
+  output$mtour_plot     <- renderPlot({mtour_plot()}, height = mtour_height)
+  output$resp_tbl       <- renderTable({rv$resp_tbl})
+  output$task_ans_ptile <- renderPrint({task_ans_ptile()})
+  output$task_ans       <- renderPrint({task_ans()})
+  output$task_score     <- renderPrint({task_score()})
   
   ### Dev msg -----
   output$dev_msg <- renderPrint({
@@ -1445,10 +1090,15 @@ server <- function(input, output, session) {
         page_info(),
         task_header(),
         timer_info(),
-        pftb()
+        pfbs()
     )
   })
 } ## End server function
 
 ### Combine as shiny app.
 shinyApp(ui = ui, server = server)
+
+
+
+##### DEPRICATING: -----
+### old resp_tbl structure deleted.

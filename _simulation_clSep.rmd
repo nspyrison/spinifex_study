@@ -1,0 +1,259 @@
+---
+title: "Simulating data and it's cluster seperation"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup_condensed, include=F}
+## Setup
+library("knitr")
+knitr::opts_chunk$set(
+  echo      = F,
+  message   = FALSE, warning = FALSE, error = FALSE,
+  results   = "markup",                # Opts: "asis", "markup", "hold", "hide"
+  fig.align = "center",              # Opts: "left", "right", "center", "default"
+  fig.width = 8, fig.height = 5,
+  out.width = "100%",
+  fig.pos   = "h", out.extra   = "", # Figures forced closer to chunk location.
+  collapse  = TRUE, cache = FALSE, cache.lazy = FALSE
+)
+## Packages and functions
+require("spinifex")
+require("tourr")
+require("ggplot2")
+require("tibble")
+require("dplyr")
+source("./R/geom_lda_points.r")
+source("./R/ggproto_screeplot_pca.r")
+source("./R/ggproto_screeplot_clSep.r")
+source("./R/permutation_feature_importance.r")
+source("./R/MMP_clSep.r")
+source("./R/sim_pDim_kCl.r") ## Cluster levels stored in attribute "cl_lvl". Try attr(mySim, "cl_lvl")
+## Global init, and theme
+DO_REFRESH_FIGURES <- TRUE ## Causes sizable run time.
+set.seed(20200813)
+output_path <- "./output_sim_clSep/"
+theme_set(theme_minimal())
+palette(RColorBrewer::brewer.pal(8, "Dark2"))
+```
+
+```{r init}
+## Init for simulation; sim_pDim_kCl
+n_cl        <- list(100, 50, 50)
+mns         <- list(c(-10, 0, 0, 0, 0), c(10, 0, 0, 0, 0), rep(0, 5))
+p           <- length(mns[[1]])
+k_cl        <- length(n_cl)
+myCov       <- diag(p)
+diag(myCov) <- c(1, 3, 3, 15^2, 10^2)
+covs        <- c(rep(list(myCov), 2), list(64 * diag(p)))
+## Simulate and finish setup
+dat  <- sim_pDim_kCl(means = mns, sigmas = covs, cl_points = n_cl)
+clas <- attr(dat, "cl_lvl")
+lvls <- unique(clas)
+clas <- factor(clas, levels = lvls)
+dat  <- dat #%>% as.matrix %>% tourr::rescale() %>% as.data.frame()
+skimr::skim(dat)
+```
+
+# Simulation from sim_pDim_kCl()
+
+## View simulation
+
+```{r View}
+ls_cl_clmns  <- NULL
+ls_cl_cor    <- NULL
+ls_cl_ggcorr <- NULL
+ls_header    <- NULL
+for (i in 1:k_cl){
+  sub <- dat[clas == lvls[i], ]
+  ls_header[[i]] <- paste0("Cluster #", i, ", level: ", lvls[i])
+  ls_cl_clmns[[i]] <- colMeans(sub)
+  ls_cl_cor[[i]] <- cor(sub)
+  ls_cl_ggcorr[[i]] <- GGally::ggcorr(sub, label = TRUE, label_alpha = TRUE)
+}
+```
+
+### `r ls_header[[1]]`
+
+__column means:__
+```{r} 
+ls_cl_clmns[[1]]
+```
+
+__column ggcorr:__
+```{r} 
+ls_cl_ggcorr[[1]]
+```
+
+### `r ls_header[[2]]`
+
+__column means:__
+```{r} 
+ls_cl_clmns[[2]]
+```
+
+__column ggcorr:__
+```{r} 
+ls_cl_ggcorr[[2]]
+```
+
+### Cluster differneces; cluster 2 - cluster 1
+
+__column means:__
+```{r} 
+ls_cl_clmns[[2]] - ls_cl_clmns[[1]]
+```
+
+__column ggcorr:__
+```{r} 
+GGally::ggcorr(data = NULL,
+               cor_matrix = ls_cl_cor[[2]] - ls_cl_cor[[1]],
+               label = TRUE, label_alpha = TRUE)
+```
+
+## LDA
+```{r LDA}
+MASS::lda(dat, grouping = clas)
+if(length(unique(clas)) > 2)
+  ggplot() + geom_lda_points(dat, clas)
+```
+
+
+## PCA
+```{r PCA}
+prcomp(dat)
+ggplot() + ggproto_screeplot_pca(dat)
+```
+
+## clSep; orig, orig vs MMP, MMp
+
+__Original variable cluster seperation:__
+```{r clSepScreeplot}
+ggplot() + ggproto_screeplot_clSep(dat, clas) + theme_minimal()
+```
+
+__Original vs MMP cluster seperation:__
+```{r origxMMP}
+if (DO_REFRESH_FIGURES == TRUE) {
+  .gg <- ggplot() + ggproto_origxMMP_clSep(dat, clas)
+  ggsave(filename = paste0("origxMMP_clSep.png"),
+         plot = .gg,
+         path = output_path)
+}
+```
+![](output_sim_clSep/origxMMP_clSep.png)
+
+__MMP cluster seperation:__
+```{r MMP}
+if (DO_REFRESH_FIGURES == TRUE) {
+  .gg <- ggplot2::ggplot() + ggproto_MMP_clSep(dat, clas)
+  ggsave(filename = paste0("MMP_clSep.png"),
+         plot = .gg,
+         path = output_path)
+}
+```
+![](output_sim_clSep/MMP_clSep.png)
+
+
+# As factors in the user study
+
+## Answer
+```{r mmpAnswerLines}
+if (DO_REFRESH_FIGURES == TRUE) {
+ .gg <- ggplot2::ggplot() + ggproto_MMP_clSep(dat, clas, do_overlay_answer = TRUE)
+  ggsave(filename = paste0("MMP_clSep_answers.png"),
+         plot = .gg,
+         path = output_path)
+}
+```
+![](output_sim_clSep/MMP_clSep_answers.png)
+
+## PCA
+```{r factorPCA}
+if (DO_REFRESH_FIGURES == TRUE) {
+  dat_pca_rot  <- prcomp(dat)$rotation
+  proj_dat_pca <- as.data.frame(as.matrix(dat) %*% dat_pca_rot)
+  
+  .gg <- GGally::ggpairs(proj_dat_pca[, 1:4],
+                         title = "ggpairs of PC1:4 for simulation_data301",
+                         ggplot2::aes(colour = clas)) +
+    ggplot2::scale_color_manual(values = palette()[1:k_cl]) +
+    ggplot2::scale_fill_manual( values = palette()[1:k_cl])
+  
+  ggplot2::ggsave(filename = "ggpairs_sim.png",
+                  plot = .gg,
+                  path = output_path)
+}
+```
+![](output_sim_clSep/ggpairs_sim.png)
+
+## Manual tour (radial)
+
+```{r factorManual}
+if (DO_REFRESH_FIGURES == TRUE) {
+  pca_bas <- as.matrix(prcomp(dat)$rotation[, 1:2])
+  for (i in 1:ncol(dat)){
+    play_manual_tour(basis = pca_bas,
+                     data = dat,
+                     fps = 9L,
+                     manip_var = i,
+                     render_type = render_gganimate, 
+                     col = clas, pch = clas,
+                     axes = "left",
+                     gif_filename = paste0("radialTour_sim_mvar", i, ".gif"),
+                     gif_path = output_path) +
+      scale_color_manual(values = palette()[1:k_cl]) +
+      spinifex::theme_spinifex()
+  }
+}
+```
+![](output_sim_clSep/radialTour_sim_mvar1.gif)
+![](output_sim_clSep/radialTour_sim_mvar2.gif)
+![](output_sim_clSep/radialTour_sim_mvar3.gif)
+![](output_sim_clSep/radialTour_sim_mvar4.gif)
+![](output_sim_clSep/radialTour_sim_mvar5.gif)
+![](output_sim_clSep/radialTour_sim_mvar6.gif)
+
+## Grand tour
+
+```{r factorGrand}
+if (DO_REFRESH_FIGURES == TRUE) {
+  dat_std <- tourr::rescale(dat)
+  tpath <- save_history(dat_std, tour_path = grand_tour(), max = 7)
+  
+  .gg <- play_tour_path(tour_path = tpath, data = dat, angle = .08, fps = 5,
+                        render_type = render_gganimate, col = clas, pch = clas, 
+                        axes = "left",
+                        gif_filename = "grandTour_sim_max7fps5.gif",
+                        gif_path = output_path) +
+    scale_color_manual(values = palette()[1:k_cl]) +
+    spinifex::theme_spinifex()
+}
+```
+![](output_sim_clSep/grandTour_sim_max7fps5.gif)
+
+
+# Apendix
+
+## ClSep of Single-variable permutations (sim_pDim_kCl)
+
+```{r permFeatImp}
+if (DO_REFRESH_FIGURES == TRUE) {
+  for (i in 1:p) {
+    .gg <- ggplot() + ggproto_rep_permute_var_clSep(data = dat, class = clas, permute_rank_num = i)
+    ggsave(filename = paste0("permute_clSep", i, ".png"),
+           plot = .gg,
+           path = output_path)
+  }
+}
+```
+![](output_sim_clSep/permute_clSep1.png)
+![](output_sim_clSep/permute_clSep2.png)
+![](output_sim_clSep/permute_clSep3.png)
+![](output_sim_clSep/permute_clSep4.png)
+![](output_sim_clSep/permute_clSep5.png)
+
