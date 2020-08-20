@@ -56,7 +56,7 @@ df_scree_MMP_clSep <- function(data,
     .ord <- order(df_MMP$MMP_clSep, decreasing = TRUE)
     df_MMP <- df_MMP[.ord, ]
     df_MMP$cumsum_MMP_clSep <- cumsum(df_MMP$MMP_clSep)
-    df_MMP$var <- factor(x = df_MMP$var, levels = unique(df_MMP$var))
+    df_MMP$var <- as.factor(x = df_MMP$var)
   }
   
   df_MMP

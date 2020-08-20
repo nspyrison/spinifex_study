@@ -12,7 +12,7 @@ editor_options:
 ## Setup
 library("knitr")
 knitr::opts_chunk$set(
-  echo = F,
+  echo      = F,
   message   = FALSE, warning = FALSE, error = FALSE,
   results   = "markup",                # Opts: "asis", "markup", "hold", "hide"
   fig.align = "center",              # Opts: "left", "right", "center", "default"
@@ -21,10 +21,7 @@ knitr::opts_chunk$set(
   fig.pos   = "h", out.extra   = "", # Figures forced closer to chunk location.
   collapse  = TRUE, cache = FALSE, cache.lazy = FALSE
 )
-```
-
-```{r init}
-## Initialize
+## Packages and functions
 require("spinifex")
 require("tourr")
 require("ggplot2")
@@ -36,41 +33,30 @@ source("./R/ggproto_screeplot_clSep.r")
 source("./R/permutation_feature_importance.r")
 source("./R/MMP_clSep.r")
 source("./R/sim_pDim_kCl.r") ## Cluster levels stored in attribute "cl_lvl". Try attr(mySim, "cl_lvl")
-
+## Global init, and theme
+DO_REFRESH_FIGURES <- TRUE ## Causes sizable run time.
 set.seed(20200813)
+output_path <- "./output_sim_clSep/"
 theme_set(theme_minimal())
 palette(RColorBrewer::brewer.pal(8, "Dark2"))
-DO_REFRESH_FIGURES <- TRUE ## Causes sizable run time.
-output_path <- "./output_sim_clSep/"
+```
 
-
+```{r init}
 ## Init for simulation; sim_pDim_kCl
-n_cl <- list(66, 33)
-p <- 6
-mns <- list(rgamma(p, .5), rgamma(p, .5))
-any(lapply(mns, max) > 3)
-diag_p <- diag(p)
-diag(diag_p) <- rnorm(n = p, sd = 2)
-indx_ut <- upper.tri(diag_p)
-indx_lt <- lower.tri(diag_p)
-len_ut <- sum(indx_ut)
-
-## Make symetric cov matrices
-cov1 <- cov2 <- diag_p
-cov1[indx_ut] <- rnorm(len_ut, sd = .3)
-cov1[indx_lt] <- t(cov1)[indx_lt]
-cov2[indx_ut] <- rnorm(len_ut, sd = .3)
-cov2[indx_lt] <- t(cov2)[indx_lt]
-covs <- list(cov1, cov2)
-
-dat <- sim_pDim_kCl(means = mns, sigmas = covs, cl_points = n_cl)
-
+n_cl        <- list(100, 50, 50)
+mns         <- list(c(-10, 0, 0, 0, 0), c(10, 0, 0, 0, 0), rep(0, 5))
+p           <- length(mns[[1]])
+k_cl        <- length(n_cl)
+myCov       <- diag(p)
+diag(myCov) <- c(1, 3, 3, 15^2, 10^2)
+covs        <- c(rep(list(myCov), 2), list(64 * diag(p)))
+## Simulate and finish setup
+dat  <- sim_pDim_kCl(means = mns, sigmas = covs, cl_points = n_cl)
 clas <- attr(dat, "cl_lvl")
-clas <- factor(clas, levels = unique(clas))
-lvls <- levels(clas)
-p    <- ncol(dat)
-k_cl <- length(unique(clas))
-dat  <- dat %>% as.matrix %>% tourr::rescale() %>% as.data.frame()
+lvls <- unique(clas)
+clas <- factor(clas, levels = lvls)
+dat  <- dat #%>% as.matrix %>% tourr::rescale() %>% as.data.frame()
+skimr::skim(dat)
 ```
 
 # Simulation from sim_pDim_kCl()
@@ -220,7 +206,8 @@ if (DO_REFRESH_FIGURES == TRUE) {
                      axes = "left",
                      gif_filename = paste0("radialTour_sim_mvar", i, ".gif"),
                      gif_path = output_path) +
-    scale_color_manual(values = palette()[1:k_cl])
+      scale_color_manual(values = palette()[1:k_cl]) +
+      spinifex::theme_spinifex()
   }
 }
 ```
@@ -243,7 +230,8 @@ if (DO_REFRESH_FIGURES == TRUE) {
                         axes = "left",
                         gif_filename = "grandTour_sim_max7fps5.gif",
                         gif_path = output_path) +
-   scale_color_manual(values = palette()[1:k_cl])
+    scale_color_manual(values = palette()[1:k_cl]) +
+    spinifex::theme_spinifex()
 }
 ```
 ![](output_sim_clSep/grandTour_sim_max7fps5.gif)

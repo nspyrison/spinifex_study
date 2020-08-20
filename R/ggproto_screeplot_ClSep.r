@@ -50,8 +50,7 @@ df_scree_clSep <- function(data,
   clSep_rate <- t(a_clSep[ord])
   if (do_scale_clSep == TRUE) clSep_rate <- clSep_rate / sum(clSep_rate)
   colnames(clSep_rate) <- colnames(clSep)[ord]
-  vars_fct <- factor(x = colnames(clSep_rate), 
-                     levels = unique(colnames(clSep_rate)))
+  vars_fct <- as.factor(x = colnames(clSep_rate))
   
   ## Return data frame of scree table for cluster seperation
   data.frame(data_colnum = (1:p)[ord],
