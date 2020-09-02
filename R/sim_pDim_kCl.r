@@ -13,25 +13,36 @@
 #' to the rows and columns, Such that cluster rows are not all together and 
 #' signal columns are not in the same order.
 #' @examples 
-#' mns <- list(c(10, 3, rep(0, 3)), c(2, 1, rep(0, 3)))
+#' mns <- list(c(8, 2, rep(0, 3)), rep(0, 5))
 #' covs <- list(diag(5), diag(5))
 #' sim_pDim_kCl(means = mns, sigmas = covs)
 #' 
 #' sim_pDim_kCl(means = mns, sigmas = covs, cl_points = list(200, 50),
 #'              method = "svd", do_shuffle = FALSE)
 #'              
-#' x <-  sim_pDim_kCl(means = mns, sigmas = covs)
+#' x <- sim_pDim_kCl(means = mns, sigmas = covs)
 #' clas <- attr(x, "cl_lvl")
 #' GGally::ggpairs(x, ggplot2::aes(color = clas))
+#' 
+#' ## making a non-trivial cov.
+#' mns <- list(runif(5, 1, 5), rep(0, 5))
+#' p <- length(mns[[1]])
+#' A <- matrix(runif(p^2) * 2 - 1, ncol = p) 
+#' cov1 <- t(A) %*% A
+#' A2 <- matrix(runif(p^2) * 2 - 1, ncol = p) 
+#' cov2 <- t(A) %*% A
+#' covs <- list(cov1, cov2)
+#' 
+#' sim_pDim_kCl(means = mns, sigmas = covs)
 sim_pDim_kCl <- function(means, 
                          sigmas,
                          cl_points = rep(list(100), length(means)),
-                         method = c("eigen", "svd", "chol"),
+                         method = c("eigen", "svd", "chol", "d"),
                          do_shuffle = TRUE
 ) {
+  method <- match.arg(method)
   means  <- as.list(means)
   sigmas <- as.list(sigmas)
-  method <- match.arg(method)
   cl_points <- as.list(cl_points)
   p <- length(means[[1]])
   k <- length(means)
@@ -60,7 +71,11 @@ sim_pDim_kCl <- function(means,
     if (isSymmetric.matrix(.cov) == FALSE) stop(paste0("sigma[[", i, "]] is not a symetric matrix, all covariance metrices must be symetric and positive definate."))
     
     ## Sample and store outputs
-    .k <- mvtnorm::rmvnorm(n = .n, mean = .mn, sigma = .cov, method = method)
+    if(method == "d"){
+      .k <- mvtnorm::dmvnorm(n = .n, mean = .mn, sigma = .cov)
+    } else {
+      .k <- mvtnorm::rmvnorm(n = .n, mean = .mn, sigma = .cov, method = method)
+    }
     df_sim <- rbind(df_sim, .k)
     cl_means[[i]]  <- as.vector(colMeans(.k))
     cl_sigmas[[i]] <- cov(.k)
