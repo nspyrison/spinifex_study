@@ -43,6 +43,8 @@ sim_pDim_kCl <- function(means,
   method <- match.arg(method)
   means  <- as.list(means)
   sigmas <- as.list(sigmas)
+  if(length(cl_points) == 1 & is.numeric(cl_points) == TRUE)
+    cl_points <- rep(list(cl_points), length(means))
   cl_points <- as.list(cl_points)
   p <- length(means[[1]])
   k <- length(means)
