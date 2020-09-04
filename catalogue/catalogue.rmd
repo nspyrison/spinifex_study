@@ -2,10 +2,9 @@
 title: "Simulating data and it's cluster seperation"
 output:
   html_document:
-  toc: true
-toc_depth: 3
-# editor_options:
-#   chunk_output_type: console
+    #code_folding: hide
+    toc: true
+    toc_depth: 3
 ---
 ```{r setup_condensed, include=F}
 ## Setup
@@ -15,16 +14,22 @@ require("tourr")
 require("ggplot2")
 require("tibble")
 require("dplyr")
+
 ## For kniting
-try(source("../R/geom_lda_points.r"), silent = T)
 try(source("../R/ggproto_screeplot_pca.r"), silent = T)
 try(source("../R/ggproto_screeplot_clSep.r"), silent = T)
 try(source("../R/MMP_clSep.r"), silent = T)
-## For local
-try(source("./R/geom_lda_points.r"), silent = T)
+try(source("../R/geom_lda_points.r"), silent = T)
+try(source("../R/ggpcapairs.r"), silent = T)
+
+## For console
 try(source("./R/ggproto_screeplot_pca.r"), silent = T)
 try(source("./R/ggproto_screeplot_clSep.r"), silent = T)
 try(source("./R/MMP_clSep.r"), silent = T)
+try(source("./R/geom_lda_points.r"), silent = T)
+try(source("./R/geom_lda_points.r"), silent = T)
+try(source("./R/ggpcapairs.r"), silent = T)
+
 knitr::opts_chunk$set(
   echo      = FALSE,
   include   = TRUE,
@@ -40,22 +45,20 @@ knitr::opts_chunk$set(
 ## Global init, and theme
 top_n_manual_tours <- 3 ## keeps run time and length of content resonable.
 permutation_reps <- 100
-DO_GENERATION_RADIAL_TOURS <- F
-output_path <- "./output_catalogue/"
+## Make radial tours manually from console
 set.seed(20200903)
 theme_set(theme_minimal())
 palette(RColorBrewer::brewer.pal(8, "Dark2"))
 
-## {mclust} setup
+## Load rmvnorm sims
 if(F) ## For generation see this file:
-  file.edit("./catalogue/sim_mclust.r") ## Local only
+  file.edit("./catalogue/sim_mvnorm.r") ## Local only
 ## Load data
-obj_nms <- c("sim_eii", "sim_eee", "sim_vvv")
+obj_nms <- c("sim_VII", "sim_EEE", "sim_VVV")
 i_s <- 1:length(obj_nms)
 for(i in i_s){
-  try(load(file = paste0("./simulations/", obj_nms[i], ".rds")), silent = T)
-  try(load(file = paste0("./catalogue/simulations/", obj_nms[i], ".rds")), 
-      silent = T)
+  try(load(file = paste0("./simulations/", obj_nms[i], ".rda")), silent = T)
+  try(load(file = paste0("./catalogue/simulations/", obj_nms[i], ".rda")), silent = T)
 }
 ## Context -- simulation information
 sim1 <- get(obj_nms[1])
@@ -63,7 +66,7 @@ p    <- ncol(sim1)
 k_cl <- length(unique(sim1[, 1]))
 ```
 
-# {mclust} models EII, EEE, and VVV
+# Models VII, EEE, and VVV
 
 All models simulated with `r p` dimensions and `r k_cl` clusters. Manual tours for the top `r top_n_manual_tours` variables (in terms of MMP cluster seperation).
 
@@ -71,32 +74,15 @@ All models simulated with `r p` dimensions and `r k_cl` clusters. Manual tours f
 ```{r}
 for(i in i_s){
   ## Initialize
-  sim_nm  <- obj_nms[i]
-  sim <- get(sim_nm)
-  model_nm <- attr(sim,"modelName")
-  dat <- sim[, -1]
-  clas <- as.factor(sim[, 1])
+  sim_nm   <- obj_nms[i]
+  model_nm <- substr(sim_nm, 5, 7)
+  dat  <- get(sim_nm)
+  clas <- attr(dat, "cl_lvl")
   
   #debugonce(ggproto_MMP_clSep)
   ## MMP ClSep
+  print(paste0(sim_nm, ":"))
   print(ggplot() + ggproto_MMP_clSep(dat, clas, n_reps = permutation_reps))
-  # ## Group means
-  # agg <- sim %>%
-  #   as_tibble() %>%
-  #   group_by(group) %>% 
-  #   summarise(
-  #     mn1  = mean(x1),
-  #     mn2  = mean(x2),
-  #     mn3  = mean(x3),
-  #     mn4  = mean(x4),
-  #     mn5  = mean(x5),
-  #     mn6  = mean(x6),
-  #     mn7  = mean(x7),
-  #     mn8  = mean(x8),
-  #     mn9  = mean(x9),
-  #     mn10 = mean(x10)
-  #   )
-  # print(agg)
 }
 ```
 
@@ -104,28 +90,31 @@ for(i in i_s){
 ```{r pca}
 for(i in i_s) {
   ## Initialize
-  sim_nm  <- obj_nms[i]
-  sim <- get(sim_nm)
-  model_nm <- attr(sim,"modelName")
-  dat <- sim[, -1]
-  clas <- as.factor(sim[, 1])
+  sim_nm   <- obj_nms[i]
+  model_nm <- substr(sim_nm, 5, 7)
+  dat  <- get(sim_nm)
+  clas <- attr(dat, "cl_lvl")
   
   ## PCA
-  print(prcomp(dat)$rotation)
-  print(ggplot() + ggproto_screeplot_pca(dat))
+  print(paste0(sim_nm, ":"))
+  print(round(prcomp(dat)$rotation, 2))
+  print(ggpcapairs(x = dat, class = clas, top_n = 3) +
+    ggplot2::scale_color_manual(values = palette()[1:k_cl]) +
+    ggplot2::scale_fill_manual( values = palette()[1:k_cl]))
+  #print(ggplot() + ggproto_screeplot_pca(dat))
 }
 ```
 
 ## Manual tours
 ```{r manual_tours}
-if(DO_GENERATION_RADIAL_TOURS == TRUE){
+if(F){
+  console_path <- "./catalogue/images/"
   for(i in i_s) {
     ## Initialize
-    sim_nm  <- obj_nms[i]
-    sim <- get(sim_nm)
-    model_nm <- attr(sim,"modelName")
-    dat <- sim[, -1]
-    clas <- as.factor(sim[, 1])
+    sim_nm   <- obj_nms[i]
+    model_nm <- substr(sim_nm, 5, 7)
+    dat  <- get(sim_nm)
+    clas <- attr(dat, "cl_lvl")
     
     ## Manual tours
     pca_bas <- as.matrix(prcomp(dat)$rotation[, 1:2])
@@ -141,7 +130,7 @@ if(DO_GENERATION_RADIAL_TOURS == TRUE){
                        axes = "left",
                        gif_filename = paste0("radialTour_", sim_nm, 
                                              "_mvar", tour_manip_nums[i], ".gif"),
-                       gif_path = output_path,
+                       gif_path = console_path,
                        ggtheme = list(
                          scale_color_manual(values = palette()[1:k_cl]),
                          theme_void()
@@ -149,25 +138,39 @@ if(DO_GENERATION_RADIAL_TOURS == TRUE){
       )
     } ## End of for radial tour creation loop
   } ## End of for groups loop
-} ## End of if DO_GENERATION_RADIAL_TOURS
+} ## End of if(F), don't run.
 ```
-<!-- ![](output_sim_clSep/radialTour_sim_mvar1.gif) -->
-<!-- ![](output_sim_clSep/radialTour_sim_mvar1.gif) -->
-<!-- ![](output_sim_clSep/radialTour_sim_mvar1.gif) -->
-<!-- ![](output_sim_clSep/radialTour_sim_mvar1.gif) -->
 
+All manual tours start from PCA initalized basis.
+
+VII:
+
+![](images/radialTour_sim_VII_mvar2.gif)
+![](images/radialTour_sim_VII_mvar1.gif)
+
+
+EEE:
+
+![](images/radialTour_sim_EEE_mvar1.gif)
+![](images/radialTour_sim_EEE_mvar2.gif)
+
+
+VVV:
+
+![](images/radialTour_sim_VVV_mvar1.gif)
+![](images/radialTour_sim_VVV_mvar2.gif)
 
 ## LDA 
 ```{r lda}
-  for(i in i_s) {
-    ## Initialize
-    sim_nm  <- obj_nms[i]
-    sim <- get(sim_nm)
-    model_nm <- attr(sim,"modelName")
-    dat <- sim[, -1]
-    clas <- as.factor(sim[, 1])
-    
+for(i in i_s) {
+  ## Initialize
+  sim_nm   <- obj_nms[i]
+  model_nm <- substr(sim_nm, 5, 7)
+  dat  <- get(sim_nm)
+  clas <- attr(dat, "cl_lvl")
+  
   ## LDA
+  print(paste0(sim_nm, ":"))
   MASS::lda(dat, grouping = clas)
   if(length(unique(clas)) > 2){
     print(ggplot() + geom_lda_points(dat, clas))
@@ -179,10 +182,10 @@ if(DO_GENERATION_RADIAL_TOURS == TRUE){
 
 Scrucca, Luca, Michael Fop, T. Brendan Murphy, and Adrian E. Raftery. "Mclust 5: Clustering, Classification and Density Estimation Using Gaussian Finite Mixture Models." The R Journal 8, no. 1 (August 2016): 289-317.
 
-## Table 3 
-![](../images/mclust_table3.png)
+## mclust paper, Table 3 
+![](./images/mclust_table3.png)
 
-## Figure 2
-![](../images/mclust_figure2.png)
+## mclust paper, Figure 2
+![](./images/mclust_figure2.png)
 
 

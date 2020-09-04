@@ -12,7 +12,7 @@ editor_options:
 ## Setup
 library("knitr")
 knitr::opts_chunk$set(
-  echo      = F,
+  echo      = FALSE,
   message   = FALSE, warning = FALSE, error = FALSE,
   results   = "markup",              # Opts: "asis", "markup", "hold", "hide"
   fig.align = "center",              # Opts: "left", "right", "center", "default"
@@ -180,11 +180,11 @@ if (DO_REFRESH_FIGURES == TRUE) {
   proj_dat_pca <- as.data.frame(as.matrix(dat) %*% dat_pca_rot)
   
   .GG <- GGally::ggpairs(proj_dat_pca[, 1:4],
-                  title = "ggpairs of PC1:4 for simulation_data301",
-                  ggplot2::aes(colour = clas))# +
-    # ggplot2::scale_color_manual(values = palette()[1:k_cl]) +
-    # ggplot2::scale_fill_manual( values = palette()[1:k_cl])
-
+                         title = "ggpairs of PC1:4 for simulation_data301",
+                         ggplot2::aes(colour = clas)) +
+    ggplot2::scale_color_manual(values = palette()[1:k_cl]) +
+    ggplot2::scale_fill_manual( values = palette()[1:k_cl])
+  
   ggplot2::ggsave(filename = "ggpairs_sim.png",
                   plot = .gg,
                   path = output_path)

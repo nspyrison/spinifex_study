@@ -2,6 +2,7 @@
 title: "Evaluating task and vet sim difficulty."
 output:
   html_document:
+    # code_folding: hide
     toc: true
     toc_depth: 2
 editor_options:
@@ -201,7 +202,7 @@ $$marks = \sum_{i=1}^{p} I(response_i) * sgn(diff_i) * \sqrt{|diff_i|}$$
 
 ```{r answerWeights, results="hold"}
 ## MMP clSep
-df_MMP <- df_scree_MMP_clSep(dat, clas, do_reorder_by_MMP = TRUE)
+df_MMP <- df_scree_MMP_clSep(dat, clas)
 ## Add example response, cause not working in mutate...
 df_MMP$exampleResponse <- c(1, 1, 0, 1, 0, 1)
 bar_unif <- 1 / p
