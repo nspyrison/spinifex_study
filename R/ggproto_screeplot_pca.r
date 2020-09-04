@@ -11,7 +11,7 @@ df_scree_pca <- function(data,
   
   ## PCA VARIANCE EXPLAINED
   pca_obj <- prcomp(data)
-  data.frame(pc_num = paste0("PC", 1:p),
+  data.frame(pc_num = factor(paste0("PC", 1:p), levels = paste0("PC", 1:p)),
              PC_var = pca_obj$sdev^2 / sum(pca_obj$sdev^2),
              cumsum_var = cumsum(pca_obj$sdev^2) / sum(pca_obj$sdev^2)
   )

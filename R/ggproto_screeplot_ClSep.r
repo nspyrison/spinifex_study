@@ -17,24 +17,23 @@ df_scree_clSep <- function(data,
                            do_scale_clSep = TRUE) {
   if(do_rescale == TRUE) data <- tourr::rescale(data)
   data <- as.data.frame(data)
+  class <- as.factor(class)
   n <- nrow(data)
   p <- ncol(data)
-  .tgt_lvls <- levels(as.factor(class))[c(num_class_lvl_a, num_class_lvl_b)]
+  .tgt_lvls <- levels(class)[c(num_class_lvl_a, num_class_lvl_b)]
   
   ## Find Cluster means
-  ls_clMns_ab <- list()
-  ls_clCov_ab <- list()
-  ls_clObs_ab <- list()
+  ls_clMns_ab <- ls_clCov_ab <- ls_clObs_ab <- list()
   for (i in 1:length(.tgt_lvls)) {
     .lvl_nm <- class == .tgt_lvls[i]
     .lvl_df <- data[.lvl_nm, ]
     ls_clMns_ab[[i]] <- colMeans(.lvl_df)
     ls_clCov_ab[[i]] <- cov(.lvl_df)
-    ls_clObs_ab[[i]]     <- nrow(.lvl_df)
+    ls_clObs_ab[[i]] <- nrow(.lvl_df)
   }
   
-  ##### Close to Fisher's linear discriminant
-  #### Like LDA, but doesn't assume equal covariances within group
+  ##### Close to Fisher's linear discriminant, 
+  #### but doesn't assume equal covariances within group
   ## p-dim vector, different of cluster means
   .numerator_vect <- matrix((ls_clMns_ab[[2]] - ls_clMns_ab[[1]]), ncol = p) 
   ## Pooled covariances of the groups. Note that FDA sums the within cluster cov rather than pooling it.
@@ -46,11 +45,10 @@ df_scree_clSep <- function(data,
   
   ## Looking at magnidue seperation alone:
   a_clSep <- abs(clSep)
-  ord <- order(a_clSep, decreasing = T)
+  ord <- order(a_clSep, decreasing = TRUE)
   clSep_rate <- t(a_clSep[ord])
   if (do_scale_clSep == TRUE) clSep_rate <- clSep_rate / sum(clSep_rate)
-  colnames(clSep_rate) <- colnames(clSep)[ord]
-  vars_fct <- as.factor(x = colnames(clSep_rate))
+  vars_fct <- as.factor(colnames(clSep)[ord])
   
   ## Return data frame of scree table for cluster seperation
   data.frame(data_colnum = (1:p)[ord],

@@ -1,6 +1,6 @@
 ## CAREFUL WITH SOURCING HERE BEACAUSE RELATIVE PATHS FOR KNITTING .RMD
-try(source("./R/permutation_feature_importance.r"))
-try(source("../R/permutation_feature_importance.r"))
+try(source("./R/permutation_feature_importance.r"),  silent = T)
+try(source("../R/permutation_feature_importance.r"), silent = T) ## Relative, kniting
 
 #' Produces a data frame of the mean, mean permuted cluster seperation. 
 #' Doesn't calculate Cummulative or order by MMP clSep
@@ -11,22 +11,22 @@ try(source("../R/permutation_feature_importance.r"))
 #' df_scree_MMP_clSep(dat, clas)
 #' 
 #' df_scree_MMP_clSep(data = dat, class = clas, num_class_lvl_a = 2, 
-#'                    num_class_lvl_b = 3, n_reps = 250, do_reorder_by_MMP = TRUE)
+#'                    num_class_lvl_b = 3, n_reps = 250)
 df_scree_MMP_clSep <- function(data,
                                class,
                                num_class_lvl_a = 1,
                                num_class_lvl_b = 2,
                                n_reps = 500,
-                               do_rescale = TRUE,
-                               do_reorder_by_MMP = FALSE) {
+                               do_rescale = TRUE) {
   require("magrittr") ## For %>% namespace.
+  require("dplyr")
   data <- as.data.frame(data)
   p <- ncol(data)
   ## clSep on original dataset
   df_orig_clSep <- 
     df_scree_clSep(data, class, num_class_lvl_a, num_class_lvl_b, do_rescale)
   df_orig_clSep$var_rank_num <- 1:p
-  var_rank_lookup <- df_orig_clSep[c("var", "var_rank_num")]
+  var_rank_lookup <- df_orig_clSep[c("data_colnum", "var", "var_rank_num")]
   
   ## clSep on all permuted datasets
   df_mean_perm <- NULL
@@ -53,15 +53,14 @@ df_scree_MMP_clSep <- function(data,
     dplyr::summarise(.groups = "drop_last",
                      MMP_clSep = mean(mean_perm_clSep))
   
-  if(do_reorder_by_MMP == TRUE){
-    ## Order and find cummulative
-    ord <- order(df_MMP$MMP_clSep, decreasing = TRUE)
-    df_MMP <- df_MMP[ord, ]
-    df_MMP$cumsum_MMP_clSep <- cumsum(df_MMP$MMP_clSep)
-    df_MMP$var <- as.factor(x = df_MMP$var)
-  }
+  ## Order and find cummulative
+  ord <- order(df_MMP$MMP_clSep, decreasing = TRUE)
+  df_MMP <- df_MMP[ord, ]
+  df_MMP$cumsum_MMP_clSep <- cumsum(df_MMP$MMP_clSep)
+  df_MMP$var <- factor(df_MMP$var, levels = df_MMP$var)
   
-  df_MMP
+  ## Return 
+  as.data.frame(df_MMP)
 }
 
 #' Produces a ggproto object; side-by-side bars of the original clSep and the
@@ -82,7 +81,7 @@ ggproto_origxMMP_clSep <- function(data,
                                    class,
                                    num_class_lvl_a = 1,
                                    num_class_lvl_b = 2,
-                                   n_reps = 500,
+                                   n_reps = 200,
                                    do_rescale = TRUE) {
   require("magrittr") ## For %>% namespace.
   ## clSep on original dataset
@@ -91,7 +90,7 @@ ggproto_origxMMP_clSep <- function(data,
   df_orig_clSep$var_rank_num <- 1:ncol(data)
   ## MMP_clSep
   df_MMP <- df_scree_MMP_clSep(data, class, num_class_lvl_a, num_class_lvl_b,
-                               n_reps, do_reorder_by_MMP = FALSE, do_rescale)
+                               n_reps, do_rescale)
   ## Left join aggregated permuted data
   df_lj_origxMMP <-
     dplyr::left_join(df_orig_clSep, df_MMP, by = "var") %>% 
@@ -102,11 +101,10 @@ ggproto_origxMMP_clSep <- function(data,
                         names_to = "clSep_type", values_to = "clSep")
   ## Factor with level ordering, variable order
   df_long_origxMMP$clSep_type <- factor(df_long_origxMMP$clSep_type, 
-                                        levels = c("var_clSep", "MMP_clSep")
-                                        )
+                                        levels = c("var_clSep", "MMP_clSep"))
   ## Variable order on MMP_clSep
-  .ord <- order(df_long_origxMMP$MMP_clSep, decreasing = TRUE)
-  df_long_origxMMP <- df_long_origxMMP[.ord, ]
+  ord <- order(df_long_origxMMP$MMP_clSep, decreasing = TRUE)
+  df_long_origxMMP <- df_long_origxMMP[ord, ]
   
   ## Initalize color handling
   lab_col  <- c("original", "MMP") ## Cummulative: geom_pt & geom_line colors; orig, adj LMP
@@ -174,10 +172,7 @@ ggproto_MMP_clSep <- function(data,
   require("magrittr") ## For %>% namespace.
   ## MMP_clSep
   df_MMP <- df_scree_MMP_clSep(data, class, num_class_lvl_a, num_class_lvl_b,
-                               n_reps, do_reorder_by_MMP = TRUE, do_rescale)
-  ## Variable order on MMP_clSep
-  .ord <- order(df_MMP$MMP_clSep, decreasing = TRUE)
-  df_MMP <- df_MMP[.ord, ]
+                               n_reps, do_rescale)
   
   ## List of ggproto objects
   lab_fill <- "Variable MMP"
