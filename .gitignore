@@ -3,7 +3,6 @@
 .RData
 .Ruserdata
 .httr-oauth
-
 output_sim_clSep/
 output_SimDifficulty/
 #**.html
