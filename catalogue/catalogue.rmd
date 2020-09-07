@@ -14,51 +14,43 @@ require("tourr")
 require("ggplot2")
 require("tibble")
 require("dplyr")
-
-## For kniting
-try(source("../R/ggproto_screeplot_pca.r"), silent = T)
-try(source("../R/ggproto_screeplot_clSep.r"), silent = T)
-try(source("../R/MMP_clSep.r"), silent = T)
-try(source("../R/geom_lda_points.r"), silent = T)
-try(source("../R/ggpcapairs.r"), silent = T)
-
-## For console
-try(source("./R/ggproto_screeplot_pca.r"), silent = T)
-try(source("./R/ggproto_screeplot_clSep.r"), silent = T)
-try(source("./R/MMP_clSep.r"), silent = T)
-try(source("./R/geom_lda_points.r"), silent = T)
-try(source("./R/geom_lda_points.r"), silent = T)
-try(source("./R/ggpcapairs.r"), silent = T)
-
 knitr::opts_chunk$set(
   echo      = FALSE,
   include   = TRUE,
   message   = FALSE, warning = FALSE, error = FALSE,
-  results   = "markup",              # Opts: "asis", "markup", "hold", "hide"
-  fig.align = "center",              # Opts: "left", "right", "center", "default"
+  results   = "markup",              ## Opts: "asis", "markup", "hold", "hide"
+  fig.align = "center",              ## Opts: "left", "right", "center", "default"
   fig.width = 8, fig.height = 5,
   out.width = "100%",
-  fig.pos   = "h", out.extra   = "", # Figures forced closer to chunk location.
+  fig.pos   = "h", out.extra   = "", ## Figures forced closer to chunk location.
   collapse  = TRUE, cache = TRUE, cache.lazy = FALSE
 )
+## Set global knit options in Tools > Global Options > R Markdown tab > X:
+##   root path, chunk output, etc. so we don't need: 
+
+## For console
+source("./R/ggproto_screeplot_pca.r")
+source("./R/ggproto_screeplot_clSep.r")
+source("./R/MMP_clSep.r")
+source("./R/geom_lda_points.r")
+source("./R/geom_lda_points.r")
+source("./R/ggpcapairs.r")
 
 ## Global init, and theme
 top_n_manual_tours <- 3 ## keeps run time and length of content resonable.
 permutation_reps <- 100
-## Make radial tours manually from console
 set.seed(20200903)
 theme_set(theme_minimal())
 palette(RColorBrewer::brewer.pal(8, "Dark2"))
 
 ## Load rmvnorm sims
 if(F) ## For generation see this file:
-  file.edit("./catalogue/sim_mvnorm.r") ## Local only
+  file.edit("./catalogue/sim_mvnorm.r")
 ## Load data
 obj_nms <- c("sim_VII", "sim_EEE", "sim_VVV")
 i_s <- 1:length(obj_nms)
 for(i in i_s){
-  try(load(file = paste0("./simulations/", obj_nms[i], ".rda")), silent = T)
-  try(load(file = paste0("./catalogue/simulations/", obj_nms[i], ".rda")), silent = T)
+  load(file = paste0("./catalogue/simulations/", obj_nms[i], ".rda"))
 }
 ## Context -- simulation information
 sim1 <- get(obj_nms[1])
