@@ -2,7 +2,6 @@
 title: "Simulating data and it's cluster seperation"
 output:
   html_document:
-    #code_folding: hide
     toc: true
     toc_depth: 3
 ---
@@ -23,7 +22,7 @@ knitr::opts_chunk$set(
   fig.width = 8, fig.height = 5,
   out.width = "100%",
   fig.pos   = "h", out.extra   = "", ## Figures forced closer to chunk location.
-  collapse  = TRUE, cache = TRUE, cache.lazy = FALSE
+  cache = TRUE, cache.lazy = FALSE
 )
 ## Set global knit options in Tools > Global Options > R Markdown tab > X:
 ##   root path, chunk output, etc. so we don't need: 
@@ -37,7 +36,7 @@ source("./R/geom_lda_points.r")
 source("./R/ggpcapairs.r")
 
 ## Global init, and theme
-top_n_manual_tours <- 3 ## keeps run time and length of content resonable.
+top_n_manual_tours <- 2 ## keeps run time and length of content resonable.
 permutation_reps <- 100
 set.seed(20200903)
 theme_set(theme_minimal())
@@ -47,7 +46,7 @@ palette(RColorBrewer::brewer.pal(8, "Dark2"))
 if(F) ## For generation see this file:
   file.edit("./catalogue/sim_mvnorm.r")
 ## Load data
-obj_nms <- c("sim_VII", "sim_EEE", "sim_VVV")
+obj_nms <- c("VII_3310", "EEE_3310", "VVV_3310")
 i_s <- 1:length(obj_nms)
 for(i in i_s){
   load(file = paste0("./catalogue/simulations/", obj_nms[i], ".rda"))
@@ -58,117 +57,180 @@ p    <- ncol(sim1)
 k_cl <- length(unique(sim1[, 1]))
 ```
 
+# Simulations
+
+```{r}
+model <- c("VII", "EEE", "EVV", "VVV")
+k_cl <- c(3L, 3L, 3L, 3L)
+p_sig <- c(3L, 5L, 7L, 10L)
+p_tot <- c(10L, 10L, 10L, 10L)
+VII <- paste0("VII_", k_cl, p_sig, p_tot)
+EEE <- paste0("EEE_", k_cl, p_sig, p_tot)
+EVV <- paste0("EVV_", k_cl, p_sig, p_tot)
+VVV <- paste0("VVV_", k_cl, p_sig, p_tot)
+
+data.frame(`k clusters` = k_cl,
+           `Signal variables` = p_sig,
+           `Total dimensions` = p_tot,
+           `Model VVI name` = VII,
+           `Model EEE name` = EEE,
+           `Model EVV name` = EVV,
+           `Model VVV name` = VVV,
+           `Intrinsic data dimensionality, idd` = p_sig - 1,
+           check.names = FALSE) %>% 
+  knitr::kable(format = "html", label = "Simulations from models") %>% 
+  kableExtra::kable_styling("striped")
+```
+
+__Keep in mind__
+
+1. All clusters recieve the same number of observations, regardless of volume.
+2. Clusters don't overlap.
+3. The cluster seperation task and measures only involve the seperation of 2 clusters.
+
+__Complications__
+
+1. When signal variables > 3; cov3, the covariance matrix with negitive off diagonal elements is not positive definite. To make it positive definite the covariances get washed down very quickly.
+2. When k clusters > 3. which covariance should they recieve. 
+    - Recycle cov1:cov3?
+    - Randomly assigned cov1:cov3?
+
+
 # Models VII, EEE, and VVV
 
-All models simulated with `r p` dimensions and `r k_cl` clusters. Manual tours for the top `r top_n_manual_tours` variables (in terms of MMP cluster seperation).
-
-## MMP Cluster Seperation
+## Variable space
 ```{r}
-for(i in i_s){
+for(i in i_s) {
   ## Initialize
   sim_nm   <- obj_nms[i]
-  model_nm <- substr(sim_nm, 5, 7)
+  model_nm <- substr(sim_nm, 1, 3)
   dat  <- get(sim_nm)
   clas <- attr(dat, "cl_lvl")
   
-  #debugonce(ggproto_MMP_clSep)
-  ## MMP ClSep
-  print(paste0(sim_nm, ":"))
-  print(ggplot() + ggproto_MMP_clSep(dat, clas, n_reps = permutation_reps))
+  print(GGally::ggpairs(dat[, 1:3], aes(color = as.factor(clas))) +
+    ggtitle(paste0(sim_nm, " -- SPLOM of first 3 varaiables")))
 }
 ```
 
-## PCA
+## Principal component space
 ```{r pca}
 for(i in i_s) {
   ## Initialize
   sim_nm   <- obj_nms[i]
-  model_nm <- substr(sim_nm, 5, 7)
+  model_nm <- substr(sim_nm, 1, 3)
   dat  <- get(sim_nm)
   clas <- attr(dat, "cl_lvl")
   
   ## PCA
-  print(paste0(sim_nm, ":"))
-  print(round(prcomp(dat)$rotation, 2))
+  knitr::kable(round(prcomp(dat)$rotation, 2))
   print(ggpcapairs(x = dat, class = clas, top_n = 3) +
     ggplot2::scale_color_manual(values = palette()[1:k_cl]) +
-    ggplot2::scale_fill_manual( values = palette()[1:k_cl]))
+    ggplot2::scale_fill_manual( values = palette()[1:k_cl]) +
+      ggtitle(paste0(sim_nm, " -- SPLOM of first 3 principal components")))
+
   #print(ggplot() + ggproto_screeplot_pca(dat))
 }
 ```
 
-## Manual tours
+## MMP cluster seperation
+```{r}
+print(dir("catalogue/images"))
+for(i in i_s){
+  ## Initialize
+  sim_nm   <- obj_nms[i]
+  model_nm <- substr(sim_nm, 1, 3)
+  dat  <- get(sim_nm)
+  clas <- attr(dat, "cl_lvl")
+
+  ## MMP ClSep
+  print(ggplot() + ggproto_MMP_clSep(dat, clas, n_reps = permutation_reps) +
+          ggtitle(paste0(sim_nm, " -- MMP cluster seperation")))
+}
+```
+
+<!-- ## Manual tours -->
 ```{r manual_tours}
 if(F){
+  
+  #### TO CREATE RADIAL .GIFs RUN THE BELOW. ####
   console_path <- "./catalogue/images/"
   for(i in i_s) {
     ## Initialize
     sim_nm   <- obj_nms[i]
-    model_nm <- substr(sim_nm, 5, 7)
+    model_nm <- substr(sim_nm, 1, 3)
     dat  <- get(sim_nm)
-    clas <- attr(dat, "cl_lvl")
+    clas <- as.factor(attr(dat, "cl_lvl"))
     
     ## Manual tours
     pca_bas <- as.matrix(prcomp(dat)$rotation[, 1:2])
     mmp_clsep <- df_scree_MMP_clSep(dat, clas, n_reps = permutation_reps)
     tour_manip_nums <- mmp_clsep$data_colnum[1:top_n_manual_tours]
-    for (i in 1:length(tour_manip_nums)){
+    for (j in 1:length(tour_manip_nums)){
+      #debug(render_)
       play_manual_tour(basis = pca_bas,
                        data = dat,
                        fps = 9L,
-                       manip_var = tour_manip_nums[i],
+                       manip_var = tour_manip_nums[j],
                        render_type = render_gganimate,
                        col = clas, pch = clas,
                        axes = "left",
                        gif_filename = paste0("radialTour_", sim_nm, 
-                                             "_mvar", tour_manip_nums[i], ".gif"),
-                       gif_path = console_path,
-                       ggtheme = list(
-                         scale_color_manual(values = palette()[1:k_cl]),
+                                             "_mvar", tour_manip_nums[j], ".gif"),
+                       gif_path = console_path
+                       #### TODO ## Causing an Error "Unkown input ScaleDiscrete" (or List)  as of 08/09/2020...
+                       ,ggtheme = list(
+                         scale_color_manual(values = palette()[1:k_cl]), ##
                          theme_void()
                        )
+                       ####
       )
     } ## End of for radial tour creation loop
+    print(paste0("Saved top 2 radial tours for ", sim_nm, ". ", 
+                 round(100 * i / max(i_s), 2), " % done."))
   } ## End of for groups loop
+  #### RUN THROUGH HERE TO REFRESH radial tours. ####
+  
 } ## End of if(F), don't run.
 ```
 
-All manual tours start from PCA initalized basis.
+<!-- All manual tours start from PCA initalized basis. -->
 
-VII:
+<!-- VII: -->
 
-![](images/radialTour_sim_VII_mvar2.gif)
-![](images/radialTour_sim_VII_mvar1.gif)
-
-
-EEE:
-
-![](images/radialTour_sim_EEE_mvar1.gif)
-![](images/radialTour_sim_EEE_mvar2.gif)
+<!-- ![](images/radialTour_VII_3310_mvar2.gif) -->
+<!-- ![](images/radialTour_VII_3310_mvar1.gif) -->
 
 
-VVV:
+<!-- EEE: -->
 
-![](images/radialTour_sim_VVV_mvar1.gif)
-![](images/radialTour_sim_VVV_mvar2.gif)
+<!-- ![](images/radialTour_EEE_3310_mvar1.gif) -->
+<!-- ![](images/radialTour_EEE_3310_mvar2.gif) -->
 
-## LDA 
+
+<!-- VVV: -->
+
+<!-- ![](images/radialTour_VVV_3310_mvar1.gif) -->
+<!-- ![](images/radialTour_VVV_3310_mvar2.gif) -->
+
+## Linear discriminant space
 ```{r lda}
 for(i in i_s) {
   ## Initialize
   sim_nm   <- obj_nms[i]
-  model_nm <- substr(sim_nm, 5, 7)
+  model_nm <- substr(sim_nm, 1, 3)
   dat  <- get(sim_nm)
   clas <- attr(dat, "cl_lvl")
   
   ## LDA
-  print(paste0(sim_nm, ":"))
   MASS::lda(dat, grouping = clas)
   if(length(unique(clas)) > 2){
-    print(ggplot() + geom_lda_points(dat, clas))
+    print(ggplot() + geom_lda_points(dat, clas) + 
+            ggtitle(paste0(sim_nm, " -- first 2 LD components"))) 
   } else warning("LDA not called, fewer than 2 classes.")
 }
 ```
+
+
 
 # {mclust} paper reference
 
