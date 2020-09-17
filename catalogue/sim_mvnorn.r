@@ -5,9 +5,9 @@
 #### same means used 3(diag(p) chopped off), var differing by model
 ## Var is [dxd], may start at d=5.
 
-# ## Setup
-# source("./R/sim_pDim_kCl.r")
-# DO_SAVE = FALSE 
+## Setup
+source("./R/sim_pDim_kCl.r")
+DO_SAVE = FALSE 
 
 ##
 ## SIMULATION FUNCTION ----
@@ -27,7 +27,6 @@ sims_mvnorm_mclust <- function(
   cor_var_sz = 3
   #, DO_SAVE = FALSE 
 ){
-  source("./R/sim_pDim_kCl.r")
   ## Initializae
   models <- c("EII", "VII", "EEE", "EVV", "VVV")
   suffix <- paste0(as.character(c(k_cl, sigCors, p)), collapse = "") ##!! sigCors, or sigMns?
@@ -133,7 +132,7 @@ sims_mvnorm_mclust <- function(
 ##
 sims_mvnorm_mclust(k_cl = 3, sigCors = 3, p =  10,
                    n_obs_per_cl = rep(list(200), 3),
-                   mn_sz = 5, var_sz = 1, cor_sz = .5, cor_var_sz = 3.3)
+                   mn_sz = 1, var_sz = 1, cor_sz = .5, cor_var_sz = 3.3)
 
 ##
 ## ARE OUTPUT COVARIACNES AS EXPECTED? -----
@@ -187,21 +186,27 @@ tune_mn_var <- function(k_cl = 3 , p = 10, mn_sz = 5, cor_var_sz = 3,
   print(var_delta)
   print(diff_wi_delta)
 }
-tune_mn_var(k_cl = 3, p = 10, mn_sz = 5, cor_var_sz = 3.3)
+tune_mn_var(k_cl = 3, p = 10, mn_sz = 1, cor_sz = .9, cor_var_sz = 3.3)
 ### LOOKING AT PCA SIGNAL FROM MEAN DIFFS AND VARIANCE DIFFS
 tibble::tibble(
-  k_cl          = c(3,    3,    3     ), ## COEFFIENCTS
-  p             = c(10,   10,   10    ), ## COEFFIENCTS 
-  mn_sz         = c(5,    5,    5     ), ## SIGNAL FROM MEANS
-  cor_var_sz    = c(5,    3,    3.3   ), ## NOISE FROM VARIANCE
-  var_bt        = c(39.6, 33.9, 33.5  ), ## ~ k_cl * (cor_var_sz + mn_sz) + (p - k_cl) * var_sz
-  var_wi        = c(22.1, 16.3, 16.9  ), ## ~ k_cl * cor_var_sz + (p - k_cl) * var_sz
-  var_delta     = c(17.5, 17.6, 16.6  ), ## ~ k_cl * (mn_sz) !?
-  diff_wi_delta = c(4.6,  -1.3, 0.3   )
+  k_cl          = c(3,    3,    3   , 3  ), ## COEFFIENCTS
+  p             = c(10,   10,   10  , 10  ), ## COEFFIENCTS 
+  mn_sz         = c(5,    5,    5   , 1  ), ## SIGNAL FROM MEANS
+  cor_var_sz    = c(5,    3,    3.3 , 3.3  ), ## NOISE FROM VARIANCE
+  var_bt        = c(39.6, 33.9, 33.5, 17.8  ), ## ~ k_cl * (cor_var_sz + mn_sz) + (p - k_cl) * var_sz
+  var_wi        = c(22.1, 16.3, 16.9, 17.1  ), ## ~ k_cl * cor_var_sz + (p - k_cl) * var_sz
+  var_delta     = c(17.5, 17.6, 16.6, 0.7  ), ## ~ k_cl * (mn_sz) !?
+  diff_wi_delta = c(4.6,  -1.3, 0.3 , 16.4  )
   #cor_sz     = c(X), ## WON'T CHANGE MARGINAL VARIANCE
   #var_sz     = c(X), ## THIS iS JUST NOISE DIM VARIANCE
 )
 
+library(spinifex)
+dat <- EEE_3310
+bas <- basis_pca(dat)
+mv <- manip_var_pca(dat)
+clas <- attr(dat, "cl_lvl")
+play_manual_tour(bas, dat, mv, aes_args = list(color = clas, shape = clas))
 
 ##
 ## MANUAL SAVING ------
