@@ -37,7 +37,7 @@
 sim_pDim_kCl <- function(means, 
                          sigmas,
                          cl_points = rep(list(100), length(means)),
-                         method = c("eigen", "svd", "chol", "d"),
+                         method = c("eigen", "svd", "chol"),
                          do_shuffle = TRUE
 ) {
   method <- match.arg(method)
@@ -73,11 +73,8 @@ sim_pDim_kCl <- function(means,
     if (isSymmetric.matrix(.cov) == FALSE) stop(paste0("sigma[[", i, "]] is not a symetric matrix, all covariance metrices must be symetric and positive definate."))
     
     ## Sample and store outputs
-    if(method == "d"){
-      .k <- mvtnorm::dmvnorm(n = .n, mean = .mn, sigma = .cov)
-    } else {
-      .k <- mvtnorm::rmvnorm(n = .n, mean = .mn, sigma = .cov, method = method)
-    }
+    .k <- mvtnorm::rmvnorm(n = .n, mean = .mn, sigma = .cov, method = method)
+
     df_sim <- rbind(df_sim, .k)
     cl_means[[i]]  <- as.vector(colMeans(.k))
     cl_sigmas[[i]] <- cov(.k)
