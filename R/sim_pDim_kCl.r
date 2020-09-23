@@ -133,8 +133,7 @@ sim_pDim_kCl <- function(means,
 
 
 
-#' Creates a data frame containing clusters of exponential segments. 
-#' Clusters are rotatied  between 45 and 135 degreess of the last cluster.
+#' Creates a data frame containing clusters of non-linear function segments. 
 #'
 #' @param p The number of dimensions to simulate 
 #' @param cl_points List, of number of observations within each cluster.
