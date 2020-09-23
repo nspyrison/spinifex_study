@@ -98,13 +98,13 @@ names(vc_l) <- m$cl
 
 # Banana shape
 vc1 <- 0.2*matrix(c(1,0,0,0, # spherical
-                0,1,0,0,
-                0,0,1,0,
-                0,0,0,1), ncol=4, byrow=TRUE)
+                    0,1,0,0,
+                    0,0,1,0,
+                    0,0,0,1), ncol=4, byrow=TRUE)
 vc2 <- 0.05*matrix(c(1,0,0,0, # First make spherical and 
-                0,1,0,0, # then shift means
-                0,0,1,0, # to make banana
-                0,0,0,1), ncol=4, byrow=TRUE)
+                     0,1,0,0, # then shift means
+                     0,0,1,0, # to make banana
+                     0,0,0,1), ncol=4, byrow=TRUE)
 vc3 <- matrix(c(1,-0.9,0,0,
                 -0.9,1,0,0,
                 0,0,1,0,
@@ -150,9 +150,11 @@ d %>% group_by(cl) %>%
   summarise_if(is.numeric, mean)
 
 d_out <- d %>% 
-  bind_rows(tibble(cl=c("c","c","c"), x1=c(1.05,0.9,1.15), 
+  bind_rows(tibble(cl=c("c","c","c"), 
+                   x1=c(1.05,0.9,1.15), 
                    x2=c(-0.5, -0.45, -0.55), 
-                   x3=c(0.01,0.03,-0.01), x4=c(-0.02,0,0.03)))
+                   x3=c(0.01,0.03,-0.01), 
+                   x4=c(-0.02,0,0.03)))
 
 d_out %>% group_by(cl) %>%
   summarise_if(is.numeric, mean)
