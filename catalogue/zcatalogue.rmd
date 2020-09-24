@@ -43,7 +43,7 @@ palette(RColorBrewer::brewer.pal(8, "Dark2"))
 
 ## Load rmvnorm sims
 if(F) ## For generation see this file:
-  file.edit(here("./catalogue/sim_mvnorm.r"))
+  file.edit(here("/R/sim_mvnorm.r"))
 ## Load data
 obj_nms <- c("EII_3310", "EEE_3310", "EVV_3310")
 i_s <- 1:length(obj_nms)

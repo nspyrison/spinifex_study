@@ -1,6 +1,6 @@
 ## Load mvnorm sims
 # if(F)
-#   file.edit("./catalogue/sim_mvnorm.r")
+#   file.edit("./R/sim_mvnorm.r")
 # root <- "./catalogue/simulations/"
 # load(file = paste0(root, "VII_3310.rds"))
 # load(file = paste0(root, "EEE_3310.rds"))
