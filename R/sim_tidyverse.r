@@ -12,7 +12,7 @@ rmvnorm_tsb <- function(n=100, mean, sigma) {
   as_tibble(d)
 }
 stdd <- function(x) {
-  (x - mean(x))/sd(x)
+  (x - mean(x)) / sd(x)
 }
 
 
@@ -25,12 +25,15 @@ sim_tidyverse <- function(mns_ls, cov_ls, obs_per_cl){
 }
 
 rotate <- function(x){
-  colnames(x) <- paste0("x", 1:4)
-  mutate(x, 
-         x1 = 0.707*x1  + 0.707*x3,
-         x3 = -0.707*x1 + 0.707*x3,
-         x2 = 0.707*x2  + 0.707*x4,
-         x4 = -0.707*x2 + 0.707*x4)
+  cl <- x$cl
+  d <- x[, 2:ncol(x)]
+  colnames(d) <- paste0("x", 1:ncol(d))
+  rot <- mutate(d, 
+                x1 = 0.707  * x1 + 0.707 * x3,
+                x3 = -0.707 * x1 + 0.707 * x3,
+                x2 = 0.707  * x2 + 0.707 * x4,
+                x4 = -0.707 * x2 + 0.707 * x4)
+  as_tibble(data.frame(cl, rot))
 }
 
 ## Creates a 'V' in the shape of ">", by shifting 1/5 of the obs to be offset.
