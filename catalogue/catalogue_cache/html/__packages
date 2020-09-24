@@ -1,0 +1,11 @@
+base
+knitr
+spinifex
+tourr
+ggplot2
+tibble
+dplyr
+magrittr
+pander
+GGally
+here
