@@ -1,5 +1,5 @@
 ---
-title: "Catalogue -- tidyverse simulations, (2/3, noise correlation) "
+title: "Catalogue -- tidyverse simulations, (2 of 3, correlated noise dimensions) "
 output:
   html_document:
     toc: true
@@ -33,7 +33,7 @@ knitr::opts_chunk$set(
 
 ```{r, initialize}
 ## SETUP MODELS, MEANS
-models <- paste0(c("EEE", "EEV", "VVV_banana", "VVV_boomerang"), "_noise_cor")
+models <- paste0(c("EEE", "EEV", "banana"), "_noise_cor")
 p      <- 4
 k_cl   <- 3
 cl_obs <- 140 ## banana() expects evenly divisable by 5
@@ -88,11 +88,6 @@ assign(paste0("covs_", models[3]),
        list("cl a" = .2 *  cov_circ_noise_cor,
             "cl b" = .05 * cov_circ_noise_cor, ## Apply banana() to cl_b 
             "cl c" = cov_elipse_neg_noise_cor))
-assign(paste0("covs_", models[4]),
-       list("cl a" = .2 *  cov_circ_noise_cor,
-            "cl b" = .05 * cov_circ_noise_cor, ## Apply boomerang() to cl_b
-            "cl c" = cov_elipse_pos_noise_cor))
-
 
 ## LOCAL FUNCTIONS
 this_sim <- function(cov_ls){ ## Assumes same means, mns and obs per cl scalar, cl_obs
@@ -130,43 +125,33 @@ assign(models[3], this_sim(get(paste0("covs_", models[3]))))
 ## Apply banana() to cl b.
 VVV_banana_noise_cor[VVV_banana_noise_cor$cl == "cl b", ] <-
   banana(VVV_banana_noise_cor[VVV_banana_noise_cor$cl == "cl b", ])
-assign(models[4], this_sim(get(paste0("covs_", models[4]))))
-## Apply boomerang() to cl b.
-VVV_boomerang_noise_cor[VVV_boomerang_noise_cor$cl == "cl b", 2:5] <-
-  boomerang(VVV_boomerang_noise_cor[VVV_boomerang_noise_cor$cl == "cl b", 2:5])
-clas <- get(models[1])$cl
 
 ## ASSIGN PCS
 assign(paste0("pcs_", models[1]), this_pcs(get(models[1])))
 assign(paste0("pcs_", models[2]), this_pcs(get(models[2])))
 assign(paste0("pcs_", models[3]), this_pcs(get(models[3])))
-assign(paste0("pcs_", models[4]), this_pcs(get(models[4])))
 ```
 
-# Simulation design 
+# Simulation design
 
-Each simulation is `r k_cl * cl_obs` observations of `r p` varaibles (`r k_cl` clusters, with `r cl_obs` observations each). This document focus on 4 simulation models, namely, EEE EEV, VVV_banana, VVV_boomerang. These models have the simulation factor specified in the title and is accompanied by 2 other documents which vary the simulation factor. 
+Each simulation is `r k_cl * cl_obs` observations of `r p` varaibles (`r k_cl` clusters, with `r cl_obs` observations each). This document focus on 4 simulation models, namely, EEE EEV, and banana. These models have the simulation factor specified in the title and is accompanied by 2 other documents which vary the simulation factor.
 
-![](images/model_families.png)
-![](images/model_banana.png)
-![](images/model_boomerang.png)
+![](images/model_families2.png)
+
 
 
 ```{r simDesign}
 design <- data.frame(
-  `Simulation factor` = c("no contamination", "noise dimensions correlated", 
-                          "rotated (signal in all variables"), 
-  `EEE family` = c("EEE", "EEE_noiseCor", "EEE_rot"), 
-  `EEV family` = c("EEV", "EEV_noiseCor", "EEV_rot"),
-  `VVV_banana family` = 
-    c("VVV_banana", "VVV_banana_noiseCor", "VVV_banana_rot"),
-  `VVV_boomerang family` = 
-    c("VVV_boomerang", "VVV_boomerang_noiseCor", "VVV_boomerang_rot"),
+  `Simulation factor` = c("baseline", "correlated noise dimensions ", 
+                          "mean differences in combination of variables"), 
+  `EEE family` = c("EEE", "EEE_noiseCor", "EEE_mnComb"), 
+  `EEV family` = c("EEV", "EEV_noiseCor", "EEV_mnComb"),
+  `banana family` = 
+    c("banana", "banana_noiseCor", "banana_mnComb"),
   check.names = FALSE
 )
 knitr::kable(design, caption = "Simulation models by simulation factor")
 ```
-
 
 
 # Variable space
@@ -235,15 +220,9 @@ if(DO_RERUN_RADIAL_TOURS == TRUE){
 
 ## `r models[3]`
 
-![](images/radialTour_tidyverse_VVV_banana_noise_cor_mvar1.gif)
-![](images/radialTour_tidyverse_VVV_banana_noise_cor_mvar2.gif)
-![](images/radialTour_tidyverse_VVV_banana_noise_cor_mvar3.gif)
-
-## `r models[4]`
-
-![](images/radialTour_tidyverse_VVV_boomerang_noise_cor_mvar1.gif)
-![](images/radialTour_tidyverse_VVV_boomerang_noise_cor_mvar2.gif)
-![](images/radialTour_tidyverse_VVV_boomerang_noise_cor_mvar3.gif)
+![](images/radialTour_tidyverse_banana_noise_cor_mvar1.gif)
+![](images/radialTour_tidyverse_banana_noise_cor_mvar2.gif)
+![](images/radialTour_tidyverse_banana_noise_cor_mvar3.gif)
 
 
 # Checking variance-covariance matrices

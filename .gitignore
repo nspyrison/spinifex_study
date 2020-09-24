@@ -5,7 +5,7 @@
 .httr-oauth
 output_sim_clSep/
 output_SimDifficulty/
-#**.html
+
 .gif
 .png
 _cache/

@@ -37,9 +37,9 @@ rotate <- function(x){
 }
 
 ## Creates a 'V' in the shape of ">", by shifting 1/5 of the obs to be offset.
-banana <- function(vect){
-  n <- length(vect)
-  d <- vect
+banana_tform <- function(df){
+  n <- length(df)
+  d <- df
   d[(n+1):(n+1+n/5), 2] <- d[(n+1):(n+1+n/5), 2] - 0.5
   d[(n+1):(n+1+n/5), 3] <- d[(n+1):(n+1+n/5), 3] + 0.5
   d[(n+1+n/5+1):(n+1+2*n/5), 2] <- d[(n+1+n/5+1):(n+1+2*n/5), 2] - 0.5

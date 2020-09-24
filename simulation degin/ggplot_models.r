@@ -6,7 +6,7 @@ theme_mine <- function(){
        scale_fill_manual( values = palette()[1:8]))
 }
 
-
+###### model_families.png ------
 ## EEE, EEV, VVV*
 df <- data.frame(name = rep(c("EEE", "EEV", "VVV*"), each = 3), 
                  cl = as.factor(rep(c("a", "b", "c"), 3)), 
@@ -29,7 +29,7 @@ ggplot(data = df) +
   theme_mine()
 
 
-#######
+###### model_banana.png ------
 ## demonstrate VVV > VVV_banana
 df2 <- data.frame(name = c(rep("VVV input", 3), rep("VVV_banana", 7)), 
                   cl = as.factor(c(rep(c("a", "b", "c"), 2), rep("b", 4))), 
@@ -50,7 +50,7 @@ ggplot(data = df2) +
   theme_mine()
 
 
-#######
+####### model_boomerang.png -----
 ## demonstrate VVV > VVV_banana
 df3 <- data.frame(
   name = factor(c(rep("VVV input", 3), "PCS, Cl b", rep("VVV_boomerang", 3)),
@@ -72,3 +72,28 @@ ggplot(data = df3) +
   coord_fixed() +
   theme_mine()
 
+
+####### model_families2.png -----
+## demonstrate VVV > VVV_banana
+## EEE, EEV, VVV*
+df4 <- data.frame(
+  name = factor(c(rep(c("EEE", "EEV"), each = 3), rep("banana", 7)),
+                levels = c("EEE", "EEV", "banana")),
+  cl = as.factor(c(rep(c("a", "b", "c"), 3), rep("b", 4))),
+  x = c(rep(c(-1, 1, -1), 3),              .5,   0,  .5,  0),
+  y = c(rep(c(-1, -1, 1), 3),              -1.5, -2, -.5, 0),
+  a = c(rep(1, 6),  rep(c(.5, .4, 1), 1),  rep(.4, 4)),
+  b = c(rep(.5, 6), rep(c(.5, .4, .5), 1), rep(.4, 4)),
+  angle = c(rep(pi / 4, 3),           ## EEE
+            rep(pi / 4, 2), -pi / 4,  ## EEV
+            0, 0, -pi / 4, rep(0, 4)) ## VVV_banana
+)
+
+## RENDER
+ggplot(data = df4) +
+  geom_ellipse(aes(x0 = x, y0 = y, a = a, b = b,
+                   angle = angle, color = cl), size = 1.5) +
+  geom_text(aes(x = x, y = y, label = cl, color = cl), size = 10) +
+  facet_wrap(vars(name)) +
+  coord_fixed() +
+  theme_mine()
