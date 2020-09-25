@@ -12,6 +12,7 @@ library("GGally")
 library("shinyjs")   ## help with handling conditionalPanels.
 library("lubridate") ## For timer
 library("loggit")    ## For logging
+library("here")      ## Fixing base dir.
 
 
 #### Logging
@@ -29,7 +30,7 @@ cat(do_log)
 log_base <- paste0("log_", Sys.info()[4], "_")
 log_num  <- 1
 log_file <- ""
-log_name <- "abcdefg"
+log_name <- "DUMMY"
 
 if (do_log == TRUE){
   log_name <- sprintf(paste0(log_base, "%03d"), log_num)
@@ -40,7 +41,7 @@ if (do_log == TRUE){
     log_file <- paste0(log_name, ".json")
   }
   set_logfile(log_file)
-} else { ## when do_log != T
+} else { ## when do_log == F
   log_num  <- sample(1:3, 1)
   log_name <- "<NOT LOGGING>"
   log_file <- "Logging is off! Log and responses not being recorded."
@@ -49,11 +50,11 @@ cat("do_log, log_file: ", do_log, log_file, " /n")
 
 ## Set group (factor order) based on log number mod 3
 this_group <- 1 + (log_num - 1) %% 3 ## Expects [1,2,3]
-fct_ord_latin_sq <- rbind(c(1, 2, 3), ## ~ grp 1; "pca", "grand", "manual"
-                          c(2, 3, 1), ## ~ grp 2; "grand", "manual", "pca"
-                          c(3, 1, 2)  ## ~ grp 3; "manual", "pca", "grand"
+fct_ord_latin_sq <- rbind(c(1, 2, 3), ## ~ grp 1; "pca", "grand", "radial"
+                          c(2, 3, 1), ## ~ grp 2; "grand", "radial", "pca"
+                          c(3, 1, 2)  ## ~ grp 3; "radial", "pca", "grand"
 )
-fct_nm_vect <- c("pca", "grand", "manual") ## factor list
+fct_nm_vect <- c("pca", "grand", "radial") ## factor list
 this_factor_order    <- fct_ord_latin_sq[this_group, ]
 this_factor_nm_order <- fct_nm_vect[this_factor_order]
 
@@ -84,7 +85,7 @@ onStop(function() {
 
 ##### Required inputs -----
 ## Task, and block (difficulty)
-s_blocks        <- c("easy", "hard")
+s_blocks        <- c("baseline", "corNoise", "mnComb")
 s_task_question <- c("Which variables contribute more than average to the cluster seperation between 'a' and 'b'.")
 
 ## Survey questions; n = 21 = 9 + 12
@@ -104,26 +105,26 @@ s_survey_questions <- c("What sex are you?",
 )
 
 ## Load training data and tour paths
-t_dat_len <- 4
-s_t_dat <- s_t_tpath <-  list()
+t_dat_len <- 4L
+s_t_dat <- s_t_tpath <- list() ## init
 for (i in 1:t_dat_len) {
   s_t_dat[[i]]   <- readRDS(
-    paste0("../data/simulation_data_t", i, ".rds")
+    here::here(paste0("apps/data/simulation_data_t", i, ".rds"))
   )
   s_t_tpath[[i]] <- readRDS(
-    paste0("../data/grand_tpath_t", i, ".rds")
+    here::here(paste0("apps/data/grand_tpath_t", i, ".rds"))
   )
 }
 
 ## Load data and tour paths
-dat_len <- 12
+dat_len <- 12L
 s_dat <- s_tpath <- list()
 for (i in 1:dat_len) {
   s_dat[[i]] <- readRDS(
-    paste0("../data/simulation_data", sim_series + i, ".rds")
+    here::here(paste0("apps/data/simulation_data", sim_series + i, ".rds"))
   )
   s_tpath[[i]] <- readRDS(
-    paste0("../data/grand_tpath", sim_series + i, ".rds")
+    here::here(paste0("apps/data/grand_tpath", sim_series + i, ".rds"))
   )
 }
 
@@ -131,26 +132,26 @@ for (i in 1:dat_len) {
 ##### Global variable initialization -----
 n_trainings        <- length(s_t_dat)            ## ~4
 n_factors          <- length(fct_nm_vect)        ## ~3
-n_blocks           <- length(s_blocks)       ## ~2
-n_survey_questions <- length(s_survey_questions) ## ~18
+n_blocks           <- length(s_blocks)           ## ~3
+n_survey_questions <- length(s_survey_questions) ## ~21
+
 PC_cap             <- 4 ## Number of principal components to choose from.
 pal                <- "Dark2"
 
 #### Define section start pages,
-## may need manual changes when changing section sizes
+## may need radial changes when changing section sizes
 ## intro is pg 1; video training is pg 2
-training_start_pg <- 3
+training_start_pg <- 3L
 task_start_pg <- (training_start_pg + 2 + 1) + 1
 ## ~ pg7;(3+2+1+1; train_st, 2 task sets, splash pg, start on new pg)
 survey_start_pg <- task_start_pg + n_factors * n_blocks + 1
-## ~ pg14, (9+3*3*2+1; task_st, 3*2*2 factor*block, start on new pg)
+## ~ pg14, (7+3*3+1; task_st, 3*3 factor*block, start on new pg)
 
 ##### UI START -----
 ### header_ui -----
 header_ui <- fluidPage(
-  # titlePanel("Multivariate data visualization study"),
-  actionButton("next_pg_button", "Next page"),
-  p("testing that text was added.")
+  titlePanel("Multivariate data visualization study"),
+  actionButton("next_pg_button", "Next page")
 )
 
 ##### sidebar_ui ----
@@ -174,7 +175,7 @@ sidebar_ui <- conditionalPanel(
         p("Now switch to the grand tour factor. Play the animation. Notice how
           different clusters move as the variable contributions change. Drag
           the slider to select a different frame or animate at your own pace."),
-        p("Change to the manual tour. You can select which components are on
+        p("Change to the radial tour. You can select which components are on
           the axes. Using the drop-down, select the variable with the largest
           line segment. Use the slider to change the variable's contribution.
           Watch how the contributions and clusters move as a result. Select a
@@ -203,19 +204,13 @@ sidebar_ui <- conditionalPanel(
                                   inline = TRUE)
     ), ## PCA axis selection
     conditionalPanel(
-      condition = "(output.factor_nm == 'pca' || output.factor_nm == 'manual') ||
+      condition = "(output.factor_nm == 'pca') ||
                   (output.section_nm == 'training' && input.factor != 'grand')",
       fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis",
                                       choices = paste0("PC", 1:4), selected = "PC1")),
                column(6, radioButtons(inputId = "y_axis", label = "y axis",
                                       choices = paste0("PC", 1:4), selected = "PC2"))
       )
-    ), ## Manip var/ magnitude selection
-    conditionalPanel(condition = "output.factor_nm == 'manual' ||
-                       (output.section_nm == 'training' && input.factor == 'manual')",
-                     selectInput("manip_var_nm", "Manip var", "<none>"),
-                     sliderInput("manip_slider", "Contribution",
-                                 min = 0, max = 1, value = 0, step = .1)
     ),
     
     ##### _Task response input -----
@@ -296,7 +291,6 @@ main_ui <- mainPanel(
     condition = "output.section_nm == 'intro'",
     conditionalPanel(
       condition = "output.pg == 1", ## First page
-      
       h3("Welcome to the study"),
       br(),
       p("This a completely voluntary study that will take approximately 45-50
@@ -379,8 +373,8 @@ main_ui <- mainPanel(
       output.section_nm == 'task'", ## output.section_pg == 6 is splash page.
     htmlOutput("plot_msg"),
     plotOutput("pca_plot", height = "auto"),
-    plotOutput("mtour_plot", height = "auto"),
-    plotlyOutput("gtour_plot", height = "auto")
+    plotOutput("radial_plot", height = "auto"),
+    plotlyOutput("grand_plot", height = "auto")
   ), ## Close plot conditional panel
   
   ### _Survey mainPanel -----
@@ -495,8 +489,8 @@ app_render_ <- function(slides, ## paste over spinifex render to add size
                    panel.grid.minor = element_blank(), ## Remove grid lines
                    axis.text.x  = element_blank(),     ## Remove axis marks
                    axis.text.y  = element_blank(),     ## Remove axis marks
-                   axis.title.x = element_blank(),     ## Remove axis titles for gtour
-                   axis.title.y = element_blank(),     ## Remove axis titles for gtour
+                   axis.title.x = element_blank(),     ## Remove axis titles for grand
+                   axis.title.y = element_blank(),     ## Remove axis titles for grand
                    aspect.ratio = y_range / x_range,
                    legend.box.background = element_rect(),
                    legend.title = element_text(size = 18, face = "bold"),

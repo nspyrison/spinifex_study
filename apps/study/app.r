@@ -11,19 +11,19 @@ server <- function(input, output, session) {
   rv$timer            <- 999L
   rv$stopwatch        <- 0L
   rv$timer_active     <- TRUE
-  rv$pca_inter        <- 1L
-  rv$manual_inter     <- 1L
-  rv$resp_inter       <- 1L
+  rv$pca_inter        <- 0L
+  rv$radial_inter     <- 0L
+  rv$resp_inter       <- 0L
   rv$task_ttr         <- NULL
   rv$task_response    <- NULL
   rv$save_file        <- NULL
   rv$training_aes     <- FALSE
   rv$second_training  <- FALSE
   rv$curr_basis       <- NULL
-  rv$manual_ls        <- list()
+  rv$radial_ls        <- list()
   rv$basis_ls         <- list()
   rv$resp_tbl         <- data.frame(
-    user_uid     = substr(log_name, 5, nchar(log_name)),
+    user_uid     = substr(log_name, 5L, nchar(log_name)),
     group        = this_group,
     factor       = c(rep(this_factor_nm_order[1L], 4L),
                      rep(this_factor_nm_order[2L], 4L),
@@ -31,7 +31,7 @@ server <- function(input, output, session) {
     block        = rep(c(rep(s_blocks[1L], 2L), rep(s_blocks[2L], 2L)), 3L),
     sim_id       = 301L:312L,
     pca_inter    = NA,
-    manual_inter = NA,
+    radial_inter = NA,
     grand_inter  = NA, 
     resp_inter   = NA,
     plot_elapsed = NA,
@@ -50,7 +50,6 @@ server <- function(input, output, session) {
     if (rv$pg %in% 1L:2L) {return("intro")}
     .pgs <- training_start_pg:(task_start_pg - 1L)
     if (rv$pg %in% .pgs) {return("training")}
-
     .pgs <- task_start_pg:(survey_start_pg - 1L)
     if (rv$pg %in% .pgs) {return("task")}
     if (rv$pg == survey_start_pg) {return("survey")}
@@ -68,22 +67,22 @@ server <- function(input, output, session) {
     if (section_nm() == "survey") {return(1L)}
   })
   period <- reactive({1L + ((section_pg() - 1L) %/% (n_blocks))})
-  factor_nm <- reactive({ ## ~ for group 1: PCA, gtour, mtour
+  factor_nm <- reactive({ ## ~ for group 1: pca, grand, radial
     if (section_nm() == "training") return(input$factor)
     if (section_nm() == "task") return(this_factor_nm_order[period()])
     return("NONE / NA")
   })
-  block <- reactive({ ## in 1,2
+  block <- reactive({ ## in 0, "t", 1,2,3
     if (section_nm() == "training") return(c(0L, "t", "t", "t", "t", 0L)[section_pg()])
     return((section_pg() - n_blocks) %% (n_blocks))
   })
   sim <- reactive({
     if (section_nm() == "training") return("NA - training")
-    return( (period() - 1L) * 6L + 3L + block() )
+    return((period() - 1L) * 6L + 3L + block())
   })
   task_time <- reactive({
-    req(factor_nm()) ## Yay, can req() reactive functions!
-    if (factor_nm() == "grand") {adj <- 1L
+    req(factor_nm())
+    if (factor_nm() == "grand"){adj <- 1L
     } else adj <- 0L
     return(180L + adj)
   })
@@ -111,19 +110,19 @@ server <- function(input, output, session) {
   })
   pca_active <- reactive({
     # req(rv$timer_active, factor_nm())
-    if (factor_nm() == "pca") {
+    if (factor_nm() == "pca"){
       return(TRUE)
     } else return(FALSE)
   })
   grand_active <- reactive({
     # req(rv$timer_active, input$factor)
-    if (factor_nm() == "grand") {
+    if (factor_nm() == "grand"){
       return(TRUE)
     } else return(FALSE)
   })
-  manual_active <- reactive({
+  radial_active <- reactive({
     # req(rv$timer_active, input$factor)
-    if (factor_nm() == "manual") {
+    if (factor_nm() == "radial"){
       return(TRUE)
     } else return(FALSE)
   })
@@ -133,22 +132,14 @@ server <- function(input, output, session) {
   })
   page_info <- reactive({
     paste0(sep = " /n",
-           paste0("rv$pg 'of n': ", rv$pg, " of ", survey_start_pg),
-           paste0("section_nm(), 'pg' section_pg(): ", section_nm(),
-                  ", pg ", section_pg()),
+           paste0("rv$pg, section_pg(), section_nm(): ", rv$pg, 
+                  ", ", section_pg(), ", ", section_nm()),
            paste0("task_header(): ", task_header())
     )
   })
   pfbs <- reactive({
     paste("period(), factor_nm(), block(), sim(): ", period(), factor_nm(), block(), sim())
   })
-
-  ## Throttle manip_slider
-  manip_slider   <- reactive({
-    # req(input$manip_slider)
-    input$manip_slider
-  })
-  manip_slider_t <- throttle(manip_slider, 10L)
   
   #### Task answer
   task_ans <- reactive({
@@ -267,12 +258,12 @@ server <- function(input, output, session) {
   })
   
   ### Grand tour plot reactive -----
-  gtour_height <- function(){
+  grand_height <- function(){
     if (grand_active() == T) {
       return(600)
     } else return(1)
   }
-  gtour_plot <- reactive({
+  grand_plot <- reactive({
     if (grand_active() == T) {
       ## data init
       dat <- dat()
@@ -347,8 +338,8 @@ server <- function(input, output, session) {
               panel.grid.minor = element_blank(), ## no grid lines
               axis.text.x  = element_blank(),     ## no axis marks
               axis.text.y  = element_blank(),     ## no axis marks
-              axis.title.x = element_blank(),     ## no axis titles for gtour
-              axis.title.y = element_blank(),     ## no axis titles for gtour
+              axis.title.x = element_blank(),     ## no axis titles for grand
+              axis.title.y = element_blank(),     ## no axis titles for grand
               aspect.ratio = y_range / x_range,
               legend.title = element_text(size = 18, face = "bold"),
               legend.text  = element_text(size = 18, face = "bold"),
@@ -364,7 +355,7 @@ server <- function(input, output, session) {
           xaxis = list(scaleanchor = "y", scaleratio = 1, showgrid = F,
                        showline = F, autorange = TRUE, fixedrange = FALSE),
           ## added for APP:
-          height = gtour_height(),
+          height = grand_height(),
           yaxis = list(autorange = TRUE, fixedrange = FALSE), ## suppose to rescale, I don't think it does.
           legend = list(x = 0.75, y = 0.7) ## postition the title better
         )
@@ -374,16 +365,16 @@ server <- function(input, output, session) {
   })
   
   
-  ### Manual tour plot reactive -----
-  mtour_height <- function() {
-    if (manual_active()) {
+  ### radial tour plot reactive -----
+  radial_height <- function() {
+    if (radial_active()) {
       return(600)
     } else return(1)
   }
-  mtour_plot <- reactive({
-    if (manual_active()) {
-      ### Make rv$manual_ls
-      if(length(rv$manual_ls) == 0){
+  radial_plot <- reactive({
+    if (radial_active()) {
+      ### Make rv$radial_ls
+      if(length(rv$radial_ls) == 0){
         ## data init
         dat <- dat()
         dat_std <- tourr::rescale(dat)
@@ -409,7 +400,7 @@ server <- function(input, output, session) {
   
         
         for (i in 1:length(rv$basis_ls)){
-            rv$manual_ls[[i]] <- app_oblique_frame(data      = dat_std,
+            rv$radial_ls[[i]] <- app_oblique_frame(data      = dat_std,
                                                    basis     = rv$basis_ls[[i]],
                                                    manip_var = m_var,
                                                    theta     = 0,
@@ -418,13 +409,13 @@ server <- function(input, output, session) {
                                                    axes      = axes_position
             )
         }
-      } ## End of assigning rv$manual_ls
+      } ## End of assigning rv$radial_ls
       
       j <- manip_slider_t() * 10 + 1
       if (time_elapsed() > 1)
         rv$curr_basis <- rv$basis_ls[[j]]
       
-      rv$manual_ls[[j]]
+      rv$radial_ls[[j]]
     } ## Non-display conditions return nothing.
   })
   
@@ -439,7 +430,7 @@ server <- function(input, output, session) {
     input$factor
   }, {
     ## Init axis choices when data changes
-    if (pca_active() == TRUE | manual_active() == TRUE) {
+    if (pca_active() == TRUE | radial_active() == TRUE) {
       choices <- paste0("PC", 1:PC_cap)
       updateRadioButtons(session, "x_axis", choices = choices, selected = "PC1")
       updateRadioButtons(session, "y_axis", choices = choices, selected = "PC2")
@@ -500,7 +491,7 @@ server <- function(input, output, session) {
     }
   })
   
-  ### Obs mtour basis -----
+  ### Obs radial basis -----
   observeEvent({
     dat()
     input$x_axis
@@ -508,8 +499,8 @@ server <- function(input, output, session) {
     factor_nm()
     input$factor
   }, {
-    if (manual_active() == TRUE){
-      rv$manual_ls <- list()
+    if (radial_active() == TRUE){
+      rv$radial_ls <- list()
       dat_std <- tourr::rescale(dat())
       pca <- prcomp(dat_std)
       x <- input$x_axis
@@ -527,9 +518,9 @@ server <- function(input, output, session) {
     }
   })
   
-  ### Obs mtour slider ----
+  ### Obs radial slider ----
   observeEvent(manip_slider_t(), {
-    if (manual_active() == TRUE) {
+    if (radial_active() == TRUE) {
       loggit("INFO", paste0("Slider value changed: ", manip_slider_t()),
              paste0("rv$curr_basis updated: ",
                     paste0(round(rv$curr_basis, 2), e = ", "),
@@ -539,13 +530,13 @@ server <- function(input, output, session) {
     }
   })
   
-  ### Obs mtour update manip_var_nm choices -----
+  ### Obs radial update manip_var_nm choices -----
   observeEvent({
     dat()
     input$factor
   }, {
     ## Init manip_var_nm choices on data change.
-    if (manual_active() == TRUE) {
+    if (radial_active() == TRUE) {
       these_colnames <- colnames(dat())
       updateSelectInput(session, "manip_var_nm", choices = these_colnames,
                         selected = these_colnames[1])
@@ -553,7 +544,7 @@ server <- function(input, output, session) {
     }
   })
   
-  ### Obs mtour update slider value -----
+  ### Obs radial update slider value -----
   observeEvent(
     {
       manip_var()
@@ -563,10 +554,10 @@ server <- function(input, output, session) {
       input$x_axis
       input$y_axis
     }, {
-      if(manual_active() == TRUE
+      if(radial_active() == TRUE
          #& time_elapsed() > 1
       ) {
-        rv$manual_ls <- list()
+        rv$radial_ls <- list()
         cat(rv$curr_basis)
         mv_sp <- create_manip_space(rv$curr_basis, manip_var())[manip_var(), ]
         phi_i <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
@@ -638,7 +629,7 @@ server <- function(input, output, session) {
       input$manip_slider
       input$manip_var_nm
     }, {
-      rv$manual_inter <- rv$manual_inter + 1L
+      rv$radial_inter <- rv$radial_inter + 1L
     }
   )
   observeEvent(
@@ -936,7 +927,7 @@ server <- function(input, output, session) {
         
         if(rv$pg == 3) browser()
         rv$resp_tbl$pca_inter[ins_row]    <- rv$pca_inter
-        rv$resp_tbl$manual_inter[ins_row] <- rv$manual_inter
+        rv$resp_tbl$radial_inter[ins_row] <- rv$radial_inter
         rv$resp_tbl$resp_inter[ins_row]   <- rv$resp_inter
         rv$resp_tbl$plot_elapsed[ins_row] <- plot_elapsed
         rv$resp_tbl$ttr[ins_row]          <- rv$task_ttr
@@ -952,7 +943,7 @@ server <- function(input, output, session) {
       ## Reset responses, ttr, and timer for next task
       output$plot_msg     <- renderText("")
       rv$pca_inter        <- 0L
-      rv$manual_inter     <- 0L
+      rv$radial_inter     <- 0L
       rv$grand_inter      <- 0L
       rv$resp_inter       <- 0L
       rv$task_response    <- NULL
@@ -1077,8 +1068,8 @@ server <- function(input, output, session) {
   ### General task outputs
   output$task_header    <- renderText(task_header())
   output$pca_plot       <- renderPlot({pca_plot()}, height = pca_height)
-  output$gtour_plot     <- renderPlotly({suppressWarnings(gtour_plot())})
-  output$mtour_plot     <- renderPlot({mtour_plot()}, height = mtour_height)
+  output$grand_plot     <- renderPlotly({suppressWarnings(grand_plot())})
+  output$radial_plot     <- renderPlot({radial_plot()}, height = radial_height)
   output$resp_tbl       <- renderTable({rv$resp_tbl})
   output$task_ans_ptile <- renderPrint({task_ans_ptile()})
   output$task_ans       <- renderPrint({task_ans()})
@@ -1086,6 +1077,7 @@ server <- function(input, output, session) {
   
   ### Dev msg -----
   output$dev_msg <- renderPrint({
+    
     cat("dev msg -- \n",
         page_info(),
         task_header(),
