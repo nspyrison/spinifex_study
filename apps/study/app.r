@@ -397,7 +397,7 @@ server <- function(input, output, session) {
         
         ## Render init
         axes_position <- "left"
-  
+        
         
         for (i in 1:length(rv$basis_ls)){
             rv$radial_ls[[i]] <- app_oblique_frame(data      = dat_std,
@@ -411,11 +411,7 @@ server <- function(input, output, session) {
         }
       } ## End of assigning rv$radial_ls
       
-      j <- manip_slider_t() * 10 + 1
-      if (time_elapsed() > 1)
-        rv$curr_basis <- rv$basis_ls[[j]]
-      
-      rv$radial_ls[[j]]
+
     } ## Non-display conditions return nothing.
   })
   
@@ -518,17 +514,7 @@ server <- function(input, output, session) {
     }
   })
   
-  ### Obs radial slider ----
-  observeEvent(manip_slider_t(), {
-    if (radial_active() == TRUE) {
-      loggit("INFO", paste0("Slider value changed: ", manip_slider_t()),
-             paste0("rv$curr_basis updated: ",
-                    paste0(round(rv$curr_basis, 2), e = ", "),
-                    pfbs()
-             )
-      )
-    }
-  })
+ 
   
   ### Obs radial update manip_var_nm choices -----
   observeEvent({
@@ -925,16 +911,16 @@ server <- function(input, output, session) {
           if (time_elapsed() <= task_time()) plot_elapsed <- 0L
         }
         
-        if(rv$pg == 3) browser()
-        rv$resp_tbl$pca_inter[ins_row]    <- rv$pca_inter
-        rv$resp_tbl$radial_inter[ins_row] <- rv$radial_inter
-        rv$resp_tbl$resp_inter[ins_row]   <- rv$resp_inter
-        rv$resp_tbl$plot_elapsed[ins_row] <- plot_elapsed
-        rv$resp_tbl$ttr[ins_row]          <- rv$task_ttr
-        rv$resp_tbl$response[ins_row]     <- task_resp
-        rv$resp_tbl$answer[ins_row]       <- task_ans
-        rv$resp_tbl$score[ins_row]        <- task_score
-        rv$resp_tbl$concern[ins_row]      <- task_concern
+        # if(rv$pg == 3) browser()
+        # rv$resp_tbl$pca_inter[ins_row]    <- rv$pca_inter
+        # rv$resp_tbl$radial_inter[ins_row] <- rv$radial_inter
+        # rv$resp_tbl$resp_inter[ins_row]   <- rv$resp_inter
+        # rv$resp_tbl$plot_elapsed[ins_row] <- plot_elapsed
+        # rv$resp_tbl$ttr[ins_row]          <- rv$task_ttr
+        # rv$resp_tbl$response[ins_row]     <- task_resp
+        # rv$resp_tbl$answer[ins_row]       <- task_ans
+        # rv$resp_tbl$score[ins_row]        <- task_score
+        # rv$resp_tbl$concern[ins_row]      <- task_concern
       } ## End of writing to resp_tbl
       cat("!!! ITERATED PG!!!")
       ### _New page ----
@@ -1019,7 +1005,7 @@ server <- function(input, output, session) {
   })
   
   ### Obs browser -----
-  observeEvent(input$browser, {browser()})
+  observeEvent(input$browser, if(do_disp_dev_tools == TRUE){browser()})
   
   ### Obs timer -----
   observe({
@@ -1040,9 +1026,11 @@ server <- function(input, output, session) {
   output$timer_disp <- renderText({
     if (section_nm() == "task") { ## Disp timer counting down if on a task.
       if (rv$timer < 1) {return("Time has expired, please enter your best guess and proceed.")
-      } else {return(
-        paste0("Time left: ", lubridate::seconds_to_period(rv$timer)),
-        " of ", lubridate::seconds_to_period(task_time()))
+      } else {
+        return(
+          paste0("Time left: ", lubridate::seconds_to_period(rv$timer),
+                 " of ", lubridate::seconds_to_period(task_time()))
+        )
       }
     }
     if (section_nm() == "training" & block() != 6) { ## Disp timer Counting up if in training.
@@ -1057,7 +1045,7 @@ server <- function(input, output, session) {
   output$factor_nm  <- reactive(factor_nm())  ## For sidebar inputs
   output$block      <- reactive(block())      ## For training ui
   output$section_pg <- reactive(section_pg()) ## For navigating training
-  
+
   outputOptions(output, "is_saved",   suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
   outputOptions(output, "pg",         suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "section_nm", suspendWhenHidden = FALSE) ##  "
@@ -1076,14 +1064,20 @@ server <- function(input, output, session) {
   output$task_score     <- renderPrint({task_score()})
   
   ### Dev msg -----
-  output$dev_msg <- renderPrint({
-    
-    cat("dev msg -- \n",
-        page_info(),
-        task_header(),
-        timer_info(),
-        pfbs()
-    )
+  output$resp_tbl <- renderTable({
+    if(do_disp_dev_tools == TRUE){
+      rv$resp_tbl
+    }
+  })
+  output$dev_msg  <- renderPrint({
+    if(do_disp_dev_tools == TRUE){
+      cat("dev msg -- \n",
+          page_info(),
+          task_header(),
+          timer_info(),
+          pfbs()
+      )
+    }
   })
 } ## End server function
 

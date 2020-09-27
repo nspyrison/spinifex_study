@@ -21,6 +21,8 @@ library("here")      ## Fixing base dir.
 ## Uncomment the following line to apply logging
 do_log            <- FALSE
 do_disp_dev_tools <- TRUE
+
+
 #### Simulated data series,
 ## "series" or iteration of data to look at. Should be an even hundred
 sim_series <- 300
@@ -286,6 +288,7 @@ col_p3 <- column(4,
 
 ##### main_ui -----
 main_ui <- mainPanel(
+  textOutput("timer_disp"),
   ### _Intro mainPanel -----
   conditionalPanel(
     condition = "output.section_nm == 'intro'",
@@ -330,21 +333,21 @@ main_ui <- mainPanel(
       p("If this link only contains audio let the invigilator know.")
     ) ## End of video
   ), ## Close conditionalPanel -- intro section text
-  
+
   ### _Training mainPanel -----
   conditionalPanel(
     condition = "output.section_nm == 'training'",
     conditionalPanel(condition = "output.section_pg == 1", ## ui intro
                      h2("Training -- interface")
     ),
-    conditionalPanel(condition = "output.section_pg == 4",
+    conditionalPanel(condition = "output.section_pg == 2",
                      h2("Training -- cluster seperation task")
     ),
-    conditionalPanel(condition = "output.section_pg == 5",
+    conditionalPanel(condition = "output.section_pg == 3",
                      h2("Training -- cluster seperation task, set 2")
     ),
     conditionalPanel( ## splash page
-      condition = "output.section_pg == 6",
+      condition = "output.section_pg == 4",
       h1(), h1(), h1(),
       h1("Training complete, Great job!"),
       h4("Take a break and strech if you feel like it."),
@@ -355,7 +358,6 @@ main_ui <- mainPanel(
       h4("Ask any final clarification questions. Then continue on to the
         evaluation section. The task is timed, with a time remaining displayed on top.")
     ),
-    textOutput('timer_disp'),
     hr()
   ), ## close training section main panel text
   
@@ -363,10 +365,9 @@ main_ui <- mainPanel(
   conditionalPanel(
     condition = "output.section_nm == 'task'",
     h2(textOutput('task_header')),
-    textOutput('timer_disp'),
     hr()
   ), ## close task section conditional panel title text
-  
+
   ### _Plot mainPanel ----
   conditionalPanel(
     condition = "(output.section_nm == 'training' && output.section_pg != 6) ||
@@ -376,7 +377,7 @@ main_ui <- mainPanel(
     plotOutput("radial_plot", height = "auto"),
     plotlyOutput("grand_plot", height = "auto")
   ), ## Close plot conditional panel
-  
+
   ### _Survey mainPanel -----
   conditionalPanel(
     condition = "output.section_nm == 'survey'",
@@ -433,16 +434,14 @@ main_ui <- mainPanel(
 ui <- fluidPage(useShinyjs(), ## Required in ui to use shinyjs.
                 header_ui,
                 sidebar_ui,
-                #TODO: THIS CAUSE THE JS NOT TO EVALUATE.
-                #main_ui 
+                #TODO: PART OF DISPLAYING MAIN_UD cause JS NOT TO EVAL.
+                main_ui,
+                ## Displays nothing when do_disp_dev_tools == FALSE:
+                actionButton("browser", "browser()"),
+                textOutput("dev_msg"),
+                tableOutput("resp_tbl")
 )
-if (do_disp_dev_tools == TRUE) { ## Then append DEV helper displays
-  ui <- fluidPage(ui,
-                  actionButton("browser", "browser()"),
-                  textOutput("dev_msg"),
-                  tableOutput("resp_tbl")
-  )
-}
+
 
 
 ##### App local functions below: -----
