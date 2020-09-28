@@ -5,7 +5,7 @@
 #' @param sigmas List, each element is a square (p, p) matrix, the 
 #' variance-covariance matrix for this cluster. If any matrix is not 
 #' positive definite, it will be coerced with `lqmm::make.positive.definite()`
-#' @param cl_points List, of number of observations within each cluster.
+#' @param cl_obs List, of number of observations within each cluster.
 #' @param method String specifying the matrix decomposition used find the 
 #' matrix root of `sigmas`. Expects, "eigen", the default, "svd", or "chol". 
 #' Also see `?mvtnorm::rmvnorm()`.
@@ -17,11 +17,11 @@
 #' covs <- list(diag(5), diag(5))
 #' sim_pDim_kCl(means = mns, sigmas = covs)
 #' 
-#' sim_pDim_kCl(means = mns, sigmas = covs, cl_points = list(200, 50),
+#' sim_pDim_kCl(means = mns, sigmas = covs, cl_obs = list(200, 50),
 #'              method = "svd", do_shuffle = FALSE)
 #'              
 #' x <- sim_pDim_kCl(means = mns, sigmas = covs)
-#' clas <- attr(x, "cl_lvl")
+#' clas <- attr(x, "class")
 #' GGally::ggpairs(x, ggplot2::aes(color = clas))
 #' 
 #' ## making a non-trivial cov.
@@ -36,16 +36,17 @@
 #' sim_pDim_kCl(means = mns, sigmas = covs)
 sim_pDim_kCl <- function(means, 
                          sigmas,
-                         cl_points = rep(list(100), length(means)),
+                         cl_obs = rep(list(100), length(means)),
                          method = c("eigen", "svd", "chol"),
                          do_shuffle = TRUE
-) {
-  method <- match.arg(method)
+){
+  if(length(cl_obs) == 1 & is.numeric(cl_obs) == TRUE)
+    cl_obs <- rep(list(cl_obs), length(means))
   means  <- as.list(means)
   sigmas <- as.list(sigmas)
-  if(length(cl_points) == 1 & is.numeric(cl_points) == TRUE)
-    cl_points <- rep(list(cl_points), length(means))
-  cl_points <- as.list(cl_points)
+  cl_obs <- as.list(cl_obs)
+  method <- match.arg(method)
+  ## Initalize
   p <- length(means[[1]])
   k <- length(means)
   ## Means and covariances are both of length k, clusters
@@ -55,61 +56,51 @@ sim_pDim_kCl <- function(means,
   require("mvtnorm")
   require("lqmm")
   
-  ## Create each cluster
+  ## Simulate with checks
   df_sim <- NULL
-  cl_means <- list()
-  cl_sigmas <- list()
-  for (i in 1:k) {
-    ## Set sample size and partician sample if complex shape
-    .n   <- cl_points[[i]]
-    .mn  <- means[[i]]
-    .cov <- as.matrix(sigmas[[i]])
-    
-    ## Check if this sigma is positive definite.
-    if(lqmm::is.positive.definite(.cov) == FALSE){
+  for(i in 1:k){
+    cov <- as.matrix(sigmas[[i]])
+    ## Check if this sigma is positive semi-definite, and a symmetric matrix .
+    if(lqmm::is.positive.definite(cov) == FALSE){
       warning(paste0("sigmas[[", i, "]] wasn't a positive definite matrix. Applied lqmm::make.positive.definite()."))
-      .cov <- lqmm::make.positive.definite(.cov)
+      cov <- lqmm::make.positive.definite(cov)
     }
-    if (isSymmetric.matrix(.cov) == FALSE) stop(paste0("sigma[[", i, "]] is not a symetric matrix, all covariance metrices must be symetric and positive definate."))
+    if(base::isSymmetric.matrix(cov) == FALSE)
+      stop(paste0("sigma[[", i, "]] is not a symetric matrix, all covariance metrices must be symetric and positive definate."))
     
-    ## Sample and store outputs
-    .k <- mvtnorm::rmvnorm(n = .n, mean = .mn, sigma = .cov, method = method)
-
-    df_sim <- rbind(df_sim, .k)
-    cl_means[[i]]  <- as.vector(colMeans(.k))
-    cl_sigmas[[i]] <- cov(.k)
+    ## Sample
+    this_cl <- mvtnorm::rmvnorm(n = cl_obs[[i]], 
+                                mean = means[[i]], 
+                                sigma = cov, 
+                                method = method)
+    df_sim <- rbind(df_sim, this_cl)
   }
   df_sim <- as.data.frame(df_sim)
   
-  ## Capture input args for attributed before anything could be reshuffled.
-  input_args <- list(means = means, sigmas = sigmas, cl_points = cl_points, 
-                     method = method, do_shuffle = do_shuffle, sim_func = sim_pDim_kCl)
-  cl_lvl <- paste0("cl ", rep(letters[1:k], unlist(cl_points)))
-  
+  ## Init class
+  class <- factor(paste0("cl ", rep(letters[1:k], unlist(cl_obs))))
   ## Reorder rows and columns if needed
-  if(do_shuffle == TRUE) {
+  if(do_shuffle == TRUE){
     row_ord <- sample(1:nrow(df_sim))
     col_ord <- sample(1:p)
-    
     ## Apply the shuffle reordering
     df_sim <- df_sim[row_ord, col_ord]
-    cl_lvl <- cl_lvl[row_ord]
-    for (i in 1:k){
-      cl_means[[i]]  <- cl_means[[i]][col_ord]
-      cl_sigmas[[i]] <- cl_sigmas[[i]][col_ord, col_ord]
-    }
+    class  <- class[row_ord]
   }
   
   ## Row/col names, after shuffle if required
   rownames(df_sim) <- 1:nrow(df_sim)
   colnames(df_sim) <- paste0("V", 1:ncol(df_sim))
   
+  ## Capture attibutes
+  args <- list(means = means, sigmas = sigmas, cl_obs = cl_obs,
+               method = method, do_shuffle = do_shuffle)
+  cl <- call("sim_pDim_kCl", args)
   ## Record attributes
-  attr(df_sim, "cl_lvl")     <- cl_lvl     ## Cluster levels
-  attr(df_sim, "input_args") <- input_args ## List of parameters
-  attr(df_sim, "cl_means")   <- cl_means   ## List of the simulations means, after shuffle applied if needed
-  attr(df_sim, "cl_sigmas")  <- cl_sigmas  ## List of the simulations covariance matrices, after shuffle applied if needed
-  
+  attr(df_sim, "class") <- class ## Cluster levels
+  attr(df_sim, "args")  <- args  ## List of args
+  attr(df_sim, "call")  <- cl    ## Stored call, use eval(attr(sim, "call")) to reproduce
+
   return(df_sim)
 }
 
@@ -136,7 +127,7 @@ sim_pDim_kCl <- function(means,
 #' Creates a data frame containing clusters of non-linear function segments. 
 #'
 #' @param p The number of dimensions to simulate 
-#' @param cl_points List, of number of observations within each cluster.
+#' @param cl_obs List, of number of observations within each cluster.
 #' from this cluster.
 #' @param do_shuffle Boolean specifying if order resampling should be applied 
 #' to the rows and columns, Such that cluster rows are not all together and 
@@ -144,20 +135,20 @@ sim_pDim_kCl <- function(means,
 #' @examples )
 #' sim_func_seg(p = 5)
 #' 
-#' sim_func_seg(p = 10, cl_points = list(200, 50, 100),
+#' sim_func_seg(p = 10, cl_obs = list(200, 50, 100),
 #'              do_shuffle = FALSE)
 #' 
 #' x <-  sim_func_seg(p = 4)
-#' clas <- attr(x, "cl_lvl")
+#' clas <- attr(x, "class")
 #' GGally::ggpairs(x, ggplot2::aes(color = clas))
 sim_func_seg <- function(p,
-                         cl_points = rep(list(100), 2),
+                         cl_obs = rep(list(100), 2),
                          do_shuffle = TRUE
 ) {
-  cl_points <- as.list(cl_points)
+  cl_obs <- as.list(cl_obs)
   require(magrittr)
 
-  k <- length(cl_points)
+  k <- length(cl_obs)
   ls_funcs <- list(function(x) x^2,
                    function(x) exp(x),
                    function(x) abs(x),
@@ -173,7 +164,7 @@ sim_func_seg <- function(p,
   last_rot <- matrix(rep(0, p^2), nrow = p, ncol = p)
   ## For each cluster
   for (i in 1:k){
-    cl_n <- cl_points[[i]]
+    cl_n <- cl_obs[[i]]
     x <- seq(-5, 5, length.out = cl_n)
     this_cl <- data.frame(V1 = x + rnorm(cl_n, sd = 1))
     ## make V2:Vp
@@ -209,9 +200,9 @@ sim_func_seg <- function(p,
   df_sim <- df_sim %>% as.data.frame()
   
   ## Capture input args for attributed before anything could be reshuffled.
-  input_args <- list(p = p, cl_points = cl_points,
+  input_args <- list(p = p, cl_obs = cl_obs,
                      do_shuffle = do_shuffle, sim_func = sim_func_seg)
-  cl_lvl <- paste0("cl ", rep(letters[1:k], unlist(cl_points)))
+  class <- paste0("cl ", rep(letters[1:k], unlist(cl_obs)))
 
   ## Reorder rows and columns if needed
   if(do_shuffle == TRUE) {
@@ -219,7 +210,7 @@ sim_func_seg <- function(p,
     col_ord <- sample(1:p)
     ## Apply the shuffle reordering
     df_sim <- df_sim[row_ord, col_ord]
-    cl_lvl <- cl_lvl[row_ord]
+    class <- class[row_ord]
     for (i in 1:k){
       cl_means[[i]]  <- cl_means[[i]][col_ord]
       cl_sigmas[[i]] <- cl_sigmas[[i]][col_ord, col_ord]
@@ -231,7 +222,7 @@ sim_func_seg <- function(p,
   colnames(df_sim) <- paste0("V", 1:ncol(df_sim))
   
   ## Record attributes
-  attr(df_sim, "cl_lvl")     <- cl_lvl     ## Cluster levels
+  attr(df_sim, "class")     <- class     ## Cluster levels
   attr(df_sim, "input_args") <- input_args ## List of parameters
   attr(df_sim, "cl_means")   <- cl_means   ## List of the simulations means, after shuffle applied if needed
   attr(df_sim, "cl_sigmas")  <- cl_sigmas  ## List of the simulations covariance matrices, after shuffle applied if needed

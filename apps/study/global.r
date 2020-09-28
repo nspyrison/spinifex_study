@@ -13,6 +13,7 @@ library("shinyjs")   ## help with handling conditionalPanels.
 library("lubridate") ## For timer
 library("loggit")    ## For logging
 library("here")      ## Fixing base dir.
+set.seed(20200927)   ## if tourr starts using seeds
 
 
 #### Logging
@@ -34,10 +35,10 @@ log_num  <- 1
 log_file <- ""
 log_name <- "DUMMY"
 
-if (do_log == TRUE){
+if(do_log == TRUE){
   log_name <- sprintf(paste0(log_base, "%03d"), log_num)
   log_file <- paste0(log_name, ".json")
-  while (file.exists(log_file)) { ## Find an unused log number
+  while (file.exists(log_file)){ ## Find an unused log number
     log_num  <- log_num + 1
     log_name <- sprintf(paste0(log_base, "%03d"), log_num)
     log_file <- paste0(log_name, ".json")
@@ -71,12 +72,12 @@ context_msg <- paste(sep = " \n",
                      paste0("Group number: ", log_num, "."),
                      paste0("Sys.info()[1:5]: ", this_Sys.info)
 )
-if (do_log == TRUE) loggit("INFO", "=====Spinifex study app start.=====")
+if(do_log == TRUE) loggit("INFO", "=====Spinifex study app start.=====")
 cat(context_msg)
 
-onStop(function() {
+onStop(function(){
   cat(context_msg)
-  if (do_log == TRUE) {
+  if(do_log == TRUE){
     loggit("INFO", "=====Spinifex study app stop.=====")
     set_logfile(logfile = NULL, confirm = TRUE)
   }
@@ -109,7 +110,7 @@ s_survey_questions <- c("What sex are you?",
 ## Load training data and tour paths
 t_dat_len <- 4L
 s_t_dat <- s_t_tpath <- list() ## init
-for (i in 1:t_dat_len) {
+for (i in 1:t_dat_len){
   s_t_dat[[i]]   <- readRDS(
     here::here(paste0("apps/data/simulation_data_t", i, ".rds"))
   )
@@ -121,7 +122,7 @@ for (i in 1:t_dat_len) {
 ## Load data and tour paths
 dat_len <- 12L
 s_dat <- s_tpath <- list()
-for (i in 1:dat_len) {
+for (i in 1:dat_len){
   s_dat[[i]] <- readRDS(
     here::here(paste0("apps/data/simulation_data", sim_series + i, ".rds"))
   )
@@ -449,9 +450,9 @@ app_render_ <- function(slides, ## paste over spinifex render to add size
                         axes = "left",
                         alpha = 1,
                         cluster = NULL,
-                        ...) {
+                        ...){
   ## Initialize
-  if (length(slides) == 2)
+  if(length(slides) == 2)
     data_slides  <- data.frame(slides[[2]])
   basis_slides   <- data.frame(slides[[1]])
   manip_var      <- attributes(slides$basis_slides)$manip_var
@@ -461,7 +462,7 @@ app_render_ <- function(slides, ## paste over spinifex render to add size
   angle          <- seq(0, 2 * pi, length = 360)
   circ           <- data.frame(x = cos(angle), y = sin(angle))
   ## Scale basis axes
-  if (axes != "off"){
+  if(axes != "off"){
     zero         <- app_set_axes_position(0, axes)
     circ         <- app_set_axes_position(circ, axes)
     basis_slides <- data.frame(app_set_axes_position(basis_slides[, 1:2], axes),
@@ -508,7 +509,7 @@ app_render_ <- function(slides, ## paste over spinifex render to add size
       )
     )
 
-  if (axes != "off"){
+  if(axes != "off"){
     gg <- gg +
       ## Circle path
       ggplot2::geom_path(
@@ -546,9 +547,9 @@ app_oblique_frame <-
            phi          = 0,
            lab          = NULL,
            rescale_data = FALSE,
-           ...) {
+           ...){
 
-    if (is.null(basis) & !is.null(data)) {
+    if(is.null(basis) & !is.null(data)){
       message("NULL basis passed. Initializing random basis.")
       basis <- tourr::basis_random(n = ncol(data))
     }
@@ -560,7 +561,7 @@ app_oblique_frame <-
     basis_slides <- cbind(as.data.frame(r_m_sp), slide = 1)
     colnames(basis_slides) <- c("x", "y", "z", "slide")
     if(!is.null(data)){
-      if (rescale_data) {data <- tourr::rescale(data)}
+      if(rescale_data){data <- tourr::rescale(data)}
       data_slides  <- cbind(as.data.frame(data %*% r_m_sp), slide = 1)
       data_slides[, 1] <- scale(data_slides[, 1], scale = FALSE)
       data_slides[, 2] <- scale(data_slides[, 2], scale = FALSE)
@@ -572,13 +573,13 @@ app_oblique_frame <-
       if(!is.null(lab)){
         rep(lab, nrow(basis_slides) / length(lab))
       } else {
-        if(!is.null(data)) {abbreviate(colnames(data), 3)
+        if(!is.null(data)){abbreviate(colnames(data), 3)
         } else {paste0("V", 1:p)}
       }
 
     attr(basis_slides, "manip_var") <- manip_var
 
-    slide <- if(!is.null(data)) {
+    slide <- if(!is.null(data)){
       list(basis_slides = basis_slides, data_slides = data_slides)
     } else list(basis_slides = basis_slides)
 
@@ -589,17 +590,17 @@ app_oblique_frame <-
     return(gg)
   }
 
-app_set_axes_position <- function(x, axes) {
-  if (length(x) == 1) {x <- data.frame(x = x, y = x)}
+app_set_axes_position <- function(x, axes){
+  if(length(x) == 1){x <- data.frame(x = x, y = x)}
   position <- match.arg(axes, c("center", "bottomleft", "off", "left"))
-  if (position == "off") return()
-  if (position == "center") {
+  if(position == "off") return()
+  if(position == "center"){
     scale <- 2 / 3
     x_off <- y_off <- 0
-  } else if (position == "bottomleft") {
+  } else if(position == "bottomleft"){
     scale <- 1 / 4
     x_off <- y_off <- -2 / 3
-  } else if (position == "left") {
+  } else if(position == "left"){
     scale <- 2 / 3
     x_off <- -5 / 3
     y_off <- 0
@@ -612,7 +613,7 @@ app_set_axes_position <- function(x, axes) {
 }
 
 app_vect2str <- function(vect){
-  if (length(vect) == 0) return("<none>")
+  if(length(vect) == 0) return("<none>")
   .vect <- paste("V", vect)
   paste0(.vect,  collapse = ", ")
 }
