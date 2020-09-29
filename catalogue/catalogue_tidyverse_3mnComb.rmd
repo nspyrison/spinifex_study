@@ -9,7 +9,9 @@ editor_options:
 ---
 ```{r setup, include=F}
 DO_RERUN_RADIAL_TOURS <- F
-
+require(GGally)
+require(tourr)
+require(spinifex)
 require(here)
 source(here("R/sim_tidyverse.r"))
 
@@ -119,13 +121,14 @@ this_pca_ggpairs <- function(pcs, title){ ## Assumes class vector 'clas'
     ggtitle(title) + theme_pairs()
 }
 
-## ASSIGN GENERATED __mnCombATED__ SIMS
+## ASSIGN GENERATED _mnComb SIMS
 assign(models[1], rotate(this_sim(get(paste0("covs_", models[1])))))
-assign(models[2], rotate(this_sim(get(paste0("covs_", models[2])))))
+assign(models[2], this_sim(get(paste0("covs_", models[2])))) ## need to banana_tform first.
 assign(models[3], rotate(this_sim(get(paste0("covs_", models[3]))))) 
 ## Apply banana_tform() to cl b.
 banana_mnComb[banana_mnComb$cl == "cl b", ] <-
   banana_tform(banana_mnComb[banana_mnComb$cl == "cl b", ])
+banana_mnComb <- rotate(banana_mnComb)
 clas <- get(models[1])$cl
 
 
