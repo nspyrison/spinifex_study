@@ -110,16 +110,25 @@ s_survey_questions <- c("What sex are you?",
 ## Load training data and tour paths
 t_dat_len <- 4L
 s_t_dat <- s_t_tpath <- list() ## init
-for (i in 1:t_dat_len){
-  s_t_dat[[i]]   <- readRDS(
-    here::here(paste0("apps/data/simulation_data_t", i, ".rds"))
-  )
-  s_t_tpath[[i]] <- readRDS(
-    here::here(paste0("apps/data/grand_tpath_t", i, ".rds"))
-  )
+# for (i in 1:t_dat_len){
+#   s_t_dat[[i]]   <- readRDS(
+#     here::here(paste0("apps/data/simulation_data_t", i, ".rds"))
+#   )
+#   s_t_tpath[[i]] <- readRDS(
+#     here::here(paste0("apps/data/grand_tpath_t", i, ".rds"))
+#   )
+# }
+root <- here("apps/data/")
+fps <- paste0(root, "/",
+              c("baseLn_EEE.rds", "baseLn_EEV.rds", "baseLn_banana.rds",
+                "corNoise_EEE.rds", "corNoise_EEV.rds", "corNoise_banana.rds",
+                "mnComb_EEE.rds", "mnComb_EEV.rds", "mnComb_banana.rds"))
+for(i in 1:length(fps)){
+  s_t_dat[[i]] <- load(fps[i])
 }
 
-## Load data and tour paths
+
+## Load data and tour paths for task eval
 dat_len <- 12L
 s_dat <- s_tpath <- list()
 for (i in 1:dat_len){
@@ -130,6 +139,7 @@ for (i in 1:dat_len){
     here::here(paste0("apps/data/grand_tpath", sim_series + i, ".rds"))
   )
 }
+
 
 
 ##### Global variable initialization -----
@@ -204,7 +214,15 @@ sidebar_ui <- conditionalPanel(
                      radioButtons(inputId = "factor", label = "Factor",
                                   choices = fct_nm_vect,
                                   selected = fct_nm_vect[1],
-                                  inline = TRUE)
+                                  inline = TRUE),
+                     fluidRow(column(6, radioButtons(inputId = "simFactor", label = "Simulation factor",
+                                                     choices = list("Baseline" = "baseLn",
+                                                                    "Correlated noise dimensions" = "corNoise", 
+                                                                    "Mean diff. in combination of dim." = "mnComb"), 
+                                                     selected = "baseLn")),
+                              column(6, radioButtons(inputId = "simModel", label = "Model",
+                                                     choices = c("EEE", "EEV", "banana"), selected = "EEE"))
+                     )
     ), ## PCA axis selection
     conditionalPanel(
       condition = "(output.factor_nm == 'pca') ||

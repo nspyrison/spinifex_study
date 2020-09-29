@@ -56,7 +56,6 @@ server <- function(input, output, session){
     return("!!SECTION NOT DEFINED!!")
   })
   section_pg <- reactive({ ## current page num of this section.
-    # req(rv$pg)
     if(section_nm() == "intro"){return(rv$pg)}
     if(section_nm() == "training"){
       return(rv$pg - (training_start_pg - 1L))
@@ -77,8 +76,13 @@ server <- function(input, output, session){
     return((section_pg() - n_blocks) %% (n_blocks))
   })
   sim <- reactive({
-    if(section_nm() == "training") return("NA - training")
-    return((period() - 1L) * 6L + 3L + block())
+    if(section_nm() == "training"){
+      req(input$simFactor, input$simModel)
+      return(paste0(input$simFactor,"_", input$simModel))
+    }
+    return("baseLn_EEE")
+    # if(section_nm() == "training") return("NA - training")
+    # return((period() - 1L) * 6L + 3L + block())
   })
   task_time <- reactive({
     req(factor_nm())
@@ -90,15 +94,29 @@ server <- function(input, output, session){
   dat <- reactive({ ## Simulation df with attachments.
     req(section_nm())
     if(section_nm() == "training"){
-      req(section_pg())
-       ret <- s_t_dat[[section_pg()]]
+      ret <- get(sim())[, -1]
+      # req(section_pg())
+      # ret <- s_t_dat[[section_pg()]]
     } else { ## evaluation section.
-      req(sim())
-      ret <- s_dat[[sim()]]
+      ret <- get(sim())[, -1]
+      # req(sim())
+      # ret <- s_dat[[sim()]]
     }
     ## Return
-    as.data.frame(tourr::rescale(ret))
+    # as.data.frame(tourr::rescale(ret))
+    ret
   })
+  cl <- reactive({ ## Simulation df with attachments.
+    req(section_nm())
+    if(section_nm() == "training"){
+      ret <- get(sim())[, 1]
+    }else{ ## Evaluation section.
+      ret <- get(sim())[, 1]
+    }
+    ## Return
+    ret
+  })
+  
   task_tpath <- reactive({
     if(section_nm() == "training"){
       return(s_t_tpath[[section_pg()]])
@@ -146,7 +164,7 @@ server <- function(input, output, session){
   #### Task answer
   task_ans <- reactive({
     dat_std <- dat()
-    cl_dat <- data.frame(dat_std, clas = attr(dat_std, "cl_lvl"))
+    cl <- dat_std$cl
     #TODO need to bring in latest clSep function
     rep(0, p())
   })

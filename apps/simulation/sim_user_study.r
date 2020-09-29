@@ -94,14 +94,9 @@ sim_mvtnorm_cl <- function(means,  ## Required
 #' @param cl_obs List, of number of observations within each cluster.
 #' @examples
 #' sim_user_study(cl_obs = 140, do_save = TRUE)
-sim_user_study <- function( 
-<<<<<<< HEAD
+sim_user_study <- function(
   ## fixed at p = 4, k_cl = 3, mn_sz = 2, var_sz =1, cor_sz = .9, p_sig 2, (p_noise = 2)
   cl_obs = 200,
-=======
-  ## fixed at p = 4, k_cl = 3, mn_sz = 2, var_sz =1, cor_sz = .9, p_sig 2,  (p_noise = 2)
-  cl_obs = 200, ## banana_tform() expects evenly divisable by 5
->>>>>>> master
   do_save = FLASE 
 ){
   ## HARD CODE SEED!!!
@@ -188,10 +183,6 @@ sim_user_study <- function(
   
   ## Apply banana_tform()
   cl_b_rows <- baseLn_EEE$cl == "cl b"
-<<<<<<< HEAD
-=======
-  
->>>>>>> master
   baseLn_banana[cl_b_rows, ]   <- banana_tform(baseLn_banana[cl_b_rows, ])
   corNoise_banana[cl_b_rows, ] <- banana_tform(corNoise_banana[cl_b_rows, ])
   mnComb_banana[cl_b_rows, ]   <- banana_tform(mnComb_banana[cl_b_rows, ])
