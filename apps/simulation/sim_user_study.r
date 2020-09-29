@@ -1,3 +1,19 @@
+source(here::here("R/sim_tidyverse.r")) ## For banana_tform() and rotate()
+
+
+#' Creates a data frame of multivariate data with clusters via mvnorm::rmvnorm().
+#'
+#' @param means List, each element is a p-length vectors, the variable means 
+#' of this cluster.
+#' @param sigmas List, each element is a square (p, p) matrix, the 
+#' variance-covariance matrix for this cluster. If any matrix is not 
+#' positive definite, it will be coerced with `lqmm::make.positive.definite()`
+#' @param cl_obs List, of number of observations within each cluster.
+#' matrix root of `sigmas`. Expects, "eigen", the default, "svd", or "chol". 
+#' Also see `?mvtnorm::rmvnorm()`.
+#' @param do_shuffle Boolean specifying if order resampling should be applied 
+#' to the rows and columns, Such that cluster rows are not all together and 
+#' signal columns are not in the same order.
 sim_mvtnorm_cl <- function(means,  ## Required
                            sigmas, ## Required
                            cl_obs = cl_obs,
@@ -30,11 +46,11 @@ sim_mvtnorm_cl <- function(means,  ## Required
     ## Sample
     this_cl <- mvtnorm::rmvnorm(n = cl_obs[[i]],
                                 mean = means[[i]], 
-                                sigma = cov,
-                                method = method)
+                                sigma = cov)
     df_sim <- rbind(df_sim, this_cl)
   }
   df_sim <- as.data.frame(df_sim)
+  df_sim <- apply(df_sim, 2, function(c)(c - mean(c)) / sd(c)) ## Standardize by column mean, sd.
   
   ## Init class
   class <- factor(paste0("cl ", rep(letters[1:k], unlist(cl_obs))))
@@ -47,8 +63,8 @@ sim_mvtnorm_cl <- function(means,  ## Required
     df_sim <- df_sim[row_ord, col_ord]
     class  <- class[row_ord]
     for (i in 1:k){
-      cl_means[[i]]  <- cl_means[[i]][col_ord]
-      cl_sigmas[[i]] <- cl_sigmas[[i]][col_ord, col_ord]
+      means[[i]]  <- means[[i]][col_ord]
+      sigmas[[i]] <- sigmas[[i]][col_ord, col_ord]
     }
   }
   
@@ -61,34 +77,33 @@ sim_mvtnorm_cl <- function(means,  ## Required
                       do_shuffle = do_shuffle)
   cl <- call("sim_pDim_kCl", args)
   ## Record attributes
-  attr(df_sim, "class") <- class ## Cluster levels
-  attr(df_sim, "args")  <- args  ## List of args
-  attr(df_sim, "call")  <- cl    ## Stored call, use eval(attr(sim, "call")) to reproduce
+  attr(df_sim, "cluster") <- class ## Cluster levels
+  attr(df_sim, "args")    <- args  ## List of args
+  attr(df_sim, "call")    <- cl    ## Stored call, use eval(attr(sim, "call")) to reproduce
   
   return(df_sim)
 }
 
 
-##
-## SIMULATION FUNCTION ----
-## using mvtnorm::rmvnorm, lqmm to make the models as described in the mclust5 paper
-## Creates and assigns models c("VII", "EEE", "EVV", "VVV") to the global envir.
-#### wtih the specified params.
-##
+
+#' Hard-coded wrapper function that uses mvnorm::rmvnorm() to simulate 3 
+#' simulation factors by 3 (mclust 5 paper like) models. These 9 simulations
+#' are assigned to global variables and saved as .rda files for use in the 
+#' {shiny} app for the user study.
+#'
+#' @param cl_obs List, of number of observations within each cluster.
+#' @examples
+#' sim_user_study(cl_obs = 140, do_save = TRUE)
 sim_user_study <- function( 
-  ## fixed at p = 4, k_cl = 3, mn_sz = 2, var_sz =1, cor_sz = .9, p_sig 2,  (p_noise = 2)
-  n_obs_per_cl = 200,
-  #, DO_SAVE = FALSE 
+  ## fixed at p = 4, k_cl = 3, mn_sz = 2, var_sz =1, cor_sz = .9, p_sig 2, (p_noise = 2)
+  cl_obs = 200,
+  do_save = FLASE 
 ){
   ## HARD CODE SEED!!!
   set.seed(123)
   ## Initializae
   p      <- 4
   k_cl   <- 3
-  cl_obs <- n_obs_per_cl
-  if(is.list(cl_obs) == FALSE)
-    cl_obs <- rep(list(n_obs_per_cl), k_cl) ## banana_tform() expects evenly divisable by 5
-  class <- paste0("cl ", letters[1:k_cl])
   factors <- c("baseLn", "corNoise", "mnComb")
   models <- c("EEE", "EEV", "banana")
   obj_nms <- c(t(outer(factors, paste0("_", models), FUN = paste0)))
@@ -123,12 +138,12 @@ sim_user_study <- function(
                                 0,   0,   sd,  .8,
                                 0,   0,   .8,   sd),
                               ncol = 4, byrow = TRUE)
-  cov_elipse_pos_corNoise <- matrix(c(sd,  .9,   0,   0,
+  cov_elipse_pos_corNoise <- matrix(c(sd,  .9,  0,   0,
                                       .9,  sd,  0,   0,
                                       0,   0,   sd,  .8,
                                       0,   0,   .8,  sd),
                                     ncol = 4, byrow = TRUE)
-  cov_elipse_neg_corNoise <- matrix(c(sd,  -.9,  0,   0,
+  cov_elipse_neg_corNoise <- matrix(c(sd,  -.9, 0,   0,
                                       -.9, sd,  0,   0,
                                       0,   0,   sd,  .8,
                                       0,   0,   .8,  sd),
@@ -160,22 +175,35 @@ sim_user_study <- function(
   for(i in 1:length(obj_nms)){
     this_sim <- sim_mvtnorm_cl(means = mns, sigmas = get(cov_nms[i]),
                                cl_obs = cl_obs, do_shuffle = TRUE)
-    assign(x = obj_nms[i], value = this_sim, envir = globalenv())
+    cl <- attr(this_sim, "cluster")
+    ret <- data.frame(cl, this_sim)
+    assign(x = obj_nms[i], value = ret, envir = globalenv())
   }
   print("Assigned all simulations as a global variables, as '<factor_model>'.")
   
+  ## Apply banana_tform()
+  cl_b_rows <- baseLn_EEE$cl == "cl b"
+  baseLn_banana[cl_b_rows, ]   <- banana_tform(baseLn_banana[cl_b_rows, ])
+  corNoise_banana[cl_b_rows, ] <- banana_tform(corNoise_banana[cl_b_rows, ])
+  mnComb_banana[cl_b_rows, ]   <- banana_tform(mnComb_banana[cl_b_rows, ])
+  ## Apply rotate()
+  mnComb_EEE    <- rotate(mnComb_EEE)
+  mnComb_EEV    <- rotate(mnComb_EEV)
+  mnComb_banana <- rotate(mnComb_banana)
+  
+  
   ## Save within function
-  if(DO_SAVE == TRUE){
+  if(do_save == TRUE){
     root <- here::here("apps/data/")
-    save(baseLn_EEE     , file = paste0(root, obj_nms[1], ".rda"))
-    save(baseLn_EEV     , file = paste0(root, obj_nms[2], ".rda"))
-    save(baseLn_banana  , file = paste0(root, obj_nms[3], ".rda"))
-    save(corNoise_EEE   , file = paste0(root, obj_nms[4], ".rda"))
-    save(corNoise_EEV   , file = paste0(root, obj_nms[5], ".rda"))
-    save(corNoise_banana, file = paste0(root, obj_nms[6], ".rda"))
-    save(mnComb_EEE     , file = paste0(root, obj_nms[7], ".rda"))
-    save(mnComb_EEV     , file = paste0(root, obj_nms[8], ".rda"))
-    save(mnComb_banana  , file = paste0(root, obj_nms[9], ".rda"))
+    save(baseLn_EEE     , file = paste0(root, "/", obj_nms[1], ".rda"))
+    save(baseLn_EEV     , file = paste0(root, "/", obj_nms[2], ".rda"))
+    save(baseLn_banana  , file = paste0(root, "/", obj_nms[3], ".rda"))
+    save(corNoise_EEE   , file = paste0(root, "/", obj_nms[4], ".rda"))
+    save(corNoise_EEV   , file = paste0(root, "/", obj_nms[5], ".rda"))
+    save(corNoise_banana, file = paste0(root, "/", obj_nms[6], ".rda"))
+    save(mnComb_EEE     , file = paste0(root, "/", obj_nms[7], ".rda"))
+    save(mnComb_EEV     , file = paste0(root, "/", obj_nms[8], ".rda"))
+    save(mnComb_banana  , file = paste0(root, "/", obj_nms[9], ".rda"))
   }
   print(paste0("Save all simulations to ", root, " as '<factor_model>.rda'."))
 }

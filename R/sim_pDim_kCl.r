@@ -97,9 +97,9 @@ sim_pDim_kCl <- function(means,
                method = method, do_shuffle = do_shuffle)
   cl <- call("sim_pDim_kCl", args)
   ## Record attributes
-  attr(df_sim, "class") <- class ## Cluster levels
-  attr(df_sim, "args")  <- args  ## List of args
-  attr(df_sim, "call")  <- cl    ## Stored call, use eval(attr(sim, "call")) to reproduce
+  attr(df_sim, "cluster") <- class ## Cluster levels
+  attr(df_sim, "args")    <- args  ## List of args
+  attr(df_sim, "call")    <- cl    ## Stored call, use eval(attr(sim, "call")) to reproduce
 
   return(df_sim)
 }

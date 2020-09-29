@@ -1,5 +1,5 @@
 ## Setup
-source("./R/sim_pDim_kCl.r")
+source(here::here("R/sim_pDim_kCl.r"))
 DO_SAVE = FALSE 
 
 ##
@@ -15,7 +15,7 @@ sims_mvnorm_mclust <- function(
   sigMns = 3, ## Intrisic data dimensionality
   #sigCors = 3,
   p = 10, ## Number of dimensions
-  n_obs_per_cl = rep(list(200), k_cl),
+  cl_obs = rep(list(200), k_cl),
   mn_sz  = 5,
   var_sz = 1,
   cor_sz = .5,
@@ -64,12 +64,6 @@ sims_mvnorm_mclust <- function(
   diag(cov1) <- diag(cov1) / 4
   diag(cov2) <- diag(cov3) * 4
   covs_VVV <- list(cov1, cov2, cov3)
-  ##
-  names(covs_EII) <- cl_lvls
-  names(covs_VII) <- cl_lvls
-  names(covs_EEE) <- cl_lvls
-  names(covs_EVV) <- cl_lvls
-  names(covs_VVV) <- cl_lvls
   
   sims_mvnorm_mclust
   
@@ -78,7 +72,7 @@ sims_mvnorm_mclust <- function(
   cov_nms <- paste0("covs_", models)
   for(i in 1:length(obj_nms)){
     this_sim <- sim_pDim_kCl(means = mns, sigmas = get(cov_nms[i]),
-                             cl_points = n_obs_per_cl, do_shuffle = FALSE)
+                             cl_points = cl_obs, do_shuffle = FALSE)
     assign(x = obj_nms[i], value = this_sim, envir = globalenv())
     print(paste0("Assigned ", obj_nms[i], " as a global variable."))
   }
@@ -98,7 +92,7 @@ if(F){ ## DUMMY DON'T RUN AFTER -----
   ## _CREATE SIMS TO GLOBAL ENV. -----
   ##
   sims_mvnorm_mclust(k_cl = 3, sigMns = 3, p =  10,
-                     n_obs_per_cl = rep(list(200), 3),
+                     cl_obs = cl_obs,
                      mn_sz = 1, var_sz = 1, cor_sz = .5, cor_var_sz = 3.3)
 
   ##
