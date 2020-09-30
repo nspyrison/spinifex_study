@@ -101,6 +101,8 @@ sim_user_study <- function(
 ){
   ## HARD CODE SEED!!!
   set.seed(123)
+  if("banana_tform" %in% ls() == FALSE)
+    source(here::here("R/sim_tidyverse.r")) ## For banana_tform() and rotate()
   ## Initializae
   p      <- 4
   k_cl   <- 3
@@ -179,8 +181,6 @@ sim_user_study <- function(
     ret <- data.frame(cl, this_sim)
     assign(x = obj_nms[i], value = ret, envir = globalenv())
   }
-  print("Assigned all simulations as a global variables, as '<factor_model>'.")
-  
   ## Apply banana_tform()
   cl_b_rows <- baseLn_EEE$cl == "cl b"
   baseLn_banana[cl_b_rows, ]   <- banana_tform(baseLn_banana[cl_b_rows, ])
@@ -190,20 +190,72 @@ sim_user_study <- function(
   mnComb_EEE    <- rotate(mnComb_EEE)
   mnComb_EEV    <- rotate(mnComb_EEV)
   mnComb_banana <- rotate(mnComb_banana)
+  ##
+  message("Assigned all simulations as a global variables, as '<factor_model>'. \n")
   
   
   ## Save within function
   if(do_save == TRUE){
-    root <- here::here("apps/data/")
-    save(baseLn_EEE     , file = paste0(root, "/", obj_nms[1], ".rda"))
-    save(baseLn_EEV     , file = paste0(root, "/", obj_nms[2], ".rda"))
-    save(baseLn_banana  , file = paste0(root, "/", obj_nms[3], ".rda"))
-    save(corNoise_EEE   , file = paste0(root, "/", obj_nms[4], ".rda"))
-    save(corNoise_EEV   , file = paste0(root, "/", obj_nms[5], ".rda"))
-    save(corNoise_banana, file = paste0(root, "/", obj_nms[6], ".rda"))
-    save(mnComb_EEE     , file = paste0(root, "/", obj_nms[7], ".rda"))
-    save(mnComb_EEV     , file = paste0(root, "/", obj_nms[8], ".rda"))
-    save(mnComb_banana  , file = paste0(root, "/", obj_nms[9], ".rda"))
+    root <- paste0(here::here("apps/data/"), "/")
+    ## Using .rda. .rds not working b/c of long path?
+    save(baseLn_EEE     , file = paste0(root, obj_nms[1], ".rda"))
+    save(baseLn_EEV     , file = paste0(root, obj_nms[2], ".rda"))
+    save(baseLn_banana  , file = paste0(root, obj_nms[3], ".rda"))
+    save(corNoise_EEE   , file = paste0(root, obj_nms[4], ".rda"))
+    save(corNoise_EEV   , file = paste0(root, obj_nms[5], ".rda"))
+    save(corNoise_banana, file = paste0(root, obj_nms[6], ".rda"))
+    save(mnComb_EEE     , file = paste0(root, obj_nms[7], ".rda"))
+    save(mnComb_EEV     , file = paste0(root, obj_nms[8], ".rda"))
+    save(mnComb_banana  , file = paste0(root, obj_nms[9], ".rda"))
   }
-  print(paste0("Save all simulations to ", root, " as '<factor_model>.rda'."))
+  message(paste0("Save all simulations to ", root, " as '<factor_model>.rda'. Use load(my.rda) bring obj into env. \n"))
+}
+
+#' Saves offGrand tour paths for the evaluation simulations
+#' @examples 
+#' tpath_user_study(do_save = TRUE)
+tpath_user_study <- function(do_save = FALSE){
+  require("tourr")
+  root <- paste0(here::here("apps/data"), "/")
+  in_nms <- c("baseLn_EEE", "baseLn_EEV", "baseLn_banana",
+               "corNoise_EEE", "corNoise_EEV", "corNoise_banana",
+               "mnComb_EEE", "mnComb_EEV", "mnComb_banana")
+  in_fps <- paste0(root, in_nms, ".rda")
+  out_nms <- paste0("tpath_", in_nms)
+  out_fps <- paste0(root, "tpath_", in_nms, ".rda")
+  
+  
+  for (i in 1:length(in_fps)) {
+    load(in_fps[i])
+    dat <- as.matrix(get(in_nms[i])[, -1]) ## Numeric data only, as matrix
+    bas <- prcomp(dat)$rotation[, 1:2]
+    tpath <- 
+      save_history(data = dat, tour_path = grand_tour(), max_bases = 8, start = bas)
+    
+    assign(obj_nm, tpath, envir = globalenv())
+    if (do_save == TRUE){
+      obj <- get(in_nms[i])
+      save(object = obj, file = out_fps[i])
+    }
+  }
+  message("Assigned all grand tour paths as a global variables, as 'tpath_<factor_model>'. \n")
+  if (do_save == TRUE)
+    message(paste0("Save all grand tour paths to ", root, " as 'tpath_<factor_model>.rda'. Use load(my.rda) bring obj into env. \n"))
+  
+  # ## Grand tour paths for the training simulations
+  # simulation_data_train1 <- load("./apps/data/simulation_data_t1.rds")
+  # simulation_data_train2 <- load("./apps/data/simulation_data_t2.rds")
+  # simulation_data_train3 <- load("./apps/data/simulation_data_t3.rds")
+  # simulation_data_train4 <- load("./apps/data/simulation_data_t4.rds")
+  # loaded_train_names <- ls()[grepl("simulation_data_train", ls())]
+  # for (i in 1:length(loaded_train_names)) {
+  #   .sim    <- as.matrix(get(loaded_train_names[i]))
+  #   .bas    <- prcomp(.sim)$rotation[, 1:2]
+  #   .tpath  <- save_history(data = .sim, tour_path = grand_tour(), max_bases = 8, start = .bas)
+  #   .obj_nm <- paste0("grand_tpath_t", i)
+  #   assign(.obj_nm, .tpath)
+  #   if (SAVE_TPATHS){
+  #     saveRDS(object = get(.obj_nm), paste0("./apps/data/", .obj_nm, ".rds"))
+  #   }
+  # }
 }

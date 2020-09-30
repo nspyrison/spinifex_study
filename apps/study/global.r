@@ -120,9 +120,9 @@ s_t_dat <- s_t_tpath <- list() ## init
 # }
 root <- here("apps/data/")
 fps <- paste0(root, "/",
-              c("baseLn_EEE.rds", "baseLn_EEV.rds", "baseLn_banana.rds",
-                "corNoise_EEE.rds", "corNoise_EEV.rds", "corNoise_banana.rds",
-                "mnComb_EEE.rds", "mnComb_EEV.rds", "mnComb_banana.rds"))
+              c("baseLn_EEE", "baseLn_EEV", "baseLn_banana",
+                "corNoise_EEE", "corNoise_EEV", "corNoise_banana",
+                "mnComb_EEE", "mnComb_EEV", "mnComb_banana"), ".rds")
 for(i in 1:length(fps)){
   s_t_dat[[i]] <- load(fps[i])
 }
@@ -194,7 +194,7 @@ sidebar_ui <- conditionalPanel(
           Watch how the contributions and clusters move as a result. Select a
           change the y-axis to PC3 and back, notice that this resets the
           projection."),
-      ),
+      ), ## Close coditionalPanel()
       conditionalPanel( ## Rraining task 1, pg 2
         condition = "output.task == 2",
         strong("The data points are colored by their cluster again.
@@ -204,9 +204,9 @@ sidebar_ui <- conditionalPanel(
                with a small contribution are unimportant.
                Use this information to identify which variables distinguish
                the 2 clusters.")
-      ),
+      ), ## Close coditionalPanel()
       hr()
-    ), ### end training text
+    ), ### Close training text coditionalPanel()
     
     ##### _Training control inputs -----
     ## Factor selection
@@ -223,22 +223,39 @@ sidebar_ui <- conditionalPanel(
                               column(6, radioButtons(inputId = "simModel", label = "Model",
                                                      choices = c("EEE", "EEV", "banana"), selected = "EEE"))
                      )
-    ), ## PCA axis selection
+    ), 
     conditionalPanel(
+      ## PCA axis selection
       condition = "(output.factor_nm == 'pca') ||
-                  (output.section_nm == 'training' && input.factor != 'grand')",
+                  (output.section_nm == 'training' && input.factor == 'pca')",
       fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis",
-                                      choices = paste0("PC", 1:4), selected = "PC1")),
+                                      choices = "V1", selected =  "V1")),
                column(6, radioButtons(inputId = "y_axis", label = "y axis",
-                                      choices = paste0("PC", 1:4), selected = "PC2"))
+                                      choices = c("V1", "V2"), selected =  "V2"))
       )
     ),
+    ## Grand restart button
+    conditionalPanel(
+      condition = "(output.factor_nm == 'grand') ||
+                  (output.section_nm == 'training' && input.factor == 'grand')",
+      actionButton("grand_restart", "Restart grand tour")
+      # sliderInput("grand_restart", "Grand tour frame:",
+      #             min = 1, max = 1,
+      #             value = 1, step = 1,
+      #             animate =
+      #               animationOptions(interval = 125, loop = FALSE)
+      # )
+    ),
+    ## Radial mvar dropdown selection
+    conditionalPanel(
+      condition = "(output.factor_nm == 'radial') ||
+                  (output.section_nm == 'training' && input.factor == 'radial')",
+      radioButtons(inputId = "manip_var_nm", label = "Manip variable:",
+                  choices =  "V1", selected = "V1"
+      ),
+    ), ## Close conditionalPanel()
     
     ##### _Task response input -----
-    ## Task 1
-    conditionalPanel(condition = "output.factor_nm != 'grand'",
-                     hr()
-    ),
     ## Task 2
     checkboxGroupInput(
       inputId = "task_response",
@@ -464,27 +481,27 @@ ui <- fluidPage(useShinyjs(), ## Required in ui to use shinyjs.
 
 
 ##### App local functions below: -----
-app_render_ <- function(slides, ## paste over spinifex render to add size
+app_render_ <- function(frames, ## paste over spinifex render to add size
                         axes = "left",
                         alpha = 1,
                         cluster = NULL,
                         ...){
   ## Initialize
-  if(length(slides) == 2)
-    data_slides  <- data.frame(slides[[2]])
-  basis_slides   <- data.frame(slides[[1]])
-  manip_var      <- attributes(slides$basis_slides)$manip_var
-  n_slides       <- max(basis_slides$slide)
-  p              <- nrow(basis_slides) / n_slides
-  d              <- ncol(basis_slides) - 2
+  if(length(frames) == 2)
+    data_frames  <- data.frame(frames[[2]])
+  basis_frames   <- data.frame(frames[[1]])
+  manip_var      <- attributes(frames$basis_frames)$manip_var
+  n_frames       <- max(basis_frames$frame)
+  p              <- nrow(basis_frames) / n_frames
+  d              <- ncol(basis_frames) - 2
   angle          <- seq(0, 2 * pi, length = 360)
   circ           <- data.frame(x = cos(angle), y = sin(angle))
   ## Scale basis axes
   if(axes != "off"){
     zero         <- app_set_axes_position(0, axes)
     circ         <- app_set_axes_position(circ, axes)
-    basis_slides <- data.frame(app_set_axes_position(basis_slides[, 1:2], axes),
-                               basis_slides[, (d+1):ncol(basis_slides)])
+    basis_frames <- data.frame(app_set_axes_position(basis_frames[, 1:2], axes),
+                               basis_frames[, (d+1):ncol(basis_frames)])
   }
   ## manip var axes asethetics
   axes_col <- rep("red", p)
@@ -492,10 +509,10 @@ app_render_ <- function(slides, ## paste over spinifex render to add size
   axes_col[manip_var] <- "blue"
   axes_siz[manip_var] <- .6
 
-  x_max <- max(data_slides[, 1], circ[, 1])
-  x_min <- min(data_slides[, 1], circ[, 1])
-  y_max <- max(data_slides[, 2], circ[, 2])
-  y_min <- min(data_slides[, 2], circ[, 2])
+  x_max <- max(data_frames[, 1], circ[, 1])
+  x_min <- min(data_frames[, 1], circ[, 1])
+  y_max <- max(data_frames[, 2], circ[, 2])
+  y_min <- min(data_frames[, 2], circ[, 2])
   x_range <- x_max - x_min
   y_range <- y_max - y_min
 
@@ -519,8 +536,8 @@ app_render_ <- function(slides, ## paste over spinifex render to add size
     ## Projected data points
     suppressWarnings( ## Suppress for unused aes "frame".
       ggplot2::geom_point(
-        data = data_slides, size = 3, alpha = alpha,
-        mapping = ggplot2::aes(x = x, y = y, frame = slide,
+        data = data_frames, size = 3, alpha = alpha,
+        mapping = ggplot2::aes(x = x, y = y, frame = frame,
                                color = cluster,
                                fill  = cluster,
                                shape = cluster)
@@ -537,19 +554,19 @@ app_render_ <- function(slides, ## paste over spinifex render to add size
       ## Basis axes segments
       suppressWarnings( ## Suppress for unused aes "frame".
         ggplot2::geom_segment(
-          data = basis_slides, size = axes_siz, colour = axes_col,
+          data = basis_frames, size = axes_siz, colour = axes_col,
           mapping = ggplot2::aes(x = x,
                                  y = y,
                                  xend = zero[, 1], yend = zero[, 2],
-                                 frame = slide)
+                                 frame = frame)
         )
       ) +
       ## Basis axes text labels
       suppressWarnings( ## Suppress for unused aes "frame".
         ggplot2::geom_text(
-          data = basis_slides,
+          data = basis_frames,
           mapping = ggplot2::aes(x = x, y = y,
-                                 frame = slide, label = lab),
+                                 frame = frame, label = lab),
           colour = axes_col, size = 6, vjust = "outward", hjust = "outward")
       )
   }
@@ -576,32 +593,32 @@ app_oblique_frame <-
     m_sp <- create_manip_space(basis, manip_var)
     r_m_sp <- rotate_manip_space(manip_space = m_sp, theta, phi)
 
-    basis_slides <- cbind(as.data.frame(r_m_sp), slide = 1)
-    colnames(basis_slides) <- c("x", "y", "z", "slide")
+    basis_frames <- cbind(as.data.frame(r_m_sp), frame = 1)
+    colnames(basis_frames) <- c("x", "y", "z", "frame")
     if(!is.null(data)){
       if(rescale_data){data <- tourr::rescale(data)}
-      data_slides  <- cbind(as.data.frame(data %*% r_m_sp), slide = 1)
-      data_slides[, 1] <- scale(data_slides[, 1], scale = FALSE)
-      data_slides[, 2] <- scale(data_slides[, 2], scale = FALSE)
-      colnames(data_slides) <- c("x", "y", "z", "slide")
+      data_frames  <- cbind(as.data.frame(data %*% r_m_sp), frame = 1)
+      data_frames[, 1] <- scale(data_frames[, 1], scale = FALSE)
+      data_frames[, 2] <- scale(data_frames[, 2], scale = FALSE)
+      colnames(data_frames) <- c("x", "y", "z", "frame")
     }
 
     ## Add labels, attribute, and list
-    basis_slides$lab <-
+    basis_frames$lab <-
       if(!is.null(lab)){
-        rep(lab, nrow(basis_slides) / length(lab))
+        rep(lab, nrow(basis_frames) / length(lab))
       } else {
         if(!is.null(data)){abbreviate(colnames(data), 3)
         } else {paste0("V", 1:p)}
       }
 
-    attr(basis_slides, "manip_var") <- manip_var
+    attr(basis_frames, "manip_var") <- manip_var
 
-    slide <- if(!is.null(data)){
-      list(basis_slides = basis_slides, data_slides = data_slides)
-    } else list(basis_slides = basis_slides)
+    frame <- if(!is.null(data)){
+      list(basis_frames = basis_frames, data_frames = data_frames)
+    } else list(basis_frames = basis_frames)
 
-    gg <- app_render_(slides = slide, ...) +
+    gg <- app_render_(frames = frame, ...) +
       ggplot2::coord_fixed() +
       theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
 

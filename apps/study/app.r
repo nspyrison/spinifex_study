@@ -125,17 +125,15 @@ server <- function(input, output, session){
     }
   })
   manip_var <- reactive({
-    # req(input$manip_var_nm)
+    req(input$manip_var_nm)
     return(which(colnames(dat()) == input$manip_var_nm))
   })
   pca_active <- reactive({
-    # req(rv$timer_active, factor_nm())
     if(factor_nm() == "pca"){
       return(TRUE)
     } else return(FALSE)
   })
   grand_active <- reactive({
-    # req(rv$timer_active, input$factor)
     if(factor_nm() == "grand"){
       return(TRUE)
     } else return(FALSE)
@@ -194,7 +192,7 @@ server <- function(input, output, session){
   pca_plot <- reactive({
     if(pca_active() == TRUE){
       dat_std <- dat()
-      clas <- attributes(dat)$cl_lvl
+      clas <- cl()
       
       axes_position <- "left"
       USE_AXES <- TRUE
@@ -286,7 +284,7 @@ server <- function(input, output, session){
     if(grand_active() == T){
       ## data init
       dat_std <- dat()
-      clas <- attributes(dat_std)$cl_lvl
+      clas <- cl()
       
       ## tour init
       angle <- .1
@@ -312,8 +310,8 @@ server <- function(input, output, session){
       ### ggplot2
       basis_df <- tour_df$basis_slides
       basis_df[, 1:2] <- app_set_axes_position(tour_df$basis_slides[, 1:2], axes_position)
-      colnames(basis_df) <- c("x", "y", "slide", "lab")
-      data_df  <- tour_df$data_slides
+      colnames(basis_df) <- c("x", "y", "frame", "lab")
+      data_df  <- tour_df$data_frames
       data_df[, 1:2] <- 2 * (tourr::rescale(data_df[, 1:2]) - .5)
       clas <- rep(clas, max_frames)
       
@@ -321,7 +319,7 @@ server <- function(input, output, session){
       ## Projected data points with cluster aesthetics
       gg <- gg +
         geom_point(data_df,
-                   mapping = aes(x = x, y = y, frame = slide,
+                   mapping = aes(x = x, y = y, frame = frame,
                                  color = clas,
                                  fill  = clas,
                                  shape = clas),
@@ -330,13 +328,13 @@ server <- function(input, output, session){
         geom_segment(basis_df,
                      mapping = aes(x = x, xend = zero[, 1],
                                    y = y, yend = zero[, 2],
-                                   frame = slide),
+                                   frame = frame),
                      size = .3, colour = "red") +
         ## Axis label text
         geom_text(basis_df,
                   mapping = aes(x = x,
                                 y = y,
-                                frame = slide,
+                                frame = frame,
                                 label = lab),
                   size = 6, colour = "red", fontface = "bold",
                   vjust = "outward", hjust = "outward") +
@@ -394,8 +392,8 @@ server <- function(input, output, session){
       if(length(rv$radial_ls) == 0){
         ## data init
         dat_std <- dat()
-        clas <- attributes(dat)$cl_lvl
-        m_var   <- manip_var()
+        clas <- cl()
+        m_var <- manip_var()
         
         ## slider to phi/theta
         theta <- phi <- NULL
@@ -405,9 +403,11 @@ server <- function(input, output, session){
         phi_pts <- acos((0:10) / 10) ## Possible angles to select with manip_slider
         phi_vect <- (phi_pts - phi_start) * - sign(mv_sp[1])
         
+        browser()
         for (i in 1:length(phi_vect)){
-          rv$basis_ls[[i]] <- oblique_basis(basis = rv$curr_basis, manip_var = manip_var(),
-                                            theta = theta, phi = phi_vect[i])
+          rv$basis_ls[[i]] <- view_frame(
+            basis = rv$curr_basis, manip_var = manip_var(),
+            theta = theta, phi = phi_vect[i])
           row.names(rv$basis_ls[[i]]) <- colnames(dat)
         }
         
@@ -540,41 +540,37 @@ server <- function(input, output, session){
     ## Init manip_var_nm choices on data change.
     if(radial_active() == TRUE){
       these_colnames <- colnames(dat())
-      updateSelectInput(session, "manip_var_nm", choices = these_colnames,
-                        selected = these_colnames[1])
+      updateRadioButtons(session, "manip_var_nm", choices = these_colnames,
+                         selected = these_colnames[1])
       loggit("INFO", paste0("Task data or training factor changed; input$manip_var_nm choices updated."))
     }
   })
   
-  ### Obs radial update slider value -----
-  observeEvent(
-    {
-      manip_var()
-      dat()
-      factor_nm()
-      input$factor
-      input$x_axis
-      input$y_axis
-    }, {
-      if(radial_active() == TRUE
-         #& time_elapsed() > 1
-      ){
-        rv$radial_ls <- list()
-        cat(rv$curr_basis)
-        mv_sp <- create_manip_space(rv$curr_basis, manip_var())[manip_var(), ]
-        phi_i <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
-        .val <- round(cos(phi_i), 1)
-        cat(paste0("slider set to :", .val,". \n"))
-        updateSliderInput(session, "manip_slider", value = .val)
-        loggit("INFO",
-               paste0("New manip slider value (from dat/axes/manip_var)."),
-               paste0("manip_slider: ", .val,
-                      pfbs()
-               )
-        )
-      }
-    }
-  )
+  ### Obs grand slider value -----
+  ## CURRENTLY RESTART BUTTON
+  # observeEvent(
+  #   {
+  #     dat()
+  #     factor_nm()
+  #     input$factor
+  #   }, {
+  #     if(grand_active() == TRUE
+  #        #& time_elapsed() > 1
+  #     ){
+  #       rv$granf_ls <- list()
+  #       
+  #       browser()
+  #       ## WOULD NEED NUMBER OF SLIDES
+  #       updateSliderInput(session, "grand_restart", value = .val)
+  #       loggit("INFO",
+  #              paste0("New manip slider value (from dat/axes/manip_var)."),
+  #              paste0("manip_slider: ", .val,
+  #                     pfbs()
+  #              )
+  #       )
+  #     }
+  #   }
+  # )
   
   ##### Obs task responses -----
   ### task responses & ttr
