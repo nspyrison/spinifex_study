@@ -7,7 +7,7 @@ server <- function(input, output, session){
   
   ##### Reavtive value initialization -----
   rv                  <- reactiveValues()
-  rv$pg               <- 1L
+  rv$pg               <- 3L
   rv$timer            <- 999L
   rv$stopwatch        <- 0L
   rv$timer_active     <- TRUE
@@ -20,8 +20,7 @@ server <- function(input, output, session){
   rv$training_aes     <- FALSE
   rv$second_training  <- FALSE
   rv$curr_basis       <- NULL
-  rv$radial_ls        <- list()
-  rv$basis_ls         <- list()
+  rv$radial_tour_ls   <- list()
   rv$resp_tbl         <- data.frame(
     user_uid     = substr(log_name, 5L, nchar(log_name)),
     group        = this_group,
@@ -78,11 +77,9 @@ server <- function(input, output, session){
   sim <- reactive({
     if(section_nm() == "training"){
       req(input$simFactor, input$simModel)
-      return(paste0(input$simFactor,"_", input$simModel))
+      return(paste0(input$simFactor, "_", input$simModel))
     }
     return("baseLn_EEE")
-    # if(section_nm() == "training") return("NA - training")
-    # return((period() - 1L) * 6L + 3L + block())
   })
   task_time <- reactive({
     req(factor_nm())
@@ -94,35 +91,28 @@ server <- function(input, output, session){
   dat <- reactive({ ## Simulation df with attachments.
     req(section_nm())
     if(section_nm() == "training"){
-      ret <- get(sim())[, -1]
-      # req(section_pg())
-      # ret <- s_t_dat[[section_pg()]]
-    } else { ## evaluation section.
-      ret <- get(sim())[, -1]
-      # req(sim())
-      # ret <- s_dat[[sim()]]
+      return(get(sim())[, -1L])
+    }else{ ## evaluation section.
+      return(get(sim())[, -1L])
     }
-    ## Return
-    # as.data.frame(tourr::rescale(ret))
-    ret
+    warning("dat not found.")
   })
   cl <- reactive({ ## Simulation df with attachments.
     req(section_nm())
     if(section_nm() == "training"){
-      ret <- get(sim())[, 1]
+      return(get(sim())[, 1L])
     }else{ ## Evaluation section.
-      ret <- get(sim())[, 1]
+      return(get(sim())[, 1L])
     }
-    ## Return
-    ret
+    warning("cl not found.")
   })
-  
   task_tpath <- reactive({
     if(section_nm() == "training"){
-      return(s_t_tpath[[section_pg()]])
-    } else {
-      return(s_tpath[[sim()]])
+      return(get(paste0("tpath_", sim())))
+    }else{ ## Evaluation section.
+      return(get(paste0("tpath_", sim())))
     }
+    warning("task_tpath not found.")
   })
   manip_var <- reactive({
     req(input$manip_var_nm)
@@ -142,7 +132,7 @@ server <- function(input, output, session){
     # req(rv$timer_active, input$factor)
     if(factor_nm() == "radial"){
       return(TRUE)
-    } else return(FALSE)
+    }else return(FALSE)
   })
   task_header <- reactive({paste0("Evaluation -- factor: ", factor_nm())})
   timer_info <- reactive({
@@ -164,7 +154,7 @@ server <- function(input, output, session){
     dat_std <- dat()
     cl <- dat_std$cl
     #TODO need to bring in latest clSep function
-    rep(0, p())
+    rep(0L, p())
   })
   ### Response
   task_resp <- reactive({
@@ -180,23 +170,20 @@ server <- function(input, output, session){
       #TODO need to look at clSep .rmd
       "<stuff here>"
     }
-    return(0)
+    return(0L)
   })
   
   ### PCA plot reactive -----
   pca_height <- function(){
     if(pca_active() == TRUE){
-      return(600)
-    } else return(1)
+      return(600L)
+    } else return(1L)
   }
   pca_plot <- reactive({
     if(pca_active() == TRUE){
       dat_std <- dat()
-      clas <- cl()
-      
+      cluster <- cl()
       axes_position <- "left"
-      USE_AXES <- TRUE
-      USE_AES  <- TRUE
       
       x_axis <- input$x_axis
       y_axis <- input$y_axis
@@ -204,58 +191,25 @@ server <- function(input, output, session){
       y_num  <- as.integer(substr(y_axis, 3L, 3L))
       
       pca     <- prcomp(dat_std)
-      pca_x   <- 2 * (data.frame(tourr::rescale(pca$x[ , c(x_num, y_num)])) - .5)
+      pca_x   <- as.data.frame(pca$x)
       pca_rot <- data.frame(pca$rotation[ , c(x_num, y_num)])
-      pca_rot <- app_set_axes_position(pca_rot, axes_position)
-      pca_pct_var <- round(100L * pca$sdev^2 / sum(pca$sdev^2), 1)
+      pca_rot <- scale_axes(pca_rot, axes_position, pca_x)
+      pca_pct_var <- round(100L * pca$sdev^2L / sum(pca$sdev^2L), 1L)
       x_lab <- paste0(x_axis, " (", pca_pct_var[x_num], "% Var)")
       y_lab <- paste0(y_axis, " (", pca_pct_var[y_num], "% Var)")
       
       angle <- seq(0L, 2L * pi, length = 360L)
-      circ  <- app_set_axes_position(data.frame(x = cos(angle), y = sin(angle)),
-                                     axes_position)
-      zero  <- app_set_axes_position(0L, axes_position)
-      
-      ### ggplot2
-      gg <- ggplot()
-      if(USE_AES == FALSE){
-        # data points
-        gg <- gg +
-          geom_point(pca_x,
-                     mapping = aes(x = get(x_axis), y = get(y_axis)),
-                     size = 3L)
-      } else { ## if USE_AES == TRUE then apply more aes.
-        gg <- gg +
-          geom_point(pca_x,
-                     mapping = aes(x = get(x_axis), y = get(y_axis),
-                                   color = clas,
-                                   fill  = clas,
-                                   shape = clas),
-                     size = 3L)
-      }
-      if(USE_AXES == TRUE){ ## then draw axes
-        # axis segments
-        gg <- gg +
-          geom_segment(pca_rot,
-                       mapping = aes(x = get(x_axis), xend = zero[, 1L],
-                                     y = get(y_axis), yend = zero[, 2L]),
-                       size = .3, colour = "red") +
-          # axis label text
-          geom_text(pca_rot,
-                    mapping = aes(x = get(x_axis),
-                                  y = get(y_axis),
-                                  label = colnames(dat_std)),
-                    size = 6, colour = "red", fontface = "bold",
-                    vjust = "outward", hjust = "outward") +
-          # Cirle path
-          geom_path(circ, mapping = aes(x = x, y = y),
-                    color = "grey80", size = .3, inherit.aes = F)
-      }
-      
+      circ  <- scale_axes(data.frame(x = cos(angle), y = sin(angle)),
+                                     axes_position, pca_x)
+      zero  <- scale_axes(data.frame(x = 0L, y = 0L),
+                          axes_position, pca_x)
       x_range <- max(pca_x[, 1L], circ[, 1L]) - min(pca_x[, 1L], circ[, 1L])
       y_range <- max(pca_x[, 2L], circ[, 2L]) - min(pca_x[, 2L], circ[, 2L])
-      # Options
-      gg <- gg + theme_minimal() +
+      
+      ### ggplot2
+      gg <- ggplot() +
+        ## Themes and aesthetics
+        theme_minimal() +
         scale_color_brewer(palette = pal) +
         theme(panel.grid.major = element_blank(), # no grid lines
               panel.grid.minor = element_blank(), # no grid lines
@@ -269,6 +223,30 @@ server <- function(input, output, session){
               legend.text  = element_text(size = 18L, face = "bold")
         ) +
         labs(x = x_lab, y = y_lab)
+      ## Data points
+      gg <- gg +
+        geom_point(pca_x,
+                   mapping = aes(x = get(x_axis), y = get(y_axis),
+                                 color = cluster,
+                                 fill  = cluster,
+                                 shape = cluster),
+                   size = 3L)
+      ## Axis segments
+      gg <- gg +
+        geom_segment(pca_rot,
+                     mapping = aes(x = get(x_axis), xend = zero[, 1L],
+                                   y = get(y_axis), yend = zero[, 2L]),
+                     size = .3, colour = "red") +
+        ## Axis label text
+        geom_text(pca_rot,
+                  mapping = aes(x = get(x_axis),
+                                y = get(y_axis),
+                                label = colnames(dat_std)),
+                  size = 6, colour = "red", fontface = "bold",
+                  vjust = "outward", hjust = "outward") +
+        ## Cirle path
+        geom_path(circ, mapping = aes(x = x, y = y),
+                  color = "grey80", size = .3, inherit.aes = F)
       
       return(gg)
     }
@@ -276,75 +254,44 @@ server <- function(input, output, session){
   
   ### Grand tour plot reactive -----
   grand_height <- function(){
-    if(grand_active() == T){
-      return(600)
-    } else return(1)
+    if(grand_active() == TRUE){
+      return(600L)
+    } else return(1L)
   }
   grand_plot <- reactive({
-    if(grand_active() == T){
-      ## data init
+    if(grand_active() == TRUE){
+      ## Initialiaze
       dat_std <- dat()
-      clas <- cl()
-      
-      ## tour init
-      angle <- .1
-      fps   <- 6
-      max_frames <- 90 ## 90 frame for 15 sec @ fps = 6
-      
+      cluster <- cl()
       tpath <- task_tpath()
       
-      full_path <- tourr::interpolate(basis_set = tpath, angle = angle)
-      attr(full_path, "class") <- "array"
-      max_frames <- min(c(max_frames, dim(full_path)[3]))
-      full_path <- full_path[,, 1:max_frames]
-      
-      tour_df <- array2df(array = full_path, data = dat_std)
-      
-      ## render init
+      angle <- .1
+      fps   <- 6L
+      max_frames <- 90L ## 90 frame for 15 sec @ fps = 6
       axes_position <- "left"
-      angle <- seq(0, 2 * pi, length = 360)
-      circ  <- app_set_axes_position(data.frame(x = cos(angle), y = sin(angle)),
-                                     axes_position)
-      zero  <- app_set_axes_position(0, axes_position)
+      
+      cluster    <- rep(cluster, max_frames)
+      full_path  <- tourr::interpolate(basis_set = tpath, angle = angle)
+      attr(full_path, "class") <- "array"
+      max_frames <- min(c(max_frames, dim(full_path)[3L]))
+      full_path  <- full_path[,, 1L:max_frames]
+      tour_df    <- array2df(array = full_path, data = dat_std)
+      data_df    <- tour_df$data_frames
+      basis_df   <- tour_df$basis_frames
+      basis_df[, 1L:2L] <- scale_axes(tour_df$basis_frames[, 1L:2L],
+                                      axes_position, data_df)
+      
+      ## Render init
+      angle <- seq(0L, 2L * pi, length = 360L)
+      circ  <- scale_axes(data.frame(x = cos(angle), y = sin(angle)),
+                          axes_position, data_df)
+      zero  <- scale_axes(data.frame(x = 0L, y = 0L),
+                          axes_position, data_df)
+      x_range <- c(min(data_df[, 1L], circ[, 1L]), max(data_df[, 1L], circ[, 1L]))
+      y_range <- c(min(data_df[, 2L], circ[, 2L]), max(data_df[, 2L], circ[, 2L]))
       
       ### ggplot2
-      basis_df <- tour_df$basis_slides
-      basis_df[, 1:2] <- app_set_axes_position(tour_df$basis_slides[, 1:2], axes_position)
-      colnames(basis_df) <- c("x", "y", "frame", "lab")
-      data_df  <- tour_df$data_frames
-      data_df[, 1:2] <- 2 * (tourr::rescale(data_df[, 1:2]) - .5)
-      clas <- rep(clas, max_frames)
-      
-      gg <- ggplot()
-      ## Projected data points with cluster aesthetics
-      gg <- gg +
-        geom_point(data_df,
-                   mapping = aes(x = x, y = y, frame = frame,
-                                 color = clas,
-                                 fill  = clas,
-                                 shape = clas),
-                   size = 1.7) + ## smaller size for plotly
-        ## Axis segments
-        geom_segment(basis_df,
-                     mapping = aes(x = x, xend = zero[, 1],
-                                   y = y, yend = zero[, 2],
-                                   frame = frame),
-                     size = .3, colour = "red") +
-        ## Axis label text
-        geom_text(basis_df,
-                  mapping = aes(x = x,
-                                y = y,
-                                frame = frame,
-                                label = lab),
-                  size = 6, colour = "red", fontface = "bold",
-                  vjust = "outward", hjust = "outward") +
-        ## Cirle path
-        geom_path(circ,
-                  mapping = aes(x = x, y = y),
-                  color = "grey80", size = .3, inherit.aes = F)
-      
-      x_range <- max(data_df[, 1], circ[, 1]) - min(data_df[, 1], circ[, 1])
-      y_range <- max(data_df[, 2], circ[, 2]) - min(data_df[, 2], circ[, 2]) +
+      gg <- ggplot() +
         ## Themes and aesthetic settings
         theme_minimal() +
         scale_color_brewer(palette = pal) +
@@ -356,26 +303,52 @@ server <- function(input, output, session){
               axis.title.x = element_blank(),     ## no axis titles for grand
               axis.title.y = element_blank(),     ## no axis titles for grand
               aspect.ratio = y_range / x_range,
-              legend.title = element_text(size = 18, face = "bold"),
-              legend.text  = element_text(size = 18, face = "bold"),
+              legend.title = element_text(size = 18L, face = "bold"),
+              legend.text  = element_text(size = 18L, face = "bold"),
               legend.box.background = element_rect()
-        ) ## end of ggplot2 work
+        ) 
+      ## Projected data points with cluster aesthetics
+      gg <- gg + geom_point(data_df,
+                            mapping = aes(x = x, y = y, frame = frame,
+                                          color = cluster,
+                                          fill  = cluster,
+                                          shape = cluster),
+                            size = 1.7) + ## smaller size for plotly
+        ## Axis segments
+        geom_segment(basis_df,
+                     mapping = aes(x = x, xend = zero[, 1L],
+                                   y = y, yend = zero[, 2L],
+                                   frame = frame),
+                     size = .3, colour = "red") +
+        ## Axis label text
+        geom_text(basis_df,
+                  mapping = aes(x = x,
+                                y = y,
+                                frame = frame,
+                                label = lab),
+                  size = 6L, colour = "red", fontface = "bold",
+                  vjust = "outward", hjust = "outward") +
+        ## Cirle path
+        geom_path(circ,
+                  mapping = aes(x = x, y = y),
+                  color = "grey80", size = .3, inherit.aes = F)
+      ## End of ggplot2 work
       
       ### plotly
-      ggp <- plotly::ggplotly(p = gg, tooltip = "none") %>% 
-        plotly::animation_opts(p = ggp, frame = 1 / fps * 1000,
-                               transition = 0, redraw = FALSE) %>% 
+      ggp <- plotly::ggplotly(p = gg, tooltip = "none", height = grand_height()) %>%
+        plotly::animation_opts(frame = 1L / fps * 1000L,
+                               transition = 0L, redraw = FALSE) %>%
         plotly::layout(
-          ggp, showlegend = T, yaxis = list(showgrid = F, showline = F),
-          xaxis = list(scaleanchor = "y", scaleratio = 1, showgrid = F,
-                       showline = F, autorange = TRUE, fixedrange = FALSE),
-          ## added for APP:
-          height = grand_height(),
-          yaxis = list(autorange = TRUE, fixedrange = FALSE), ## suppose to rescale, I don't think it does.
-          legend = list(x = 0.75, y = 0.7) ## postition the title better
+          showlegend = TRUE, yaxis = list(showgrid = FALSE, showline = FALSE),
+          xaxis = list(showgrid = FALSE, scaleratio = 1L,
+                       showline = F, 
+                       range = x_range), #autorange = TRUE),#, fixedrange = FALSE), #range = x_range),
+          ## Added for APP:
+          yaxis = list(range = y_range),#autorange = TRUE),#, fixedrange = FALSE), #range = y_range),## Suppose to rescale, I don't think it does.
+          legend = list(x = .8, y = .8) ## Postition legend to top-right.
         )
       
-      return(ggp)
+      ggp
     }
   })
   
@@ -383,56 +356,36 @@ server <- function(input, output, session){
   ### radial tour plot reactive -----
   radial_height <- function(){
     if(radial_active()){
-      return(600)
-    } else return(1)
+      return(600L)
+    } else return(1L)
   }
   radial_plot <- reactive({
     if(radial_active()){
+      
       ### Make rv$radial_ls
       if(length(rv$radial_ls) == 0){
+        ## Early return if present
+        mvar <- manip_var()
+        if(mvar <= length(rv$radial_tour_ls))
+          return(rv$radial_tour_ls[[mvar]])
+        ## else, make list;
         ## data init
         dat_std <- dat()
-        clas <- cl()
-        m_var <- manip_var()
-        
-        ## slider to phi/theta
-        theta <- phi <- NULL
-        mv_sp <- create_manip_space(rv$curr_basis, m_var)[m_var, ]
-        theta <- atan(mv_sp[2] / mv_sp[1]) ## Radial angle
-        phi_start <- acos(sqrt(mv_sp[1]^2 + mv_sp[2]^2))
-        phi_pts <- acos((0:10) / 10) ## Possible angles to select with manip_slider
-        phi_vect <- (phi_pts - phi_start) * - sign(mv_sp[1])
-        
-        browser()
-        for (i in 1:length(phi_vect)){
-          rv$basis_ls[[i]] <- view_frame(
-            basis = rv$curr_basis, manip_var = manip_var(),
-            theta = theta, phi = phi_vect[i])
-          row.names(rv$basis_ls[[i]]) <- colnames(dat)
-        }
-        
-        ## Render init
+        cluster <- cl()
+        bas <- basis_pca(dat_std)
+        opt_mvar <- 1:p() ## Possible values of the manip_var
         axes_position <- "left"
         
-        
+        ## Save list of the plotly radial tours
         for (i in 1:length(rv$basis_ls)){
-            rv$radial_ls[[i]] <- app_oblique_frame(data      = dat_std,
-                                                   basis     = rv$basis_ls[[i]],
-                                                   manip_var = m_var,
-                                                   theta     = 0,
-                                                   phi       = 0,
-                                                   cluster   = clas,
-                                                   axes      = axes_position
-            )
+          rv$radial_tour_ls[[i]] <- "DUMMY"
+            ### PLOTLY OUT NEEDED
         }
       } ## End of assigning rv$radial_ls
       
-
     } ## Non-display conditions return nothing.
   })
   
-  
- 
   
   
   ##### Start observes
@@ -467,7 +420,7 @@ server <- function(input, output, session){
       choices <- paste0("PC", 1:PC_cap)
       x_axis_num <- as.integer(substr(input$x_axis, 3, 3))
       if(x_axis_num <= 3){x_axis_out <- paste0("PC", x_axis_num + 1)
-      } else {x_axis_out <- paste0("PC", x_axis_num - 1)}
+      }else{x_axis_out <- paste0("PC", x_axis_num - 1)}
       
       updateRadioButtons(session, "x_axis", choices = choices, selected = x_axis_out)
       loggit("INFO", paste0("x_axis set to ", input$x_axis,
@@ -489,7 +442,7 @@ server <- function(input, output, session){
       choices <- paste0("PC", 1:PC_cap)
       y_axis_num <- as.integer(substr(input$x_axis, 3, 3))
       if(y_axis_num <= 3){y_axis_out <- paste0("PC", y_axis_num + 1)
-      } else {y_axis_out <- paste0("PC", y_axis_num - 1)}
+      }else{y_axis_out <- paste0("PC", y_axis_num - 1)}
       
       updateRadioButtons(session, "y_axis", choices = choices, selected = y_axis_out)
       loggit("INFO", paste0("y_axis set to ", input$y_axis,
@@ -1038,7 +991,7 @@ server <- function(input, output, session){
   output$timer_disp <- renderText({
     if(section_nm() == "task"){ ## Disp timer counting down if on a task.
       if(rv$timer < 1){return("Time has expired, please enter your best guess and proceed.")
-      } else {
+      }else{
         return(
           paste0("Time left: ", lubridate::seconds_to_period(rv$timer),
                  " of ", lubridate::seconds_to_period(task_time()))
@@ -1051,7 +1004,7 @@ server <- function(input, output, session){
   })
   
   ### Condition handling for ui coditionalPanels
-  output$is_saved   <- reactive(if(is.null(rv$save_file)){0} else {1}) ## Control save_msg.
+  output$is_saved   <- reactive(if(is.null(rv$save_file)){0}else{1}) ## Control save_msg.
   output$pg         <- reactive(rv$pg)        ## For hiding ui next_task button
   output$section_nm <- reactive(section_nm()) ## For ui between sections
   output$factor_nm  <- reactive(factor_nm())  ## For sidebar inputs
@@ -1068,8 +1021,8 @@ server <- function(input, output, session){
   ### General task outputs
   output$task_header    <- renderText(task_header())
   output$pca_plot       <- renderPlot({pca_plot()}, height = pca_height)
-  output$grand_plot     <- renderPlotly({suppressWarnings(grand_plot())})
-  output$radial_plot    <- renderPlot({radial_plot()}, height = radial_height)
+  output$grand_plot     <- renderPlotly({suppressWarnings(grand_plot())}) ## height needs to be applied to plotly obj
+  output$radial_plot    <- renderPlotly({radial_plot()}) ## height needs to be applied to plotly obj
   output$resp_tbl       <- renderTable({rv$resp_tbl})
   output$task_ans_ptile <- renderPrint({task_ans_ptile()})
   output$task_ans       <- renderPrint({task_ans()})

@@ -44,7 +44,7 @@ if(do_log == TRUE){
     log_file <- paste0(log_name, ".json")
   }
   set_logfile(log_file)
-} else { ## when do_log == F
+}else{ ## When do_log == F
   log_num  <- sample(1:3, 1)
   log_name <- "<NOT LOGGING>"
   log_file <- "Logging is off! Log and responses not being recorded."
@@ -109,7 +109,22 @@ s_survey_questions <- c("What sex are you?",
 
 ## Load training data and tour paths
 t_dat_len <- 4L
-s_t_dat <- s_t_tpath <- list() ## init
+# s_t_dat <- s_t_tpath <- list() ## init
+root <- ("~/R/spinifex_study/apps/data")# here("apps/data/") ## Filepaths cannot be too long....
+fps <- paste0(root, "/",
+              c("baseLn_EEE", "baseLn_EEV", "baseLn_banana",
+                "corNoise_EEE", "corNoise_EEV", "corNoise_banana",
+                "mnComb_EEE", "mnComb_EEV", "mnComb_banana"), ".rda")
+tpath_fps <- paste0(root, "/tpath_",
+              c("baseLn_EEE", "baseLn_EEV", "baseLn_banana",
+                "corNoise_EEE", "corNoise_EEV", "corNoise_banana",
+                "mnComb_EEE", "mnComb_EEV", "mnComb_banana"), ".rda")
+for(i in 1:length(fps)){
+  ## Load sims and tpaths by the obj name stored in .rda files.
+  load(fps[i])
+  load(tpath_fps[i])
+}
+## OLD LOAD: (RDS)
 # for (i in 1:t_dat_len){
 #   s_t_dat[[i]]   <- readRDS(
 #     here::here(paste0("apps/data/simulation_data_t", i, ".rds"))
@@ -118,14 +133,6 @@ s_t_dat <- s_t_tpath <- list() ## init
 #     here::here(paste0("apps/data/grand_tpath_t", i, ".rds"))
 #   )
 # }
-root <- here("apps/data/")
-fps <- paste0(root, "/",
-              c("baseLn_EEE", "baseLn_EEV", "baseLn_banana",
-                "corNoise_EEE", "corNoise_EEV", "corNoise_banana",
-                "mnComb_EEE", "mnComb_EEV", "mnComb_banana"), ".rds")
-for(i in 1:length(fps)){
-  s_t_dat[[i]] <- load(fps[i])
-}
 
 
 ## Load data and tour paths for task eval
@@ -143,7 +150,7 @@ for (i in 1:dat_len){
 
 
 ##### Global variable initialization -----
-n_trainings        <- length(s_t_dat)            ## ~4
+n_trainings        <- 4 #length(s_t_dat)            ## ~4
 n_factors          <- length(fct_nm_vect)        ## ~3
 n_blocks           <- length(s_blocks)           ## ~3
 n_survey_questions <- length(s_survey_questions) ## ~21
@@ -213,7 +220,7 @@ sidebar_ui <- conditionalPanel(
     conditionalPanel(condition = "output.section_nm == 'training' && output.section_pg < 6",
                      radioButtons(inputId = "factor", label = "Factor",
                                   choices = fct_nm_vect,
-                                  selected = fct_nm_vect[1],
+                                  selected = fct_nm_vect[2],
                                   inline = TRUE),
                      fluidRow(column(6, radioButtons(inputId = "simFactor", label = "Simulation factor",
                                                      choices = list("Baseline" = "baseLn",
@@ -583,16 +590,16 @@ app_oblique_frame <-
            lab          = NULL,
            rescale_data = FALSE,
            ...){
-
+    
     if(is.null(basis) & !is.null(data)){
       message("NULL basis passed. Initializing random basis.")
       basis <- tourr::basis_random(n = ncol(data))
     }
-
+    
     p <- nrow(basis)
     m_sp <- create_manip_space(basis, manip_var)
     r_m_sp <- rotate_manip_space(manip_space = m_sp, theta, phi)
-
+    
     basis_frames <- cbind(as.data.frame(r_m_sp), frame = 1)
     colnames(basis_frames) <- c("x", "y", "z", "frame")
     if(!is.null(data)){
@@ -602,59 +609,30 @@ app_oblique_frame <-
       data_frames[, 2] <- scale(data_frames[, 2], scale = FALSE)
       colnames(data_frames) <- c("x", "y", "z", "frame")
     }
-
+    
     ## Add labels, attribute, and list
     basis_frames$lab <-
       if(!is.null(lab)){
         rep(lab, nrow(basis_frames) / length(lab))
-      } else {
+      }else{
         if(!is.null(data)){abbreviate(colnames(data), 3)
-        } else {paste0("V", 1:p)}
+        }else{paste0("V", 1:p)}
       }
-
+    
     attr(basis_frames, "manip_var") <- manip_var
-
+    
     frame <- if(!is.null(data)){
       list(basis_frames = basis_frames, data_frames = data_frames)
     } else list(basis_frames = basis_frames)
-
+    
     gg <- app_render_(frames = frame, ...) +
       ggplot2::coord_fixed() +
       theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
-
+    
     return(gg)
   }
-
-app_set_axes_position <- function(x, axes){
-  if(length(x) == 1){x <- data.frame(x = x, y = x)}
-  position <- match.arg(axes, c("center", "bottomleft", "off", "left"))
-  if(position == "off") return()
-  if(position == "center"){
-    scale <- 2 / 3
-    x_off <- y_off <- 0
-  } else if(position == "bottomleft"){
-    scale <- 1 / 4
-    x_off <- y_off <- -2 / 3
-  } else if(position == "left"){
-    scale <- 2 / 3
-    x_off <- -5 / 3
-    y_off <- 0
-  }
-
-  ret <- as.data.frame(scale * x)
-  ret[, 1] <- ret[, 1] + x_off
-  ret[, 2] <- ret[, 2] + y_off
-  return(ret)
-}
-
-app_vect2str <- function(vect){
-  if(length(vect) == 0) return("<none>")
-  .vect <- paste("V", vect)
-  paste0(.vect,  collapse = ", ")
-}
 
 app_html_red <- function(string){
   paste0("<strong><span style='color:red'>", string, "</span><strong>")
 }
-
 

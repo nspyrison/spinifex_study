@@ -110,6 +110,8 @@ sim_user_study <- function(
   models <- c("EEE", "EEV", "banana")
   obj_nms <- c(t(outer(factors, paste0("_", models), FUN = paste0)))
   cov_nms <- paste0("covs_", obj_nms)
+  root <- paste0(here::here("apps/data/"), "/")
+  fps <- paste0(root, obj_nms, ".rda")
 
   ## Assign cluster means 
   mns <- ##___2 signal dim  | 2 noise dim
@@ -193,38 +195,37 @@ sim_user_study <- function(
   ##
   message("Assigned all simulations as a global variables, as '<factor_model>'. \n")
   
-  
-  ## Save within function
+  ## Save if needed
   if(do_save == TRUE){
-    root <- paste0(here::here("apps/data/"), "/")
-    ## Using .rda. .rds not working b/c of long path?
-    save(baseLn_EEE     , file = paste0(root, obj_nms[1], ".rda"))
-    save(baseLn_EEV     , file = paste0(root, obj_nms[2], ".rda"))
-    save(baseLn_banana  , file = paste0(root, obj_nms[3], ".rda"))
-    save(corNoise_EEE   , file = paste0(root, obj_nms[4], ".rda"))
-    save(corNoise_EEV   , file = paste0(root, obj_nms[5], ".rda"))
-    save(corNoise_banana, file = paste0(root, obj_nms[6], ".rda"))
-    save(mnComb_EEE     , file = paste0(root, obj_nms[7], ".rda"))
-    save(mnComb_EEV     , file = paste0(root, obj_nms[8], ".rda"))
-    save(mnComb_banana  , file = paste0(root, obj_nms[9], ".rda"))
+    ## Using .rda. .rds not working b/c of long path? issue may be in the loading more than the saving.
+    save(baseLn_EEE     , file = fps[1])
+    save(baseLn_EEV     , file = fps[2])
+    save(baseLn_banana  , file = fps[3])
+    save(corNoise_EEE   , file = fps[4])
+    save(corNoise_EEV   , file = fps[5])
+    save(corNoise_banana, file = fps[6])
+    save(mnComb_EEE     , file = fps[7])
+    save(mnComb_EEV     , file = fps[8])
+    save(mnComb_banana  , file = fps[9])
   }
   message(paste0("Save all simulations to ", root, " as '<factor_model>.rda'. Use load(my.rda) bring obj into env. \n"))
 }
 
-#' Saves offGrand tour paths for the evaluation simulations
+#' Saves off grand tour paths for the evaluation simulations
 #' @examples 
 #' tpath_user_study(do_save = TRUE)
 tpath_user_study <- function(do_save = FALSE){
+  ## Initalize
   require("tourr")
-  root <- paste0(here::here("apps/data"), "/")
-  in_nms <- c("baseLn_EEE", "baseLn_EEV", "baseLn_banana",
+  root    <- paste0(here::here("apps/data"), "/")
+  in_nms  <- c("baseLn_EEE", "baseLn_EEV", "baseLn_banana",
                "corNoise_EEE", "corNoise_EEV", "corNoise_banana",
                "mnComb_EEE", "mnComb_EEV", "mnComb_banana")
-  in_fps <- paste0(root, in_nms, ".rda")
+  in_fps  <- paste0(root, in_nms, ".rda")
   out_nms <- paste0("tpath_", in_nms)
-  out_fps <- paste0(root, "tpath_", in_nms, ".rda")
+  out_fps <- paste0(root, out_nms, ".rda")
   
-  
+  ## Load simulations, create tour paths
   for (i in 1:length(in_fps)) {
     load(in_fps[i])
     dat <- as.matrix(get(in_nms[i])[, -1]) ## Numeric data only, as matrix
@@ -232,16 +233,26 @@ tpath_user_study <- function(do_save = FALSE){
     tpath <- 
       save_history(data = dat, tour_path = grand_tour(), max_bases = 8, start = bas)
     
-    assign(obj_nm, tpath, envir = globalenv())
-    if (do_save == TRUE){
-      obj <- get(in_nms[i])
-      save(object = obj, file = out_fps[i])
-    }
+    assign(out_nms[i], tpath, envir = globalenv())
+  }
+  
+  ## Save if needed
+  if (do_save == TRUE){
+    save(tpath_baseLn_EEE     , file = out_fps[1])
+    save(tpath_baseLn_EEV     , file = out_fps[2])
+    save(tpath_baseLn_banana  , file = out_fps[3])
+    save(tpath_corNoise_EEE   , file = out_fps[4])
+    save(tpath_corNoise_EEV   , file = out_fps[5])
+    save(tpath_corNoise_banana, file = out_fps[6])
+    save(tpath_mnComb_EEE     , file = out_fps[7])
+    save(tpath_mnComb_EEV     , file = out_fps[8])
+    save(tpath_mnComb_banana  , file = out_fps[9])
   }
   message("Assigned all grand tour paths as a global variables, as 'tpath_<factor_model>'. \n")
   if (do_save == TRUE)
     message(paste0("Save all grand tour paths to ", root, " as 'tpath_<factor_model>.rda'. Use load(my.rda) bring obj into env. \n"))
   
+  # ### OLD TRAINING SIMULATION LOAD/SAVE
   # ## Grand tour paths for the training simulations
   # simulation_data_train1 <- load("./apps/data/simulation_data_t1.rds")
   # simulation_data_train2 <- load("./apps/data/simulation_data_t2.rds")
@@ -258,4 +269,50 @@ tpath_user_study <- function(do_save = FALSE){
   #     saveRDS(object = get(.obj_nm), paste0("./apps/data/", .obj_nm, ".rds"))
   #   }
   # }
+}
+
+
+#' Saves off plotly objects for the grand factor of the user study
+#' @examples 
+#' grand_user_study(do_save = TRUE)
+grand_user_study <- function(do_save = FALSE){
+  ## Inialize
+  require("spinifex")
+  root    <- paste0(here::here("apps/data"), "/")
+  in_nms  <- paste0("tpath_", 
+                   c("baseLn_EEE", "baseLn_EEV", "baseLn_banana",
+                     "corNoise_EEE", "corNoise_EEV", "corNoise_banana",
+                     "mnComb_EEE", "mnComb_EEV", "mnComb_banana"))
+  in_fps  <- paste0(root, in_nms, ".rda")
+  out_nms <- paste0("grand_plotly_", in_nms)
+  out_fps <- paste0(root, out_nms, ".rda")
+  
+  ## Load tour_paths, create plotly objects
+  for (i in 1:length(in_fps)) {
+    load(in_fps[i])
+    dat <- as.matrix(get(in_nms[i])[, -1]) ## Numeric data only, as matrix
+    bas <- basis_pca(dat)
+    plotly <- "dummy"
+    assign(out_nms[i], tpath, envir = globalenv())
+  }
+  
+  ## Save if needed
+  if (do_save == TRUE){
+    save(grand_plotly_baseLn_EEE     , file = out_fps[1])
+    save(grand_plotly_baseLn_EEV     , file = out_fps[2])
+    save(grand_plotly_baseLn_banana  , file = out_fps[3])
+    save(grand_plotly_corNoise_EEE   , file = out_fps[4])
+    save(grand_plotly_corNoise_EEV   , file = out_fps[5])
+    save(grand_plotly_corNoise_banana, file = out_fps[6])
+    save(grand_plotly_mnComb_EEE     , file = out_fps[7])
+    save(grand_plotly_mnComb_EEV     , file = out_fps[8])
+    save(grand_plotly_mnComb_banana  , file = out_fps[9])
+  }
+  message("Assigned all grand plotly objects as a global variables, as 'grand_plotly_<factor_model>'. \n")
+  if (do_save == TRUE)
+    message(paste0("Save all grand plotly objects to ", root, " as 'grand_plotly_<factor_model>.rda'. Use load(my.rda) bring obj into env. \n"))
+}  
+
+radial_user_study <- function(){
+  
 }
