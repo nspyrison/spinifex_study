@@ -181,6 +181,7 @@ server <- function(input, output, session){
   }
   pca_plot <- reactive({
     if(pca_active() == TRUE){
+      req(input$x_axis, input$y_axis)
       dat_std <- dat()
       cluster <- cl()
       axes_position <- "left"
@@ -189,6 +190,8 @@ server <- function(input, output, session){
       y_axis <- input$y_axis
       x_num  <- as.integer(substr(x_axis, 3L, 3L))
       y_num  <- as.integer(substr(y_axis, 3L, 3L))
+      x_pc   <- paste0("PC", x_num)
+      y_pc   <- paste0("PC", y_num)
       
       pca     <- prcomp(dat_std)
       pca_x   <- as.data.frame(pca$x)
@@ -234,7 +237,7 @@ server <- function(input, output, session){
       ## Axis segments
       gg <- gg +
         geom_segment(pca_rot,
-                     mapping = aes(x = get(x_axis), xend = zero[, 1L],
+                     mapping = aes(x = get(x_pc), xend = zero[, 1L],
                                    y = get(y_axis), yend = zero[, 2L]),
                      size = .3, colour = "red") +
         ## Axis label text

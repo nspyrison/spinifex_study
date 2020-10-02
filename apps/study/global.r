@@ -114,8 +114,8 @@ root <- ("~/R/spinifex_study/apps/data")# here("apps/data/") ## Filepaths cannot
 factor_model <- c("baseLn_EEE", "baseLn_EEV", "baseLn_banana",
                   "corNoise_EEE", "corNoise_EEV", "corNoise_banana",
                   "mnComb_EEE", "mnComb_EEV", "mnComb_banana")
-sim_fps <- paste0(root, "/", factor_model, ".rda")
-tpath_fps <- paste0(root, "/tpath_", factor_model, ".rda")
+sim_fps       <- paste0(root, "/", factor_model, ".rda")
+tpath_fps     <- paste0(root, "/tpath_", factor_model, ".rda")
 MMP_clSep_fps <- paste0(root, "/MMP_clSep_", factor_model, ".rda")
 for(i in 1:length(factor_model)){
   ## Load sims and tpaths by the obj name stored in .rda files.
@@ -139,7 +139,7 @@ for(i in 1:length(factor_model)){
 
 
 ##### Global variable initialization -----
-n_trainings        <- 4 #length(s_t_dat)            ## ~4
+n_trainings        <- 4 #length(s_t_dat)         ## ~4
 n_factors          <- length(fct_nm_vect)        ## ~3
 n_blocks           <- length(s_blocks)           ## ~3
 n_survey_questions <- length(s_survey_questions) ## ~21
@@ -225,9 +225,9 @@ sidebar_ui <- conditionalPanel(
       condition = "(output.factor_nm == 'pca') ||
                   (output.section_nm == 'training' && input.factor == 'pca')",
       fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis",
-                                      choices = "V1", selected =  "V1")),
+                                      choices = paste0("PC", 1:PC_cap), selected =  "PC1")),
                column(6, radioButtons(inputId = "y_axis", label = "y axis",
-                                      choices = c("V1", "V2"), selected =  "V2"))
+                                      choices = paste0("PC", 1:PC_cap), selected =  "PC2"))
       )
     ),
     ## Grand restart button
@@ -254,11 +254,10 @@ sidebar_ui <- conditionalPanel(
         choices = "V1",
         inline  = TRUE
       )
-    ), 
+    ),
     ## Dev_tool disp
     conditionalPanel(
-      condition = "(output.plot_active == true",
-        #" &&do_disp_dev_tools == true",
+      condition = "output.plot_active == true", #" &&do_disp_dev_tools == true",
       p("___"),
       p("response: "),
       p("MMP ClSep: "),
@@ -399,7 +398,7 @@ main_ui <- mainPanel(width = 9,
     ),
     hr()
   ), ## close training section main panel text
-  
+
   ### _Task mainPanel -----
   conditionalPanel(
     condition = "output.section_nm == 'task'",
