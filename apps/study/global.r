@@ -26,6 +26,8 @@ do_disp_dev_tools <- TRUE
 
 #### Simulated data series,
 ## "series" or iteration of data to look at. Should be an even hundred
+height_px <- 638L
+width_px <- 1000L
 sim_series <- 300
 cat(do_log)
 
@@ -108,44 +110,31 @@ s_survey_questions <- c("What sex are you?",
 )
 
 ## Load training data and tour paths
-t_dat_len <- 4L
-# s_t_dat <- s_t_tpath <- list() ## init
 root <- ("~/R/spinifex_study/apps/data")# here("apps/data/") ## Filepaths cannot be too long....
-fps <- paste0(root, "/",
-              c("baseLn_EEE", "baseLn_EEV", "baseLn_banana",
-                "corNoise_EEE", "corNoise_EEV", "corNoise_banana",
-                "mnComb_EEE", "mnComb_EEV", "mnComb_banana"), ".rda")
-tpath_fps <- paste0(root, "/tpath_",
-              c("baseLn_EEE", "baseLn_EEV", "baseLn_banana",
-                "corNoise_EEE", "corNoise_EEV", "corNoise_banana",
-                "mnComb_EEE", "mnComb_EEV", "mnComb_banana"), ".rda")
-for(i in 1:length(fps)){
+factor_model <- c("baseLn_EEE", "baseLn_EEV", "baseLn_banana",
+                  "corNoise_EEE", "corNoise_EEV", "corNoise_banana",
+                  "mnComb_EEE", "mnComb_EEV", "mnComb_banana")
+sim_fps <- paste0(root, "/", factor_model, ".rda")
+tpath_fps <- paste0(root, "/tpath_", factor_model, ".rda")
+MMP_clSep_fps <- paste0(root, "/MMP_clSep_", factor_model, ".rda")
+for(i in 1:length(factor_model)){
   ## Load sims and tpaths by the obj name stored in .rda files.
-  load(fps[i])
+  load(sim_fps[i])
   load(tpath_fps[i])
+  load(MMP_clSep_fps[i])
 }
-## OLD LOAD: (RDS)
-# for (i in 1:t_dat_len){
-#   s_t_dat[[i]]   <- readRDS(
-#     here::here(paste0("apps/data/simulation_data_t", i, ".rds"))
-#   )
-#   s_t_tpath[[i]] <- readRDS(
-#     here::here(paste0("apps/data/grand_tpath_t", i, ".rds"))
-#   )
-# }
-
 
 ## Load data and tour paths for task eval
-dat_len <- 12L
-s_dat <- s_tpath <- list()
-for (i in 1:dat_len){
-  s_dat[[i]] <- readRDS(
-    here::here(paste0("apps/data/simulation_data", sim_series + i, ".rds"))
-  )
-  s_tpath[[i]] <- readRDS(
-    here::here(paste0("apps/data/grand_tpath", sim_series + i, ".rds"))
-  )
-}
+# dat_len <- 12L
+# s_dat <- s_tpath <- list()
+# for (i in 1:dat_len){
+#   s_dat[[i]] <- readRDS(
+#     here::here(paste0("apps/data/simulation_data", sim_series + i, ".rds"))
+#   )
+#   s_tpath[[i]] <- readRDS(
+#     here::here(paste0("apps/data/grand_tpath", sim_series + i, ".rds"))
+#   )
+# }
 
 
 
@@ -177,7 +166,7 @@ header_ui <- fluidPage(
 ##### sidebar_ui ----
 sidebar_ui <- conditionalPanel(
   condition = "output.section_nm == 'training' || output.section_nm == 'task'",
-  sidebarPanel(
+  sidebarPanel(width = 3,
     ##### _Training text -----
     conditionalPanel(
       condition = "output.section_nm == 'training'",
@@ -220,7 +209,7 @@ sidebar_ui <- conditionalPanel(
     conditionalPanel(condition = "output.section_nm == 'training' && output.section_pg < 6",
                      radioButtons(inputId = "factor", label = "Factor",
                                   choices = fct_nm_vect,
-                                  selected = fct_nm_vect[2],
+                                  selected = fct_nm_vect[1],
                                   inline = TRUE),
                      fluidRow(column(6, radioButtons(inputId = "simFactor", label = "Simulation factor",
                                                      choices = list("Baseline" = "baseLn",
@@ -244,34 +233,41 @@ sidebar_ui <- conditionalPanel(
     ## Grand restart button
     conditionalPanel(
       condition = "(output.factor_nm == 'grand') ||
-                  (output.section_nm == 'training' && input.factor == 'grand')",
-      actionButton("grand_restart", "Restart grand tour")
-      # sliderInput("grand_restart", "Grand tour frame:",
-      #             min = 1, max = 1,
-      #             value = 1, step = 1,
-      #             animate =
-      #               animationOptions(interval = 125, loop = FALSE)
-      # )
+                  (output.section_nm == 'training' && input.factor == 'grand')"#,
+      #actionButton("grand_restart", "Restart grand tour")
     ),
     ## Radial mvar dropdown selection
     conditionalPanel(
       condition = "(output.factor_nm == 'radial') ||
                   (output.section_nm == 'training' && input.factor == 'radial')",
       radioButtons(inputId = "manip_var_nm", label = "Manip variable:",
-                  choices =  "V1", selected = "V1"
-      ),
+                  choices =  "V1", selected = "V1")
     ), ## Close conditionalPanel()
     
     ##### _Task response input -----
     ## Task 2
-    checkboxGroupInput(
-      inputId = "task_response",
-      label   = s_task_question,
-      choices = "V1",
-      inline  = TRUE
-    )
-  ) ## Close sidebarPanel()
-) ## Close conditionalPanel(), end sidebar_ui section
+    conditionalPanel(
+      condition = "(output.plot_active == true) ", 
+      checkboxGroupInput(
+        inputId = "task_response",
+        label   = s_task_question,
+        choices = "V1",
+        inline  = TRUE
+      )
+    ), 
+    ## Dev_tool disp
+    conditionalPanel(
+      condition = "(output.plot_active == true",
+        #" &&do_disp_dev_tools == true",
+      p("___"),
+      p("response: "),
+      p("MMP ClSep: "),
+      p("Variable marks: "),
+      p("Task marks: ")
+    ) ## Close sidebarPanel()
+  ) ## Close conditionalPanel(), end sidebar_ui section
+)
+  
 
 ##### Init survey columns -----
 surv_lab <- HTML("<div style=\"width:300px;\">
@@ -330,7 +326,7 @@ col_p3 <- column(4,
 )
 
 ##### main_ui -----
-main_ui <- mainPanel(
+main_ui <- mainPanel(width = 9,
   textOutput("timer_disp"),
   ### _Intro mainPanel -----
   conditionalPanel(
@@ -417,7 +413,7 @@ main_ui <- mainPanel(
       output.section_nm == 'task'", ## output.section_pg == 6 is splash page.
     htmlOutput("plot_msg"),
     plotOutput("pca_plot", height = "auto"),
-    plotOutput("radial_plot", height = "auto"),
+    plotlyOutput("radial_plot", height = "auto"),
     plotlyOutput("grand_plot", height = "auto")
   ), ## Close plot conditional panel
 
@@ -479,7 +475,7 @@ ui <- fluidPage(useShinyjs(), ## Required in ui to use shinyjs.
                 sidebar_ui,
                 #TODO: PART OF DISPLAYING MAIN_UD cause JS NOT TO EVAL.
                 main_ui,
-                ## Displays nothing when do_disp_dev_tools == FALSE:
+                ## Dev tools, displays nothing when do_disp_dev_tools == FALSE:
                 actionButton("browser", "browser()"),
                 textOutput("dev_msg"),
                 tableOutput("resp_tbl")

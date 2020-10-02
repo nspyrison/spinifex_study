@@ -176,7 +176,7 @@ server <- function(input, output, session){
   ### PCA plot reactive -----
   pca_height <- function(){
     if(pca_active() == TRUE){
-      return(600L)
+      return(height_px)
     } else return(1L)
   }
   pca_plot <- reactive({
@@ -255,15 +255,20 @@ server <- function(input, output, session){
   ### Grand tour plot reactive -----
   grand_height <- function(){
     if(grand_active() == TRUE){
-      return(600L)
-    } else return(1L)
+      return(height_px)
+    }else return(1L)
+  }
+  grand_width <- function(){
+    if(grand_active() == TRUE){
+      return(width_px)
+    }else return(1L)
   }
   grand_plot <- reactive({
     if(grand_active() == TRUE){
       ## Initialiaze
       dat_std <- dat()
       cluster <- cl()
-      tpath <- task_tpath()
+      tpath   <- task_tpath()
       
       angle <- .1
       fps   <- 6L
@@ -302,7 +307,7 @@ server <- function(input, output, session){
               axis.text.y  = element_blank(),     ## no axis marks
               axis.title.x = element_blank(),     ## no axis titles for grand
               axis.title.y = element_blank(),     ## no axis titles for grand
-              aspect.ratio = y_range / x_range,
+              #aspect.ratio = y_range / x_range,
               legend.title = element_text(size = 18L, face = "bold"),
               legend.text  = element_text(size = 18L, face = "bold"),
               legend.box.background = element_rect()
@@ -335,17 +340,17 @@ server <- function(input, output, session){
       ## End of ggplot2 work
       
       ### plotly
-      ggp <- plotly::ggplotly(p = gg, tooltip = "none", height = grand_height()) %>%
+      ggp <- plotly::ggplotly(p = gg, tooltip = "none", 
+                              height = grand_height(),
+                              width  = grand_width()) %>%
         plotly::animation_opts(frame = 1L / fps * 1000L,
                                transition = 0L, redraw = FALSE) %>%
         plotly::layout(
-          showlegend = TRUE, yaxis = list(showgrid = FALSE, showline = FALSE),
-          xaxis = list(showgrid = FALSE, scaleratio = 1L,
-                       showline = F, 
-                       range = x_range), #autorange = TRUE),#, fixedrange = FALSE), #range = x_range),
-          ## Added for APP:
-          yaxis = list(range = y_range),#autorange = TRUE),#, fixedrange = FALSE), #range = y_range),## Suppose to rescale, I don't think it does.
-          legend = list(x = .8, y = .8) ## Postition legend to top-right.
+          legend = list(x = 0, y = 0), ## Postition legend to top-right.
+          #scene  = list(aspectration = list(x = 1, y = 1)), ## Set coord_fixed()
+          yaxis  = list(showgrid = FALSE, showline = FALSE),
+          xaxis  = list(showgrid = FALSE, showline = FALSE),
+          showlegend = TRUE
         )
       
       ggp
@@ -356,39 +361,67 @@ server <- function(input, output, session){
   ### radial tour plot reactive -----
   radial_height <- function(){
     if(radial_active()){
-      return(600L)
-    } else return(1L)
+      return(height_px)
+    }else return(1L)
+  }
+  radial_width <- function(){
+    if(radial_active() == TRUE){
+      return(width_px)
+    }else return(1L)
   }
   radial_plot <- reactive({
     if(radial_active()){
-      
-      ### Make rv$radial_ls
-      if(length(rv$radial_ls) == 0){
-        ## Early return if present
-        mvar <- manip_var()
-        if(mvar <= length(rv$radial_tour_ls))
-          return(rv$radial_tour_ls[[mvar]])
-        ## else, make list;
-        ## data init
+        ## Data init
         dat_std <- dat()
-        cluster <- cl()
         bas <- basis_pca(dat_std)
-        opt_mvar <- 1:p() ## Possible values of the manip_var
+        mvar <- manip_var()
+        cluster <- cl()
+        fps <- 6L
         axes_position <- "left"
+        ## Needed only for seting scales and aspect ratio
+        angle <- seq(0L, 2L * pi, length = 360L)
+        circ  <- scale_axes(data.frame(x = cos(angle), y = sin(angle)),
+                            axes_position, dat_std)
+        x_range <- c(min(dat_std[, 1L], circ[, 1L]), max(dat_std[, 1L], circ[, 1L]))
+        y_range <- c(min(dat_std[, 2L], circ[, 2L]), max(dat_std[, 2L], circ[, 2L]))
+        ##
+        tour_array <- manual_tour(basis = bas, manip_var = mvar)
+        tour_df <- array2df(array = tour_array, data = dat_std)
         
-        ## Save list of the plotly radial tours
-        for (i in 1:length(rv$basis_ls)){
-          rv$radial_tour_ls[[i]] <- "DUMMY"
-            ### PLOTLY OUT NEEDED
-        }
-      } ## End of assigning rv$radial_ls
-      
-    } ## Non-display conditions return nothing.
+        ## ggplot
+        gg <- render_(frames = tour_df, axes = axes_position, manip_col = "purple",
+                      aes_args = list(color = cluster, shape = cluster),
+                      identity_args = list(size = 1.5),
+                      ggproto = theme_spinifex())
+        
+        ### plotly
+        ggp <- plotly::ggplotly(p = gg, tooltip = "none", 
+                                height = radial_height(),
+                                width  = radial_width()) %>%
+          plotly::animation_opts(frame = 1L / fps * 1000L,
+                                 transition = 0L, redraw = FALSE) %>%
+          plotly::layout(
+            legend = list(x = 0, y = 0), ## Postition legend to top-right.
+            # scene  = list(aspectration = list(x = 1, y = 1)), ## Set coord_fixed()
+            yaxis  = list(showgrid = FALSE, showline = FALSE),
+            xaxis  = list(showgrid = FALSE, showline = FALSE),
+            showlegend = TRUE
+          )
+        
+        ggp
+    } ## End of radial_active()
   })
   
   
   
   ##### Start observes
+  observeEvent({
+    dat()
+  }, {
+    choices <- paste0("V", 1:p())
+    updateCheckboxGroupInput(session, "task_response", 
+                             choices = choices, selected = "", inline = TRUE)
+  })
   ### Obs update axis/task choices -----
   observeEvent({
     dat()
@@ -527,64 +560,32 @@ server <- function(input, output, session){
   
   ##### Obs task responses -----
   ### task responses & ttr
-  observeEvent(input$task_resp_very_ab, {
-    if(time_elapsed() > 1){
-      rv$task_ttr[1] <- time_elapsed()
-      rv$task_response[1] <- paste(input$task_resp_very_ab, collapse = ", ")
-      loggit("INFO", "Task 2, very important, clusters ab response entered.",
-             paste0("Response: ", rv$task_response[1],
-                    ". ttr: ", rv$task_ttr[1], ".",
-                    pfbs()
-             )
-      )
-    }
-  })
-  observeEvent(input$task_resp_some_ab, {
-    if(time_elapsed() > 1){
-      rv$task_ttr[2] <- time_elapsed()
-      rv$task_response[2] <- paste(input$task_resp_some_ab, collapse = ", ")
-      loggit("INFO", "Task 2, somewhat important clusters ab response entered.",
-             paste0("Response: ", rv$task_response[2],
-                    ". ttr: ", rv$task_ttr[2], ".",
-                    pfbs()
-             )
-      )
-    }
-  })
   observeEvent(input$task_response, {
     if(time_elapsed() > 1){
-      rv$task_ttr[3] <- time_elapsed()
-      rv$task_response[3] <- paste(input$task_response, collapse = ", ")
-      loggit("INFO", "Task response interacted with",
-             paste0("Response: ", rv$task_response,
-                    ". ttr: ", rv$task_ttr, ".",
-                    pfbs()
-             )
+      rv$task_ttr[1] <- time_elapsed()
+      rv$task_response[1] <- paste(input$task_response, collapse = ", ")
+      loggit("INFO", "Task response changed.",
+             paste0("Response: ", rv$task_response[1],
+                    ". ttr: ", rv$task_ttr[1], ".")
       )
     }
   })
-
   
   ### Obs interaction count -----
-  observeEvent(
-    {
+  observeEvent({
       input$x_axis
       input$y_axis
-      input$manip_var_nm
     }, {
       rv$pca_inter <- rv$pca_inter + 1L
     }
   )
-  observeEvent(
-    {
-      input$manip_slider
+  observeEvent({
       input$manip_var_nm
     }, {
       rv$radial_inter <- rv$radial_inter + 1L
     }
   )
-  observeEvent(
-    {
+  observeEvent({
       input$task_resp
     }, {
       rv$resp_inter <- rv$resp_inter + 1L
@@ -599,9 +600,7 @@ server <- function(input, output, session){
       rv$task_response[i] <- input$survey1
       loggit("INFO", "Survey 1 entered.",
              paste0("Response: ", rv$task_response[i],
-                    ". ttr: ", rv$task_ttr[i], ".",
-                    pfbs()
-             )
+                    ". ttr: ", rv$task_ttr[i], ".")
       )
     }
   })
@@ -612,9 +611,7 @@ server <- function(input, output, session){
       rv$task_response[i] <- input$survey2
       loggit("INFO", "Survey 2 entered.",
              paste0("Response: ", rv$task_response[i],
-                    ". ttr: ", rv$task_ttr[i], ".",
-                    pfbs()
-             )
+                    ". ttr: ", rv$task_ttr[i], ".")
       )
     }
   })
@@ -625,9 +622,7 @@ server <- function(input, output, session){
       rv$task_response[i] <- input$survey3
       loggit("INFO", "Survey 3 entered.",
              paste0("Response: ", rv$task_response[i],
-                    ". ttr: ", rv$task_ttr[i], ".",
-                    pfbs()
-             )
+                    ". ttr: ", rv$task_ttr[i], ".")
       )
     }
   })
@@ -638,9 +633,7 @@ server <- function(input, output, session){
       rv$task_response[i] <- input$survey4
       loggit("INFO", "Survey 4 entered.",
              paste0("Response: ", rv$task_response[i],
-                    ". ttr: ", rv$task_ttr[i], ".",
-                    pfbs()
-             )
+                    ". ttr: ", rv$task_ttr[i], ".")
       )
     }
   })
@@ -651,9 +644,7 @@ server <- function(input, output, session){
       rv$task_response[i] <- input$survey5
       loggit("INFO", "Survey 5 entered.",
              paste0("Response: ", rv$task_response[i],
-                    ". ttr: ", rv$task_ttr[i], ".",
-                    pfbs()
-             )
+                    ". ttr: ", rv$task_ttr[i], ".")
       )
     }
   })
@@ -664,9 +655,7 @@ server <- function(input, output, session){
       rv$task_response[i] <- input$survey6
       loggit("INFO", "Survey 6 entered.",
              paste0("Response: ", rv$task_response[i],
-                    ". ttr: ", rv$task_ttr[i], ".",
-                    pfbs()
-             )
+                    ". ttr: ", rv$task_ttr[i], ".")
       )
     }
   })
@@ -677,9 +666,7 @@ server <- function(input, output, session){
       rv$task_response[i] <- input$survey7
       loggit("INFO", "Survey 7 entered.",
              paste0("Response: ", rv$task_response[i],
-                    ". ttr: ", rv$task_ttr[i], ".",
-                    pfbs()
-             )
+                    ". ttr: ", rv$task_ttr[i], ".")
       )
     }
   })
@@ -690,9 +677,7 @@ server <- function(input, output, session){
       rv$task_response[i] <- input$survey8
       loggit("INFO", "Survey 8 entered.",
              paste0("Response: ", rv$task_response[i],
-                    ". ttr: ", rv$task_ttr[i], ".",
-                    pfbs()
-             )
+                    ". ttr: ", rv$task_ttr[i], ".")
       )
     }
   })
@@ -703,9 +688,7 @@ server <- function(input, output, session){
       rv$task_response[i] <- input$survey9
       loggit("INFO", "Survey 9 entered.",
              paste0("Response: ", rv$task_response[i],
-                    ". ttr: ", rv$task_ttr[i], ".",
-                    pfbs()
-             )
+                    ". ttr: ", rv$task_ttr[i], ".")
       )
     }
   })
@@ -716,9 +699,7 @@ server <- function(input, output, session){
       rv$task_response[i] <- input$survey10
       loggit("INFO", "Survey 10 entered.",
              paste0("Response: ", rv$task_response[i],
-                    ". ttr: ", rv$task_ttr[i], ".",
-                    pfbs()
-             )
+                    ". ttr: ", rv$task_ttr[i], ".")
       )
     }
   })
@@ -729,9 +710,7 @@ server <- function(input, output, session){
       rv$task_response[i] <- input$survey11
       loggit("INFO", "Survey 11 entered.",
              paste0("Response: ", rv$task_response[i],
-                    ". ttr: ", rv$task_ttr[i], ".",
-                    pfbs()
-             )
+                    ". ttr: ", rv$task_ttr[i], ".")
       )
     }
   })
@@ -742,9 +721,7 @@ server <- function(input, output, session){
       rv$task_response[i] <- input$survey12
       loggit("INFO", "Survey 12 entered.",
              paste0("Response: ", rv$task_response[i],
-                    ". ttr: ", rv$task_ttr[i], ".",
-                    pfbs()
-             )
+                    ". ttr: ", rv$task_ttr[i], ".")
       )
     }
   })
@@ -755,9 +732,7 @@ server <- function(input, output, session){
       rv$task_response[i] <- input$survey13
       loggit("INFO", "Survey 13 entered.",
              paste0("Response: ", rv$task_response[i],
-                    ". ttr: ", rv$task_ttr[i], ".",
-                    pfbs()
-             )
+                    ". ttr: ", rv$task_ttr[i], ".")
       )
     }
   })
@@ -768,9 +743,7 @@ server <- function(input, output, session){
       rv$task_response[i] <- input$survey14
       loggit("INFO", "Survey 14 entered.",
              paste0("Response: ", rv$task_response[i],
-                    ". ttr: ", rv$task_ttr[i], ".",
-                    pfbs()
-             )
+                    ". ttr: ", rv$task_ttr[i], ".")
       )
     }
   })
@@ -781,9 +754,7 @@ server <- function(input, output, session){
       rv$task_response[i] <- input$survey15
       loggit("INFO", "Survey 15 entered.",
              paste0("Response: ", rv$task_response[i],
-                    ". ttr: ", rv$task_ttr[i], ".",
-                    pfbs()
-             )
+                    ". ttr: ", rv$task_ttr[i], ".")
       )
     }
   })
@@ -794,9 +765,7 @@ server <- function(input, output, session){
       rv$task_response[i] <- input$survey16
       loggit("INFO", "Survey 16 entered.",
              paste0("Response: ", rv$task_response[i],
-                    ". ttr: ", rv$task_ttr[i], ".",
-                    pfbs()
-             )
+                    ". ttr: ", rv$task_ttr[i], ".")
       )
     }
   })
@@ -807,9 +776,7 @@ server <- function(input, output, session){
       rv$task_response[i] <- input$survey17
       loggit("INFO", "Survey 17 entered.",
              paste0("Response: ", rv$task_response[i],
-                    ". ttr: ", rv$task_ttr[i], ".",
-                    pfbs()
-             )
+                    ". ttr: ", rv$task_ttr[i], ".")
       )
     }
   })
@@ -817,7 +784,7 @@ server <- function(input, output, session){
   ### Obs next page button -----
   observeEvent(input$next_pg_button, {
     if((rv$stopwatch > 1L & do_log == TRUE) | do_log == FALSE){
-      cat(paste0("in loop, top --", rv$pg) )
+      cat(paste0("in loop, top --", rv$pg))
       task_resp  <- task_resp()
       task_ans   <- task_ans()
       task_score <- task_score()
@@ -905,8 +872,7 @@ server <- function(input, output, session){
       rv$stopwatch        <- 0L
       rv$timer_active     <- TRUE
       rv$training_aes     <- FALSE
-      
-      #if(rv$pg == survey_start_pg) shinyjs::hide("next_pg_button")
+      if(rv$pg == survey_start_pg) shinyjs::hide("next_pg_button")
       
       ## Set structure for writeing to resp_tbl
       ## cluster seperation task:
@@ -1004,19 +970,22 @@ server <- function(input, output, session){
   })
   
   ### Condition handling for ui coditionalPanels
-  output$is_saved   <- reactive(if(is.null(rv$save_file)){0}else{1}) ## Control save_msg.
-  output$pg         <- reactive(rv$pg)        ## For hiding ui next_task button
-  output$section_nm <- reactive(section_nm()) ## For ui between sections
-  output$factor_nm  <- reactive(factor_nm())  ## For sidebar inputs
-  output$block      <- reactive(block())      ## For training ui
-  output$section_pg <- reactive(section_pg()) ## For navigating training
-
-  outputOptions(output, "is_saved",   suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
-  outputOptions(output, "pg",         suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "section_nm", suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "factor_nm",  suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "block",      suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "section_pg", suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
+  output$is_saved    <- reactive(if(is.null(rv$save_file)){0}else{1}) ## Control save_msg.
+  output$pg          <- reactive(rv$pg)        ## For hiding ui next_task button
+  output$section_nm  <- reactive(section_nm()) ## For ui between sections
+  output$factor_nm   <- reactive(factor_nm())  ## For sidebar inputs
+  output$block       <- reactive(block())      ## For training ui
+  output$section_pg  <- reactive(section_pg()) ## For navigating training
+  output$plot_active <- reactive(pca_active() | grand_active() | radial_active()) ## For display of the task response.
+  
+  outputOptions(output, "is_saved",    suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
+  outputOptions(output, "pg",          suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "section_nm",  suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "factor_nm",   suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "block",       suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "section_pg",  suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
+  outputOptions(output, "plot_active", suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
+  
   
   ### General task outputs
   output$task_header    <- renderText(task_header())

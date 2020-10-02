@@ -273,46 +273,108 @@ tpath_user_study <- function(do_save = FALSE){
 
 
 #' Saves off plotly objects for the grand factor of the user study
-#' @examples 
-#' grand_user_study(do_save = TRUE)
-grand_user_study <- function(do_save = FALSE){
+#' @examples
+#' mmp_clSep_user_study(do_save = TRUE)
+mmp_clSep_user_study <- function(do_save = FALSE){
   ## Inialize
-  require("spinifex")
+  if("df_scree_MMP_clSep" %in% ls() == FALSE)
+    source(here::here("R/MMP_clSep.r"))
+  
   root    <- paste0(here::here("apps/data"), "/")
-  in_nms  <- paste0("tpath_", 
-                   c("baseLn_EEE", "baseLn_EEV", "baseLn_banana",
-                     "corNoise_EEE", "corNoise_EEV", "corNoise_banana",
-                     "mnComb_EEE", "mnComb_EEV", "mnComb_banana"))
+  in_nms  <- c("baseLn_EEE", "baseLn_EEV", "baseLn_banana",
+               "corNoise_EEE", "corNoise_EEV", "corNoise_banana",
+               "mnComb_EEE", "mnComb_EEV", "mnComb_banana")
   in_fps  <- paste0(root, in_nms, ".rda")
-  out_nms <- paste0("grand_plotly_", in_nms)
+  out_nms <- paste0("MMP_clSep_", in_nms)
   out_fps <- paste0(root, out_nms, ".rda")
   
   ## Load tour_paths, create plotly objects
-  for (i in 1:length(in_fps)) {
+  for(i in 1:length(in_fps)){
     load(in_fps[i])
     dat <- as.matrix(get(in_nms[i])[, -1]) ## Numeric data only, as matrix
-    bas <- basis_pca(dat)
-    plotly <- "dummy"
-    assign(out_nms[i], tpath, envir = globalenv())
+    clas <- get(in_nms[i])[, 1]
+    
+    MMP_clSep <- df_scree_MMP_clSep(dat, clas,
+                                    do_rescale = FALSE, n_reps = 500,
+                                    num_class_lvl_a = 1,
+                                    num_class_lvl_b = 2
+    )
+    assign(out_nms[i], MMP_clSep, envir = globalenv())
   }
-  
+
   ## Save if needed
   if (do_save == TRUE){
-    save(grand_plotly_baseLn_EEE     , file = out_fps[1])
-    save(grand_plotly_baseLn_EEV     , file = out_fps[2])
-    save(grand_plotly_baseLn_banana  , file = out_fps[3])
-    save(grand_plotly_corNoise_EEE   , file = out_fps[4])
-    save(grand_plotly_corNoise_EEV   , file = out_fps[5])
-    save(grand_plotly_corNoise_banana, file = out_fps[6])
-    save(grand_plotly_mnComb_EEE     , file = out_fps[7])
-    save(grand_plotly_mnComb_EEV     , file = out_fps[8])
-    save(grand_plotly_mnComb_banana  , file = out_fps[9])
+    save(MMP_clSep_baseLn_EEE     , file = out_fps[1])
+    save(MMP_clSep_baseLn_EEV     , file = out_fps[2])
+    save(MMP_clSep_baseLn_banana  , file = out_fps[3])
+    save(MMP_clSep_corNoise_EEE   , file = out_fps[4])
+    save(MMP_clSep_corNoise_EEV   , file = out_fps[5])
+    save(MMP_clSep_corNoise_banana, file = out_fps[6])
+    save(MMP_clSep_mnComb_EEE     , file = out_fps[7])
+    save(MMP_clSep_mnComb_EEV     , file = out_fps[8])
+    save(MMP_clSep_mnComb_banana  , file = out_fps[9])
   }
-  message("Assigned all grand plotly objects as a global variables, as 'grand_plotly_<factor_model>'. \n")
+  message("Assigned all grand plotly objects as a global variables, as 'MMP_clSep_<factor_model>'. \n")
   if (do_save == TRUE)
-    message(paste0("Save all grand plotly objects to ", root, " as 'grand_plotly_<factor_model>.rda'. Use load(my.rda) bring obj into env. \n"))
-}  
-
-radial_user_study <- function(){
-  
+    message(paste0("Save all grand plotly objects to ", root, " as 'MMP_clSep_<factor_model>.rda'. Use load(my.rda) bring obj into env. \n"))
 }
+
+
+#' #### FAR TOO HEAVY TO BE A GOOD IDEA.
+#' #' Saves off plotly objects for the grand factor of the user study
+#' #' @examples 
+#' #' grand_user_study(do_save = TRUE)
+#' grand_user_study <- function(do_save = FALSE){
+#'   ## Inialize
+#'   require("spinifex")
+#'   root    <- paste0(here::here("apps/data"), "/")
+#'   in_nms  <- c("baseLn_EEE", "baseLn_EEV", "baseLn_banana",
+#'                "corNoise_EEE", "corNoise_EEV", "corNoise_banana",
+#'                "mnComb_EEE", "mnComb_EEV", "mnComb_banana")
+#'   in_fps  <- paste0(root, in_nms, ".rda")
+#'   out_nms <- paste0("grand_plotly_", in_nms)
+#'   out_fps <- paste0(root, out_nms, ".rda")
+#'   
+#'   angle <- .1
+#'   fps   <- 6L
+#'   axes_position <- "left"
+#'   
+#'   ## Load tour_paths, create plotly objects
+#'   for(i in 1:length(in_fps)) 
+#'     load(in_fps[i])
+#'     dat <- as.matrix(get(in_nms[i])[, -1]) ## Numeric data only, as matrix
+#'     bas <- basis_pca(dat, 2)
+#'     clas <- get(in_nms[i])[, 1]
+#'     plotly <- list()
+#'     for(j in 1:ncol(dat)){
+#'       plotly[[j]] <-
+#'         play_manual_tour(bas, dat, j, axes = "left", 
+#'                          angle = .1, fps = 6L,
+#'                          aes_args = list(col = clas, pch = clas),
+#'                          identity_args = list(size = 1.5),
+#'                          ggproto = theme_spinifex())
+#'     }
+#'     assign(out_nms[i], plotly, envir = globalenv())
+#'   }
+#'   
+#'   ## Save if needed
+#'   if (do_save == TRUE){
+#'     save(grand_plotly_baseLn_EEE     , file = out_fps[1])
+#'     save(grand_plotly_baseLn_EEV     , file = out_fps[2])
+#'     save(grand_plotly_baseLn_banana  , file = out_fps[3])
+#'     save(grand_plotly_corNoise_EEE   , file = out_fps[4])
+#'     save(grand_plotly_corNoise_EEV   , file = out_fps[5])
+#'     save(grand_plotly_corNoise_banana, file = out_fps[6])
+#'     save(grand_plotly_mnComb_EEE     , file = out_fps[7])
+#'     save(grand_plotly_mnComb_EEV     , file = out_fps[8])
+#'     save(grand_plotly_mnComb_banana  , file = out_fps[9])
+#'   }
+#'   message("Assigned all grand plotly objects as a global variables, as 'grand_plotly_<factor_model>'. \n")
+#'   if (do_save == TRUE)
+#'     message(paste0("Save all grand plotly objects to ", root, " as 'grand_plotly_<factor_model>.rda'. Use load(my.rda) bring obj into env. \n"))
+#' }  
+#' 
+#' #### FAR TOO HEAVY TO BE A GOOD IDEA.
+#' radial_user_study <- function(){
+#'   
+#' }

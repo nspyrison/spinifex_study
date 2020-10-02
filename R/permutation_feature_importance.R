@@ -1,6 +1,5 @@
 ## CAREFUL WITH SOURCING HERE BEACAUSE RELATIVE PATHS FOR KNITTING .RMD
-try(source("./R/ggproto_screeplot_clSep.r"),  silent = T)
-try(source("../R/ggproto_screeplot_clSep.r"), silent = T) ## Relative, kniting
+source(here::here("R/ggproto_screeplot_clSep.r"))
 
 #' Creates a data frame of a single variable permutation of the data
 #' (specified variable has it's values shuffled, resampled without replacment).

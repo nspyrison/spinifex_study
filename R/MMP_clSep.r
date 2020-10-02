@@ -1,6 +1,5 @@
 ## CAREFUL WITH SOURCING HERE BEACAUSE RELATIVE PATHS FOR KNITTING .RMD
-try(source("./R/permutation_feature_importance.r"),  silent = T)
-try(source("../R/permutation_feature_importance.r"), silent = T) ## Relative, kniting
+source(here::here("R/permutation_feature_importance.r"))
 
 #' Produces a data frame of the mean, mean permuted cluster seperation. 
 #' Doesn't calculate Cummulative or order by MMP clSep
