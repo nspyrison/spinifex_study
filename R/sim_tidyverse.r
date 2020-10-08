@@ -29,16 +29,17 @@ rotate <- function(x){
   colnames(rot) <- paste0("V", 1:ncol(rot))
   ## Apply transform
   rot <- mutate(rot, 
-                V1 = 0.707  * V1 + 0.707 * V3,
-                V3 = -0.707 * V1 + 0.707 * V3,
-                V2 = 0.707  * V2 + 0.707 * V4,
-                V4 = -0.707 * V2 + 0.707 * V4)
+                V1 = 0.707  * V1 + -0.707 * V3,
+                V3 = 0.707 * V1 + 0.707 * V3,
+                V2 = 0.707  * V2 + -0.707 * V4,
+                V4 = 0.707 * V2 + 0.707 * V4)
   
   ## Return
   ret <- data.frame(cl = cl, rot)
   colnames(ret) <- orig_colnames
   return(ret)
 }
+
 
 ## Creates a 'V' in the shape of ">", by shifting 1/5 of the obs to be offset.
 banana_tform <- function(d){

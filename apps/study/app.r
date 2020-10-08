@@ -349,7 +349,8 @@ server <- function(input, output, session){
       ## plotly
       ggp <- plotly::ggplotly(p = gg, tooltip = "none", 
                               height = grand_height(),
-                              width  = grand_width()) %>%
+                              #width  = grand_width()
+                              ) %>%
         config(displayModeBar = FALSE) %>% 
         plotly::animation_opts(frame = 1L / fps * 1000L,
                                transition = 0L, redraw = FALSE) %>%

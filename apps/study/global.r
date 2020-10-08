@@ -26,8 +26,8 @@ do_disp_dev_tools <- TRUE
 
 #### Simulated data series,
 ## "series" or iteration of data to look at. Should be an even hundred
-height_px <- 638L
-width_px <- 2000L
+height_px <- 800L
+width_px <- 1000L
 sim_series <- 300
 cat(do_log)
 
