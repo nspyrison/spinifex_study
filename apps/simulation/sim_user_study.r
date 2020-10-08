@@ -272,52 +272,53 @@ tpath_user_study <- function(do_save = FALSE){
 }
 
 
-#' Saves off plotly objects for the grand factor of the user study
-#' @examples
-#' mmp_clSep_user_study(do_save = TRUE)
-mmp_clSep_user_study <- function(do_save = FALSE){
-  ## Inialize
-  if("df_scree_MMP_clSep" %in% ls() == FALSE)
-    source(here::here("R/MMP_clSep.r"))
-  
-  root    <- paste0(here::here("apps/data"), "/")
-  in_nms  <- c("baseLn_EEE", "baseLn_EEV", "baseLn_banana",
-               "corNoise_EEE", "corNoise_EEV", "corNoise_banana",
-               "mnComb_EEE", "mnComb_EEV", "mnComb_banana")
-  in_fps  <- paste0(root, in_nms, ".rda")
-  out_nms <- paste0("MMP_clSep_", in_nms)
-  out_fps <- paste0(root, out_nms, ".rda")
-  
-  ## Load tour_paths, create plotly objects
-  for(i in 1:length(in_fps)){
-    load(in_fps[i])
-    dat <- as.matrix(get(in_nms[i])[, -1]) ## Numeric data only, as matrix
-    clas <- get(in_nms[i])[, 1]
-    
-    MMP_clSep <- df_scree_MMP_clSep(dat, clas,
-                                    do_rescale = FALSE, n_reps = 500,
-                                    num_class_lvl_a = 1,
-                                    num_class_lvl_b = 2
-    )
-    assign(out_nms[i], MMP_clSep, envir = globalenv())
-  }
 
-  ## Save if needed
-  if (do_save == TRUE){
-    save(MMP_clSep_baseLn_EEE     , file = out_fps[1])
-    save(MMP_clSep_baseLn_EEV     , file = out_fps[2])
-    save(MMP_clSep_baseLn_banana  , file = out_fps[3])
-    save(MMP_clSep_corNoise_EEE   , file = out_fps[4])
-    save(MMP_clSep_corNoise_EEV   , file = out_fps[5])
-    save(MMP_clSep_corNoise_banana, file = out_fps[6])
-    save(MMP_clSep_mnComb_EEE     , file = out_fps[7])
-    save(MMP_clSep_mnComb_EEV     , file = out_fps[8])
-    save(MMP_clSep_mnComb_banana  , file = out_fps[9])
-  }
-  message("Assigned all grand plotly objects as a global variables, as 'MMP_clSep_<factor_model>'. \n")
-  if (do_save == TRUE)
-    message(paste0("Save all grand plotly objects to ", root, " as 'MMP_clSep_<factor_model>.rda'. Use load(my.rda) bring obj into env. \n"))
-}
+#' #' Saves off plotly objects for the grand factor of the user study
+#' #' @examples
+#' #' mmp_clSep_user_study(do_save = TRUE)
+#' mmp_clSep_user_study <- function(do_save = FALSE){
+#'   ## Inialize
+#'   if("df_scree_MMP_clSep" %in% ls() == FALSE)
+#'     source(here::here("R/MMP_clSep.r"))
+#'   
+#'   root    <- paste0(here::here("apps/data"), "/")
+#'   in_nms  <- c("baseLn_EEE", "baseLn_EEV", "baseLn_banana",
+#'                "corNoise_EEE", "corNoise_EEV", "corNoise_banana",
+#'                "mnComb_EEE", "mnComb_EEV", "mnComb_banana")
+#'   in_fps  <- paste0(root, in_nms, ".rda")
+#'   out_nms <- paste0("MMP_clSep_", in_nms)
+#'   out_fps <- paste0(root, out_nms, ".rda")
+#'   
+#'   ## Load tour_paths, create plotly objects
+#'   for(i in 1:length(in_fps)){
+#'     load(in_fps[i])
+#'     dat <- as.matrix(get(in_nms[i])[, -1]) ## Numeric data only, as matrix
+#'     clas <- get(in_nms[i])[, 1]
+#'     
+#'     MMP_clSep <- df_scree_MMP_clSep(dat, clas,
+#'                                     do_rescale = FALSE, n_reps = 500,
+#'                                     num_class_lvl_a = 1,
+#'                                     num_class_lvl_b = 2
+#'     )
+#'     assign(out_nms[i], MMP_clSep, envir = globalenv())
+#'   }
+#' 
+#'   ## Save if needed
+#'   if (do_save == TRUE){
+#'     save(MMP_clSep_baseLn_EEE     , file = out_fps[1])
+#'     save(MMP_clSep_baseLn_EEV     , file = out_fps[2])
+#'     save(MMP_clSep_baseLn_banana  , file = out_fps[3])
+#'     save(MMP_clSep_corNoise_EEE   , file = out_fps[4])
+#'     save(MMP_clSep_corNoise_EEV   , file = out_fps[5])
+#'     save(MMP_clSep_corNoise_banana, file = out_fps[6])
+#'     save(MMP_clSep_mnComb_EEE     , file = out_fps[7])
+#'     save(MMP_clSep_mnComb_EEV     , file = out_fps[8])
+#'     save(MMP_clSep_mnComb_banana  , file = out_fps[9])
+#'   }
+#'   message("Assigned all grand plotly objects as a global variables, as 'MMP_clSep_<factor_model>'. \n")
+#'   if (do_save == TRUE)
+#'     message(paste0("Save all grand plotly objects to ", root, " as 'MMP_clSep_<factor_model>.rda'. Use load(my.rda) bring obj into env. \n"))
+#' }
 
 
 #' #### FAR TOO HEAVY TO BE A GOOD IDEA.

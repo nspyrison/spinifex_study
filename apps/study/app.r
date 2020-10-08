@@ -214,10 +214,10 @@ server <- function(input, output, session){
         ## Themes and aesthetics
         theme_minimal() +
         scale_color_brewer(palette = pal) +
-        theme(panel.grid.major = element_blank(), # no grid lines
-              panel.grid.minor = element_blank(), # no grid lines
-              axis.text.x  = element_blank(),     # no axis marks
-              axis.text.y  = element_blank(),     # no axis marks
+        theme(panel.grid.major = element_blank(), ## no grid lines
+              panel.grid.minor = element_blank(), ## no grid lines
+              axis.text.x  = element_blank(),     ## no axis marks
+              axis.text.y  = element_blank(),     ## no axis marks
               axis.title.x = element_text(size = 22L, face = "bold"),
               axis.title.y = element_text(size = 22L, face = "bold"),
               aspect.ratio = y_range / x_range,
@@ -245,9 +245,9 @@ server <- function(input, output, session){
                   mapping = aes(x = get(x_axis),
                                 y = get(y_axis),
                                 label = colnames(dat_std)),
-                  size = 6, colour = "red", fontface = "bold",
+                  size = 6L, colour = "red", fontface = "bold",
                   vjust = "outward", hjust = "outward") +
-        ## Cirle path
+        ## Circle path
         geom_path(circ, mapping = aes(x = x, y = y),
                   color = "grey80", size = .3, inherit.aes = F)
       
@@ -255,7 +255,7 @@ server <- function(input, output, session){
     }
   })
   
-  ### Grand tour plot reactive -----
+  ### Grand tour plotly reactive -----
   grand_height <- function(){
     if(grand_active() == TRUE){
       return(height_px)
@@ -268,7 +268,7 @@ server <- function(input, output, session){
   }
   grand_plot <- reactive({
     if(grand_active() == TRUE){
-      ## Initialiaze
+      ## Initialize
       dat_std <- dat()
       cluster <- cl()
       tpath   <- task_tpath()
@@ -284,73 +284,93 @@ server <- function(input, output, session){
       max_frames <- min(c(max_frames, dim(full_path)[3L]))
       full_path  <- full_path[,, 1L:max_frames]
       tour_df    <- array2df(array = full_path, data = dat_std)
-      data_df    <- tour_df$data_frames
-      basis_df   <- tour_df$basis_frames
-      basis_df[, 1L:2L] <- scale_axes(tour_df$basis_frames[, 1L:2L],
-                                      axes_position, data_df)
+      # data_df    <- tour_df$data_frames
+      # basis_df   <- tour_df$basis_frames
+      # basis_df[, 1L:2L] <- scale_axes(tour_df$basis_frames[, 1L:2L],
+      #                                 axes_position, data_df)
+      # 
+      # ## Render initialize
+      # angle <- seq(0L, 2L * pi, length = 360L)
+      # circ  <- scale_axes(data.frame(x = cos(angle), y = sin(angle)),
+      #                     axes_position, data_df)
+      # zero  <- scale_axes(data.frame(x = 0L, y = 0L),
+      #                     axes_position, data_df)
+      # x_range <- c(min(data_df[, 1L], circ[, 1L]), max(data_df[, 1L], circ[, 1L]))
+      # y_range <- c(min(data_df[, 2L], circ[, 2L]), max(data_df[, 2L], circ[, 2L]))
       
-      ## Render init
-      angle <- seq(0L, 2L * pi, length = 360L)
-      circ  <- scale_axes(data.frame(x = cos(angle), y = sin(angle)),
-                          axes_position, data_df)
-      zero  <- scale_axes(data.frame(x = 0L, y = 0L),
-                          axes_position, data_df)
-      x_range <- c(min(data_df[, 1L], circ[, 1L]), max(data_df[, 1L], circ[, 1L]))
-      y_range <- c(min(data_df[, 2L], circ[, 2L]), max(data_df[, 2L], circ[, 2L]))
-      
-      ### ggplot2
-      gg <- ggplot() +
-        ## Themes and aesthetic settings
-        theme_minimal() +
-        scale_color_brewer(palette = pal) +
-        scale_fill_brewer(palette  = pal) +
-        theme(panel.grid.major = element_blank(), ## no grid lines
-              panel.grid.minor = element_blank(), ## no grid lines
-              axis.text.x  = element_blank(),     ## no axis marks
-              axis.text.y  = element_blank(),     ## no axis marks
-              axis.title.x = element_blank(),     ## no axis titles for grand
-              axis.title.y = element_blank(),     ## no axis titles for grand
-              #aspect.ratio = y_range / x_range,
-              legend.title = element_text(size = 18L, face = "bold"),
-              legend.text  = element_text(size = 18L, face = "bold"),
-              legend.box.background = element_rect()
-        ) 
-      ## Projected data points with cluster aesthetics
-      gg <- gg + geom_point(data_df,
-                            mapping = aes(x = x, y = y, frame = frame,
-                                          color = cluster,
-                                          fill  = cluster,
-                                          shape = cluster),
-                            size = 1.7) + ## smaller size for plotly
-        ## Axis segments
-        geom_segment(basis_df,
-                     mapping = aes(x = x, xend = zero[, 1L],
-                                   y = y, yend = zero[, 2L],
-                                   frame = frame),
-                     size = .3, colour = "red") +
-        ## Axis label text
-        geom_text(basis_df,
-                  mapping = aes(x = x,
-                                y = y,
-                                frame = frame,
-                                label = lab),
-                  size = 6L, colour = "red", fontface = "bold",
-                  vjust = "outward", hjust = "outward") +
-        ## Cirle path
-        geom_path(circ,
-                  mapping = aes(x = x, y = y),
-                  color = "grey80", size = .3, inherit.aes = F)
+      # ### ggplot2
+      # gg <- ggplot() +
+      #   ## Themes and aesthetic settings
+      #   theme_minimal() +
+      #   scale_color_brewer(palette = pal) +
+      #   scale_fill_brewer(palette  = pal) +
+      #   theme(panel.grid.major = element_blank(), ## no grid lines
+      #         panel.grid.minor = element_blank(), ## no grid lines
+      #         axis.text.x  = element_blank(),     ## no axis marks
+      #         axis.text.y  = element_blank(),     ## no axis marks
+      #         axis.title.x = element_blank(),     ## no axis titles for grand
+      #         axis.title.y = element_blank(),     ## no axis titles for grand
+      #         #aspect.ratio = y_range / x_range,
+      #         legend.title = element_text(size = 18L, face = "bold"),
+      #         legend.text  = element_text(size = 18L, face = "bold"),
+      #         legend.box.background = element_rect()
+      #   ) 
+      # ## Projected data points with cluster aesthetics
+      # gg <- gg + geom_point(data_df,
+      #                       mapping = aes(x = x, y = y, frame = frame,
+      #                                     color = cluster,
+      #                                     fill  = cluster,
+      #                                     shape = cluster),
+      #                       size = 1.7) + ## smaller size for plotly
+      #   ## Axis segments
+      #   geom_segment(basis_df,
+      #                mapping = aes(x = x, xend = zero[, 1L],
+      #                              y = y, yend = zero[, 2L],
+      #                              frame = frame),
+      #                size = .3, colour = "red") +
+      #   ## Axis label text
+      #   geom_text(basis_df,
+      #             mapping = aes(x = x,
+      #                           y = y,
+      #                           frame = frame,
+      #                           label = lab),
+      #             size = 6L, colour = "red", fontface = "bold",
+      #             vjust = "outward", hjust = "outward") +
+      #   ## Circle path
+      #   geom_path(circ,
+      #             mapping = aes(x = x, y = y),
+      #             color = "grey80", size = .3, inherit.aes = F)
+      gg <- render_(frames = tour_df, axes = axes_position, manip_col = "blue",
+                    aes_args = list(color = cluster, shape = cluster),
+                    identity_args = list(size = 1.5),
+                    ggproto = theme_spinifex())
       ## End of ggplot2 work
       
-      ### plotly
+      ## plotly
       ggp <- plotly::ggplotly(p = gg, tooltip = "none", 
                               height = grand_height(),
                               width  = grand_width()) %>%
+        config(displayModeBar = FALSE) %>% 
         plotly::animation_opts(frame = 1L / fps * 1000L,
                                transition = 0L, redraw = FALSE) %>%
         plotly::layout(
-          legend = list(x = 0, y = 0), ## Postition legend to top-right.
+          legend = list(x = 0, y = 0), ## Position legend to top-right.
           #scene  = list(aspectration = list(x = 1, y = 1)), ## Set coord_fixed()
+          yaxis  = list(showgrid = FALSE, showline = FALSE),
+          xaxis  = list(showgrid = FALSE, showline = FALSE),
+          showlegend = TRUE
+        )
+      
+      ggp <- plotly::ggplotly(p = gg, tooltip = "none", 
+                              height = radial_height(),
+                              #width  = radial_width()
+                              ) %>%
+        config(displayModeBar = FALSE) %>% 
+        plotly::animation_opts(frame = 1L / fps * 1000L,
+                               transition = 0L, redraw = FALSE) %>%
+        plotly::layout(
+          legend = list(x = 0, y = 0), ## Position legend to top-right.
+          # scene  = list(aspectration = list(x = 1, y = 1)), ## Set coord_fixed()
           yaxis  = list(showgrid = FALSE, showline = FALSE),
           xaxis  = list(showgrid = FALSE, showline = FALSE),
           showlegend = TRUE
@@ -361,7 +381,7 @@ server <- function(input, output, session){
   })
   
   
-  ### radial tour plot reactive -----
+  ### radial tour plotly reactive -----
   radial_height <- function(){
     if(radial_active()){
       return(height_px)
@@ -392,15 +412,17 @@ server <- function(input, output, session){
         tour_df <- array2df(array = tour_array, data = dat_std)
         
         ## ggplot
-        gg <- render_(frames = tour_df, axes = axes_position, manip_col = "purple",
+        gg <- render_(frames = tour_df, axes = axes_position, manip_col = "blue",
                       aes_args = list(color = cluster, shape = cluster),
                       identity_args = list(size = 1.5),
                       ggproto = theme_spinifex())
         
-        ### plotly
+        ## plotly
         ggp <- plotly::ggplotly(p = gg, tooltip = "none", 
                                 height = radial_height(),
-                                width  = radial_width()) %>%
+                                #width  = radial_width()
+                                ) %>%
+          config(displayModeBar = FALSE) %>% 
           plotly::animation_opts(frame = 1L / fps * 1000L,
                                  transition = 0L, redraw = FALSE) %>%
           plotly::layout(
@@ -993,7 +1015,7 @@ server <- function(input, output, session){
   ### General task outputs
   output$task_header    <- renderText(task_header())
   output$pca_plot       <- renderPlot({pca_plot()}, height = pca_height)
-  output$grand_plot     <- renderPlotly({suppressWarnings(grand_plot())}) ## height needs to be applied to plotly obj
+  output$grand_plot     <- renderPlotly({grand_plot()}) ## height needs to be applied to plotly obj
   output$radial_plot    <- renderPlotly({radial_plot()}) ## height needs to be applied to plotly obj
   output$resp_tbl       <- renderTable({rv$resp_tbl})
   output$task_ans_ptile <- renderPrint({task_ans_ptile()})

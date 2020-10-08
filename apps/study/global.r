@@ -19,7 +19,7 @@ set.seed(20200927)   ## if tourr starts using seeds
 #### Logging
 ## browseURL("https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/")
 ## use: loggit("INFO", "<main msg>", "<detail>")
-## Uncomment the following line to apply logging
+## SET do_log to TRUE to start logging 
 do_log            <- FALSE
 do_disp_dev_tools <- TRUE
 
@@ -27,7 +27,7 @@ do_disp_dev_tools <- TRUE
 #### Simulated data series,
 ## "series" or iteration of data to look at. Should be an even hundred
 height_px <- 638L
-width_px <- 1000L
+width_px <- 2000L
 sim_series <- 300
 cat(do_log)
 
@@ -167,45 +167,47 @@ header_ui <- fluidPage(
 sidebar_ui <- conditionalPanel(
   condition = "output.section_nm == 'training' || output.section_nm == 'task'",
   sidebarPanel(width = 3,
-    ##### _Training text -----
-    conditionalPanel(
-      condition = "output.section_nm == 'training'",
-      conditionalPanel( ## interface familiarity
-        condition = "output.section_pg == 1",
-        p("In this study, you will be working with 3 visualization techniques of
-        multivariate data. Each one uses 2-dimensional projections created
-        from different combinations of variables. The variable map (grey circle)
-        shows the angle and magnitude that each variable contributes to the
-        projection."),
-        p("Principal Component Analysis (PCA) is displayed first. Use the radio
-          buttons on the left sidebar panel to select new components to be
-          displayed. Observe how the clusters and the variable contributions
-          change."),
-        p("Now switch to the grand tour factor. Play the animation. Notice how
-          different clusters move as the variable contributions change. Drag
-          the slider to select a different frame or animate at your own pace."),
-        p("Change to the radial tour. You can select which components are on
-          the axes. Using the drop-down, select the variable with the largest
-          line segment. Use the slider to change the variable's contribution.
-          Watch how the contributions and clusters move as a result. Select a
-          change the y-axis to PC3 and back, notice that this resets the
-          projection."),
-      ), ## Close coditionalPanel()
-      conditionalPanel( ## Rraining task 1, pg 2
-        condition = "output.task == 2",
-        strong("The data points are colored by their cluster again.
-               Variables that have a large
-               contribution in line with two clusters are important to
-               distinguish them. However, you cannot rule out that variables
-               with a small contribution are unimportant.
-               Use this information to identify which variables distinguish
-               the 2 clusters.")
-      ), ## Close coditionalPanel()
-      hr()
-    ), ### Close training text coditionalPanel()
-    
-    ##### _Training control inputs -----
-    ## Factor selection
+               ## TODO ENABLE THESE REMOVED TRAINING TEXT DISP AFTER PLANNING
+               #,
+               ##### _Training text -----
+               # conditionalPanel(
+               #   condition = "output.section_nm == 'training'",
+               #   conditionalPanel( ## interface familiarity
+               #     condition = "output.section_pg == 1",
+               #     p("In this study, you will be working with 3 visualization techniques of
+               #     multivariate data. Each one uses 2-dimensional projections created
+               #     from different combinations of variables. The variable map (grey circle)
+               #     shows the angle and magnitude that each variable contributes to the
+               #     projection."),
+               #     p("Principal Component Analysis (PCA) is displayed first. Use the radio
+               #       buttons on the left sidebar panel to select new components to be
+               #       displayed. Observe how the clusters and the variable contributions
+               #       change."),
+               #     p("Now switch to the grand tour factor. Play the animation. Notice how
+               #       different clusters move as the variable contributions change. Drag
+               #       the slider to select a different frame or animate at your own pace."),
+               #     p("Change to the radial tour. You can select which components are on
+               #       the axes. Using the drop-down, select the variable with the largest
+               #       line segment. Use the slider to change the variable's contribution.
+               #       Watch how the contributions and clusters move as a result. Select a
+               #       change the y-axis to PC3 and back, notice that this resets the
+               #       projection."),
+               #   ), ## Close coditionalPanel()
+               #   conditionalPanel( ## Rraining task 1, pg 2
+               #     condition = "output.task == 2",
+               #     strong("The data points are colored by their cluster again.
+               #            Variables that have a large
+               #            contribution in line with two clusters are important to
+               #            distinguish them. However, you cannot rule out that variables
+               #            with a small contribution are unimportant.
+               #            Use this information to identify which variables distinguish
+               #            the 2 clusters.")
+               #   ), ## Close coditionalPanel()
+               #   hr()
+               # ), ### Close training text coditionalPanel()
+  
+  ##### _Training control inputs -----
+  ## Factor selection
     conditionalPanel(condition = "output.section_nm == 'training' && output.section_pg < 6",
                      radioButtons(inputId = "factor", label = "Factor",
                                   choices = fct_nm_vect,
@@ -260,8 +262,8 @@ sidebar_ui <- conditionalPanel(
       condition = "output.plot_active == true", #" &&do_disp_dev_tools == true",
       p("___"),
       p("response: "),
-      p("MMP ClSep: "),
-      p("Variable marks: "),
+      #p("MMP ClSep: "), ##We know the exact differences, no need for MMP ClSep
+      p("Variable marks: "), ##TODO, marks based on the sim.
       p("Task marks: ")
     ) ## Close sidebarPanel()
   ) ## Close conditionalPanel(), end sidebar_ui section
