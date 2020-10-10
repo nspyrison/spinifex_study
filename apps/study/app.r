@@ -129,7 +129,6 @@ server <- function(input, output, session){
     } else return(FALSE)
   })
   radial_active <- reactive({
-    # req(rv$timer_active, input$factor)
     if(factor_nm() == "radial"){
       return(TRUE)
     }else return(FALSE)
@@ -153,7 +152,7 @@ server <- function(input, output, session){
   task_ans <- reactive({
     dat_std <- dat()
     cl <- dat_std$cl
-    #TODO need to bring in latest clSep function
+    #TODO GIVE 1 pt per correct answer!?; this equates 0/1 and 33/66
     rep(0L, p())
   })
   ### Response
@@ -272,79 +271,24 @@ server <- function(input, output, session){
       dat_std <- dat()
       cluster <- cl()
       tpath   <- task_tpath()
-      
+      ##
       angle <- .1
       fps   <- 6L
       max_frames <- 90L ## 90 frame for 15 sec @ fps = 6
       axes_position <- "left"
-      
+      ##
       cluster    <- rep(cluster, max_frames)
       full_path  <- tourr::interpolate(basis_set = tpath, angle = angle)
       attr(full_path, "class") <- "array"
       max_frames <- min(c(max_frames, dim(full_path)[3L]))
       full_path  <- full_path[,, 1L:max_frames]
       tour_df    <- array2df(array = full_path, data = dat_std)
-      # data_df    <- tour_df$data_frames
-      # basis_df   <- tour_df$basis_frames
-      # basis_df[, 1L:2L] <- scale_axes(tour_df$basis_frames[, 1L:2L],
-      #                                 axes_position, data_df)
-      # 
-      # ## Render initialize
-      # angle <- seq(0L, 2L * pi, length = 360L)
-      # circ  <- scale_axes(data.frame(x = cos(angle), y = sin(angle)),
-      #                     axes_position, data_df)
-      # zero  <- scale_axes(data.frame(x = 0L, y = 0L),
-      #                     axes_position, data_df)
-      # x_range <- c(min(data_df[, 1L], circ[, 1L]), max(data_df[, 1L], circ[, 1L]))
-      # y_range <- c(min(data_df[, 2L], circ[, 2L]), max(data_df[, 2L], circ[, 2L]))
       
-      # ### ggplot2
-      # gg <- ggplot() +
-      #   ## Themes and aesthetic settings
-      #   theme_minimal() +
-      #   scale_color_brewer(palette = pal) +
-      #   scale_fill_brewer(palette  = pal) +
-      #   theme(panel.grid.major = element_blank(), ## no grid lines
-      #         panel.grid.minor = element_blank(), ## no grid lines
-      #         axis.text.x  = element_blank(),     ## no axis marks
-      #         axis.text.y  = element_blank(),     ## no axis marks
-      #         axis.title.x = element_blank(),     ## no axis titles for grand
-      #         axis.title.y = element_blank(),     ## no axis titles for grand
-      #         #aspect.ratio = y_range / x_range,
-      #         legend.title = element_text(size = 18L, face = "bold"),
-      #         legend.text  = element_text(size = 18L, face = "bold"),
-      #         legend.box.background = element_rect()
-      #   ) 
-      # ## Projected data points with cluster aesthetics
-      # gg <- gg + geom_point(data_df,
-      #                       mapping = aes(x = x, y = y, frame = frame,
-      #                                     color = cluster,
-      #                                     fill  = cluster,
-      #                                     shape = cluster),
-      #                       size = 1.7) + ## smaller size for plotly
-      #   ## Axis segments
-      #   geom_segment(basis_df,
-      #                mapping = aes(x = x, xend = zero[, 1L],
-      #                              y = y, yend = zero[, 2L],
-      #                              frame = frame),
-      #                size = .3, colour = "red") +
-      #   ## Axis label text
-      #   geom_text(basis_df,
-      #             mapping = aes(x = x,
-      #                           y = y,
-      #                           frame = frame,
-      #                           label = lab),
-      #             size = 6L, colour = "red", fontface = "bold",
-      #             vjust = "outward", hjust = "outward") +
-      #   ## Circle path
-      #   geom_path(circ,
-      #             mapping = aes(x = x, y = y),
-      #             color = "grey80", size = .3, inherit.aes = F)
+      ### ggplotplot
       gg <- render_(frames = tour_df, axes = axes_position, manip_col = "blue",
                     aes_args = list(color = cluster, shape = cluster),
                     identity_args = list(size = 1.5),
                     ggproto = theme_spinifex())
-      ## End of ggplot2 work
       
       ## plotly
       ggp <- plotly::ggplotly(p = gg, tooltip = "none", 

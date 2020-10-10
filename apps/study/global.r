@@ -28,7 +28,7 @@ do_disp_dev_tools <- TRUE
 ## "series" or iteration of data to look at. Should be an even hundred
 height_px <- 800L
 width_px <- 1000L
-sim_series <- 300
+sim_series <- 300L
 cat(do_log)
 
 ## Set log file, finding the first unused number, will need to write to a google sheet or otherwise store a file.
@@ -115,13 +115,13 @@ factor_model <- c("baseLn_EEE", "baseLn_EEV", "baseLn_banana",
                   "corNoise_EEE", "corNoise_EEV", "corNoise_banana",
                   "mnComb_EEE", "mnComb_EEV", "mnComb_banana")
 sim_fps       <- paste0(root, "/", factor_model, ".rda")
-tpath_fps     <- paste0(root, "/tpath_", factor_model, ".rda")
-MMP_clSep_fps <- paste0(root, "/MMP_clSep_", factor_model, ".rda")
+# tpath_fps     <- paste0(root, "/tpath_", factor_model, ".rda")
+# MMP_clSep_fps <- paste0(root, "/MMP_clSep_", factor_model, ".rda")
 for(i in 1:length(factor_model)){
-  ## Load sims and tpaths by the obj name stored in .rda files.
+  ## Load sims by the obj name stored in .rda files.
   load(sim_fps[i])
-  load(tpath_fps[i])
-  load(MMP_clSep_fps[i])
+  # load(tpath_fps[i])
+  # load(MMP_clSep_fps[i])
 }
 
 ## Load data and tour paths for task eval

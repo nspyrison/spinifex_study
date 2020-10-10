@@ -2,20 +2,20 @@ source(here::here("R/sim_tidyverse.r")) ## For banana_tform() and rotate()
 
 ## handles p=4 or p=6, but only rotates var 1, into var 4 (var 1 always has signal, var 4 never does.)
 rotate_mtvnorm <- function(x, ang){
-  cl <- attr(x, "cluster")
+  orig_attr <- attributes(x)
   orig_colnames <- colnames(x)
-  rot <- as.data.frame(x)
-  colnames(rot) <- paste0("V", 1:ncol(rot))
+  x <- as.data.frame(x)
+  colnames(x) <- paste0("V", 1:ncol(x))
   ## Apply transform
   c <- cos(ang)
   s <- sin(ang)
-  rot <- mutate(rot,
+  ret <- mutate(x,
                 V1 = c * V1 + -s * V4,
-                V4 = s * V1 + c * V4)
+                V4 = s * V1 +  c * V4)
   
   ## Return
-  ret <- data.frame(cl = cl, rot)
   colnames(ret) <- orig_colnames
+  mostattributes(ret) <- orig_attr
   return(ret)
 }
 
@@ -87,7 +87,7 @@ sim_mvtnorm_cl <- function(means,  ## Required
     
     ## Sample
     this_cl <- mvtnorm::rmvnorm(n = cl_obs[[i]],
-                                mean = means[[i]], 
+                                mean = means[[i]],
                                 sigma = cov)
     df_sim <- rbind(df_sim, this_cl)
   }
@@ -114,7 +114,7 @@ sim_mvtnorm_cl <- function(means,  ## Required
   rownames(df_sim) <- 1:nrow(df_sim)
   colnames(df_sim) <- paste0("V", 1:ncol(df_sim))
   
-  ## Capture attibutes
+  ## Capture attributes
   args <- list(means = means, sigmas = sigmas, cl_obs = cl_obs, 
                       do_shuffle = do_shuffle)
   cl <- call("sim_pDim_kCl", args)
@@ -140,21 +140,18 @@ sim_user_study <- function(cl_obs = 140,
                            do_save = FALSE){
   ## HARD CODE SEED!!!
   set.seed(123)
-  # if("banana_tform" %in% ls() == FALSE)
-  #   source(here::here("R/sim_tidyverse.r")) ## For banana_tform() and rotate()
   ## Initialize
   location <- c("0_1", "33_66", "50_50")
   VC <- c("EEE", "EEV", "banana")
   p_s <- c(4, 6)
   p_nms <- paste0("p", p_s)
-  # obj_nms <- c(t(outer(VC, paste0("_", p_nms),  paste0("_", location), FUN = paste0)))
   in_nms  <- c("EEE_p4_0_1", "EEE_p4_33_66", "EEE_p4_50_50",
                "EEV_p4_0_1", "EEV_p4_33_66", "EEV_p4_50_50",
                "banana_p4_0_1", "banana_p4_33_66", "banana_p4_50_50",
                "EEE_p6_0_1", "EEE_p6_33_66", "EEE_p6_50_50",
                "EEV_p6_0_1", "EEV_p6_33_66", "EEV_p6_50_50",
                "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
-  cov_nms <- paste0("covs_", obj_nms)
+  cov_nms <- paste0("covs_", in_nms)
   root <- paste0(here::here("apps/data/"), "/")
 
   ## MEANS ------
@@ -324,7 +321,7 @@ sim_user_study <- function(cl_obs = 140,
     save(banana_p6_0_1   , file = paste0(root, quote(banana_p6_0_1  ), ".rda"))
     save(banana_p6_33_66 , file = paste0(root, quote(banana_p6_33_66), ".rda"))
     save(banana_p6_50_50 , file = paste0(root, quote(banana_p6_50_50), ".rda"))
-    message(paste0("Save all simulations to ", root, " as '<model_dim_location>.rda'. Use load('my.rda') bring obj into env. \n"))
+    message(paste0("Saved all simulations to ", root, " as '<model_dim_location>.rda'. Use load('my.rda') bring obj into env. \n"))
   }
 }
 
@@ -347,16 +344,14 @@ tpath_user_study <- function(do_save = FALSE){
   
   ## Load simulations, create tour paths
   for (i in 1:length(in_fps)) {
-    load(in_fps[i])
-    dat <- as.matrix(get(in_nms[i])[, -1]) ## Numeric data only, as matrix
-    bas <- prcomp(dat)$rotation[, 1:2]
-    tpath <- 
-      save_history(data = dat, tour_path = grand_tour(), max_bases = 8, start = bas)
+    load(in_fps[i], envir = globalenv())
+    dat <- as.matrix(get(in_nms[i])) ## Numeric data only, as matrix
+    tpath <- save_history(data = dat, tour_path = grand_tour(), max_bases = 8)
     
     assign(out_nms[i], tpath, envir = globalenv())
   }
   message("Assigned all grand tour paths as a global variables, as 'tpath_<factor_model>'. \n")
-  
+  browser()
   
   ## Save if needed
   if(do_save == TRUE){
@@ -380,6 +375,7 @@ tpath_user_study <- function(do_save = FALSE){
     save(tpath_banana_p6_0_1   , file = paste0(root, quote(tpath_banana_p6_0_1  ), ".rda"))
     save(tpath_banana_p6_33_66 , file = paste0(root, quote(tpath_banana_p6_33_66), ".rda"))
     save(tpath_banana_p6_50_50 , file = paste0(root, quote(tpath_banana_p6_50_50), ".rda"))
-    message(paste0("Save all grand tour paths to ", root, " as 'tpath_<factor_model>.rda'. Use load('my.rda') bring obj into env. \n"))
+    message(paste0("Saved all grand tour paths to ", root, " as 'tpath_<factor_model>.rda'. Use load('my.rda') bring obj into env. \n"))
   }
 }
+
