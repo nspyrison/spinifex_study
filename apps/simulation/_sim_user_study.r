@@ -1,5 +1,6 @@
 source(here::here("R/sim_tidyverse.r")) ## For banana_tform() and rotate()
 
+##TODO rotate_mtvnorm() CAUSING LIST
 ## handles p=4 or p=6, but only rotates var 1, into var 4 (var 1 always has signal, var 4 never does.)
 rotate_mtvnorm <- function(x, ang){
   orig_attr <- attributes(x)
@@ -15,7 +16,9 @@ rotate_mtvnorm <- function(x, ang){
   
   ## Return
   colnames(ret) <- orig_colnames
-  mostattributes(ret) <- orig_attr
+  attr(ret, "cluster") <- orig_attr$cluster ## Cluster levels
+  attr(ret, "args")    <- orig_attr$args  ## List of args
+  attr(ret, "call")    <- orig_attr$call    ## the call   
   return(ret)
 }
 
@@ -91,11 +94,10 @@ sim_mvtnorm_cl <- function(means,  ## Required
                                 sigma = cov)
     df_sim <- rbind(df_sim, this_cl)
   }
-  df_sim <- as.data.frame(df_sim)
   df_sim <- apply(df_sim, 2, function(c)(c - mean(c)) / sd(c)) ## Standardize by column mean, sd.
   
   ## Init class
-  class <- factor(paste0("cl ", rep(letters[1:k], unlist(cl_obs))))
+  cluster <- factor(paste0("cl ", rep(letters[1:k], unlist(cl_obs))))
   ## Reorder rows and columns if needed
   if(do_shuffle == TRUE){
     row_ord <- sample(1:nrow(df_sim))
@@ -103,7 +105,7 @@ sim_mvtnorm_cl <- function(means,  ## Required
     
     ## Apply the shuffle reordering
     df_sim <- df_sim[row_ord, col_ord]
-    class  <- class[row_ord]
+    cluster  <- cluster[row_ord]
     for (i in 1:k){
       means[[i]]  <- means[[i]][col_ord]
       sigmas[[i]] <- sigmas[[i]][col_ord, col_ord]
@@ -113,15 +115,16 @@ sim_mvtnorm_cl <- function(means,  ## Required
   ## Row/col names, after shuffle if required
   rownames(df_sim) <- 1:nrow(df_sim)
   colnames(df_sim) <- paste0("V", 1:ncol(df_sim))
+  df_sim <- as.data.frame(df_sim)
   
   ## Capture attributes
   args <- list(means = means, sigmas = sigmas, cl_obs = cl_obs, 
                       do_shuffle = do_shuffle)
-  cl <- call("sim_pDim_kCl", args)
+  this_call <- call("sim_pDim_kCl", args)
   ## Record attributes
-  attr(df_sim, "cluster") <- class ## Cluster levels
+  attr(df_sim, "cluster") <- cluster ## Cluster levels
   attr(df_sim, "args")    <- args  ## List of args
-  attr(df_sim, "call")    <- cl    ## Stored call, use eval(attr(sim, "call")) to reproduce
+  attr(df_sim, "call")    <- this_call    ## Stored call, use eval(attr(sim, "call")) to reproduce
   
   return(df_sim)
 }
@@ -243,58 +246,58 @@ sim_user_study <- function(cl_obs = 140,
     sim_mvtnorm_cl(means = means, sigmas = sigmas,
                    cl_obs = cl_obs, do_shuffle = TRUE)
   }
-  EEE_p4_0_1      <- this_sim(means = mns_p4, sigmas = covs_EEE_p4)
-  EEE_p4_33_66    <- this_sim(means = mns_p4, sigmas = covs_EEE_p4)
-  EEE_p4_50_50    <- this_sim(means = mns_p4, sigmas = covs_EEE_p4)
-  EEV_p4_0_1      <- this_sim(means = mns_p4, sigmas = covs_EEV_p4)
-  EEV_p4_33_66    <- this_sim(means = mns_p4, sigmas = covs_EEV_p4)
-  EEV_p4_50_50    <- this_sim(means = mns_p4, sigmas = covs_EEV_p4)
-  banana_p4_0_1   <- this_sim(means = mns_p4, sigmas = covs_banana_p4)
-  banana_p4_33_66 <- this_sim(means = mns_p4, sigmas = covs_banana_p4)
-  banana_p4_50_50 <- this_sim(means = mns_p4, sigmas = covs_banana_p4)
+  EEE_p4_0_1      <<- this_sim(means = mns_p4, sigmas = covs_EEE_p4)
+  EEE_p4_33_66    <<- this_sim(means = mns_p4, sigmas = covs_EEE_p4)
+  EEE_p4_50_50    <<- this_sim(means = mns_p4, sigmas = covs_EEE_p4)
+  EEV_p4_0_1      <<- this_sim(means = mns_p4, sigmas = covs_EEV_p4)
+  EEV_p4_33_66    <<- this_sim(means = mns_p4, sigmas = covs_EEV_p4)
+  EEV_p4_50_50    <<- this_sim(means = mns_p4, sigmas = covs_EEV_p4)
+  banana_p4_0_1   <<- this_sim(means = mns_p4, sigmas = covs_banana_p4)
+  banana_p4_33_66 <<- this_sim(means = mns_p4, sigmas = covs_banana_p4)
+  banana_p4_50_50 <<- this_sim(means = mns_p4, sigmas = covs_banana_p4)
   #### p = 6
-  EEE_p6_0_1      <- this_sim(means = mns_p6, sigmas = covs_EEE_p6)
-  EEE_p6_33_66    <- this_sim(means = mns_p6, sigmas = covs_EEE_p6)
-  EEE_p6_50_50    <- this_sim(means = mns_p6, sigmas = covs_EEE_p6)
-  EEV_p6_0_1      <- this_sim(means = mns_p6, sigmas = covs_EEV_p6)
-  EEV_p6_33_66    <- this_sim(means = mns_p6, sigmas = covs_EEV_p6)
-  EEV_p6_50_50    <- this_sim(means = mns_p6, sigmas = covs_EEV_p6)
-  banana_p6_0_1   <- this_sim(means = mns_p6, sigmas = covs_banana_p6)
-  banana_p6_33_66 <- this_sim(means = mns_p6, sigmas = covs_banana_p6)
-  banana_p6_50_50 <- this_sim(means = mns_p6, sigmas = covs_banana_p6)
+  EEE_p6_0_1      <<- this_sim(means = mns_p6, sigmas = covs_EEE_p6)
+  EEE_p6_33_66    <<- this_sim(means = mns_p6, sigmas = covs_EEE_p6)
+  EEE_p6_50_50    <<- this_sim(means = mns_p6, sigmas = covs_EEE_p6)
+  EEV_p6_0_1      <<- this_sim(means = mns_p6, sigmas = covs_EEV_p6)
+  EEV_p6_33_66    <<- this_sim(means = mns_p6, sigmas = covs_EEV_p6)
+  EEV_p6_50_50    <<- this_sim(means = mns_p6, sigmas = covs_EEV_p6)
+  banana_p6_0_1   <<- this_sim(means = mns_p6, sigmas = covs_banana_p6)
+  banana_p6_33_66 <<- this_sim(means = mns_p6, sigmas = covs_banana_p6)
+  banana_p6_50_50 <<- this_sim(means = mns_p6, sigmas = covs_banana_p6)
   
   ## _Apply banana_tform_mtvnorm() ----
   ind <- attr(banana_p4_0_1, "cluster") == "cl b"
-  banana_p4_0_1[ind, ]   <- banana_tform_mtvnorm(banana_p4_0_1[ind, ])
+  banana_p4_0_1[ind, ]   <<- banana_tform_mtvnorm(banana_p4_0_1[ind, ])
   ind <- attr(banana_p4_33_66, "cluster") == "cl b"
-  banana_p4_0_1[ind, ]   <- banana_tform_mtvnorm(banana_p4_33_66[ind, ])
+  banana_p4_0_1[ind, ]   <<- banana_tform_mtvnorm(banana_p4_33_66[ind, ])
   ind <- attr(banana_p4_50_50, "cluster") == "cl b"
-  banana_p4_50_50[ind, ] <- banana_tform_mtvnorm(banana_p4_50_50[ind, ])
+  banana_p4_50_50[ind, ] <<- banana_tform_mtvnorm(banana_p4_50_50[ind, ])
   ind <- attr(banana_p6_0_1, "cluster") == "cl b"
-  banana_p6_0_1[ind, ]   <- banana_tform_mtvnorm(banana_p6_0_1[ind, ])
+  banana_p6_0_1[ind, ]   <<- banana_tform_mtvnorm(banana_p6_0_1[ind, ])
   ind <- attr(banana_p6_33_66, "cluster") == "cl b"
-  banana_p6_33_66[ind, ] <- banana_tform_mtvnorm(banana_p6_33_66[ind, ])
+  banana_p6_33_66[ind, ] <<- banana_tform_mtvnorm(banana_p6_33_66[ind, ])
   ind <- attr(banana_p6_50_50, "cluster") == "cl b"
-  banana_p6_50_50[ind, ] <- banana_tform_mtvnorm(banana_p6_50_50[ind, ])
+  banana_p6_50_50[ind, ] <<- banana_tform_mtvnorm(banana_p6_50_50[ind, ])
   
   ## _Apply rotate_mtvnorm() -----
   ### 0_10 has no rotation,
   ### 50_50 is sin(pi/4) = .707,
   ### 33_67 is sin(pi/6) and sin(pi/3), .5 and 0.866 respectively
   #### p = 4
-  EEE_p4_33_66    <- rotate_mtvnorm(EEE_p4_33_66   , ang = pi / 6)
-  EEE_p4_50_50    <- rotate_mtvnorm(EEE_p4_50_50   , ang = pi / 4)
-  EEV_p4_33_66    <- rotate_mtvnorm(EEV_p4_33_66   , ang = pi / 6)
-  EEV_p4_50_50    <- rotate_mtvnorm(EEV_p4_50_50   , ang = pi / 4)
-  banana_p4_33_66 <- rotate_mtvnorm(banana_p4_33_66, ang = pi / 6)
-  banana_p4_50_50 <- rotate_mtvnorm(banana_p4_50_50, ang = pi / 4)
+  EEE_p4_33_66    <<- rotate_mtvnorm(EEE_p4_33_66   , ang = pi / 6)
+  EEE_p4_50_50    <<- rotate_mtvnorm(EEE_p4_50_50   , ang = pi / 4)
+  EEV_p4_33_66    <<- rotate_mtvnorm(EEV_p4_33_66   , ang = pi / 6)
+  EEV_p4_50_50    <<- rotate_mtvnorm(EEV_p4_50_50   , ang = pi / 4)
+  banana_p4_33_66 <<- rotate_mtvnorm(banana_p4_33_66, ang = pi / 6)
+  banana_p4_50_50 <<- rotate_mtvnorm(banana_p4_50_50, ang = pi / 4)
   #### p = 6
-  EEE_p6_33_66    <- rotate_mtvnorm(EEE_p6_33_66   , ang = pi / 6)
-  EEE_p6_50_50    <- rotate_mtvnorm(EEE_p6_50_50   , ang = pi / 4)
-  EEV_p6_33_66    <- rotate_mtvnorm(EEV_p6_33_66   , ang = pi / 6)
-  EEV_p6_50_50    <- rotate_mtvnorm(EEV_p6_50_50   , ang = pi / 4)
-  banana_p6_33_66 <- rotate_mtvnorm(banana_p6_33_66, ang = pi / 6)
-  banana_p6_50_50 <- rotate_mtvnorm(banana_p6_50_50, ang = pi / 4)
+  EEE_p6_33_66    <<- rotate_mtvnorm(EEE_p6_33_66   , ang = pi / 6)
+  EEE_p6_50_50    <<- rotate_mtvnorm(EEE_p6_50_50   , ang = pi / 4)
+  EEV_p6_33_66    <<- rotate_mtvnorm(EEV_p6_33_66   , ang = pi / 6)
+  EEV_p6_50_50    <<- rotate_mtvnorm(EEV_p6_50_50   , ang = pi / 4)
+  banana_p6_33_66 <<- rotate_mtvnorm(banana_p6_33_66, ang = pi / 6)
+  banana_p6_50_50 <<- rotate_mtvnorm(banana_p6_50_50, ang = pi / 4)
   ##
   message("Assigned all simulations as a global variables, as '<model_dim_location>'. \n")
   
