@@ -350,8 +350,8 @@ server <- function(input, output, session){
     ## Init axis choices when data changes
     if(pca_active() == TRUE | radial_active() == TRUE){
       choices <- paste0("PC", 1:PC_cap)
-      updateRadioButtons(session, "x_axis", choices = choices, selected = "PC1", inline = TRUE)
-      updateRadioButtons(session, "y_axis", choices = choices, selected = "PC2", inline = TRUE)
+      updateRadioButtons(session, "x_axis", choices = choices, selected = "PC1")
+      updateRadioButtons(session, "y_axis", choices = choices, selected = "PC2")
       loggit("INFO", "Task data changed while axes active; updated PC axes choices.")
     }
     choices <- paste0("V", 1:p())
@@ -375,7 +375,7 @@ server <- function(input, output, session){
       if(x_axis_num <= 3){x_axis_out <- paste0("PC", x_axis_num + 1)
       }else{x_axis_out <- paste0("PC", x_axis_num - 1)}
       
-      updateRadioButtons(session, "x_axis", choices = choices, selected = x_axis_out, inline = TRUE)
+      updateRadioButtons(session, "x_axis", choices = choices, selected = x_axis_out)
       loggit("INFO", paste0("x_axis set to ", input$x_axis,
                             ", same as y_axis; x_axis bumped to ", x_axis_out, "."),
              pfbs()
@@ -397,7 +397,7 @@ server <- function(input, output, session){
       if(y_axis_num <= 3){y_axis_out <- paste0("PC", y_axis_num + 1)
       }else{y_axis_out <- paste0("PC", y_axis_num - 1)}
       
-      updateRadioButtons(session, "y_axis", choices = choices, selected = y_axis_out, inline = TRUE)
+      updateRadioButtons(session, "y_axis", choices = choices, selected = y_axis_out)
       loggit("INFO", paste0("y_axis set to ", input$y_axis,
                             ", same as x_axis; y_axis bumped to ", y_axis_out, "."),
              pfbs()
@@ -447,7 +447,7 @@ server <- function(input, output, session){
     if(radial_active() == TRUE){
       these_colnames <- colnames(dat())
       updateRadioButtons(session, "manip_var_nm", choices = these_colnames,
-                         selected = these_colnames[1], inline = TRUE)
+                         selected = these_colnames[1])
       loggit("INFO", paste0("Task data or training factor changed; input$manip_var_nm choices updated."))
     }
   })
@@ -907,9 +907,9 @@ server <- function(input, output, session){
   outputOptions(output, "plot_active", suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
   
   ### General task outputs
-  ## height: ggplot applies on renderPlot(), plotly applies to a plotly option.
-  output$task_header <- renderText(task_header())
-  output$pca_plot <- renderPlot({pca_plot()}, height = pca_height)
+  ## height: ggplot applies on renderPlot(), plotly applies to a  plotly option.
+  output$task_header    <- renderText(task_header())
+  output$pca_plot       <- renderPlot({pca_plot()}, height = pca_height)
   output$grand_ui <- renderUI({
     if(grand_active()){
       ## Initialize
@@ -919,7 +919,7 @@ server <- function(input, output, session){
       
       ## UI
       fluidRow(
-        plotOutput("grand_plot", height = "100%"),
+        plotOutput("grand_plot", width = "100%"),
         sliderInput("grand_frame", "Grand tour frame:",
                     min = 1, max = 90,
                     value = 1, step = 1,
@@ -928,27 +928,41 @@ server <- function(input, output, session){
       ) ## End fluidRow()
     } ## End if(active)
   }) ## End renderUI(), assigning output$grand_ui
-  output$radial_frame <- renderUI({
+  output$radial_input <- renderUI({
     if(radial_active()){
       ## Initialize
-      req(radial_plot_ls())
-      n_frames <- length(radial_plot_ls())
-      
-      sliderInput("radial_frame", "Radial tour frame:",
-                  min = 1, max = n_frames,
-                  value = 1, step = 1,
-                  animate =
-                    animationOptions(interval = 167L, loop = FALSE))
+      if(req(radial_plot_ls(), p(), input$radial_frame)){
+        n_frames <- length(radial_plot_ls())
+        p <- p()
+      }
+      ## UI
+      fluidRow(
+        radioButtons(inputId = "manip_var_nm", label = "Manip variable:",
+                     choices = paste0("V", 1:p), selected = "V1", inline = T),
+        sliderInput("radial_frame", "Radial tour frame:",
+                    min = 1, max = n_frames,
+                    value = 1, step = 1,
+                    animate =
+                      animationOptions(interval = 167L, loop = FALSE))
+      ) ## End fluidRow()
     } ## End if(active)
   }) ## End renderUI(), assigning output$radial_input
   
-  output$radial_plot <-
-    renderPlot({radial_plot_ls()[[input$radial_frame]]}, height = radial_height)
-  
+  output$radial_output <- renderUI({
+    if(radial_active()){
+      ## Initialize
+      if(req(radial_plot_ls(), input$radial_frame)){
+        output$radial_plot <-
+          renderPlot({radial_plot_ls()[[input$radial_frame]]}, height = radial_height)
+      }
+      ## UI
+      plotOutput("radial_plot", width = "100%")
+    } ## End if(active)
+  }) ## End renderUI(), assigning output$radial_output
   dummy_txt <- reactive({
     paste0("dummy slider value: ", input$dummy)
   })
-  output$dummy          <- renderPrint(dummy_txt())
+  output$dummy <- renderPrint(dummy_txt())
   output$resp_tbl       <- renderTable({rv$resp_tbl})
   output$task_ans_ptile <- renderPrint({task_ans_ptile()})
   output$task_ans       <- renderPrint({task_ans()})

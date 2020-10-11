@@ -26,8 +26,8 @@ do_disp_dev_tools <- TRUE
 
 #### Simulated data series,
 ## "series" or iteration of data to look at. Should be an even hundred
-height_px <- 800L
-width_px <- 1000L
+height_px  <- 500L
+width_px   <- 1000L
 sim_series <- 300L
 cat(do_log)
 
@@ -111,13 +111,16 @@ s_survey_questions <- c("What sex are you?",
 
 ## Load training data and tour paths
 root <- ("~/R/spinifex_study/apps/data")# here("apps/data/") ## Filepaths cannot be too long....
-factor_model <- c("baseLn_EEE", "baseLn_EEV", "baseLn_banana",
-                  "corNoise_EEE", "corNoise_EEV", "corNoise_banana",
-                  "mnComb_EEE", "mnComb_EEV", "mnComb_banana")
-sim_fps       <- paste0(root, "/", factor_model, ".rda")
-# tpath_fps     <- paste0(root, "/tpath_", factor_model, ".rda")
-# MMP_clSep_fps <- paste0(root, "/MMP_clSep_", factor_model, ".rda")
-for(i in 1:length(factor_model)){
+sim_nms <- in_nms  <- c("EEE_p4_0_1", "EEE_p4_33_66", "EEE_p4_50_50",
+                        "EEV_p4_0_1", "EEV_p4_33_66", "EEV_p4_50_50",
+                        "banana_p4_0_1", "banana_p4_33_66", "banana_p4_50_50",
+                        "EEE_p6_0_1", "EEE_p6_33_66", "EEE_p6_50_50",
+                        "EEV_p6_0_1", "EEV_p6_33_66", "EEV_p6_50_50",
+                        "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
+sim_fps <- paste0(root, "/", sim_nms, ".rda")
+# tpath_fps     <- paste0(root, "/tpath_", sim_nms, ".rda")
+# MMP_clSep_fps <- paste0(root, "/MMP_clSep_", sim_nms, ".rda")
+for(i in 1:length(sim_nms)){
   ## Load sims by the obj name stored in .rda files.
   load(sim_fps[i])
   # load(tpath_fps[i])
@@ -213,38 +216,19 @@ sidebar_ui <- conditionalPanel(
                                   choices = fct_nm_vect,
                                   selected = fct_nm_vect[1],
                                   inline = TRUE),
-                     fluidRow(column(6, radioButtons(inputId = "simFactor", label = "Simulation factor",
-                                                     choices = list("Baseline" = "baseLn",
-                                                                    "Correlated noise dimensions" = "corNoise", 
-                                                                    "Mean diff. in combination of dim." = "mnComb"), 
-                                                     selected = "baseLn")),
-                              column(6, radioButtons(inputId = "simModel", label = "Model",
-                                                     choices = c("EEE", "EEV", "banana"), selected = "EEE"))
+                     fluidRow(column(4, radioButtons(inputId = "simVc", label = "VC",
+                                                     choices = c("EEE", "EEV", "banana"), selected = "EEE")),
+                              column(4, radioButtons(inputId = "simP", label = "# Clusters & var",
+                                                     choices = list("3cl in 4v" = "p4",
+                                                                    "4cl in 6v" = "p6"), 
+                                                     selected = "p4")),
+                              column(4, radioButtons(inputId = "simLocation", label = "Location (1sig, 1noise)",
+                                                     choices = list("0%/100%" = "0_1",
+                                                                    "33%/66%" = "33_66", 
+                                                                    "50%/50%" = "50_50"), 
+                                                     selected = "0_1"))
                      )
     ), 
-    conditionalPanel(
-      ## PCA axis selection
-      condition = "(output.factor_nm == 'pca') ||
-                  (output.section_nm == 'training' && input.factor == 'pca')",
-      fluidRow(column(6, radioButtons(inputId = "x_axis", label = "x axis",
-                                      choices = paste0("PC", 1:PC_cap), selected =  "PC1")),
-               column(6, radioButtons(inputId = "y_axis", label = "y axis",
-                                      choices = paste0("PC", 1:PC_cap), selected =  "PC2"))
-      )
-    ),
-    ## Grand restart button
-    conditionalPanel(
-      condition = "(output.factor_nm == 'grand') ||
-                  (output.section_nm == 'training' && input.factor == 'grand')"#,
-      #actionButton("grand_restart", "Restart grand tour")
-    ),
-    ## Radial mvar dropdown selection
-    conditionalPanel(
-      condition = "(output.factor_nm == 'radial') ||
-                  (output.section_nm == 'training' && input.factor == 'radial')",
-      radioButtons(inputId = "manip_var_nm", label = "Manip variable:",
-                  choices =  "V1", selected = "V1")
-    ), ## Close conditionalPanel()
     
     ##### _Task response input -----
     ## Task 2
@@ -259,11 +243,11 @@ sidebar_ui <- conditionalPanel(
     ),
     ## Dev_tool disp
     conditionalPanel(
-      condition = "output.plot_active == true", #" &&do_disp_dev_tools == true",
+      condition = "output.plot_active == true", ## " &&do_disp_dev_tools == true",
       p("___"),
       p("response: "),
-      #p("MMP ClSep: "), ##We know the exact differences, no need for MMP ClSep
-      p("Variable marks: "), ##TODO, marks based on the sim.
+      #p("MMP ClSep: "), ## We know the exact differences, no need for MMP ClSep
+      p("Variable marks: "), ## TODO, marks based on the sim.
       p("Task marks: ")
     ) ## Close sidebarPanel()
   ) ## Close conditionalPanel(), end sidebar_ui section
@@ -413,9 +397,36 @@ main_ui <- mainPanel(width = 9,
     condition = "(output.section_nm == 'training' && output.section_pg != 6) ||
       output.section_nm == 'task'", ## output.section_pg == 6 is splash page.
     htmlOutput("plot_msg"),
-    plotOutput("pca_plot", height = "auto"),
-    plotlyOutput("radial_plot", height = "auto"),
-    plotlyOutput("grand_plot", height = "auto")
+    plotOutput("pca_plot", height = "100%"),
+    ## PCA axis selection
+    conditionalPanel(
+      condition = "(output.factor_nm == 'pca') ||
+                  (output.section_nm == 'training' && input.factor == 'pca')",
+      fluidRow(radioButtons(inputId = "x_axis", label = "x axis",
+                            choices = paste0("PC", 1:PC_cap),
+                            selected =  "PC1", inline = TRUE),
+               radioButtons(inputId = "y_axis", label = "y axis",
+                            choices = paste0("PC", 1:PC_cap),
+                            selected =  "PC2", inline = TRUE)
+      )
+    ),
+    plotOutput("radial_plot", height = "100%"),
+    ## Radial manip var radio buttons
+    conditionalPanel(
+      condition = "(output.factor_nm == 'radial') ||
+                  (output.section_nm == 'training' && input.factor == 'radial')",
+      radioButtons(inputId = "manip_var_nm", label = "Manip variable:",
+                   choices =  "V1", selected = "V1")
+    ), ## Close conditionalPanel()
+    uiOutput("radial_frame"),
+    uiOutput("grand_ui"),
+    sliderInput("dummy", "dummy slider:",
+                min = 1, max = 10,
+                value = 1, step = 1,
+                animate =
+                  animationOptions(interval = 167L, loop = TRUE)
+    ),
+    textOutput("dummy"),
   ), ## Close plot conditional panel
 
   ### _Survey mainPanel -----
@@ -534,7 +545,7 @@ app_render_ <- function(frames, ## paste over spinifex render to add size
                    legend.box.background = element_rect(),
                    legend.title = element_text(size = 18, face = "bold"),
                    legend.text  = element_text(size = 18, face = "bold")) +
-    ggplot2::scale_color_brewer(palette = "Dark2") +
+    ggplot2::scale_color_brewer(palette = pal) +
     ggplot2::xlim(x_min, x_max) +
     ggplot2::ylim(y_min, y_max) +
     ## Projected data points

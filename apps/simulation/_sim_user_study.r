@@ -354,7 +354,6 @@ tpath_user_study <- function(do_save = FALSE){
     assign(out_nms[i], tpath, envir = globalenv())
   }
   message("Assigned all grand tour paths as a global variables, as 'tpath_<factor_model>'. \n")
-  browser()
   
   ## Save if needed
   if(do_save == TRUE){
