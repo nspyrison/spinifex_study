@@ -1,50 +1,7 @@
 source(here::here("R/sim_tidyverse.r")) ## For banana_tform() and rotate()
 
-##TODO rotate_mtvnorm() CAUSING LIST
-## handles p=4 or p=6, but only rotates var 1, into var 4 (var 1 always has signal, var 4 never does.)
-rotate_mtvnorm <- function(x, ang){
-  orig_attr <- attributes(x)
-  orig_colnames <- colnames(x)
-  x <- as.data.frame(x)
-  colnames(x) <- paste0("V", 1:ncol(x))
-  ## Apply transform
-  c <- cos(ang)
-  s <- sin(ang)
-  ret <- mutate(x,
-                V1 = c * V1 + -s * V4,
-                V4 = s * V1 +  c * V4)
-  
-  ## Return
-  colnames(ret) <- orig_colnames
-  attr(ret, "cluster") <- orig_attr$cluster ## Cluster levels
-  attr(ret, "args")    <- orig_attr$args  ## List of args
-  attr(ret, "call")    <- orig_attr$call    ## the call   
-  return(ret)
-}
-
-
-## Creates a 'V' in the shape of ">", by shifting 1/5 of the obs to be offset.
-banana_tform_mtvnorm <- function(x){
-  ## Initialize
-  f <- floor(nrow(x) / 5) ## length of 1/5 of the data
-  f1 <- 1:f
-  f2 <- f1 + f
-  f3 <- f2 + f
-  f4 <- f3 + f
-  ## f5, last fifth of the data stays as is. 
-  
-  ## Apply transform
-  x[f1, 1] <- x[f1, 1] - 0.5
-  x[f1, 2] <- x[f1, 2] + 0.5
-  x[f2, 1] <- x[f2, 1] - 0.5
-  x[f2, 2] <- x[f2, 2] - 0.5
-  x[f3, 1] <- x[f3, 1] - 1
-  x[f3, 2] <- x[f3, 2] + 1
-  x[f4, 1] <- x[f4, 1] - 1
-  x[f4, 2] <- x[f4, 2] - 1
-  
-  x
-}
+## NOTE:  rotate_mtvnorm() & banana_tform_mtvnorm()
+#### have been disolved into sim_mvtnorm_cl.
 
 #' Creates a data frame of multivariate data with clusters via mvnorm::rmvnorm().
 #'
@@ -54,14 +11,20 @@ banana_tform_mtvnorm <- function(x){
 #' variance-covariance matrix for this cluster. If any matrix is not 
 #' positive definite, it will be coerced with `lqmm::make.positive.definite()`
 #' @param cl_obs List, of number of observations within each cluster.
-#' matrix root of `sigmas`. Expects, "eigen", the default, "svd", or "chol". 
-#' Also see `?mvtnorm::rmvnorm()`.
-#' @param do_shuffle Boolean specifying if order resampling should be applied 
-#' to the rows and columns, Such that cluster rows are not all together and 
-#' signal columns are not in the same order.
+#' @param do_bananatize Boolean specifying if cluster b should be bananatized 
+#' before rotation. Bananatizing moves 4/5th of the samples away in a 
+#' (loosely ~quin-nomial) 2D 'V' shape.
+#' @param ang The angle (in radians) to rotate the V1 and V4. Defaults to 0, 
+#' no rotation. (hardcoded to V1/V4 for 3cl in 4-dim, and 4cl in 6-dim).
+
+#' @param do_shuffle Boolean specifying if order sampling/shuffling should be 
+#' applied to the rows and columns, such that cluster rows are not all together
+#' and signal columns are not in the same order.
 sim_mvtnorm_cl <- function(means,  ## Required
                            sigmas, ## Required
                            cl_obs = cl_obs,
+                           do_bananatize = FALSE,
+                           ang = 0,
                            do_shuffle = FALSE){
   if(length(cl_obs) == 1 & is.numeric(cl_obs) == TRUE)
     cl_obs <- rep(list(cl_obs), length(means))
@@ -74,7 +37,8 @@ sim_mvtnorm_cl <- function(means,  ## Required
   stopifnot(all(k == c(length(means), length(sigmas)))) 
   ## Elements of means and elements covariances have length, rows/cols p, number of numeric variables.
   stopifnot(all(p == c(length(means[[1]]), nrow(sigmas[[1]]), ncol(sigmas[[1]]))))
-  
+  ## Initialize cluster
+  cluster <- factor(paste0("cl ", rep(letters[1:k], unlist(cl_obs))))
   
   ## Simulate with checks
   df_sim <- NULL
@@ -96,8 +60,42 @@ sim_mvtnorm_cl <- function(means,  ## Required
   }
   df_sim <- apply(df_sim, 2, function(c)(c - mean(c)) / sd(c)) ## Standardize by column mean, sd.
   
-  ## Init class
-  cluster <- factor(paste0("cl ", rep(letters[1:k], unlist(cl_obs))))
+  
+  
+  ## Bananatize cluster b if needed, before rotation and shuffling
+  if(do_bananatize == TRUE){
+    b_df <- df_sim[cluster == "cl b", ]
+    fif <- floor(nrow(b_df) / 5) ## length of 1/5 of the data
+    fif1 <- 1:fif
+    fif2 <- fif1 + fif
+    fif3 <- fif2 + fif
+    fif4 <- fif3 + fif
+    ## f5, last fifth of the data stays as is. 
+    
+    ## Apply transform
+    b_df[fif1, 1] <- b_df[fif1, 1] - 0.5
+    b_df[fif1, 2] <- b_df[fif1, 2] + 0.5
+    b_df[fif2, 1] <- b_df[fif2, 1] - 0.5
+    b_df[fif2, 2] <- b_df[fif2, 2] - 0.5
+    b_df[fif3, 1] <- b_df[fif3, 1] - 1
+    b_df[fif3, 2] <- b_df[fif3, 2] + 1
+    b_df[fif4, 1] <- b_df[fif4, 1] - 1
+    b_df[fif4, 2] <- b_df[fif4, 2] - 1
+    
+    df_sim[cluster == "cl b", ] <- b_df
+  }
+  
+  ## Rotate V1/V4 if needed, before shuffling
+  if(length(ang) == 1 & ang != 0){
+    colnames(df_sim) <- paste0("V", 1:p) ## temporary colnames for rotating V1/V4
+    c <- cos(ang)
+    s <- sin(ang)
+    df_sim <- dplyr::mutate(as.data.frame(df_sim),
+                            V1 = c * V1 + -s * V4,
+                            V4 = s * V1 +  c * V4)
+  }
+  
+  
   ## Reorder rows and columns if needed
   if(do_shuffle == TRUE){
     row_ord <- sample(1:nrow(df_sim))
@@ -112,19 +110,25 @@ sim_mvtnorm_cl <- function(means,  ## Required
     }
   }
   
-  ## Row/col names, after shuffle if required
+  ## Find answer for ab mean differences after shuffle, if needed.
+  sampled_means_a <- colMeans(df_sim[cluster == "cl a", ])
+  sampled_means_b <- colMeans(df_sim[cluster == "cl b", ])
+  var_mean_diff_ab <- abs(sampled_means_b - sampled_means_a)
+  
+  ## Row/col names, after shuffle if needed
   rownames(df_sim) <- 1:nrow(df_sim)
   colnames(df_sim) <- paste0("V", 1:ncol(df_sim))
   df_sim <- as.data.frame(df_sim)
   
-  ## Capture attributes
+  ## Capture original arguments and this call, for reproducibility.
   args <- list(means = means, sigmas = sigmas, cl_obs = cl_obs, 
                       do_shuffle = do_shuffle)
   this_call <- call("sim_pDim_kCl", args)
   ## Record attributes
-  attr(df_sim, "cluster") <- cluster ## Cluster levels
-  attr(df_sim, "args")    <- args  ## List of args
-  attr(df_sim, "call")    <- this_call    ## Stored call, use eval(attr(sim, "call")) to reproduce
+  attr(df_sim, "cluster") <- cluster   ## Cluster levels
+  attr(df_sim, "var_mean_diff_ab") <- var_mean_diff_ab ## The answer for the study, before rotation
+  attr(df_sim, "args")    <- args      ## List of args
+  attr(df_sim, "call")    <- this_call ## Stored call, use eval(attr(sim, "call")) to reproduce
   
   return(df_sim)
 }
@@ -188,8 +192,8 @@ sim_user_study <- function(cl_obs = 140,
                                 0,   0,  0,  sd), 
                               ncol = 4, byrow = TRUE)
   #### FOR p = 6
-  cov_circ_p6 <- matrix(c(sd, 0,  0,  0,  0,  0, 
-                          0,  sd, 0,  0,  0,  0, 
+  cov_circ_p6 <- matrix(c(sd, 0,  0,  0,  0,  0,
+                          0,  sd, 0,  0,  0,  0,
                           0,  0,  sd, 0,  0,  0,
                           0,  0,  0,  sd, 0,  0,
                           0,  0,  0,  0,  sd, 0,
@@ -242,62 +246,62 @@ sim_user_study <- function(cl_obs = 140,
   ## SIMULATIONS ------
   ### all simulations must be different; cannot use EEE_p4 <-, each EEE_p4 needs to be different
   #### p = 4
-  this_sim <- function(means, sigmas){
-    sim_mvtnorm_cl(means = means, sigmas = sigmas,
-                   cl_obs = cl_obs, do_shuffle = TRUE)
-  }
-  EEE_p4_0_1      <<- this_sim(means = mns_p4, sigmas = covs_EEE_p4)
-  EEE_p4_33_66    <<- this_sim(means = mns_p4, sigmas = covs_EEE_p4)
-  EEE_p4_50_50    <<- this_sim(means = mns_p4, sigmas = covs_EEE_p4)
-  EEV_p4_0_1      <<- this_sim(means = mns_p4, sigmas = covs_EEV_p4)
-  EEV_p4_33_66    <<- this_sim(means = mns_p4, sigmas = covs_EEV_p4)
-  EEV_p4_50_50    <<- this_sim(means = mns_p4, sigmas = covs_EEV_p4)
-  banana_p4_0_1   <<- this_sim(means = mns_p4, sigmas = covs_banana_p4)
-  banana_p4_33_66 <<- this_sim(means = mns_p4, sigmas = covs_banana_p4)
-  banana_p4_50_50 <<- this_sim(means = mns_p4, sigmas = covs_banana_p4)
+
+  EEE_p4_0_1      <<- sim_mvtnorm_cl(means = mns_p4, sigmas = covs_EEE_p4,
+                                     cl_obs = cl_obs, do_shuffle = TRUE,
+                                     ang = 0)
+  EEE_p4_33_66    <<- sim_mvtnorm_cl(means = mns_p4, sigmas = covs_EEE_p4,
+                                     cl_obs = cl_obs, do_shuffle = TRUE,
+                                     ang = pi / 6)
+  EEE_p4_50_50    <<- sim_mvtnorm_cl(means = mns_p4, sigmas = covs_EEE_p4,
+                                     cl_obs = cl_obs, do_shuffle = TRUE,
+                                     ang = pi / 4)
+  EEV_p4_0_1      <<- sim_mvtnorm_cl(means = mns_p4, sigmas = covs_EEV_p4,
+                                     cl_obs = cl_obs, do_shuffle = TRUE,
+                                     ang = 0)
+  EEV_p4_33_66    <<- sim_mvtnorm_cl(means = mns_p4, sigmas = covs_EEV_p4,
+                                     cl_obs = cl_obs, do_shuffle = TRUE,
+                                     ang = pi / 6)
+  EEV_p4_50_50    <<- sim_mvtnorm_cl(means = mns_p4, sigmas = covs_EEV_p4,
+                                     cl_obs = cl_obs, do_shuffle = TRUE,
+                                     ang = pi / 4)
+  banana_p4_0_1   <<- sim_mvtnorm_cl(means = mns_p4, sigmas = covs_banana_p4,
+                                     cl_obs = cl_obs, do_shuffle = TRUE,
+                                     ang = 0, do_bananatize = TRUE)
+  banana_p4_33_66 <<- sim_mvtnorm_cl(means = mns_p4, sigmas = covs_banana_p4,
+                                     cl_obs = cl_obs, do_shuffle = TRUE,
+                                     ang = pi / 6, do_bananatize = TRUE)
+  banana_p4_50_50 <<- sim_mvtnorm_cl(means = mns_p4, sigmas = covs_banana_p4,
+                                     cl_obs = cl_obs, do_shuffle = TRUE,
+                                     ang = pi / 4, do_bananatize = TRUE)
   #### p = 6
-  EEE_p6_0_1      <<- this_sim(means = mns_p6, sigmas = covs_EEE_p6)
-  EEE_p6_33_66    <<- this_sim(means = mns_p6, sigmas = covs_EEE_p6)
-  EEE_p6_50_50    <<- this_sim(means = mns_p6, sigmas = covs_EEE_p6)
-  EEV_p6_0_1      <<- this_sim(means = mns_p6, sigmas = covs_EEV_p6)
-  EEV_p6_33_66    <<- this_sim(means = mns_p6, sigmas = covs_EEV_p6)
-  EEV_p6_50_50    <<- this_sim(means = mns_p6, sigmas = covs_EEV_p6)
-  banana_p6_0_1   <<- this_sim(means = mns_p6, sigmas = covs_banana_p6)
-  banana_p6_33_66 <<- this_sim(means = mns_p6, sigmas = covs_banana_p6)
-  banana_p6_50_50 <<- this_sim(means = mns_p6, sigmas = covs_banana_p6)
-  
-  ## _Apply banana_tform_mtvnorm() ----
-  ind <- attr(banana_p4_0_1, "cluster") == "cl b"
-  banana_p4_0_1[ind, ]   <<- banana_tform_mtvnorm(banana_p4_0_1[ind, ])
-  ind <- attr(banana_p4_33_66, "cluster") == "cl b"
-  banana_p4_0_1[ind, ]   <<- banana_tform_mtvnorm(banana_p4_33_66[ind, ])
-  ind <- attr(banana_p4_50_50, "cluster") == "cl b"
-  banana_p4_50_50[ind, ] <<- banana_tform_mtvnorm(banana_p4_50_50[ind, ])
-  ind <- attr(banana_p6_0_1, "cluster") == "cl b"
-  banana_p6_0_1[ind, ]   <<- banana_tform_mtvnorm(banana_p6_0_1[ind, ])
-  ind <- attr(banana_p6_33_66, "cluster") == "cl b"
-  banana_p6_33_66[ind, ] <<- banana_tform_mtvnorm(banana_p6_33_66[ind, ])
-  ind <- attr(banana_p6_50_50, "cluster") == "cl b"
-  banana_p6_50_50[ind, ] <<- banana_tform_mtvnorm(banana_p6_50_50[ind, ])
-  
-  ## _Apply rotate_mtvnorm() -----
-  ### 0_10 has no rotation,
-  ### 50_50 is sin(pi/4) = .707,
-  ### 33_67 is sin(pi/6) and sin(pi/3), .5 and 0.866 respectively
-  #### p = 4
-  EEE_p4_33_66    <<- rotate_mtvnorm(EEE_p4_33_66   , ang = pi / 6)
-  EEE_p4_50_50    <<- rotate_mtvnorm(EEE_p4_50_50   , ang = pi / 4)
-  EEV_p4_33_66    <<- rotate_mtvnorm(EEV_p4_33_66   , ang = pi / 6)
-  EEV_p4_50_50    <<- rotate_mtvnorm(EEV_p4_50_50   , ang = pi / 4)
-  banana_p4_33_66 <<- rotate_mtvnorm(banana_p4_33_66, ang = pi / 6)
-  banana_p4_50_50 <<- rotate_mtvnorm(banana_p4_50_50, ang = pi / 4)
-  #### p = 6
-  EEE_p6_33_66    <<- rotate_mtvnorm(EEE_p6_33_66   , ang = pi / 6)
-  EEE_p6_50_50    <<- rotate_mtvnorm(EEE_p6_50_50   , ang = pi / 4)
-  EEV_p6_33_66    <<- rotate_mtvnorm(EEV_p6_33_66   , ang = pi / 6)
-  EEV_p6_50_50    <<- rotate_mtvnorm(EEV_p6_50_50   , ang = pi / 4)
-  banana_p6_33_66 <<- rotate_mtvnorm(banana_p6_33_66, ang = pi / 6)
-  banana_p6_50_50 <<- rotate_mtvnorm(banana_p6_50_50, ang = pi / 4)
+  EEE_p6_0_1      <<- sim_mvtnorm_cl(means = mns_p6, sigmas = covs_EEE_p6,
+                                     cl_obs = cl_obs, do_shuffle = TRUE,
+                                     ang = 0)
+  EEE_p6_33_66    <<- sim_mvtnorm_cl(means = mns_p6, sigmas = covs_EEE_p6,
+                                     cl_obs = cl_obs, do_shuffle = TRUE,
+                                     ang = pi / 6)
+  EEE_p6_50_50    <<- sim_mvtnorm_cl(means = mns_p6, sigmas = covs_EEE_p6,
+                                     cl_obs = cl_obs, do_shuffle = TRUE,
+                                     ang = pi / 4)
+  EEV_p6_0_1      <<- sim_mvtnorm_cl(means = mns_p6, sigmas = covs_EEV_p6,
+                                     cl_obs = cl_obs, do_shuffle = TRUE,
+                                     ang = 0)
+  EEV_p6_33_66    <<- sim_mvtnorm_cl(means = mns_p6, sigmas = covs_EEV_p6,
+                                     cl_obs = cl_obs, do_shuffle = TRUE,
+                                     ang = pi / 6)
+  EEV_p6_50_50    <<- sim_mvtnorm_cl(means = mns_p6, sigmas = covs_EEV_p6,
+                                     cl_obs = cl_obs, do_shuffle = TRUE,
+                                     ang = pi / 4)
+  banana_p6_0_1   <<- sim_mvtnorm_cl(means = mns_p6, sigmas = covs_banana_p6,
+                                     cl_obs = cl_obs, do_shuffle = TRUE,
+                                     ang = 0, do_bananatize = TRUE)
+  banana_p6_33_66 <<- sim_mvtnorm_cl(means = mns_p6, sigmas = covs_banana_p6,
+                                     cl_obs = cl_obs, do_shuffle = TRUE,
+                                     ang = pi / 6, do_bananatize = TRUE)
+  banana_p6_50_50 <<- sim_mvtnorm_cl(means = mns_p6, sigmas = covs_banana_p6,
+                                     cl_obs = cl_obs, do_shuffle = TRUE,
+                                     ang = pi / 4, do_bananatize = TRUE)
   ##
   message("Assigned all simulations as a global variables, as '<model_dim_location>'. \n")
   
@@ -305,25 +309,25 @@ sim_user_study <- function(cl_obs = 140,
   if(do_save == TRUE){
     ## Using .rda. .rds not working b/c of long path? issue may be in the loading more than the saving.
     ## p = 4
-    save(EEE_p4_0_1      , file = paste0(root, quote(EEE_p4_0_1     ), ".rda"))
-    save(EEE_p4_33_66    , file = paste0(root, quote(EEE_p4_33_66   ), ".rda"))
-    save(EEE_p4_50_50    , file = paste0(root, quote(EEE_p4_50_50   ), ".rda"))
-    save(EEV_p4_0_1      , file = paste0(root, quote(EEV_p4_0_1     ), ".rda"))
-    save(EEV_p4_33_66    , file = paste0(root, quote(EEV_p4_33_66   ), ".rda"))
-    save(EEV_p4_50_50    , file = paste0(root, quote(EEV_p4_50_50   ), ".rda"))
-    save(banana_p4_0_1   , file = paste0(root, quote(banana_p4_0_1  ), ".rda"))
-    save(banana_p4_33_66 , file = paste0(root, quote(banana_p4_33_66), ".rda"))
-    save(banana_p4_50_50 , file = paste0(root, quote(banana_p4_50_50), ".rda"))
+    save(EEE_p4_0_1     , file = paste0(root, quote(EEE_p4_0_1     ), ".rda"))
+    save(EEE_p4_33_66   , file = paste0(root, quote(EEE_p4_33_66   ), ".rda"))
+    save(EEE_p4_50_50   , file = paste0(root, quote(EEE_p4_50_50   ), ".rda"))
+    save(EEV_p4_0_1     , file = paste0(root, quote(EEV_p4_0_1     ), ".rda"))
+    save(EEV_p4_33_66   , file = paste0(root, quote(EEV_p4_33_66   ), ".rda"))
+    save(EEV_p4_50_50   , file = paste0(root, quote(EEV_p4_50_50   ), ".rda"))
+    save(banana_p4_0_1  , file = paste0(root, quote(banana_p4_0_1  ), ".rda"))
+    save(banana_p4_33_66, file = paste0(root, quote(banana_p4_33_66), ".rda"))
+    save(banana_p4_50_50, file = paste0(root, quote(banana_p4_50_50), ".rda"))
     ## p = 6
-    save(EEE_p6_0_1      , file = paste0(root, quote(EEE_p6_0_1     ), ".rda"))
-    save(EEE_p6_33_66    , file = paste0(root, quote(EEE_p6_33_66   ), ".rda"))
-    save(EEE_p6_50_50    , file = paste0(root, quote(EEE_p6_50_50   ), ".rda"))
-    save(EEV_p6_0_1      , file = paste0(root, quote(EEV_p6_0_1     ), ".rda"))
-    save(EEV_p6_33_66    , file = paste0(root, quote(EEV_p6_33_66   ), ".rda"))
-    save(EEV_p6_50_50    , file = paste0(root, quote(EEV_p6_50_50   ), ".rda"))
-    save(banana_p6_0_1   , file = paste0(root, quote(banana_p6_0_1  ), ".rda"))
-    save(banana_p6_33_66 , file = paste0(root, quote(banana_p6_33_66), ".rda"))
-    save(banana_p6_50_50 , file = paste0(root, quote(banana_p6_50_50), ".rda"))
+    save(EEE_p6_0_1     , file = paste0(root, quote(EEE_p6_0_1     ), ".rda"))
+    save(EEE_p6_33_66   , file = paste0(root, quote(EEE_p6_33_66   ), ".rda"))
+    save(EEE_p6_50_50   , file = paste0(root, quote(EEE_p6_50_50   ), ".rda"))
+    save(EEV_p6_0_1     , file = paste0(root, quote(EEV_p6_0_1     ), ".rda"))
+    save(EEV_p6_33_66   , file = paste0(root, quote(EEV_p6_33_66   ), ".rda"))
+    save(EEV_p6_50_50   , file = paste0(root, quote(EEV_p6_50_50   ), ".rda"))
+    save(banana_p6_0_1  , file = paste0(root, quote(banana_p6_0_1  ), ".rda"))
+    save(banana_p6_33_66, file = paste0(root, quote(banana_p6_33_66), ".rda"))
+    save(banana_p6_50_50, file = paste0(root, quote(banana_p6_50_50), ".rda"))
     message(paste0("Saved all simulations to ", root, " as '<model_dim_location>.rda'. Use load('my.rda') bring obj into env. \n"))
   }
 }
@@ -358,25 +362,25 @@ tpath_user_study <- function(do_save = FALSE){
   ## Save if needed
   if(do_save == TRUE){
     ## p = 4
-    save(tpath_EEE_p4_0_1   , file = paste0(root, quote(tpath_EEE_p4_0_1  ), ".rda"))
-    save(tpath_EEE_p4_33_66 , file = paste0(root, quote(tpath_EEE_p4_33_66), ".rda"))
-    save(tpath_EEE_p4_50_50 , file = paste0(root, quote(tpath_EEE_p4_50_50), ".rda"))
-    save(tpath_EEV_p4_0_1   , file = paste0(root, quote(tpath_EEV_p4_0_1  ), ".rda"))
-    save(tpath_EEV_p4_33_66 , file = paste0(root, quote(tpath_EEV_p4_33_66), ".rda"))
-    save(tpath_EEV_p4_50_50 , file = paste0(root, quote(tpath_EEV_p4_50_50), ".rda"))
-    save(tpath_banana_p4_0_1   , file = paste0(root, quote(tpath_banana_p4_0_1  ), ".rda"))
-    save(tpath_banana_p4_33_66 , file = paste0(root, quote(tpath_banana_p4_33_66), ".rda"))
-    save(tpath_banana_p4_50_50 , file = paste0(root, quote(tpath_banana_p4_50_50), ".rda"))
+    save(tpath_EEE_p4_0_1  , file = paste0(root, quote(tpath_EEE_p4_0_1  ), ".rda"))
+    save(tpath_EEE_p4_33_66, file = paste0(root, quote(tpath_EEE_p4_33_66), ".rda"))
+    save(tpath_EEE_p4_50_50, file = paste0(root, quote(tpath_EEE_p4_50_50), ".rda"))
+    save(tpath_EEV_p4_0_1  , file = paste0(root, quote(tpath_EEV_p4_0_1  ), ".rda"))
+    save(tpath_EEV_p4_33_66, file = paste0(root, quote(tpath_EEV_p4_33_66), ".rda"))
+    save(tpath_EEV_p4_50_50, file = paste0(root, quote(tpath_EEV_p4_50_50), ".rda"))
+    save(tpath_banana_p4_0_1  , file = paste0(root, quote(tpath_banana_p4_0_1  ), ".rda"))
+    save(tpath_banana_p4_33_66, file = paste0(root, quote(tpath_banana_p4_33_66), ".rda"))
+    save(tpath_banana_p4_50_50, file = paste0(root, quote(tpath_banana_p4_50_50), ".rda"))
     ## p = 6
-    save(tpath_EEE_p6_0_1   , file = paste0(root, quote(tpath_EEE_p6_0_1  ), ".rda"))
-    save(tpath_EEE_p6_33_66 , file = paste0(root, quote(tpath_EEE_p6_33_66), ".rda"))
-    save(tpath_EEE_p6_50_50 , file = paste0(root, quote(tpath_EEE_p6_50_50), ".rda"))
-    save(tpath_EEV_p6_0_1   , file = paste0(root, quote(tpath_EEV_p6_0_1  ), ".rda"))
-    save(tpath_EEV_p6_33_66 , file = paste0(root, quote(tpath_EEV_p6_33_66), ".rda"))
-    save(tpath_EEV_p6_50_50 , file = paste0(root, quote(tpath_EEV_p6_50_50), ".rda"))
-    save(tpath_banana_p6_0_1   , file = paste0(root, quote(tpath_banana_p6_0_1  ), ".rda"))
-    save(tpath_banana_p6_33_66 , file = paste0(root, quote(tpath_banana_p6_33_66), ".rda"))
-    save(tpath_banana_p6_50_50 , file = paste0(root, quote(tpath_banana_p6_50_50), ".rda"))
+    save(tpath_EEE_p6_0_1  , file = paste0(root, quote(tpath_EEE_p6_0_1  ), ".rda"))
+    save(tpath_EEE_p6_33_66, file = paste0(root, quote(tpath_EEE_p6_33_66), ".rda"))
+    save(tpath_EEE_p6_50_50, file = paste0(root, quote(tpath_EEE_p6_50_50), ".rda"))
+    save(tpath_EEV_p6_0_1  , file = paste0(root, quote(tpath_EEV_p6_0_1  ), ".rda"))
+    save(tpath_EEV_p6_33_66, file = paste0(root, quote(tpath_EEV_p6_33_66), ".rda"))
+    save(tpath_EEV_p6_50_50, file = paste0(root, quote(tpath_EEV_p6_50_50), ".rda"))
+    save(tpath_banana_p6_0_1  , file = paste0(root, quote(tpath_banana_p6_0_1  ), ".rda"))
+    save(tpath_banana_p6_33_66, file = paste0(root, quote(tpath_banana_p6_33_66), ".rda"))
+    save(tpath_banana_p6_50_50, file = paste0(root, quote(tpath_banana_p6_50_50), ".rda"))
     message(paste0("Saved all grand tour paths to ", root, " as 'tpath_<factor_model>.rda'. Use load('my.rda') bring obj into env. \n"))
   }
 }

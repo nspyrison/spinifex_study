@@ -126,6 +126,9 @@ server <- function(input, output, session){
       return(TRUE)
     }else return(FALSE)
   })
+  any_active <- reactive({
+    return(pca_active() | grand_active() | radial_active())
+  })
   task_header <- reactive({paste0("Evaluation -- factor: ", factor_nm())})
   timer_info <- reactive({
     paste0("time_elapsed() of task_time(): ", time_elapsed(), " of ", task_time())
@@ -954,7 +957,29 @@ server <- function(input, output, session){
   output$task_ans       <- renderPrint({task_ans()})
   output$task_score     <- renderPrint({task_score()})
   
-  ### Dev msg -----
+  ### dev_tools display -----
+  renderUI(
+    if(do_disp_dev_tools == TRUE){
+      vect_var_response <- input$task_response
+      args_means_BEFORE_ROTATION <- attr(dat(), "args")$means
+      vect_var_ans_BEFORE_ROTATION <- abs(args_means_BEFORE_ROTATION[[1]])
+      p <- length(vect_var_ans_BEFORE_ROTATION)
+      mat_var_ans <- matrix(rep(vect_var_ans_BEFORE_ROTATION, times = p),
+                            nrow = p, ncol = p, byrow = TRUE)
+      rotate_mtvnorm(mat_var_ans, 
+      attributes(dat_std)
+      attr(dat_std, means)
+      vect_var_ans <- 
+      ## Dev_tool display
+      fluidRow(
+        p("===== Development display below ====="),
+        p("Variable level response: "), vect_var_response
+        #p("MMP ClSep: "), ## We know the exact differences, no need for MMP ClSep
+        p("Variable marks: "), , ## TODO, marks based on the sim.
+        p("Task marks: ")
+      ) ## Close fluidRow()
+    }
+  )
   output$resp_tbl <- renderTable({
     if(do_disp_dev_tools == TRUE){
       rv$resp_tbl

@@ -240,21 +240,12 @@ sidebar_ui <- conditionalPanel(
         choices = "V1",
         inline  = TRUE
       )
-    ),
-    ## Dev_tool disp
-    conditionalPanel(
-      condition = "output.plot_active == true", ## " &&do_disp_dev_tools == true",
-      p("___"),
-      p("response: "),
-      #p("MMP ClSep: "), ## We know the exact differences, no need for MMP ClSep
-      p("Variable marks: "), ## TODO, marks based on the sim.
-      p("Task marks: ")
-    ) ## Close sidebarPanel()
-  ) ## Close conditionalPanel(), end sidebar_ui section
+    )
+  ) ## Close conditionalPanel(), assigning sidebar_ui 
 )
   
 
-##### Init survey columns -----
+##### Initialize survey columns -----
 surv_lab <- HTML("<div style=\"width:300px;\">
                     <div style=\"float:left;\">strongly disagree</div>
                     <div style=\"float:right;\">strongly agree</div>
@@ -489,6 +480,15 @@ ui <- fluidPage(useShinyjs(), ## Required in ui to use shinyjs.
                 main_ui,
                 ## Dev tools, displays nothing when do_disp_dev_tools == FALSE:
                 actionButton("browser", "browser()"),
+                ## Dev_tool disp
+                conditionalPanel(
+                  condition = "output.plot_active == true", ## " &&do_disp_dev_tools == true",
+                  p("___"),
+                  p("Response: "),
+                  #p("MMP ClSep: "), ## We know the exact differences, no need for MMP ClSep
+                  p("Variable marks: "), ## TODO, marks based on the sim.
+                  p("Task marks: ")
+                ) ## Close sidebarPanel()
                 textOutput("dev_msg"),
                 tableOutput("resp_tbl")
 )
