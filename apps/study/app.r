@@ -1,10 +1,11 @@
 source('global.r', local = TRUE)
+## Also try: shiny::runApp(appDir = "apps/study", display.mode = "showcase")
 
 
 ####### Server function, for shiny app
 server <- function(input, output, session){
   output$TMP <- renderText(input$TMP)
-  
+
   ##### Reavtive value initialization -----
   rv                  <- reactiveValues()
   ## SET STARTING PAGE HERE <<<
@@ -27,13 +28,14 @@ server <- function(input, output, session){
   rv$curr_basis       <- NULL
   rv$radial_tour_ls   <- list()
   rv$resp_tbl         <- 
-    data.frame() %>% dplyr::mutate(
+    data.frame(
       participant_num = participant_num,
-      factor          = rep(this_factor_nm_ord, length.out = 999),
-      block_location  = rep(this_location_nm_ord, length.out = 999),
-      block_vc        = rep(this_vc_nm_order, length.out = 999), 
-      block_p_dim     = rep(p_dim_nms, length.out = 999),
-      sim_nm          = patse(block_vc, block_p_dim, block_vc, sep = "_"),
+      factor          = rep(this_factor_nm_ord, length.out = 99),
+      block_location  = rep(this_location_nm_ord, length.out = 99),
+      block_vc        = rep(this_vc_nm_order, length.out = 99), 
+      block_p_dim     = rep(p_dim_nms, length.out = 99),
+      sim_nm          = rep(this_sim_nms, length.out = 99),
+      #sim_nm          = patse(block_vc, block_p_dim, block_location, sep = "_"),
       pca_inter       = NA,
       radial_inter    = NA,
       grand_inter     = NA, 
@@ -45,7 +47,7 @@ server <- function(input, output, session){
       marks           = NA
   )
   
-    
+  
   ##### Reactives -----
   section_nm <- reactive({ ## text name of section
     req(rv$pg)
@@ -73,22 +75,27 @@ server <- function(input, output, session){
     if(section_nm() == "training" & do_disp_dev_tools == FALSE) 
       return(input$factor)
     
-    if(section_nm() == "task") return(this_factor_nm_order[period()])
+    if(section_nm() == "task") return(this_factor_nm_ord[period()])
     return("NONE / NA")
   })
-  block_location <- reactive({
-    
-  })
-  block_vc <- reactive({
-    
-  })
+  # block_location <- reactive({
+  #   
+  # })
+  # block_vc <- reactive({
+  #   
+  # })
   
   sim_nm <- reactive({
-    if(section_nm() == "training"){
+    if(section_nm() == "training"){ #& do_disp_dev_tools == TRUE){
       req(input$simVc, input$simP, input$simLocation)
       return(paste(input$simVc, input$simP, input$simLocation, sep =  "_"))
     }
-    return(in_nms[1])
+    # #TODO
+    # if(section_nm() == "training"){
+    #   req(input$simVc, input$simP, input$simLocation)
+    #   return(this_sim_nms[1])
+    # }
+    return(1 + (section_pg() - 1) %% length(this_sim_nms))
   })
 
   task_time <- reactive({
@@ -154,7 +161,7 @@ server <- function(input, output, session){
   #### _Task evaluation -----
   ### Task Response
   task_resp <- reactive({
-    if(section_nm() %in% c("training", "task")) 
+    if(section_nm() %in% c("training", "task"))
       ## Vector of the numbers without 'V'
       return(as.integer(gsub(' |V', '', input$task_response)))
   })
@@ -177,7 +184,6 @@ server <- function(input, output, session){
   })
   task_ans <- reactive({
     task_resp()
-    
   })
  
   task_score <- reactive({

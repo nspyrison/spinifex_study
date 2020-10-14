@@ -33,7 +33,7 @@ cat("do_log:", do_log)
 #### Set log file, participant_num is the next number after reading last writen participant_num
 ## Init
 log_base <- paste0("log_", Sys.info()[4], "_")
-participant_num  <- 1
+participant_num <- 1
 log_file <- ""
 log_name <- "DUMMY"
 if(do_log == TRUE){
@@ -75,7 +75,7 @@ location_nms <- c("0_1", "33_66", "50_50")
 vc_nms       <- c("EEE", "EEV", "banana")
 p_dim_nms    <- c("p4", "p6")
 ## The decoded names 
-this_factor_nm_ord   <- 
+this_factor_nm_ord <- 
   factor_nms[factor_perms[this_factor_perm, ]]
 this_location_nm_ord <- 
   location_nms[location_perms[this_location_perm, ]]
@@ -92,7 +92,7 @@ context_line <- paste0("Spinifex STUDY, --- (spinifex v", packageVersion("spinif
 context_msg <- paste(sep = " \n",
                      context_line,
                      paste0("Log file: ", log_file),
-                     paste0("Participant number: ", participant_num, "."),
+                     paste0("Participant number: ", participant_num, ".")
 )
 if(do_log == TRUE) loggit("INFO", "=====Spinifex study app start.=====")
 cat(context_msg)
@@ -123,24 +123,26 @@ survey_questions <- c("What sex are you?",
 )
 
 ## Load training data and tour paths
+tmp <- data.frame(tidyr::crossing(this_vc_nm_order, p_dim_nms), this_location_nm_ord)
+this_sim_nms <- paste(tmp[, 1], tmp[, 2], tmp[, 3], sep = "_")
 root <- ("~/R/spinifex_study/apps/data")# here("apps/data/") ## Filepaths cannot be too long....
 
-## TODO NEED TO FINISH
-this_sim_nms <- paste(this_vc_nm_order, p_dim_nms, this_location_nm_ord, sep = "_")
-sim_nms <- c("EEE_p4_0_1", "EEE_p4_33_66", "EEE_p4_50_50",
-             "EEV_p4_0_1", "EEV_p4_33_66", "EEV_p4_50_50",
-             "banana_p4_0_1", "banana_p4_33_66", "banana_p4_50_50",
-             "EEE_p6_0_1", "EEE_p6_33_66", "EEE_p6_50_50",
-             "EEV_p6_0_1", "EEV_p6_33_66", "EEV_p6_50_50",
-             "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
-sim_fps <- paste0(root, "/", sim_nms, ".rda")
-# tpath_fps     <- paste0(root, "/tpath_", sim_nms, ".rda")
-# MMP_clSep_fps <- paste0(root, "/MMP_clSep_", sim_nms, ".rda")
-for(i in 1:length(sim_nms)){
+sim_fps <- paste0(root, "/", this_sim_nms, ".rda")
+tpath_fps <- paste0(root, "/tpath_", this_sim_nms, ".rda")
+
+for(i in 1:length(this_sim_nms)){
   ## Load sims by the obj name stored in .rda files.
   load(sim_fps[i])
   load(tpath_fps[i])
 }
+
+## ALL SIM NAMES
+# sim_nms <- c("EEE_p4_0_1", "EEE_p4_33_66", "EEE_p4_50_50",
+#              "EEV_p4_0_1", "EEV_p4_33_66", "EEV_p4_50_50",
+#              "banana_p4_0_1", "banana_p4_33_66", "banana_p4_50_50",
+#              "EEE_p6_0_1", "EEE_p6_33_66", "EEE_p6_50_50",
+#              "EEV_p6_0_1", "EEV_p6_33_66", "EEV_p6_50_50",
+#              "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
 
 ## Load data and tour paths for task eval
 # dat_len <- 12L
@@ -154,12 +156,10 @@ for(i in 1:length(sim_nms)){
 #   )
 # }
 
-
-
 ##### Global variable initialization -----
-n_trainings        <- 2 #length(s_t_dat)         ## ~2
-n_factors          <- length(factor_nms)         ## ~3
-n_p_dim            <- length(p_dim_nms)          ## ~2
+n_trainings        <- 2 #length(s_t_dat)       ## ~2
+n_factors          <- length(factor_nms)       ## ~3
+n_p_dim            <- length(p_dim_nms)        ## ~2
 n_survey_questions <- length(survey_questions) ## ~21
 PC_cap             <- 4 ## Number of principal components to choose from.
 pal                <- "Dark2"
@@ -225,26 +225,27 @@ sidebar_ui <- conditionalPanel(
   
   ##### _Training control inputs -----
   ## Factor selection
-    conditionalPanel(condition = "output.section_nm == 'training' && output.section_pg < 6",
-                     radioButtons(inputId = "factor", label = "Factor",
-                                  choices = fct_nm_vect,
-                                  selected = fct_nm_vect[1],
-                                  inline = TRUE),
-                     fluidRow(column(4, radioButtons(inputId = "simVc", label = "VC",
-                                                     choices = c("EEE", "EEV", "banana"), selected = "EEE")),
-                              column(4, radioButtons(inputId = "simP", label = "# Clusters & var",
-                                                     choices = list("3cl in 4v" = "p4",
-                                                                    "4cl in 6v" = "p6"), 
-                                                     selected = "p4")),
-                              column(4, radioButtons(inputId = "simLocation", label = "Location (1sig, 1noise)",
-                                                     choices = list("0%/100%" = "0_1",
-                                                                    "33%/66%" = "33_66", 
-                                                                    "50%/50%" = "50_50"), 
-                                                     selected = "0_1"))
-                     )
+    conditionalPanel(
+      condition = "output.section_nm == 'training' && output.section_pg < 6",
+      radioButtons(inputId = "factor", label = "Factor",
+                   choices = factor_nms,
+                   selected = factor_nms[1],
+                   inline = TRUE),
+      fluidRow(column(4, radioButtons(inputId = "simVc", label = "VC",
+                                      choices = c("EEE", "EEV", "banana"), selected = "EEE")),
+               column(4, radioButtons(inputId = "simP", label = "# Clusters & var",
+                                      choices = list("3cl in 4v" = "p4",
+                                                     "4cl in 6v" = "p6"), 
+                                      selected = "p4")),
+               column(4, radioButtons(inputId = "simLocation", label = "Location (1sig, 1noise)",
+                                      choices = list("0%/100%" = "0_1",
+                                                     "33%/66%" = "33_66", 
+                                                     "50%/50%" = "50_50"), 
+                                      selected = "0_1"))
+      )
     ), 
-    
-    ##### _Task response input -----
+  
+  ##### _Task response input -----
     ## Task 2
     conditionalPanel(
       condition = "(output.any_active == true) ", 
@@ -266,7 +267,7 @@ surv_lab <- HTML("<div style=\"width:300px;\">
                   </div>")
 survey_fct_q_start <- 9
 col_p1 <- column(4,
-                 h3(this_factor_nm_order[1]),
+                 h3(this_factor_nm_ord[1]),
                  hr(),
                  h4(survey_questions[survey_fct_q_start + 1]),
                  sliderInput(paste0("survey", survey_fct_q_start + 1),
@@ -283,7 +284,7 @@ col_p1 <- column(4,
 )
 
 col_p2 <- column(4,
-                 h3(this_factor_nm_order[2]),
+                 h3(this_factor_nm_ord[2]),
                  hr(),
                  h4(survey_questions[survey_fct_q_start + 5]),
                  sliderInput(paste0("survey", survey_fct_q_start + 5),
@@ -299,7 +300,7 @@ col_p2 <- column(4,
                              label = surv_lab, min = 1, max = 9, value = 5)
 )
 col_p3 <- column(4,
-                 h3(this_factor_nm_order[3]),
+                 h3(this_factor_nm_ord[3]),
                  hr(),
                  h4(survey_questions[survey_fct_q_start + 9]),
                  sliderInput(paste0("survey", survey_fct_q_start + 9),
@@ -362,7 +363,7 @@ main_ui <- mainPanel(width = 9,
       p("If this link only contains audio let the invigilator know.")
     ) ## End of video
   ), ## Close conditionalPanel -- intro section text
-
+  
   ### _Training mainPanel -----
   conditionalPanel(
     condition = "output.section_nm == 'training'",
@@ -389,14 +390,14 @@ main_ui <- mainPanel(width = 9,
     ),
     hr()
   ), ## close training section main panel text
-
+  
   ### _Task mainPanel -----
   conditionalPanel(
     condition = "output.section_nm == 'task'",
     h2(textOutput('task_header')),
     hr()
   ), ## close task section conditional panel title text
-
+  
   ### _Plot mainPanel ----
   conditionalPanel(
     condition = "(output.section_nm == 'training' && output.section_pg != 6) ||
@@ -433,7 +434,7 @@ main_ui <- mainPanel(width = 9,
     ),
     textOutput("dummy"),
   ), ## Close plot conditional panel
-
+  
   ### _Survey mainPanel -----
   conditionalPanel(
     condition = "output.section_nm == 'survey'",
@@ -500,8 +501,6 @@ dev_tools <- conditionalPanel("output.dev_tools == true",
                               tableOutput("resp_tbl")
 ) ## close conditionPanel, assigning dev_tools
 
-
-
 ##### UI, combine panels -----
 ui <- fluidPage(useShinyjs(), ## Required in ui to use shinyjs.
                 header_ui,
@@ -509,8 +508,6 @@ ui <- fluidPage(useShinyjs(), ## Required in ui to use shinyjs.
                 main_ui,
                 dev_tools
 )
-
-
 
 ##### App local functions below: -----
 app_render_ <- function(frames, ## paste over spinifex render to add size
@@ -540,14 +537,14 @@ app_render_ <- function(frames, ## paste over spinifex render to add size
   axes_siz <- rep(0.3, p)
   axes_col[manip_var] <- "blue"
   axes_siz[manip_var] <- .6
-
+  
   x_max <- max(data_frames[, 1], circ[, 1])
   x_min <- min(data_frames[, 1], circ[, 1])
   y_max <- max(data_frames[, 2], circ[, 2])
   y_min <- min(data_frames[, 2], circ[, 2])
   x_range <- x_max - x_min
   y_range <- y_max - y_min
-
+  
   gg <-
     ## ggplot settings
     ggplot2::ggplot() +
@@ -575,7 +572,7 @@ app_render_ <- function(frames, ## paste over spinifex render to add size
                                shape = cluster)
       )
     )
-
+  
   if(axes != "off"){
     gg <- gg +
       ## Circle path
@@ -602,7 +599,7 @@ app_render_ <- function(frames, ## paste over spinifex render to add size
           colour = axes_col, size = 6, vjust = "outward", hjust = "outward")
       )
   }
-
+  
   gg + theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
 }
 
