@@ -15,68 +15,88 @@ library("loggit")    ## For logging
 library("here")      ## Fixing base dir.
 set.seed(20200927)   ## if tourr starts using seeds
 
+#### Simulated data series,
+## "series" or iteration of data to look at. Should be an even hundred
+height_px  <- 500L
+width_px   <- 1000L
 
-#### Logging
+
+
+#### Logging -----
 ## browseURL("https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/")
 ## use: loggit("INFO", "<main msg>", "<detail>")
 ## SET do_log to TRUE to start logging 
 do_log            <- FALSE
 do_disp_dev_tools <- TRUE
+cat("do_log:", do_log)
 
-
-#### Simulated data series,
-## "series" or iteration of data to look at. Should be an even hundred
-height_px  <- 500L
-width_px   <- 1000L
-sim_series <- 300L
-cat(do_log)
-
-## Set log file, finding the first unused number, will need to write to a google sheet or otherwise store a file.
+#### Set log file, participant_num is the next number after reading last writen participant_num
+## Init
 log_base <- paste0("log_", Sys.info()[4], "_")
-log_num  <- 1
+participant_num  <- 1
 log_file <- ""
 log_name <- "DUMMY"
-
 if(do_log == TRUE){
-  log_name <- sprintf(paste0(log_base, "%03d"), log_num)
+  log_name <- sprintf(paste0(log_base, "%03d"), participant_num)
   log_file <- paste0(log_name, ".json")
+  ## TODO: Need to get participant_num, from google docs.
   while (file.exists(log_file)){ ## Find an unused log number
-    log_num  <- log_num + 1
-    log_name <- sprintf(paste0(log_base, "%03d"), log_num)
+    participant_num  <- participant_num + 1
+    log_name <- sprintf(paste0(log_base, "%03d"), participant_num)
     log_file <- paste0(log_name, ".json")
   }
   set_logfile(log_file)
 }else{ ## When do_log == F
-  log_num  <- sample(1:3, 1)
+  participant_num  <- sample(1:56, 1)
   log_name <- "<NOT LOGGING>"
   log_file <- "Logging is off! Log and responses not being recorded."
 }
 cat("do_log, log_file: ", do_log, log_file, " /n")
 
-## Set group (factor order) based on log number mod 3
-this_group <- 1 + (log_num - 1) %% 3 ## Expects [1,2,3]
-fct_ord_latin_sq <- rbind(c(1, 2, 3), ## ~ grp 1; "pca", "grand", "radial"
-                          c(2, 3, 1), ## ~ grp 2; "grand", "radial", "pca"
-                          c(3, 1, 2)  ## ~ grp 3; "radial", "pca", "grand"
-)
-fct_nm_vect <- c("pca", "grand", "radial") ## factor list
-this_factor_order    <- fct_ord_latin_sq[this_group, ]
-this_factor_nm_order <- fct_nm_vect[this_factor_order]
+#### Select factor and block permutations
+## The permutation number
+this_factor_perm   <- 1 + (participant_num - 1) %% 3 ## %% is mod
+this_location_perm <- 1 + floor((participant_num - 1) / 3) %% 3
+this_vc_perm       <- 1 + floor((participant_num - 1) / 9) %% 6
+## The permutations
+factor_perms   <- rbind(c(1, 2, 3), ## The 3 permutations of the 3 factor orders
+                        c(2, 3, 1),
+                        c(3, 1, 2))
+location_perms <- cbind(1:3)
+vc_perms       <- rbind(c(1, 2), ## The 6 permutations of the 3 location orders
+                        c(1, 3),
+                        c(2, 3),
+                        c(2, 1),
+                        c(3, 1),
+                        c(3, 2))
+## set factor and block names
+factor_nms   <- c("pca", "grand", "radial")
+location_nms <- c("0_1", "33_66", "50_50")
+vc_nms       <- c("EEE", "EEV", "banana")
+p_dim_nms    <- c("p4", "p6")
+## The decoded names 
+this_factor_nm_ord   <- 
+  factor_nms[factor_perms[this_factor_perm, ]]
+this_location_nm_ord <- 
+  location_nms[location_perms[this_location_perm, ]]
+this_vc_nm_order <- 
+  vc_nms[vc_perms[this_vc_perm, ]]
 
 
 ## Context, "onStart()" and onStop()
 context_line <- paste0("Spinifex STUDY, --- (spinifex v", packageVersion("spinifex"),
                        ") --- Started ", Sys.time())
-this_Sys.info <- paste(Sys.info()[1:5], collapse = ", ")
+## This won't work on shiny app.
+# this_Sys.info <- paste(Sys.info()[1:5], collapse = ", ")
+## dummy onStart(function(){})
 context_msg <- paste(sep = " \n",
                      context_line,
                      paste0("Log file: ", log_file),
-                     paste0("Group number: ", log_num, "."),
-                     paste0("Sys.info()[1:5]: ", this_Sys.info)
+                     paste0("Participant number: ", participant_num, "."),
 )
 if(do_log == TRUE) loggit("INFO", "=====Spinifex study app start.=====")
 cat(context_msg)
-
+## onStop()
 onStop(function(){
   cat(context_msg)
   if(do_log == TRUE){
@@ -86,15 +106,8 @@ onStop(function(){
   ## Try to autosave if not saved and do_log == T?
   #### note that rv$resp_tbl is out of scope to the global file.
 })
-
-
-##### Required inputs -----
-## Task, and block (difficulty)
-s_blocks        <- c("baseline", "corNoise", "mnComb")
-s_task_question <- c("Which variables contribute more than average to the cluster seperation between 'a' and 'b'.")
-
 ## Survey questions; n = 21 = 9 + 12
-s_survey_questions <- c("What sex are you?",
+survey_questions <- c("What sex are you?",
                         "What age group do you belong to?",
                         "What is your English proficiency?",
                         "What is your highest completed education?",
@@ -111,20 +124,22 @@ s_survey_questions <- c("What sex are you?",
 
 ## Load training data and tour paths
 root <- ("~/R/spinifex_study/apps/data")# here("apps/data/") ## Filepaths cannot be too long....
-sim_nms <- in_nms  <- c("EEE_p4_0_1", "EEE_p4_33_66", "EEE_p4_50_50",
-                        "EEV_p4_0_1", "EEV_p4_33_66", "EEV_p4_50_50",
-                        "banana_p4_0_1", "banana_p4_33_66", "banana_p4_50_50",
-                        "EEE_p6_0_1", "EEE_p6_33_66", "EEE_p6_50_50",
-                        "EEV_p6_0_1", "EEV_p6_33_66", "EEV_p6_50_50",
-                        "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
+
+## TODO NEED TO FINISH
+this_sim_nms <- paste(this_vc_nm_order, p_dim_nms, this_location_nm_ord, sep = "_")
+sim_nms <- c("EEE_p4_0_1", "EEE_p4_33_66", "EEE_p4_50_50",
+             "EEV_p4_0_1", "EEV_p4_33_66", "EEV_p4_50_50",
+             "banana_p4_0_1", "banana_p4_33_66", "banana_p4_50_50",
+             "EEE_p6_0_1", "EEE_p6_33_66", "EEE_p6_50_50",
+             "EEV_p6_0_1", "EEV_p6_33_66", "EEV_p6_50_50",
+             "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
 sim_fps <- paste0(root, "/", sim_nms, ".rda")
 # tpath_fps     <- paste0(root, "/tpath_", sim_nms, ".rda")
 # MMP_clSep_fps <- paste0(root, "/MMP_clSep_", sim_nms, ".rda")
 for(i in 1:length(sim_nms)){
   ## Load sims by the obj name stored in .rda files.
   load(sim_fps[i])
-  # load(tpath_fps[i])
-  # load(MMP_clSep_fps[i])
+  load(tpath_fps[i])
 }
 
 ## Load data and tour paths for task eval
@@ -142,11 +157,10 @@ for(i in 1:length(sim_nms)){
 
 
 ##### Global variable initialization -----
-n_trainings        <- 4 #length(s_t_dat)         ## ~4
-n_factors          <- length(fct_nm_vect)        ## ~3
-n_blocks           <- length(s_blocks)           ## ~3
-n_survey_questions <- length(s_survey_questions) ## ~21
-
+n_trainings        <- 2 #length(s_t_dat)         ## ~2
+n_factors          <- length(factor_nms)         ## ~3
+n_p_dim            <- length(p_dim_nms)          ## ~2
+n_survey_questions <- length(survey_questions) ## ~21
 PC_cap             <- 4 ## Number of principal components to choose from.
 pal                <- "Dark2"
 
@@ -156,7 +170,7 @@ pal                <- "Dark2"
 training_start_pg <- 3L
 task_start_pg <- (training_start_pg + 2 + 1) + 1
 ## ~ pg7;(3+2+1+1; train_st, 2 task sets, splash pg, start on new pg)
-survey_start_pg <- task_start_pg + n_factors * n_blocks + 1
+survey_start_pg <- task_start_pg + n_factors * n_p_dim + 1
 ## ~ pg14, (7+3*3+1; task_st, 3*3 factor*block, start on new pg)
 
 ##### UI START -----
@@ -233,15 +247,15 @@ sidebar_ui <- conditionalPanel(
     ##### _Task response input -----
     ## Task 2
     conditionalPanel(
-      condition = "(output.plot_active == true) ", 
+      condition = "(output.any_active == true) ", 
       checkboxGroupInput(
         inputId = "task_response",
-        label   = s_task_question,
+        label   = "Check any/all variables contribute more than average to the cluster seperation between 'a' and 'b'.",
         choices = "V1",
         inline  = TRUE
       )
     )
-  ) ## Close conditionalPanel(), assigning sidebar_ui 
+  ) ## Close conditionalPanel(), assigning sidebar_ui
 )
   
 
@@ -250,54 +264,54 @@ surv_lab <- HTML("<div style=\"width:300px;\">
                     <div style=\"float:left;\">strongly disagree</div>
                     <div style=\"float:right;\">strongly agree</div>
                   </div>")
-s_fct_start <- 9
+survey_fct_q_start <- 9
 col_p1 <- column(4,
                  h3(this_factor_nm_order[1]),
                  hr(),
-                 h4(s_survey_questions[s_fct_start + 1]),
-                 sliderInput(paste0("survey", s_fct_start + 1),
+                 h4(survey_questions[survey_fct_q_start + 1]),
+                 sliderInput(paste0("survey", survey_fct_q_start + 1),
                              label = surv_lab, min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[s_fct_start + 2]),
-                 sliderInput(paste0("survey", s_fct_start + 2),
+                 h4(survey_questions[survey_fct_q_start + 2]),
+                 sliderInput(paste0("survey", survey_fct_q_start + 2),
                              label = surv_lab, min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[s_fct_start + 3]),
-                 sliderInput(paste0("survey", s_fct_start + 3),
+                 h4(survey_questions[survey_fct_q_start + 3]),
+                 sliderInput(paste0("survey", survey_fct_q_start + 3),
                              label = surv_lab, min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[s_fct_start + 4]),
-                 sliderInput(paste0("survey", s_fct_start + 4),
+                 h4(survey_questions[survey_fct_q_start + 4]),
+                 sliderInput(paste0("survey", survey_fct_q_start + 4),
                              label = surv_lab, min = 1, max = 9, value = 5)
 )
 
 col_p2 <- column(4,
                  h3(this_factor_nm_order[2]),
                  hr(),
-                 h4(s_survey_questions[s_fct_start + 5]),
-                 sliderInput(paste0("survey", s_fct_start + 5),
+                 h4(survey_questions[survey_fct_q_start + 5]),
+                 sliderInput(paste0("survey", survey_fct_q_start + 5),
                              label = surv_lab, min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[s_fct_start + 6]),
-                 sliderInput(paste0("survey", s_fct_start + 6),
+                 h4(survey_questions[survey_fct_q_start + 6]),
+                 sliderInput(paste0("survey", survey_fct_q_start + 6),
                              label = surv_lab, min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[s_fct_start + 7]),
-                 sliderInput(paste0("survey", s_fct_start + 7),
+                 h4(survey_questions[survey_fct_q_start + 7]),
+                 sliderInput(paste0("survey", survey_fct_q_start + 7),
                              label = surv_lab, min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[s_fct_start + 8]),
-                 sliderInput(paste0("survey", s_fct_start + 8),
+                 h4(survey_questions[survey_fct_q_start + 8]),
+                 sliderInput(paste0("survey", survey_fct_q_start + 8),
                              label = surv_lab, min = 1, max = 9, value = 5)
 )
 col_p3 <- column(4,
                  h3(this_factor_nm_order[3]),
                  hr(),
-                 h4(s_survey_questions[s_fct_start + 9]),
-                 sliderInput(paste0("survey", s_fct_start + 9),
+                 h4(survey_questions[survey_fct_q_start + 9]),
+                 sliderInput(paste0("survey", survey_fct_q_start + 9),
                              label = surv_lab, min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[s_fct_start + 10]),
-                 sliderInput(paste0("survey", s_fct_start + 10),
+                 h4(survey_questions[survey_fct_q_start + 10]),
+                 sliderInput(paste0("survey", survey_fct_q_start + 10),
                              label = surv_lab, min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[s_fct_start + 11]),
-                 sliderInput(paste0("survey", s_fct_start + 11),
+                 h4(survey_questions[survey_fct_q_start + 11]),
+                 sliderInput(paste0("survey", survey_fct_q_start + 11),
                              label = surv_lab, min = 1, max = 9, value = 5),
-                 h4(s_survey_questions[s_fct_start + 12]),
-                 sliderInput(paste0("survey", s_fct_start + 12),
+                 h4(survey_questions[survey_fct_q_start + 12]),
+                 sliderInput(paste0("survey", survey_fct_q_start + 12),
                              label = surv_lab, min = 1, max = 9, value = 5)
 )
 
@@ -425,36 +439,36 @@ main_ui <- mainPanel(width = 9,
     condition = "output.section_nm == 'survey'",
     conditionalPanel(
       condition = "output.is_saved == 0",
-      selectInput("survey1", label = s_survey_questions[1],
+      selectInput("survey1", label = survey_questions[1],
                   choices = c("decline to answer", "female", "male",
                               "intersex, non-binary, or other")
       ),
-      selectInput("survey2", label = s_survey_questions[2],
+      selectInput("survey2", label = survey_questions[2],
                   choices = c("decline to answer", "19 or younger", "20 to 29",
                               "30 to 39", "40 or older")
       ),
-      selectInput("survey3", label = s_survey_questions[3],
+      selectInput("survey3", label = survey_questions[3],
                   choices = c("decline to answer", "fluent",
                               "conversational", "less than conversational")
       ),
-      selectInput("survey4", label = s_survey_questions[4],
+      selectInput("survey4", label = survey_questions[4],
                   choices = c("decline to answer", "high school",
                               "undergraduate", "honors, masters, mba", "doctorate")
       ),
       h3("To what extent do you agree with the following statements?"),
-      strong(s_survey_questions[5]),
+      strong(survey_questions[5]),
       sliderInput("survey5", label = surv_lab,
                   min = 1, max = 9, value = 5),
-      strong(s_survey_questions[6]),
+      strong(survey_questions[6]),
       sliderInput("survey6",label = surv_lab,
                   min = 1, max = 9, value = 5),
-      strong(s_survey_questions[7]),
+      strong(survey_questions[7]),
       sliderInput("survey7",label = surv_lab,
                   min = 1, max = 9, value = 5),
-      strong(s_survey_questions[8]),
+      strong(survey_questions[8]),
       sliderInput("survey8",label = surv_lab,
                   min = 1, max = 9, value = 5),
-      strong(s_survey_questions[9]),
+      strong(survey_questions[9]),
       sliderInput("survey9",label = surv_lab,
                   min = 1, max = 9, value = 5),
       fluidRow(col_p1, col_p2, col_p3),
@@ -471,26 +485,29 @@ main_ui <- mainPanel(width = 9,
   ) ## close survey condition panel
 ) ## close mainPanel() End of main_ui section.
 
+### _dev_tools
+dev_tools <- conditionalPanel("output.dev_tools == true",
+                              
+                              p("===== Development display below ====="),
+                              actionButton("browser", "browser()"),
+                              p("Variable level answers: "), textOutput("var_mean_diff_ab"),
+                              p("Variable bar: "), textOutput("avg_mean_diff_ab"),
+                              p("Variable level response: "), textOutput("task_resp"),
+                              p("Variable marks: "), ## TODO, marks based on the sim.
+                              p("Task marks: "),
+                              ##
+                              textOutput("dev_msg"),
+                              tableOutput("resp_tbl")
+) ## close conditionPanel, assigning dev_tools
+
+
 
 ##### UI, combine panels -----
 ui <- fluidPage(useShinyjs(), ## Required in ui to use shinyjs.
                 header_ui,
                 sidebar_ui,
-                #TODO: PART OF DISPLAYING MAIN_UD cause JS NOT TO EVAL.
                 main_ui,
-                ## Dev tools, displays nothing when do_disp_dev_tools == FALSE:
-                actionButton("browser", "browser()"),
-                ## Dev_tool disp
-                conditionalPanel(
-                  condition = "output.plot_active == true", ## " &&do_disp_dev_tools == true",
-                  p("___"),
-                  p("Response: "),
-                  #p("MMP ClSep: "), ## We know the exact differences, no need for MMP ClSep
-                  p("Variable marks: "), ## TODO, marks based on the sim.
-                  p("Task marks: ")
-                ) ## Close sidebarPanel()
-                textOutput("dev_msg"),
-                tableOutput("resp_tbl")
+                dev_tools
 )
 
 

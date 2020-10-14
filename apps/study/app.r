@@ -7,7 +7,8 @@ server <- function(input, output, session){
   
   ##### Reavtive value initialization -----
   rv                  <- reactiveValues()
-  rv$pg               <- 3L
+  ## SET STARTING PAGE HERE <<<
+  rv$pg               <- 3L 
   rv$timer            <- 999L
   rv$stopwatch        <- 0L
   rv$timer_active     <- TRUE
@@ -25,29 +26,27 @@ server <- function(input, output, session){
   rv$second_training  <- FALSE
   rv$curr_basis       <- NULL
   rv$radial_tour_ls   <- list()
-  rv$resp_tbl         <- data.frame(
-    user_uid     = substr(log_name, 5L, nchar(log_name)),
-    group        = this_group,
-    factor       = c(rep(this_factor_nm_order[1L], 4L),
-                     rep(this_factor_nm_order[2L], 4L),
-                     rep(this_factor_nm_order[3L], 4L)),
-    block        = rep(c(rep(s_blocks[1L], 2L), rep(s_blocks[2L], 2L)), 3L),
-    sim_id       = 301L:312L,
-    pca_inter    = NA,
-    radial_inter = NA,
-    grand_inter  = NA, 
-    resp_inter   = NA,
-    plot_elapsed = NA,
-    ttr          = NA,
-    response     = NA,
-    answer       = NA,
-    marks        = NA
+  rv$resp_tbl         <- 
+    data.frame() %>% dplyr::mutate(
+      participant_num = participant_num,
+      factor          = rep(this_factor_nm_ord, length.out = 999),
+      block_location  = rep(this_location_nm_ord, length.out = 999),
+      block_vc        = rep(this_vc_nm_order, length.out = 999), 
+      block_p_dim     = rep(p_dim_nms, length.out = 999),
+      sim_nm          = patse(block_vc, block_p_dim, block_vc, sep = "_"),
+      pca_inter       = NA,
+      radial_inter    = NA,
+      grand_inter     = NA, 
+      resp_inter      = NA,
+      plot_elapsed    = NA,
+      ttr             = NA,
+      response        = NA,
+      answer          = NA,
+      marks           = NA
   )
+  
     
   ##### Reactives -----
-  p <- reactive({ ncol(dat()) })
-  n_cl <- reactive({ length(unique(attributes(s_dat[[block()]])$cl_lvl)) })
-  
   section_nm <- reactive({ ## text name of section
     req(rv$pg)
     if(rv$pg %in% 1L:2L){return("intro")}
@@ -68,16 +67,22 @@ server <- function(input, output, session){
     }
     if(section_nm() == "survey"){return(1L)}
   })
-  period <- reactive({1L + ((section_pg() - 1L) %/% (n_blocks))})
+  period <- reactive({1L + ((section_pg() - 1L) %/% (n_p_dim))})
   factor_nm <- reactive({ ## ~ for group 1: pca, grand, radial
-    if(section_nm() == "training") return(input$factor)
+    if(section_nm() == "training" & do_disp_dev_tools == TRUE) return(input$factor)
+    if(section_nm() == "training" & do_disp_dev_tools == FALSE) 
+      return(input$factor)
+    
     if(section_nm() == "task") return(this_factor_nm_order[period()])
     return("NONE / NA")
   })
-  block <- reactive({ ## in 0, "t", 1,2,3
-    if(section_nm() == "training") return(c(0L, "t", "t", "t", "t", 0L)[section_pg()])
-    return((section_pg() - n_blocks) %% (n_blocks))
+  block_location <- reactive({
+    
   })
+  block_vc <- reactive({
+    
+  })
+  
   sim_nm <- reactive({
     if(section_nm() == "training"){
       req(input$simVc, input$simP, input$simLocation)
@@ -85,6 +90,7 @@ server <- function(input, output, session){
     }
     return(in_nms[1])
   })
+
   task_time <- reactive({
     req(factor_nm())
     if(factor_nm() == "grand"){adj <- 1L
@@ -102,6 +108,7 @@ server <- function(input, output, session){
     req(dat)
     return(attr(dat, "cluster"))
   })
+  p <- reactive({ ncol(dat()) })
   task_tpath <- reactive({
     sim_nm <- sim_nm()
     req(sim_nm)
@@ -144,20 +151,35 @@ server <- function(input, output, session){
     paste("period(), factor_nm(), block(), sim_nm(): ", period(), factor_nm(), block(), sim_nm())
   })
   
-  #### Task answer
-  task_ans <- reactive({
-    dat_std <- dat()
-    cl <- dat_std$cl
-    #TODO GIVE 1 pt per correct answer!?; this equates 0/1 and 33/66
-    rep(0L, p())
-  })
-  ### Response
+  #### _Task evaluation -----
+  ### Task Response
   task_resp <- reactive({
     if(section_nm() %in% c("training", "task")) 
       ## Vector of the numbers without 'V'
       return(as.integer(gsub(' |V', '', input$task_response)))
-    return(0)
   })
+  output$task_resp <- renderPrint(task_resp())
+  ### Task answer
+  var_mean_diff_ab <- reactive({
+    if(any_active())
+      attr(dat(), "var_mean_diff_ab")
+  })
+  output$var_mean_diff_ab <- renderPrint({
+    round(var_mean_diff_ab(), 2)
+  })
+  ### bar to beat
+  avg_mean_diff_ab <- reactive({
+    if(any_active())
+      sum(var_mean_diff_ab()) / p()
+  })
+  output$avg_mean_diff_ab <- renderPrint({
+    round(avg_mean_diff_ab(), 2)
+  })
+  task_ans <- reactive({
+    task_resp()
+    
+  })
+ 
   task_score <- reactive({
     if(section_nm() %in% c("training", "task")){
       ans  <- task_ans()
@@ -168,7 +190,7 @@ server <- function(input, output, session){
     return(0L)
   })
   
-  ### PCA plot reactive -----
+  ### _PCA plot reactive -----
   pca_height <- function(){
     if(pca_active() == TRUE){
       return(height_px)
@@ -250,7 +272,7 @@ server <- function(input, output, session){
     }
   })
   
-  ### Grand tour plotly reactive -----
+  ### _Grand tour plotly reactive -----
   grand_height <- function(){
     if(grand_active() == TRUE){
       return(height_px)
@@ -291,7 +313,7 @@ server <- function(input, output, session){
   })
   
   
-  ### radial tour plotly reactive -----
+  ### _Radial tour plotly reactive -----
   radial_height <- function(){
     if(radial_active()){
       return(height_px)
@@ -337,7 +359,7 @@ server <- function(input, output, session){
   
   
   
-  ##### Start observes
+  ##### Observers ----
   observeEvent({
     dat()
   }, {
@@ -345,7 +367,7 @@ server <- function(input, output, session){
     updateCheckboxGroupInput(session, "task_response", 
                              choices = choices, selected = "", inline = TRUE)
   })
-  ### Obs update axis/task choices -----
+  ### _Obs update axis/task choices -----
   observeEvent({
     dat()
     input$factor
@@ -412,7 +434,7 @@ server <- function(input, output, session){
     }
   })
   
-  ### Obs radial basis -----
+  ### _Obs radial basis -----
   observeEvent({
     dat()
     input$x_axis
@@ -441,7 +463,7 @@ server <- function(input, output, session){
   
  
   
-  ### Obs radial update manip_var_nm choices -----
+  ### _Obs radial update manip_var_nm choices -----
   observeEvent({
     dat()
     input$factor
@@ -455,7 +477,7 @@ server <- function(input, output, session){
     }
   })
   
-  ### Obs grand slider value -----
+  ### _Obs grand slider value -----
   ## CURRENTLY RESTART BUTTON
   # observeEvent(
   #   {
@@ -481,7 +503,7 @@ server <- function(input, output, session){
   #   }
   # )
   
-  ##### Obs task responses -----
+  ##### _Obs task responses -----
   ### task responses & ttr
   observeEvent(input$task_response, {
     if(time_elapsed() > 1){
@@ -494,7 +516,7 @@ server <- function(input, output, session){
     }
   })
   
-  ### Obs interaction count -----
+  ### _Obs interaction count -----
   observeEvent({
       input$x_axis
       input$y_axis
@@ -515,7 +537,7 @@ server <- function(input, output, session){
     }
   )
   
-  ##### Obs survey answers -----
+  ##### _Obs survey answers -----
   observeEvent(input$survey1, {
     if(time_elapsed() > 1){
       i <- 1
@@ -704,7 +726,7 @@ server <- function(input, output, session){
     }
   })
   
-  ### Obs next page button -----
+  ### _Obs next page button -----
   observeEvent(input$next_pg_button, {
     if((rv$stopwatch > 1L & do_log == TRUE) | do_log == FALSE){
       cat(paste0("in loop, top --", rv$pg))
@@ -712,7 +734,7 @@ server <- function(input, output, session){
       task_ans   <- task_ans()
       task_score <- task_score()
       
-      ### _Training evaluation -----
+      ### __Training evaluation -----
       ## if training section, evaluate response
       if(section_nm() == "training"){
         this_char <- ""
@@ -743,7 +765,7 @@ server <- function(input, output, session){
         }
       } ## end of training section evaluation
       
-      ##### _rv$resp_tbl -----
+      ##### __rv$resp_tbl -----
       ## Write reponses and ttr to resp_tbl
       if(section_nm() %in% c("task", "training")){
         ins_row <- which(rv$resp_tbl$factor  == factor_nm() &
@@ -778,7 +800,7 @@ server <- function(input, output, session){
         # rv$resp_tbl$concern[ins_row]      <- task_concern
       } ## End of writing to resp_tbl
       cat("!!! ITERATED PG!!!")
-      ### _New page ----
+      ### __New page ----
       ## Advance to the next page, reset variables
       rv$pg <- rv$pg + 1L
       ## Reset responses, ttr, and timer for next task
@@ -815,7 +837,7 @@ server <- function(input, output, session){
   })
   
   
-  ### Obs save reponses button -----
+  ### _Obs save responses button -----
   observeEvent(input$save_resp, {
     filebase = paste("responses", this_group, Sys.info()[4], sep = "_")
     prefix = ""
@@ -858,10 +880,10 @@ server <- function(input, output, session){
     }
   })
   
-  ### Obs browser -----
+  ### _Obs browser -----
   observeEvent(input$browser, if(do_disp_dev_tools == TRUE){browser()})
   
-  ### Obs timer -----
+  ### _Obs timer -----
   observe({
     invalidateLater(1000, session)
     isolate({
@@ -899,16 +921,23 @@ server <- function(input, output, session){
   output$factor_nm   <- reactive(factor_nm())  ## For sidebar inputs
   output$block       <- reactive(block())      ## For training ui
   output$section_pg  <- reactive(section_pg()) ## For navigating training
-  output$plot_active <- reactive(pca_active() | grand_active() | radial_active()) ## For display of the task response.
+  output$any_active  <- reactive(any_active()) ## For display of the task response.
+  output$dev_tools   <- reactive({ ## For JS eval of R boolean...
+    if(do_disp_dev_tools == TRUE){
+      return(TRUE)
+    }else return(FALSE)
+  }) 
+  #input$task_response
   
   outputOptions(output, "is_saved",    suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
   outputOptions(output, "pg",          suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "section_nm",  suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "factor_nm",   suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "block",       suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "section_pg",  suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
-  outputOptions(output, "plot_active", suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
-  
+  outputOptions(output, "section_pg",  suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "any_active",  suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "dev_tools",   suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
+
   ### General task outputs
   ## height: ggplot applies on renderPlot(), plotly applies to a plotly option.
   output$task_header <- renderText(task_header())
@@ -953,33 +982,8 @@ server <- function(input, output, session){
   })
   output$dummy          <- renderPrint(dummy_txt())
   output$resp_tbl       <- renderTable({rv$resp_tbl})
-  output$task_ans_ptile <- renderPrint({task_ans_ptile()})
-  output$task_ans       <- renderPrint({task_ans()})
-  output$task_score     <- renderPrint({task_score()})
   
   ### dev_tools display -----
-  renderUI(
-    if(do_disp_dev_tools == TRUE){
-      vect_var_response <- input$task_response
-      args_means_BEFORE_ROTATION <- attr(dat(), "args")$means
-      vect_var_ans_BEFORE_ROTATION <- abs(args_means_BEFORE_ROTATION[[1]])
-      p <- length(vect_var_ans_BEFORE_ROTATION)
-      mat_var_ans <- matrix(rep(vect_var_ans_BEFORE_ROTATION, times = p),
-                            nrow = p, ncol = p, byrow = TRUE)
-      rotate_mtvnorm(mat_var_ans, 
-      attributes(dat_std)
-      attr(dat_std, means)
-      vect_var_ans <- 
-      ## Dev_tool display
-      fluidRow(
-        p("===== Development display below ====="),
-        p("Variable level response: "), vect_var_response
-        #p("MMP ClSep: "), ## We know the exact differences, no need for MMP ClSep
-        p("Variable marks: "), , ## TODO, marks based on the sim.
-        p("Task marks: ")
-      ) ## Close fluidRow()
-    }
-  )
   output$resp_tbl <- renderTable({
     if(do_disp_dev_tools == TRUE){
       rv$resp_tbl
@@ -999,8 +1003,3 @@ server <- function(input, output, session){
 
 ### Combine as shiny app.
 shinyApp(ui = ui, server = server)
-
-
-
-##### DEPRICATING: -----
-### old resp_tbl structure deleted.
