@@ -17,10 +17,8 @@ set.seed(20200927)   ## if tourr starts using seeds
 
 #### Simulated data series,
 ## "series" or iteration of data to look at. Should be an even hundred
-height_px  <- 500L
-width_px   <- 1000L
-
-
+height_px <- 500L
+width_px  <- 1000L
 
 #### Logging -----
 ## browseURL("https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/")
@@ -35,7 +33,7 @@ cat("do_log:", do_log)
 
 #### Set log file, participant_num is the next number after reading last writen participant_num
 ## TODO: need to read the unique perm numbers in load file, and find the perm_numbers in the min count table. 
-## Init
+## Initialize
 participant_num <- 1
 log_file <- "inialize"
 if(do_log == TRUE){
@@ -43,7 +41,7 @@ if(do_log == TRUE){
   log_file <- paste0("log_participant_", participant_num, ".json")
   ## TODO: Need to get participant_num, from google docs.
   while (file.exists(log_file)){ ## Find an unused log number
-    participant_num  <- participant_num + 1
+    participant_num <- participant_num + 1
     full_perm_num <- 1 + participant_num %% 56
     log_file <- paste0("log_participant_", participant_num, ".json")
   }
@@ -155,8 +153,13 @@ for(i in 1:length(sim_nms)){
 # }
 
 
+#TODO: is this the best spot for it?
+## Enumerate and eagerly eval all ggplots
+
+
+
 ##### Global variable initialization -----
-n_trainings        <- 2L #length(s_t_dat)       ## ~2
+n_trainings        <- 2L #length(s_t_dat)      ## ~2
 n_factors          <- length(factor_nms)       ## ~3
 n_p_dim            <- length(p_dim_nms)        ## ~2
 n_survey_questions <- length(survey_questions) ## ~21
@@ -423,15 +426,8 @@ main_ui <- mainPanel(width = 9,
       radioButtons(inputId = "manip_var_nm", label = "Manip variable:",
                    choices =  "V1", selected = "V1")
     ), ## Close conditionalPanel()
-    uiOutput("radial_frame"),
-    uiOutput("grand_ui"),
-    sliderInput("dummy", "dummy slider:",
-                min = 1, max = 10,
-                value = 1, step = 1,
-                animate =
-                  animationOptions(interval = 167L, loop = TRUE)
-    ),
-    textOutput("dummy"),
+    uiOutput("radial_slider"),
+    uiOutput("grand_ui")
   ), ## Close plot conditional panel
   
   ### _Survey mainPanel -----
@@ -508,151 +504,7 @@ ui <- fluidPage(useShinyjs(), ## Required in ui to use shinyjs.
                 dev_tools
 )
 
-##### App local functions below: -----
-app_render_ <- function(frames, ## paste over spinifex render to add size
-                        axes = "left",
-                        alpha = 1,
-                        cluster = NULL,
-                        ...){
-  ## Initialize
-  if(length(frames) == 2)
-    data_frames  <- data.frame(frames[[2]])
-  basis_frames   <- data.frame(frames[[1]])
-  manip_var      <- attributes(frames$basis_frames)$manip_var
-  n_frames       <- max(basis_frames$frame)
-  p              <- nrow(basis_frames) / n_frames
-  d              <- ncol(basis_frames) - 2
-  angle          <- seq(0, 2 * pi, length = 360)
-  circ           <- data.frame(x = cos(angle), y = sin(angle))
-  ## Scale basis axes
-  if(axes != "off"){
-    zero         <- app_set_axes_position(0, axes)
-    circ         <- app_set_axes_position(circ, axes)
-    basis_frames <- data.frame(app_set_axes_position(basis_frames[, 1:2], axes),
-                               basis_frames[, (d + 1):ncol(basis_frames)])
-  }
-  ## manip var axes asethetics
-  axes_col <- rep("red", p)
-  axes_siz <- rep(0.3, p)
-  axes_col[manip_var] <- "blue"
-  axes_siz[manip_var] <- .6
-  
-  x_max <- max(data_frames[, 1], circ[, 1])
-  x_min <- min(data_frames[, 1], circ[, 1])
-  y_max <- max(data_frames[, 2], circ[, 2])
-  y_min <- min(data_frames[, 2], circ[, 2])
-  x_range <- x_max - x_min
-  y_range <- y_max - y_min
-  
-  gg <-
-    ## ggplot settings
-    ggplot2::ggplot() +
-    ggplot2::theme_void() +
-    ggplot2::theme(panel.grid.major = element_blank(), ## Remove grid lines
-                   panel.grid.minor = element_blank(), ## Remove grid lines
-                   axis.text.x  = element_blank(),     ## Remove axis marks
-                   axis.text.y  = element_blank(),     ## Remove axis marks
-                   axis.title.x = element_blank(),     ## Remove axis titles for grand
-                   axis.title.y = element_blank(),     ## Remove axis titles for grand
-                   aspect.ratio = y_range / x_range,
-                   legend.box.background = element_rect(),
-                   legend.title = element_text(size = 18, face = "bold"),
-                   legend.text  = element_text(size = 18, face = "bold")) +
-    ggplot2::scale_color_brewer(palette = pal) +
-    ggplot2::xlim(x_min, x_max) +
-    ggplot2::ylim(y_min, y_max) +
-    ## Projected data points
-    suppressWarnings( ## Suppress for unused aes "frame".
-      ggplot2::geom_point(
-        data = data_frames, size = 3, alpha = alpha,
-        mapping = ggplot2::aes(x = x, y = y, frame = frame,
-                               color = cluster,
-                               fill  = cluster,
-                               shape = cluster)
-      )
-    )
-  
-  if(axes != "off"){
-    gg <- gg +
-      ## Circle path
-      ggplot2::geom_path(
-        data = circ, color = "grey80", size = .3, inherit.aes = F,
-        mapping = ggplot2::aes(x = x, y = y)
-      ) +
-      ## Basis axes segments
-      suppressWarnings( ## Suppress for unused aes "frame".
-        ggplot2::geom_segment(
-          data = basis_frames, size = axes_siz, colour = axes_col,
-          mapping = ggplot2::aes(x = x,
-                                 y = y,
-                                 xend = zero[, 1], yend = zero[, 2],
-                                 frame = frame)
-        )
-      ) +
-      ## Basis axes text labels
-      suppressWarnings( ## Suppress for unused aes "frame".
-        ggplot2::geom_text(
-          data = basis_frames,
-          mapping = ggplot2::aes(x = x, y = y,
-                                 frame = frame, label = lab),
-          colour = axes_col, size = 6, vjust = "outward", hjust = "outward")
-      )
-  }
-  
-  gg + theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
-}
-
-app_oblique_frame <-
-  function(basis        = NULL,
-           data         = NULL,
-           manip_var    = NULL,
-           theta        = 0,
-           phi          = 0,
-           lab          = NULL,
-           rescale_data = FALSE,
-           ...){
-    
-    if(is.null(basis) & !is.null(data)){
-      message("NULL basis passed. Initializing random basis.")
-      basis <- tourr::basis_random(n = ncol(data))
-    }
-    
-    p <- nrow(basis)
-    m_sp <- create_manip_space(basis, manip_var)
-    r_m_sp <- rotate_manip_space(manip_space = m_sp, theta, phi)
-    
-    basis_frames <- cbind(as.data.frame(r_m_sp), frame = 1)
-    colnames(basis_frames) <- c("x", "y", "z", "frame")
-    if(!is.null(data)){
-      if(rescale_data){data <- tourr::rescale(data)}
-      data_frames  <- cbind(as.data.frame(data %*% r_m_sp), frame = 1)
-      data_frames[, 1] <- scale(data_frames[, 1], scale = FALSE)
-      data_frames[, 2] <- scale(data_frames[, 2], scale = FALSE)
-      colnames(data_frames) <- c("x", "y", "z", "frame")
-    }
-    
-    ## Add labels, attribute, and list
-    basis_frames$lab <-
-      if(!is.null(lab)){
-        rep(lab, nrow(basis_frames) / length(lab))
-      }else{
-        if(!is.null(data)){abbreviate(colnames(data), 3)
-        }else{paste0("V", 1:p)}
-      }
-    
-    attr(basis_frames, "manip_var") <- manip_var
-    
-    frame <- if(!is.null(data)){
-      list(basis_frames = basis_frames, data_frames = data_frames)
-    } else list(basis_frames = basis_frames)
-    
-    gg <- app_render_(frames = frame, ...) +
-      ggplot2::coord_fixed() +
-      theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
-    
-    return(gg)
-  }
-
+##### App local functions -----
 app_html_red <- function(string){
   paste0("<strong><span style='color:red'>", string, "</span><strong>")
 }

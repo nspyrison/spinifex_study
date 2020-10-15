@@ -1,5 +1,6 @@
 source('global.r', local = TRUE)
 ## Also try: shiny::runApp(appDir = "apps/study", display.mode = "showcase")
+?shiny::runApp(appDir = "apps/study", display.mode = "showcase")
 
 
 ####### Server function, for shiny app
@@ -135,8 +136,8 @@ server <- function(input, output, session){
     return(get(paste0("tpath_", sim_nm)))
   })
   manip_var <- reactive({
-    req(input$manip_var_nm)
-    return(which(colnames(dat()) == input$manip_var_nm))
+    mv <- which(colnames(dat()) == input$manip_var_nm)
+    return(max(mv, 1))
   })
   pca_active <- reactive({
     if(factor_nm() == "pca"){
@@ -345,7 +346,6 @@ server <- function(input, output, session){
   }
   radial_plot_ls <- reactive({
     if(radial_active()){
-      req(manip_var())
       ## Data init
       dat_std <- dat()
       bas <- basis_pca(dat_std)
@@ -353,7 +353,7 @@ server <- function(input, output, session){
       cluster <- cl()
       fps <- 6L
       axes_position <- "left"
-      ## Needed only for seting scales and aspect ratio
+      ## Needed only for setting scales and aspect ratio
       angle <- seq(0L, 2L * pi, length = 360L)
       circ  <- scale_axes(data.frame(x = cos(angle), y = sin(angle)),
                           axes_position, dat_std)
@@ -933,13 +933,13 @@ server <- function(input, output, session){
   })
   
   ### Condition handling for ui coditionalPanels
-  output$is_saved    <- reactive(if(is.null(rv$save_file)){0}else{1}) ## Control save_msg.
-  output$pg          <- reactive(rv$pg)        ## For hiding ui next_task button
-  output$section_nm  <- reactive(section_nm()) ## For ui between sections
-  output$factor_nm   <- reactive(factor_nm())  ## For sidebar inputs
-  output$section_pg  <- reactive(section_pg()) ## For navigating training
-  output$any_active  <- reactive(any_active()) ## For display of the task response.
-  output$dev_tools   <- reactive({ ## For JS eval of R boolean...
+  output$is_saved   <- reactive(if(is.null(rv$save_file)){0}else{1}) ## Control save_msg.
+  output$pg         <- reactive(rv$pg)        ## For hiding ui next_task button
+  output$section_nm <- reactive(section_nm()) ## For ui between sections
+  output$factor_nm  <- reactive(factor_nm())  ## For sidebar inputs
+  output$section_pg <- reactive(section_pg()) ## For navigating training
+  output$any_active <- reactive(any_active()) ## For display of the task response.
+  output$dev_tools  <- reactive({ ## For JS eval of R boolean...
     if(do_disp_dev_tools == TRUE){
       return(TRUE)
     }else return(FALSE)
@@ -960,8 +960,8 @@ server <- function(input, output, session){
   output$pca_plot <- renderPlot({pca_plot()}, height = pca_height)
   output$grand_ui <- renderUI({
     if(grand_active()){
+      req(grand_plot_ls())
       ## Initialize
-      p <- p()
       output$grand_plot <- 
         renderPlot({grand_plot_ls()[[input$grand_frame]]}, height = grand_height)
       
@@ -976,22 +976,44 @@ server <- function(input, output, session){
       ) ## End fluidRow()
     } ## End if(active)
   }) ## End renderUI(), assigning output$grand_ui
-  output$radial_frame <- renderUI({
+  output$radial_slider <- renderUI({
     if(radial_active()){
       ## Initialize
       req(radial_plot_ls())
       n_frames <- length(radial_plot_ls())
+      #n_frames <- 40
       
-      sliderInput("radial_frame", "Radial tour frame:",
-                  min = 1, max = n_frames,
-                  value = 1, step = 1,
-                  animate =
-                    animationOptions(interval = 167L, loop = FALSE))
+      # output$radial_plot <-
+      #   renderPlot({radial_plot_ls()[[input$radial_frame]]}, height = radial_height)
+      
+      fluidRow(
+        # # plotOutput("radial_plot", height = "100%"),
+        # radioButtons(inputId = "manip_var_nm", label = "Manip variable:",
+        #              choices =  "V1", selected = "V1"),
+        sliderInput("radial_slider", "Radial tour frame:",
+                    min = 1, max = n_frames,
+                    value = 1, step = 1,
+                    animate =
+                      animationOptions(interval = 167L, loop = FALSE))
+      )
     } ## End if(active)
   }) ## End renderUI(), assigning output$radial_input
+  # output$radial_slider <- renderUI({
+  #   if(radial_active()){
+  #     ## Initialize
+  #     req(radial_plot_ls())
+  #     n_frames <- length(radial_plot_ls())
+  #     
+  #     sliderInput("radial_frame", "Radial tour frame:",
+  #                 min = 1, max = n_frames,
+  #                 value = 1, step = 1,
+  #                 animate =
+  #                   animationOptions(interval = 167L, loop = FALSE))
+  #   } ## End if(active)
+  # }) ## End renderUI(), assigning output$radial_input
   
   output$radial_plot <-
-    renderPlot({radial_plot_ls()[[input$radial_frame]]}, height = radial_height)
+    renderPlot({radial_plot_ls()[[input$radial_slider]]}, height = radial_height)
   
   dummy_txt <- reactive({
     paste0("dummy slider value: ", input$dummy)
