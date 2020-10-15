@@ -28,36 +28,40 @@ width_px   <- 1000L
 ## SET do_log to TRUE to start logging 
 do_log            <- FALSE
 do_disp_dev_tools <- TRUE
+do_browse_err     <- TRUE
+if(do_browse_err == TRUE)
+  options(error = browser)
 cat("do_log:", do_log)
 
 #### Set log file, participant_num is the next number after reading last writen participant_num
+## TODO: need to read the unique perm numbers in load file, and find the perm_numbers in the min count table. 
 ## Init
-log_base <- paste0("log_", Sys.info()[4], "_")
 participant_num <- 1
-log_file <- ""
-log_name <- "DUMMY"
+log_file <- "inialize"
 if(do_log == TRUE){
-  log_name <- sprintf(paste0(log_base, "%03d"), participant_num)
-  log_file <- paste0(log_name, ".json")
+  full_perm_num <- 1 + participant_num %% 56
+  log_file <- paste0("log_participant_", participant_num, ".json")
   ## TODO: Need to get participant_num, from google docs.
   while (file.exists(log_file)){ ## Find an unused log number
     participant_num  <- participant_num + 1
-    log_name <- sprintf(paste0(log_base, "%03d"), participant_num)
-    log_file <- paste0(log_name, ".json")
+    full_perm_num <- 1 + participant_num %% 56
+    log_file <- paste0("log_participant_", participant_num, ".json")
   }
   set_logfile(log_file)
 }else{ ## When do_log == F
-  participant_num  <- sample(1:56, 1)
-  log_name <- "<NOT LOGGING>"
-  log_file <- "Logging is off! Log and responses not being recorded."
+  participant_num  <- sample(1:999, 1)
+  full_perm_num <- 1 + participant_num %% 56
+  log_file <- paste0("log_participant_", participant_num,
+                     "Logging is off! Log and responses not being recorded.")
 }
+full_perm_num <- 1 + participant_num %% 56
 cat("do_log, log_file: ", do_log, log_file, " /n")
 
 #### Select factor and block permutations
 ## The permutation number
-this_factor_perm   <- 1 + (participant_num - 1) %% 3 ## %% is mod
-this_location_perm <- 1 + floor((participant_num - 1) / 3) %% 3
-this_vc_perm       <- 1 + floor((participant_num - 1) / 9) %% 6
+this_factor_perm   <- 1 + (full_perm_num - 1) %% 3 ## %% is mod
+this_location_perm <- 1 + floor((full_perm_num - 1) / 3) %% 3
+this_vc_perm       <- 1 + floor((full_perm_num - 1) / 9) %% 6
 ## The permutations
 factor_perms   <- rbind(c(1, 2, 3), ## The 3 permutations of the 3 factor orders
                         c(2, 3, 1),
@@ -73,13 +77,13 @@ vc_perms       <- rbind(c(1, 2), ## The 6 permutations of the 3 location orders
 factor_nms   <- c("pca", "grand", "radial")
 location_nms <- c("0_1", "33_66", "50_50")
 vc_nms       <- c("EEE", "EEV", "banana")
-p_dim_nms    <- c("p4", "p6")
+p_dim_nms <- this_p_dim_nm_ord <- c("p4", "p6")
 ## The decoded names 
 this_factor_nm_ord <- 
   factor_nms[factor_perms[this_factor_perm, ]]
-this_location_nm_ord <- 
+this_location <- 
   location_nms[location_perms[this_location_perm, ]]
-this_vc_nm_order <- 
+this_vc_nm_ord <- 
   vc_nms[vc_perms[this_vc_perm, ]]
 
 
@@ -122,55 +126,50 @@ survey_questions <- c("What sex are you?",
                               "I liked using this visualization."), 3)
 )
 
-## Load training data and tour paths
-tmp <- data.frame(tidyr::crossing(this_vc_nm_order, p_dim_nms), this_location_nm_ord)
-this_sim_nms <- paste(tmp[, 1], tmp[, 2], tmp[, 3], sep = "_")
-root <- ("~/R/spinifex_study/apps/data")# here("apps/data/") ## Filepaths cannot be too long....
+#### Load data and tour paths -----
+this_sim_nms <- paste(rep(this_vc_nm_ord, 3), rep(p_dim_nms, 3), rep(this_location, 3), sep = "_")
+root <- ("~/R/spinifex_study/apps/data") # here("apps/data/") ## Filepaths cannot be too long....
 
-sim_fps <- paste0(root, "/", this_sim_nms, ".rda")
-tpath_fps <- paste0(root, "/tpath_", this_sim_nms, ".rda")
-
-for(i in 1:length(this_sim_nms)){
+## Load all sim names, for dev control
+sim_nms <- c("EEE_p4_0_1",    "EEE_p4_33_66",    "EEE_p4_50_50",
+             "EEV_p4_0_1",    "EEV_p4_33_66",    "EEV_p4_50_50",
+             "banana_p4_0_1", "banana_p4_33_66", "banana_p4_50_50",
+             "EEE_p6_0_1",    "EEE_p6_33_66",    "EEE_p6_50_50",
+             "EEV_p6_0_1",    "EEV_p6_33_66",    "EEV_p6_50_50",
+             "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
+sim_fps <- paste0(root, "/", sim_nms, ".rda")
+tpath_fps <- paste0(root, "/tpath_", sim_nms, ".rda")
+for(i in 1:length(sim_nms)){
   ## Load sims by the obj name stored in .rda files.
   load(sim_fps[i])
   load(tpath_fps[i])
 }
 
-## ALL SIM NAMES
-# sim_nms <- c("EEE_p4_0_1", "EEE_p4_33_66", "EEE_p4_50_50",
-#              "EEV_p4_0_1", "EEV_p4_33_66", "EEV_p4_50_50",
-#              "banana_p4_0_1", "banana_p4_33_66", "banana_p4_50_50",
-#              "EEE_p6_0_1", "EEE_p6_33_66", "EEE_p6_50_50",
-#              "EEV_p6_0_1", "EEV_p6_33_66", "EEV_p6_50_50",
-#              "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
-
-## Load data and tour paths for task eval
-# dat_len <- 12L
-# s_dat <- s_tpath <- list()
-# for (i in 1:dat_len){
-#   s_dat[[i]] <- readRDS(
-#     here::here(paste0("apps/data/simulation_data", sim_series + i, ".rds"))
-#   )
-#   s_tpath[[i]] <- readRDS(
-#     here::here(paste0("apps/data/grand_tpath", sim_series + i, ".rds"))
-#   )
+# ## Load just needed files
+# sim_fps <- paste0(root, "/", this_sim_nms, ".rda")
+# tpath_fps <- paste0(root, "/tpath_", this_sim_nms, ".rda")
+# for(i in 1:length(this_sim_nms)){
+#   ## Load sims by the obj name stored in .rda files.
+#   load(sim_fps[i])
+#   load(tpath_fps[i])
 # }
 
+
 ##### Global variable initialization -----
-n_trainings        <- 2 #length(s_t_dat)       ## ~2
+n_trainings        <- 2L #length(s_t_dat)       ## ~2
 n_factors          <- length(factor_nms)       ## ~3
 n_p_dim            <- length(p_dim_nms)        ## ~2
 n_survey_questions <- length(survey_questions) ## ~21
-PC_cap             <- 4 ## Number of principal components to choose from.
+PC_cap             <- 4L ## Number of principal components to choose from.
 pal                <- "Dark2"
 
 #### Define section start pages,
 ## may need radial changes when changing section sizes
 ## intro is pg 1; video training is pg 2
 training_start_pg <- 3L
-task_start_pg <- (training_start_pg + 2 + 1) + 1
+task_start_pg <- (training_start_pg + 2L + 1L) + 1L
 ## ~ pg7;(3+2+1+1; train_st, 2 task sets, splash pg, start on new pg)
-survey_start_pg <- task_start_pg + n_factors * n_p_dim + 1
+survey_start_pg <- task_start_pg + n_factors * n_p_dim + 1L
 ## ~ pg14, (7+3*3+1; task_st, 3*3 factor*block, start on new pg)
 
 ##### UI START -----
@@ -183,7 +182,7 @@ header_ui <- fluidPage(
 ##### sidebar_ui ----
 sidebar_ui <- conditionalPanel(
   condition = "output.section_nm == 'training' || output.section_nm == 'task'",
-  sidebarPanel(width = 3,
+  sidebarPanel(width = 3L,
                ## TODO ENABLE THESE REMOVED TRAINING TEXT DISP AFTER PLANNING
                #,
                ##### _Training text -----
@@ -229,7 +228,7 @@ sidebar_ui <- conditionalPanel(
       condition = "output.section_nm == 'training' && output.section_pg < 6",
       radioButtons(inputId = "factor", label = "Factor",
                    choices = factor_nms,
-                   selected = factor_nms[1],
+                   selected = factor_nms[1L],
                    inline = TRUE),
       fluidRow(column(4, radioButtons(inputId = "simVc", label = "VC",
                                       choices = c("EEE", "EEV", "banana"), selected = "EEE")),
@@ -265,8 +264,8 @@ surv_lab <- HTML("<div style=\"width:300px;\">
                     <div style=\"float:left;\">strongly disagree</div>
                     <div style=\"float:right;\">strongly agree</div>
                   </div>")
-survey_fct_q_start <- 9
-col_p1 <- column(4,
+survey_fct_q_start <- 9L
+col_p1 <- column(4L,
                  h3(this_factor_nm_ord[1]),
                  hr(),
                  h4(survey_questions[survey_fct_q_start + 1]),
@@ -530,7 +529,7 @@ app_render_ <- function(frames, ## paste over spinifex render to add size
     zero         <- app_set_axes_position(0, axes)
     circ         <- app_set_axes_position(circ, axes)
     basis_frames <- data.frame(app_set_axes_position(basis_frames[, 1:2], axes),
-                               basis_frames[, (d+1):ncol(basis_frames)])
+                               basis_frames[, (d + 1):ncol(basis_frames)])
   }
   ## manip var axes asethetics
   axes_col <- rep("red", p)

@@ -30,9 +30,10 @@ server <- function(input, output, session){
   rv$resp_tbl         <- 
     data.frame(
       participant_num = participant_num,
+      full_perm_num   = full_perm_num, 
       factor          = rep(this_factor_nm_ord, length.out = 99),
-      block_location  = rep(this_location_nm_ord, length.out = 99),
-      block_vc        = rep(this_vc_nm_order, length.out = 99), 
+      block_location  = rep(this_location, length.out = 99),
+      block_vc        = rep(this_vc_nm_ord, length.out = 99), 
       block_p_dim     = rep(p_dim_nms, length.out = 99),
       sim_nm          = rep(this_sim_nms, length.out = 99),
       #sim_nm          = patse(block_vc, block_p_dim, block_location, sep = "_"),
@@ -69,7 +70,14 @@ server <- function(input, output, session){
     }
     if(section_nm() == "survey"){return(1L)}
   })
-  period <- reactive({1L + ((section_pg() - 1L) %/% (n_p_dim))})
+  period <- reactive({
+    if(section_nm() == "training" | section_nm() == "task")
+      1L + (section_pg() - 1L) %/% (n_p_dim)
+  })
+  task   <- reactive({
+    if(section_nm() == "training" | section_nm() == "task")
+      1L + (section_pg() - 1L) %% (n_p_dim)
+  })
   factor_nm <- reactive({ ## ~ for group 1: pca, grand, radial
     if(section_nm() == "training" & do_disp_dev_tools == TRUE) return(input$factor)
     if(section_nm() == "training" & do_disp_dev_tools == FALSE) 
@@ -78,24 +86,31 @@ server <- function(input, output, session){
     if(section_nm() == "task") return(this_factor_nm_ord[period()])
     return("NONE / NA")
   })
-  # block_location <- reactive({
-  #   
-  # })
-  # block_vc <- reactive({
-  #   
-  # })
+  block_location_nm <- reactive({
+    req(task())
+    this_location[task()]
+  })
+  block_vc_nm <- reactive({
+    req(task())
+    this_vc_nm_ord[task()]
+  })
+  block_p_dim_nm <- reactive({
+    req(task())
+    p_dim_nm_ord[task()]
+  })
   
   sim_nm <- reactive({
     if(section_nm() == "training"){ #& do_disp_dev_tools == TRUE){
       req(input$simVc, input$simP, input$simLocation)
-      return(paste(input$simVc, input$simP, input$simLocation, sep =  "_"))
+      return(paste(input$simVc, input$simP, input$simLocation, sep = "_"))
     }
     # #TODO
     # if(section_nm() == "training"){
     #   req(input$simVc, input$simP, input$simLocation)
     #   return(this_sim_nms[1])
     # }
-    return(1 + (section_pg() - 1) %% length(this_sim_nms))
+    sim_num <- 1 + (section_pg() - 1) %% length(this_sim_nms)
+    return(this_sim_nms[sim_num])
   })
 
   task_time <- reactive({
@@ -106,14 +121,12 @@ server <- function(input, output, session){
   })
   time_elapsed <- reactive({ as.integer(task_time() - rv$timer) })
   dat <- reactive({ ## Simulation df with attachments.
-    sim_nm <- sim_nm()
-    req(sim_nm)
-    return(get(sim_nm))
+    req(sim_nm())
+    return(get(sim_nm()))
   })
   cl <- reactive({ ## Simulation df with attachments.
-    dat <- dat()
-    req(dat)
-    return(attr(dat, "cluster"))
+    req(dat())
+    return(attr(dat(), "cluster"))
   })
   p <- reactive({ ncol(dat()) })
   task_tpath <- reactive({
@@ -154,8 +167,8 @@ server <- function(input, output, session){
            paste0("task_header(): ", task_header())
     )
   })
-  pfbs <- reactive({
-    paste("period(), factor_nm(), block(), sim_nm(): ", period(), factor_nm(), block(), sim_nm())
+  pfs <- reactive({
+    paste("period(), factor_nm(), sim_nm(): ", period(), factor_nm(), sim_nm())
   })
   
   #### _Task evaluation -----
@@ -409,7 +422,7 @@ server <- function(input, output, session){
       updateRadioButtons(session, "x_axis", choices = choices, selected = x_axis_out, inline = TRUE)
       loggit("INFO", paste0("x_axis set to ", input$x_axis,
                             ", same as y_axis; x_axis bumped to ", x_axis_out, "."),
-             pfbs()
+             pfs()
       )
       
       output$plot_msg <- renderText(
@@ -431,7 +444,7 @@ server <- function(input, output, session){
       updateRadioButtons(session, "y_axis", choices = choices, selected = y_axis_out, inline = TRUE)
       loggit("INFO", paste0("y_axis set to ", input$y_axis,
                             ", same as x_axis; y_axis bumped to ", y_axis_out, "."),
-             pfbs()
+             pfs()
       )
       
       output$plot_msg <- renderText(
@@ -461,7 +474,7 @@ server <- function(input, output, session){
              paste0("New basis set (from dat/axes) "),
              paste0("x_axis: ", x, ", y_axis: ", y, ". rv$curr_basis: ",
                     paste0(round(rv$curr_basis, 2), e = ", "),
-                    pfbs()
+                    pfs()
              )
       )
     }
@@ -502,7 +515,7 @@ server <- function(input, output, session){
   #       loggit("INFO",
   #              paste0("New manip slider value (from dat/axes/manip_var)."),
   #              paste0("manip_slider: ", .val,
-  #                     pfbs()
+  #                     pfs()
   #              )
   #       )
   #     }
@@ -772,13 +785,12 @@ server <- function(input, output, session){
       } ## end of training section evaluation
       
       ##### __rv$resp_tbl -----
-      ## Write reponses and ttr to resp_tbl
+      ## Write responses and ttr to resp_tbl
       if(section_nm() %in% c("task", "training")){
-        ins_row <- which(rv$resp_tbl$factor  == factor_nm() &
-                           rv$resp_tbl$block == block())[1L]
+        ins_row <- which(rv$resp_tbl$sim_nm  == sim_nm())[1L]
         
         ## Is response concerning?
-        task_concern <- "no"
+        task_concern <- "no" ## Init
         if(NA %in% rv$task_ttr){
           task_concern <- "YES, ttr contains NA. REMOVE."}
         if(min(rv$task_ttr) == "(default)" & !is.na(time_elapsed())){
@@ -836,7 +848,7 @@ server <- function(input, output, session){
       }
       rv$task_response <- def
       rv$task_ttr      <- "(default)"
-      loggit("INFO", paste0("Next page:"), pfbs())
+      loggit("INFO", paste0("Next page:"), pfs())
       cat("bottom of loop -- ")
     }
     cat("after loop \n")
@@ -899,7 +911,7 @@ server <- function(input, output, session){
     if(rv$timer < 0 & section_nm() == "task" & rv$timer_active == TRUE){
       rv$timer_active <- FALSE
       loggit("INFO", "Timer elapsed.",
-             pfbs())
+             pfs())
     }
   })
   
@@ -915,7 +927,7 @@ server <- function(input, output, session){
         )
       }
     }
-    if(section_nm() == "training" & block() != 6){ ## Disp timer Counting up if in training.
+    if(section_nm() == "training" & section_pg() != 6){ ## Disp timer Counting up if in training.
       return(paste0("Time elapsed this task: ", lubridate::seconds_to_period(rv$stopwatch)))
     }
   })
@@ -925,7 +937,6 @@ server <- function(input, output, session){
   output$pg          <- reactive(rv$pg)        ## For hiding ui next_task button
   output$section_nm  <- reactive(section_nm()) ## For ui between sections
   output$factor_nm   <- reactive(factor_nm())  ## For sidebar inputs
-  output$block       <- reactive(block())      ## For training ui
   output$section_pg  <- reactive(section_pg()) ## For navigating training
   output$any_active  <- reactive(any_active()) ## For display of the task response.
   output$dev_tools   <- reactive({ ## For JS eval of R boolean...
@@ -939,7 +950,6 @@ server <- function(input, output, session){
   outputOptions(output, "pg",          suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "section_nm",  suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "factor_nm",   suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "block",       suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "section_pg",  suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "any_active",  suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "dev_tools",   suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
@@ -1001,7 +1011,7 @@ server <- function(input, output, session){
           page_info(),
           task_header(),
           timer_info(),
-          pfbs()
+          pfs()
       )
     }
   })
