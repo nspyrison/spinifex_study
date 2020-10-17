@@ -180,34 +180,35 @@ server <- function(input, output, session){
       return(as.integer(gsub(' |V', '', input$task_response)))
   })
   output$task_resp <- renderPrint(task_resp())
-  ### Task answer
-  var_mean_diff_ab <- reactive({
+  ### Task scoring
+  task_diff <- reactive({
     if(any_active())
-      attr(dat(), "var_mean_diff_ab")
+    signal <- attr(dat(), "var_mean_diff_ab")
+    bar    <- sum(signal) / p()
+    signal - bar
   })
-  output$var_mean_diff_ab <- renderPrint({
-    round(var_mean_diff_ab(), 2)
+  output$task_diff <- renderPrint({
+    round(task_diff(), 2)
   })
-  ### bar to beat
-  avg_mean_diff_ab <- reactive({
-    if(any_active())
-      sum(var_mean_diff_ab()) / p()
-  })
-  output$avg_mean_diff_ab <- renderPrint({
-    round(avg_mean_diff_ab(), 2)
-  })
-  task_ans <- reactive({
-    task_resp()
-  })
- 
-  task_score <- reactive({
-    if(section_nm() %in% c("training", "task")){
-      ans  <- task_ans()
+  task_var_score <- reactive({
+    if(any_active()){
+      diff <- task_diff()
+      ans  <- which(diff >= 0L)
+      weight <- sign(diff) * sqrt(abs(diff))
+      
       resp <- task_resp()
-      #TODO need to look at clSep .rmd
-      "<stuff here>"
+      weight[resp]
     }
-    return(0L)
+  })
+  output$task_var_score <- renderPrint({
+    round(task_var_score(), 2)
+  })
+  task_score <- reactive({
+    if(any_active())
+      sum(task_var_score())
+  })
+  output$task_score <- renderPrint({
+    round(task_score(), 2)
   })
   
   ### _PCA plot reactive -----
@@ -227,16 +228,11 @@ server <- function(input, output, session){
       y_axis <- input$y_axis
       x_num  <- as.integer(substr(x_axis, 3L, 3L))
       y_num  <- as.integer(substr(y_axis, 3L, 3L))
-      x_pc   <- paste0("PC", x_num)
-      y_pc   <- paste0("PC", y_num)
       
       pca     <- prcomp(dat_std)
       pca_x   <- as.data.frame(pca$x)
       pca_rot <- data.frame(pca$rotation[ , c(x_num, y_num)])
       pca_rot <- scale_axes(pca_rot, axes_position, pca_x)
-      pca_pct_var <- round(100L * pca$sdev^2L / sum(pca$sdev^2L), 1L)
-      x_lab <- paste0(x_axis, " (", pca_pct_var[x_num], "% Var)")
-      y_lab <- paste0(y_axis, " (", pca_pct_var[y_num], "% Var)")
       
       angle <- seq(0L, 2L * pi, length = 360L)
       circ  <- scale_axes(data.frame(x = cos(angle), y = sin(angle)),
@@ -249,44 +245,33 @@ server <- function(input, output, session){
       ### ggplot2
       gg <- ggplot() +
         ## Themes and aesthetics
-        theme_minimal() +
-        scale_color_brewer(palette = pal) +
-        theme(panel.grid.major = element_blank(), ## no grid lines
-              panel.grid.minor = element_blank(), ## no grid lines
-              axis.text.x  = element_blank(),     ## no axis marks
-              axis.text.y  = element_blank(),     ## no axis marks
-              axis.title.x = element_text(size = 22L, face = "bold"),
-              axis.title.y = element_text(size = 22L, face = "bold"),
-              aspect.ratio = y_range / x_range,
-              legend.box.background = element_rect(),
-              legend.title = element_text(size = 18L, face = "bold"),
-              legend.text  = element_text(size = 18L, face = "bold")
-        ) +
-        labs(x = x_lab, y = y_lab)
-      ## Data points
-      gg <- gg +
+        theme_void() +
+        scale_colour_manual(values = pal) +
+        scale_fill_manual(values = pal) +
+        theme(legend.position = "none", ## no legend
+              aspect.ratio = y_range / x_range) +
+        ## Data points
         geom_point(pca_x,
                    mapping = aes(x = get(x_axis), y = get(y_axis),
                                  color = cluster,
                                  fill  = cluster,
                                  shape = cluster),
-                   size = 3L)
-      ## Axis segments
-      gg <- gg +
+                   size = 3L) +
+        ## Axis segments
         geom_segment(pca_rot,
-                     mapping = aes(x = get(x_pc), xend = zero[, 1L],
+                     mapping = aes(x = get(x_axis), xend = zero[, 1L],
                                    y = get(y_axis), yend = zero[, 2L]),
-                     size = .3, colour = "red") +
+                     size = 1L, colour = "grey50") +
         ## Axis label text
         geom_text(pca_rot,
                   mapping = aes(x = get(x_axis),
                                 y = get(y_axis),
                                 label = colnames(dat_std)),
-                  size = 6L, colour = "red", fontface = "bold",
+                  size = 5L, colour = "grey50", fontface = "bold",
                   vjust = "outward", hjust = "outward") +
         ## Circle path
         geom_path(circ, mapping = aes(x = x, y = y),
-                  color = "grey80", size = .3, inherit.aes = F)
+                  color = "grey80", size = 1L, inherit.aes = F)
       
       return(gg)
     }
@@ -296,11 +281,6 @@ server <- function(input, output, session){
   grand_height <- function(){
     if(grand_active() == TRUE){
       return(height_px)
-    }else return(1L)
-  }
-  grand_width <- function(){
-    if(grand_active() == TRUE){
-      return(width_px)
     }else return(1L)
   }
   grand_plot_ls <- reactive({
@@ -325,7 +305,10 @@ server <- function(input, output, session){
           view_frame(basis = tour_array[,, i], data = dat_std,
                      axes = "left",
                      aes_args = list(color = cluster, shape = cluster),
-                     identity_args = list(size = 3L))
+                     identity_args = list(size = 3L), 
+                     ggproto = list(theme_spinifex(), 
+                                    scale_colour_manual(values = pal)
+                     ))
       }
       
       return(gg_ls)
@@ -337,11 +320,6 @@ server <- function(input, output, session){
   radial_height <- function(){
     if(radial_active()){
       return(height_px)
-    }else return(1L)
-  }
-  radial_width <- function(){
-    if(radial_active() == TRUE){
-      return(width_px)
     }else return(1L)
   }
   radial_plot_ls <- reactive({
@@ -369,7 +347,10 @@ server <- function(input, output, session){
           view_frame(basis = tour_array[,, i], data = dat_std, 
                      manip_var = mvar, axes = "left",
                      aes_args =  list(color = cluster, shape = cluster),
-                     identity_args = list(size = 3L))
+                     identity_args = list(size = 3L),
+                     ggproto = list(theme_spinifex(), 
+                                    scale_colour_manual(values = pal)
+                     ))
       }
       
       return(gg_ls)

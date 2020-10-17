@@ -18,7 +18,8 @@ set.seed(20200927)   ## if tourr starts using seeds
 #### Simulated data series,
 ## "series" or iteration of data to look at. Should be an even hundred
 height_px <- 500L
-width_px  <- 1000L
+pal <- RColorBrewer::brewer.pal(8, "Dark2")[c(1, 2, 3, 6, 8)]
+#scale_colour_manual(values = pal)
 
 #### Logging -----
 ## browseURL("https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/")
@@ -26,7 +27,7 @@ width_px  <- 1000L
 ## SET do_log to TRUE to start logging 
 do_log            <- FALSE
 do_disp_dev_tools <- TRUE
-do_browse_err     <- TRUE
+do_browse_err     <- FALSE
 if(do_browse_err == TRUE)
   options(error = browser)
 cat("do_log:", do_log)
@@ -164,7 +165,6 @@ n_factors          <- length(factor_nms)       ## ~3
 n_p_dim            <- length(p_dim_nms)        ## ~2
 n_survey_questions <- length(survey_questions) ## ~21
 PC_cap             <- 4L ## Number of principal components to choose from.
-pal                <- "Dark2"
 
 #### Define section start pages,
 ## may need radial changes when changing section sizes
@@ -482,18 +482,17 @@ main_ui <- mainPanel(width = 9,
 ) ## close mainPanel() End of main_ui section.
 
 ### _dev_tools
-dev_tools <- conditionalPanel("output.dev_tools == true",
-                              
-                              p("===== Development display below ====="),
-                              actionButton("browser", "browser()"),
-                              p("Variable level answers: "), textOutput("var_mean_diff_ab"),
-                              p("Variable bar: "), textOutput("avg_mean_diff_ab"),
-                              p("Variable level response: "), textOutput("task_resp"),
-                              p("Variable marks: "), ## TODO, marks based on the sim.
-                              p("Task marks: "),
-                              ##
-                              textOutput("dev_msg"),
-                              tableOutput("resp_tbl")
+dev_tools <- conditionalPanel(
+  "output.dev_tools == true",
+  p("===== Development display below ====="),
+  actionButton("browser", "browser()"),
+  p("Variable level diff from avg: "), textOutput("task_diff"),
+  p("Variable level response: "), textOutput("task_resp"),
+  p("Variable level score: "), textOutput("task_var_score"),
+  p("Task score: "), textOutput("task_score"),
+  ##
+  textOutput("dev_msg"),
+  tableOutput("resp_tbl")
 ) ## close conditionPanel, assigning dev_tools
 
 ##### UI, combine panels -----
