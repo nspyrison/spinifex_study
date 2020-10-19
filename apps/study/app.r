@@ -51,73 +51,80 @@ server <- function(input, output, session){
   
   
   ##### Reactives -----
-  section_nm <- reactive({ ## text name of section
+  section_nm <- reactive({ ## Text name of section
     req(rv$pg)
-    if(rv$pg %in% 1L:2L){return("intro")}
-    .pgs <- training_start_pg:(task_start_pg - 1L)
-    if(rv$pg %in% .pgs){return("training")}
-    .pgs <- task_start_pg:(survey_start_pg - 1L)
-    if(rv$pg %in% .pgs){return("task")}
-    if(rv$pg == survey_start_pg){return("survey")}
+    if(rv$pg %in% intro_pgs){  return("intro")}
+    if(rv$pg %in% period1_pgs){return("period1")}
+    if(rv$pg %in% period2_pgs){return("period2")}
+    if(rv$pg %in% period3_pgs){return("period3")}
+    if(rv$pg %in% survey_pgs){ return("survey")}
     return("!!SECTION NOT DEFINED!!")
   })
-  section_pg <- reactive({ ## current page num of this section.
+  section_pg <- reactive({ ## Current page num of this section.
     if(section_nm() == "intro"){return(rv$pg)}
-    if(section_nm() == "training"){
-      return(rv$pg - (training_start_pg - 1L))
-    }
-    if(section_nm() == "task"){
-      return(rv$pg - (task_start_pg - 1L))
-    }
-    if(section_nm() == "survey"){return(1L)}
+    if(section_nm() == "period1")
+      return(rv$pg - (min(period1_pgs) - 1L))
+    if(section_nm() == "period2")
+      return(rv$pg - (min(period2_pgs) - 1L))
+    if(section_nm() == "period3")
+      return(rv$pg - (min(period3_pgs) - 1L))
+    if(section_nm() == "survey")
+      return(rv$pg - (min(survey_pgs) - 1L))
   })
   period <- reactive({
-    if(section_nm() == "training" | section_nm() == "task")
-      1L + (section_pg() - 1L) %/% (n_p_dim)
+    req(section_nm())
+    if(substr(section_nm(), 1, 6) == "period")
+      return(as.integer(substr(section_nm(), 7, 7)))
+    return("NA")
   })
-  task   <- reactive({
-    if(section_nm() == "training" | section_nm() == "task")
-      1L + (section_pg() - 1L) %% (n_p_dim)
-  })
+  eval <- reactive({
+    req(section_pg(), period())
+    if(substr(section_nm(), 1, 6) == "period"){
+      if(section_pg() %in% c(1, 4)) return("NA")
+      2 * (period() - 1) + (section_pg() - 1)
+    }
+    return("NA")
+  }) 
   factor_nm <- reactive({ ## ~ for group 1: pca, grand, radial
-    if(section_nm() == "training" & do_disp_dev_tools == TRUE) return(input$factor)
-    if(section_nm() == "training" & do_disp_dev_tools == FALSE) 
+    req(period(), section_nm(), eval())
+    ## "intro" and "survey" NA
+    if(substr(section_nm(), 1, 6) != "period") return("NA")
+    ## If dev_tools on, give button selector
+    if(substr(section_nm(), 1, 6) == "period" &
+       section_pg() == 1 & do_disp_dev_tools == TRUE)
       return(input$factor)
-    
-    if(section_nm() == "task") return(this_factor_nm_ord[period()])
-    return("NONE / NA")
+    ## Else, return factor name
+    return(this_factor_nm_ord[eval()])
   })
   block_location_nm <- reactive({
-    req(task())
-    this_location[task()]
+    req(eval())
+    this_location[eval()]
   })
   block_vc_nm <- reactive({
-    req(task())
-    this_vc_nm_ord[task()]
+    req(eval())
+    this_vc_nm_ord[eval()]
   })
   block_p_dim_nm <- reactive({
-    req(task())
-    p_dim_nm_ord[task()]
+    req(eval())
+    p_dim_nm_ord[eval()]
   })
-  
   sim_nm <- reactive({
-    if(section_nm() == "training"){ #& do_disp_dev_tools == TRUE){
-      req(input$simVc, input$simP, input$simLocation)
-      return(paste(input$simVc, input$simP, input$simLocation, sep = "_"))
+    req(section_nm())
+    if(substr(section_nm(), 1, 6) == "period"){ #& do_disp_dev_tools == TRUE){
+      ## TODO: distinguish, between reps.
+      req(block_vc_nm(), block_p_dim_nm(), block_location_nm(), period())
+      return(paste(block_vc_nm(), block_p_dim_nm(), block_location_nm(), 
+                   paste0("rep", period()), sep = "_"))
     }
-    # #TODO
-    # if(section_nm() == "training"){
-    #   req(input$simVc, input$simP, input$simLocation)
-    #   return(this_sim_nms[1])
-    # }
     sim_num <- 1 + (section_pg() - 1) %% length(this_sim_nms)
     return(this_sim_nms[sim_num])
   })
-
   task_time <- reactive({
     req(factor_nm())
-    if(factor_nm() == "grand"){adj <- 1L
-    } else adj <- 0L
+    if(factor_nm() == "grand"){
+      adj <- 1L
+    } else 
+      adj <- 0L
     return(180L + adj)
   })
   time_elapsed <- reactive({ as.integer(task_time() - rv$timer) })
@@ -140,33 +147,37 @@ server <- function(input, output, session){
     return(max(mv, 1))
   })
   pca_active <- reactive({
-    if(factor_nm() == "pca"){
+    req(factor_nm())
+    if(factor_nm() == "pca")
       return(TRUE)
-    } else return(FALSE)
+    return(FALSE)
   })
   grand_active <- reactive({
-    if(factor_nm() == "grand"){
+    req(factor_nm())
+    if(factor_nm() == "grand")
       return(TRUE)
-    } else return(FALSE)
+    return(FALSE)
   })
   radial_active <- reactive({
-    if(factor_nm() == "radial"){
+    req(factor_nm())
+    if(factor_nm() == "radial")
       return(TRUE)
-    }else return(FALSE)
+    return(FALSE)
   })
   any_active <- reactive({
     return(pca_active() | grand_active() | radial_active())
   })
-  task_header <- reactive({paste0("Evaluation -- factor: ", factor_nm())})
+  task_header <- reactive({
+    paste0("Evaluation -- factor: ", factor_nm())
+  })
   timer_info <- reactive({
     paste0("time_elapsed() of task_time(): ", time_elapsed(), " of ", task_time())
   })
   page_info <- reactive({
-    paste0(sep = " /n",
-           paste0("rv$pg, section_pg(), section_nm(): ", rv$pg, 
+    paste0(paste0("rv$pg, section_pg(), section_nm(): ", rv$pg, 
                   ", ", section_pg(), ", ", section_nm()),
-           paste0("task_header(): ", task_header())
-    )
+           paste0("task_header(): ", task_header()),
+           sep = " /n")
   })
   pfs <- reactive({
     paste("period(), factor_nm(), sim_nm(): ", period(), factor_nm(), sim_nm())
@@ -178,37 +189,47 @@ server <- function(input, output, session){
     if(section_nm() %in% c("training", "task"))
       ## Vector of the numbers without 'V'
       return(as.integer(gsub(' |V', '', input$task_response)))
+    return("NA")
   })
   output$task_resp <- renderPrint(task_resp())
   ### Task scoring
   task_diff <- reactive({
-    if(any_active())
-    signal <- attr(dat(), "var_mean_diff_ab")
-    bar    <- sum(signal) / p()
-    signal - bar
+    if(any_active()){
+      signal <- attr(dat(), "var_mean_diff_ab")
+      bar    <- sum(signal) / p()
+      return(signal - bar)
+    }
+    return("NA")
   })
   output$task_diff <- renderPrint({
-    round(task_diff(), 2)
+    if(any_active() == TRUE)
+      round(task_diff(), 2)
   })
   task_var_score <- reactive({
     if(any_active()){
       diff <- task_diff()
       ans  <- which(diff >= 0L)
       weight <- sign(diff) * sqrt(abs(diff))
-      
       resp <- task_resp()
-      weight[resp]
+      return(weight[resp])
     }
+    return("NA")
   })
   output$task_var_score <- renderPrint({
+    if(any_active() == TRUE)
     round(task_var_score(), 2)
   })
   task_score <- reactive({
+    req(any_active())
+    req(task_var_score())
     if(any_active())
-      sum(task_var_score())
+      return(sum(task_var_score()))
+    return("NA")
   })
   output$task_score <- renderPrint({
-    round(task_score(), 2)
+    req(task_score())
+    if(any_active() == TRUE)
+      round(task_score(), 2)
   })
   
   ### _PCA plot reactive -----
@@ -731,7 +752,6 @@ server <- function(input, output, session){
     if((rv$stopwatch > 1L & do_log == TRUE) | do_log == FALSE){
       cat(paste0("in loop, top --", rv$pg))
       task_resp  <- task_resp()
-      task_ans   <- task_ans()
       task_score <- task_score()
       
       ### __Training evaluation -----
@@ -761,7 +781,7 @@ server <- function(input, output, session){
           output$plot_msg <- renderText(
             app_html_red(this_char)
           )
-          return()
+          return("NA")
         }
       } ## end of training section evaluation
       

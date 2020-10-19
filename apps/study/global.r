@@ -58,20 +58,24 @@ cat("do_log, log_file: ", do_log, log_file, " /n")
 
 #### Select factor and block permutations
 ## The permutation number
-this_factor_perm   <- 1 + (full_perm_num - 1) %% 3 ## %% is mod
-this_location_perm <- 1 + floor((full_perm_num - 1) / 3) %% 3
-this_vc_perm       <- 1 + floor((full_perm_num - 1) / 9) %% 6
+this_factor_perm   <- 1 + (full_perm_num - 1) %% 6 ## %% is mod
+this_location_perm <- 1 #1 + floor((full_perm_num - 1) / 3) %% 3
+this_vc_perm       <- 1 #1 + floor((full_perm_num - 1) / 9) %% 6
 ## The permutations
-factor_perms   <- rbind(c(1, 2, 3), ## The 3 permutations of the 3 factor orders
-                        c(2, 3, 1),
-                        c(3, 1, 2))
-location_perms <- cbind(1:3)
-vc_perms       <- rbind(c(1, 2), ## The 6 permutations of the 3 location orders
-                        c(1, 3),
-                        c(2, 3),
-                        c(2, 1),
-                        c(3, 1),
-                        c(3, 2))
+factor_perms   <- rbind(c(1, 1,  2, 2,  3, 3), ## The 3 permutations of the 3 factor orders
+                        c(1, 1,  3, 3,  2, 2),
+                        c(2, 2,  3, 3,  1, 1),
+                        c(2, 2,  1, 1,  3, 3),
+                        c(3, 3,  1, 1,  2, 2),
+                        c(3, 3,  2, 2,  1, 1))
+location_perms <- rbind(c(1, 2,  3, 1,  2, 3))
+vc_perms       <- rbind(c(1, 1,  2, 2,  3, 3))
+  # rbind(c(1, 2), ## The 6 permutations of the 3 location orders
+  #                       c(1, 3),
+  #                       c(2, 3),
+  #                       c(2, 1),
+  #                       c(3, 1),
+  #                       c(3, 2))
 ## set factor and block names
 factor_nms   <- c("pca", "grand", "radial")
 location_nms <- c("0_1", "33_66", "50_50")
@@ -167,13 +171,11 @@ n_survey_questions <- length(survey_questions) ## ~21
 PC_cap             <- 4L ## Number of principal components to choose from.
 
 #### Define section start pages,
-## may need radial changes when changing section sizes
-## intro is pg 1; video training is pg 2
-training_start_pg <- 3L
-task_start_pg <- (training_start_pg + 2L + 1L) + 1L
-## ~ pg7;(3+2+1+1; train_st, 2 task sets, splash pg, start on new pg)
-survey_start_pg <- task_start_pg + n_factors * n_p_dim + 1L
-## ~ pg14, (7+3*3+1; task_st, 3*3 factor*block, start on new pg)
+intro_pgs   <- 1L:3L   ## Structure, video, splash screen
+period1_pgs <- 4L:7L   ## Training, rep 1, rep 2, and intermission
+period2_pgs <- 8L:11L  ## Training, rep 1, rep 2, and intermission
+period3_pgs <- 12L:14L ## Training, rep 1, rep 2
+survey_pgs  <- 15L     ## Survey
 
 ##### UI START -----
 ### header_ui -----
@@ -253,7 +255,7 @@ sidebar_ui <- conditionalPanel(
       condition = "(output.any_active == true) ", 
       checkboxGroupInput(
         inputId = "task_response",
-        label   = "Check any/all variables contribute more than average to the cluster seperation between 'a' and 'b'.",
+        label   = "Check any/all variables contribute more than average to the cluster seperation green circles and orange triangles.",
         choices = "V1",
         inline  = TRUE
       )
