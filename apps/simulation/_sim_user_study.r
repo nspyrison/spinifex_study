@@ -245,89 +245,181 @@ sim_user_study <- function(cl_obs = 140,
   
   ## SIMULATIONS ------
   ### all simulations must be different; cannot use EEE_p4 <-, each EEE_p4 needs to be different
-  #### p = 4
 
-  EEE_p4_0_1      <<- sim_mvtnorm_cl(means = mns_p4, sigmas = covs_EEE_p4,
-                                     cl_obs = cl_obs, do_shuffle = TRUE,
-                                     ang = 0)
-  EEE_p4_33_66    <<- sim_mvtnorm_cl(means = mns_p4, sigmas = covs_EEE_p4,
-                                     cl_obs = cl_obs, do_shuffle = TRUE,
-                                     ang = pi / 6)
-  EEE_p4_50_50    <<- sim_mvtnorm_cl(means = mns_p4, sigmas = covs_EEE_p4,
-                                     cl_obs = cl_obs, do_shuffle = TRUE,
-                                     ang = pi / 4)
-  EEV_p4_0_1      <<- sim_mvtnorm_cl(means = mns_p4, sigmas = covs_EEV_p4,
-                                     cl_obs = cl_obs, do_shuffle = TRUE,
-                                     ang = 0)
-  EEV_p4_33_66    <<- sim_mvtnorm_cl(means = mns_p4, sigmas = covs_EEV_p4,
-                                     cl_obs = cl_obs, do_shuffle = TRUE,
-                                     ang = pi / 6)
-  EEV_p4_50_50    <<- sim_mvtnorm_cl(means = mns_p4, sigmas = covs_EEV_p4,
-                                     cl_obs = cl_obs, do_shuffle = TRUE,
-                                     ang = pi / 4)
-  banana_p4_0_1   <<- sim_mvtnorm_cl(means = mns_p4, sigmas = covs_banana_p4,
-                                     cl_obs = cl_obs, do_shuffle = TRUE,
-                                     ang = 0, do_bananatize = TRUE)
-  banana_p4_33_66 <<- sim_mvtnorm_cl(means = mns_p4, sigmas = covs_banana_p4,
-                                     cl_obs = cl_obs, do_shuffle = TRUE,
-                                     ang = pi / 6, do_bananatize = TRUE)
-  banana_p4_50_50 <<- sim_mvtnorm_cl(means = mns_p4, sigmas = covs_banana_p4,
-                                     cl_obs = cl_obs, do_shuffle = TRUE,
-                                     ang = pi / 4, do_bananatize = TRUE)
-  #### p = 6
-  EEE_p6_0_1      <<- sim_mvtnorm_cl(means = mns_p6, sigmas = covs_EEE_p6,
-                                     cl_obs = cl_obs, do_shuffle = TRUE,
-                                     ang = 0)
-  EEE_p6_33_66    <<- sim_mvtnorm_cl(means = mns_p6, sigmas = covs_EEE_p6,
-                                     cl_obs = cl_obs, do_shuffle = TRUE,
-                                     ang = pi / 6)
-  EEE_p6_50_50    <<- sim_mvtnorm_cl(means = mns_p6, sigmas = covs_EEE_p6,
-                                     cl_obs = cl_obs, do_shuffle = TRUE,
-                                     ang = pi / 4)
-  EEV_p6_0_1      <<- sim_mvtnorm_cl(means = mns_p6, sigmas = covs_EEV_p6,
-                                     cl_obs = cl_obs, do_shuffle = TRUE,
-                                     ang = 0)
-  EEV_p6_33_66    <<- sim_mvtnorm_cl(means = mns_p6, sigmas = covs_EEV_p6,
-                                     cl_obs = cl_obs, do_shuffle = TRUE,
-                                     ang = pi / 6)
-  EEV_p6_50_50    <<- sim_mvtnorm_cl(means = mns_p6, sigmas = covs_EEV_p6,
-                                     cl_obs = cl_obs, do_shuffle = TRUE,
-                                     ang = pi / 4)
-  banana_p6_0_1   <<- sim_mvtnorm_cl(means = mns_p6, sigmas = covs_banana_p6,
-                                     cl_obs = cl_obs, do_shuffle = TRUE,
-                                     ang = 0, do_bananatize = TRUE)
-  banana_p6_33_66 <<- sim_mvtnorm_cl(means = mns_p6, sigmas = covs_banana_p6,
-                                     cl_obs = cl_obs, do_shuffle = TRUE,
-                                     ang = pi / 6, do_bananatize = TRUE)
-  banana_p6_50_50 <<- sim_mvtnorm_cl(means = mns_p6, sigmas = covs_banana_p6,
-                                     cl_obs = cl_obs, do_shuffle = TRUE,
-                                     ang = pi / 4, do_bananatize = TRUE)
+  for(i in 1:3){
+    ## Training
+    assign(paste0("EEE_p4_0_1_t", i),
+           sim_mvtnorm_cl(means = mns_p4, sigmas = covs_EEE_p4,
+                          cl_obs = cl_obs, do_shuffle = TRUE,
+                          ang = 0),
+           envir = globalenv())
+    #### p = 4
+    assign(paste0("EEE_p4_0_1_rep", i),
+           sim_mvtnorm_cl(means = mns_p4, sigmas = covs_EEE_p4,
+                          cl_obs = cl_obs, do_shuffle = TRUE,
+                          ang = 0),
+           envir = globalenv())
+    assign(paste0("EEE_p4_33_66_rep", i),
+           sim_mvtnorm_cl(means = mns_p4, sigmas = covs_EEE_p4,
+                          cl_obs = cl_obs, do_shuffle = TRUE,
+                          ang = pi / 6),
+           envir = globalenv())
+    assign(paste0("EEE_p4_50_50_rep", i),
+           sim_mvtnorm_cl(means = mns_p4, sigmas = covs_EEE_p4,
+                          cl_obs = cl_obs, do_shuffle = TRUE,
+                          ang = pi / 4),
+           envir = globalenv())
+    assign(paste0("EEV_p4_0_1_rep", i),
+           sim_mvtnorm_cl(means = mns_p4, sigmas = covs_EEV_p4,
+                          cl_obs = cl_obs, do_shuffle = TRUE,
+                          ang = 0),
+           envir = globalenv())
+    assign(paste0("EEV_p4_33_66_rep", i),
+           sim_mvtnorm_cl(means = mns_p4, sigmas = covs_EEV_p4,
+                          cl_obs = cl_obs, do_shuffle = TRUE,
+                          ang = pi / 6),
+           envir = globalenv())
+    assign(paste0("EEV_p4_50_50_rep", i),
+           sim_mvtnorm_cl(means = mns_p4, sigmas = covs_EEV_p4,
+                          cl_obs = cl_obs, do_shuffle = TRUE,
+                          ang = pi / 4),
+           envir = globalenv())
+    assign(paste0("banana_p4_0_1_rep", i),
+           sim_mvtnorm_cl(means = mns_p4, sigmas = covs_banana_p4,
+                          cl_obs = cl_obs, do_shuffle = TRUE,
+                          ang = 0, do_bananatize = TRUE),
+           envir = globalenv())
+    assign(paste0("banana_p4_33_66_rep", i),
+           sim_mvtnorm_cl(means = mns_p4, sigmas = covs_banana_p4,
+                          cl_obs = cl_obs, do_shuffle = TRUE,
+                          ang = pi / 6, do_bananatize = TRUE),
+           envir = globalenv())
+    assign(paste0("banana_p4_50_50_rep", i),
+           sim_mvtnorm_cl(means = mns_p4, sigmas = covs_banana_p4,
+                          cl_obs = cl_obs, do_shuffle = TRUE,
+                          ang = pi / 4, do_bananatize = TRUE),
+           envir = globalenv())
+  ## CONTINUE TO ADD ASSIGN...
+    #### p = 6
+    assign(paste0("EEE_p6_0_1_rep", i),
+           sim_mvtnorm_cl(means = mns_p6, sigmas = covs_EEE_p6,
+                          cl_obs = cl_obs, do_shuffle = TRUE,
+                          ang = 0),
+           envir = globalenv())
+    assign(paste0("EEE_p6_33_66_rep", i),
+           sim_mvtnorm_cl(means = mns_p6, sigmas = covs_EEE_p6,
+                          cl_obs = cl_obs, do_shuffle = TRUE,
+                          ang = pi / 6),
+           envir = globalenv())
+    assign(paste0("EEE_p6_50_50_rep", i),
+           sim_mvtnorm_cl(means = mns_p6, sigmas = covs_EEE_p6,
+                          cl_obs = cl_obs, do_shuffle = TRUE,
+                          ang = pi / 4),
+           envir = globalenv())
+    assign(paste0("EEV_p6_0_1_rep", i),
+           sim_mvtnorm_cl(means = mns_p6, sigmas = covs_EEV_p6,
+                          cl_obs = cl_obs, do_shuffle = TRUE,
+                          ang = 0),
+           envir = globalenv())
+    assign(paste0("EEV_p6_33_66_rep", i),
+           sim_mvtnorm_cl(means = mns_p6, sigmas = covs_EEV_p6,
+                          cl_obs = cl_obs, do_shuffle = TRUE,
+                          ang = pi / 6),
+           envir = globalenv())
+    assign(paste0("EEV_p6_50_50_rep", i),
+           sim_mvtnorm_cl(means = mns_p6, sigmas = covs_EEV_p6,
+                          cl_obs = cl_obs, do_shuffle = TRUE,
+                          ang = pi / 4),
+           envir = globalenv())
+    assign(paste0("banana_p6_0_1_rep", i),
+           sim_mvtnorm_cl(means = mns_p6, sigmas = covs_banana_p6,
+                          cl_obs = cl_obs, do_shuffle = TRUE,
+                          ang = 0, do_bananatize = TRUE),
+           envir = globalenv())
+    assign(paste0("banana_p6_33_66_rep", i),
+           sim_mvtnorm_cl(means = mns_p6, sigmas = covs_banana_p6,
+                          cl_obs = cl_obs, do_shuffle = TRUE,
+                          ang = pi / 6, do_bananatize = TRUE),
+           envir = globalenv())
+    assign(paste0("banana_p6_50_50_rep", i),
+           sim_mvtnorm_cl(means = mns_p6, sigmas = covs_banana_p6,
+                          cl_obs = cl_obs, do_shuffle = TRUE,
+                          ang = pi / 4, do_bananatize = TRUE),
+           envir = globalenv())
+  }
   ##
   message("Assigned all simulations as a global variables, as '<model_dim_location>'. \n")
   
   ## _Save if needed ----
   if(do_save == TRUE){
     ## Using .rda. .rds not working b/c of long path? issue may be in the loading more than the saving.
+    
+    #### rep 1
+    save(EEE_p4_0_1_t1, file = paste0(root, quote(EEE_p4_0_1_t1), ".rda"))
+    save(EEE_p4_0_1_t2, file = paste0(root, quote(EEE_p4_0_1_t2), ".rda"))
+    save(EEE_p4_0_1_t3, file = paste0(root, quote(EEE_p4_0_1_t3), ".rda"))
     ## p = 4
-    save(EEE_p4_0_1     , file = paste0(root, quote(EEE_p4_0_1     ), ".rda"))
-    save(EEE_p4_33_66   , file = paste0(root, quote(EEE_p4_33_66   ), ".rda"))
-    save(EEE_p4_50_50   , file = paste0(root, quote(EEE_p4_50_50   ), ".rda"))
-    save(EEV_p4_0_1     , file = paste0(root, quote(EEV_p4_0_1     ), ".rda"))
-    save(EEV_p4_33_66   , file = paste0(root, quote(EEV_p4_33_66   ), ".rda"))
-    save(EEV_p4_50_50   , file = paste0(root, quote(EEV_p4_50_50   ), ".rda"))
-    save(banana_p4_0_1  , file = paste0(root, quote(banana_p4_0_1  ), ".rda"))
-    save(banana_p4_33_66, file = paste0(root, quote(banana_p4_33_66), ".rda"))
-    save(banana_p4_50_50, file = paste0(root, quote(banana_p4_50_50), ".rda"))
+    save(EEE_p4_0_1_rep1     , file = paste0(root, quote(EEE_p4_0_1_rep1     ), ".rda"))
+    save(EEE_p4_33_66_rep1   , file = paste0(root, quote(EEE_p4_33_66_rep1   ), ".rda"))
+    save(EEE_p4_50_50_rep1   , file = paste0(root, quote(EEE_p4_50_50_rep1   ), ".rda"))
+    save(EEV_p4_0_1_rep1     , file = paste0(root, quote(EEV_p4_0_1_rep1     ), ".rda"))
+    save(EEV_p4_33_66_rep1   , file = paste0(root, quote(EEV_p4_33_66_rep1   ), ".rda"))
+    save(EEV_p4_50_50_rep1   , file = paste0(root, quote(EEV_p4_50_50_rep1   ), ".rda"))
+    save(banana_p4_0_1_rep1  , file = paste0(root, quote(banana_p4_0_1_rep1  ), ".rda"))
+    save(banana_p4_33_66_rep1, file = paste0(root, quote(banana_p4_33_66_rep1), ".rda"))
+    save(banana_p4_50_50_rep1, file = paste0(root, quote(banana_p4_50_50_rep1), ".rda"))
     ## p = 6
-    save(EEE_p6_0_1     , file = paste0(root, quote(EEE_p6_0_1     ), ".rda"))
-    save(EEE_p6_33_66   , file = paste0(root, quote(EEE_p6_33_66   ), ".rda"))
-    save(EEE_p6_50_50   , file = paste0(root, quote(EEE_p6_50_50   ), ".rda"))
-    save(EEV_p6_0_1     , file = paste0(root, quote(EEV_p6_0_1     ), ".rda"))
-    save(EEV_p6_33_66   , file = paste0(root, quote(EEV_p6_33_66   ), ".rda"))
-    save(EEV_p6_50_50   , file = paste0(root, quote(EEV_p6_50_50   ), ".rda"))
-    save(banana_p6_0_1  , file = paste0(root, quote(banana_p6_0_1  ), ".rda"))
-    save(banana_p6_33_66, file = paste0(root, quote(banana_p6_33_66), ".rda"))
-    save(banana_p6_50_50, file = paste0(root, quote(banana_p6_50_50), ".rda"))
+    save(EEE_p6_0_1_rep1     , file = paste0(root, quote(EEE_p6_0_1_rep1     ), ".rda"))
+    save(EEE_p6_33_66_rep1   , file = paste0(root, quote(EEE_p6_33_66_rep1   ), ".rda"))
+    save(EEE_p6_50_50_rep1   , file = paste0(root, quote(EEE_p6_50_50_rep1   ), ".rda"))
+    save(EEV_p6_0_1_rep1     , file = paste0(root, quote(EEV_p6_0_1_rep1     ), ".rda"))
+    save(EEV_p6_33_66_rep1   , file = paste0(root, quote(EEV_p6_33_66_rep1   ), ".rda"))
+    save(EEV_p6_50_50_rep1   , file = paste0(root, quote(EEV_p6_50_50_rep1   ), ".rda"))
+    save(banana_p6_0_1_rep1  , file = paste0(root, quote(banana_p6_0_1_rep1  ), ".rda"))
+    save(banana_p6_33_66_rep1, file = paste0(root, quote(banana_p6_33_66_rep1), ".rda"))
+    save(banana_p6_50_50_rep1, file = paste0(root, quote(banana_p6_50_50_rep1), ".rda"))
+    #### rep 2
+    ## p = 4
+    save(EEE_p4_0_1_rep2     , file = paste0(root, quote(EEE_p4_0_1_rep2     ), ".rda"))
+    save(EEE_p4_33_66_rep2   , file = paste0(root, quote(EEE_p4_33_66_rep2   ), ".rda"))
+    save(EEE_p4_50_50_rep2   , file = paste0(root, quote(EEE_p4_50_50_rep2   ), ".rda"))
+    save(EEV_p4_0_1_rep2     , file = paste0(root, quote(EEV_p4_0_1_rep2     ), ".rda"))
+    save(EEV_p4_33_66_rep2   , file = paste0(root, quote(EEV_p4_33_66_rep2   ), ".rda"))
+    save(EEV_p4_50_50_rep2   , file = paste0(root, quote(EEV_p4_50_50_rep2   ), ".rda"))
+    save(banana_p4_0_1_rep2  , file = paste0(root, quote(banana_p4_0_1_rep2  ), ".rda"))
+    save(banana_p4_33_66_rep2, file = paste0(root, quote(banana_p4_33_66_rep2), ".rda"))
+    save(banana_p4_50_50_rep2, file = paste0(root, quote(banana_p4_50_50_rep2), ".rda"))
+    ## p = 6
+    save(EEE_p6_0_1_rep2     , file = paste0(root, quote(EEE_p6_0_1_rep2     ), ".rda"))
+    save(EEE_p6_33_66_rep2   , file = paste0(root, quote(EEE_p6_33_66_rep2   ), ".rda"))
+    save(EEE_p6_50_50_rep2   , file = paste0(root, quote(EEE_p6_50_50_rep2   ), ".rda"))
+    save(EEV_p6_0_1_rep2     , file = paste0(root, quote(EEV_p6_0_1_rep2     ), ".rda"))
+    save(EEV_p6_33_66_rep2   , file = paste0(root, quote(EEV_p6_33_66_rep2   ), ".rda"))
+    save(EEV_p6_50_50_rep2   , file = paste0(root, quote(EEV_p6_50_50_rep2   ), ".rda"))
+    save(banana_p6_0_1_rep2  , file = paste0(root, quote(banana_p6_0_1_rep2  ), ".rda"))
+    save(banana_p6_33_66_rep2, file = paste0(root, quote(banana_p6_33_66_rep2), ".rda"))
+    save(banana_p6_50_50_rep2, file = paste0(root, quote(banana_p6_50_50_rep2), ".rda"))
+    #### rep 3
+    ## p = 4
+    save(EEE_p4_0_1_rep3     , file = paste0(root, quote(EEE_p4_0_1_rep3     ), ".rda"))
+    save(EEE_p4_33_66_rep3   , file = paste0(root, quote(EEE_p4_33_66_rep3   ), ".rda"))
+    save(EEE_p4_50_50_rep3   , file = paste0(root, quote(EEE_p4_50_50_rep3   ), ".rda"))
+    save(EEV_p4_0_1_rep3     , file = paste0(root, quote(EEV_p4_0_1_rep3     ), ".rda"))
+    save(EEV_p4_33_66_rep3   , file = paste0(root, quote(EEV_p4_33_66_rep3   ), ".rda"))
+    save(EEV_p4_50_50_rep3   , file = paste0(root, quote(EEV_p4_50_50_rep3   ), ".rda"))
+    save(banana_p4_0_1_rep3  , file = paste0(root, quote(banana_p4_0_1_rep3  ), ".rda"))
+    save(banana_p4_33_66_rep3, file = paste0(root, quote(banana_p4_33_66_rep3), ".rda"))
+    save(banana_p4_50_50_rep3, file = paste0(root, quote(banana_p4_50_50_rep3), ".rda"))
+    ## p = 6
+    save(EEE_p6_0_1_rep3     , file = paste0(root, quote(EEE_p6_0_1_rep3     ), ".rda"))
+    save(EEE_p6_33_66_rep3   , file = paste0(root, quote(EEE_p6_33_66_rep3   ), ".rda"))
+    save(EEE_p6_50_50_rep3   , file = paste0(root, quote(EEE_p6_50_50_rep3   ), ".rda"))
+    save(EEV_p6_0_1_rep3     , file = paste0(root, quote(EEV_p6_0_1_rep3     ), ".rda"))
+    save(EEV_p6_33_66_rep3   , file = paste0(root, quote(EEV_p6_33_66_rep3   ), ".rda"))
+    save(EEV_p6_50_50_rep3   , file = paste0(root, quote(EEV_p6_50_50_rep3   ), ".rda"))
+    save(banana_p6_0_1_rep3  , file = paste0(root, quote(banana_p6_0_1_rep3  ), ".rda"))
+    save(banana_p6_33_66_rep3, file = paste0(root, quote(banana_p6_33_66_rep3), ".rda"))
+    save(banana_p6_50_50_rep3, file = paste0(root, quote(banana_p6_50_50_rep3), ".rda"))
     message(paste0("Saved all simulations to ", root, " as '<model_dim_location>.rda'. Use load('my.rda') bring obj into env. \n"))
   }
 }
@@ -339,14 +431,9 @@ tpath_user_study <- function(do_save = FALSE){
   ## Initialize
   require("tourr")
   root    <- paste0(here::here("apps/data"), "/")
-  in_nms  <- c("EEE_p4_0_1", "EEE_p4_33_66", "EEE_p4_50_50",
-               "EEV_p4_0_1", "EEV_p4_33_66", "EEV_p4_50_50",
-               "banana_p4_0_1", "banana_p4_33_66", "banana_p4_50_50",
-               "EEE_p6_0_1", "EEE_p6_33_66", "EEE_p6_50_50",
-               "EEV_p6_0_1", "EEV_p6_33_66", "EEV_p6_50_50",
-               "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
+  in_nms  <- c("EEE_p4_0_1_t1", "EEE_p4_0_1_rep1", "EEE_p6_0_1_rep1")
   in_fps  <- paste0(root, in_nms, ".rda")
-  out_nms <- paste0("tpath_", in_nms)
+  out_nms <- paste0("tpath_", c("p4_t", "p4", "p6"))
   out_fps <- paste0(root, out_nms, ".rda")
   
   ## Load simulations, create tour paths
@@ -361,26 +448,9 @@ tpath_user_study <- function(do_save = FALSE){
   
   ## Save if needed
   if(do_save == TRUE){
-    ## p = 4
-    save(tpath_EEE_p4_0_1  , file = paste0(root, quote(tpath_EEE_p4_0_1  ), ".rda"))
-    save(tpath_EEE_p4_33_66, file = paste0(root, quote(tpath_EEE_p4_33_66), ".rda"))
-    save(tpath_EEE_p4_50_50, file = paste0(root, quote(tpath_EEE_p4_50_50), ".rda"))
-    save(tpath_EEV_p4_0_1  , file = paste0(root, quote(tpath_EEV_p4_0_1  ), ".rda"))
-    save(tpath_EEV_p4_33_66, file = paste0(root, quote(tpath_EEV_p4_33_66), ".rda"))
-    save(tpath_EEV_p4_50_50, file = paste0(root, quote(tpath_EEV_p4_50_50), ".rda"))
-    save(tpath_banana_p4_0_1  , file = paste0(root, quote(tpath_banana_p4_0_1  ), ".rda"))
-    save(tpath_banana_p4_33_66, file = paste0(root, quote(tpath_banana_p4_33_66), ".rda"))
-    save(tpath_banana_p4_50_50, file = paste0(root, quote(tpath_banana_p4_50_50), ".rda"))
-    ## p = 6
-    save(tpath_EEE_p6_0_1  , file = paste0(root, quote(tpath_EEE_p6_0_1  ), ".rda"))
-    save(tpath_EEE_p6_33_66, file = paste0(root, quote(tpath_EEE_p6_33_66), ".rda"))
-    save(tpath_EEE_p6_50_50, file = paste0(root, quote(tpath_EEE_p6_50_50), ".rda"))
-    save(tpath_EEV_p6_0_1  , file = paste0(root, quote(tpath_EEV_p6_0_1  ), ".rda"))
-    save(tpath_EEV_p6_33_66, file = paste0(root, quote(tpath_EEV_p6_33_66), ".rda"))
-    save(tpath_EEV_p6_50_50, file = paste0(root, quote(tpath_EEV_p6_50_50), ".rda"))
-    save(tpath_banana_p6_0_1  , file = paste0(root, quote(tpath_banana_p6_0_1  ), ".rda"))
-    save(tpath_banana_p6_33_66, file = paste0(root, quote(tpath_banana_p6_33_66), ".rda"))
-    save(tpath_banana_p6_50_50, file = paste0(root, quote(tpath_banana_p6_50_50), ".rda"))
+    save(tpath_p4_t, file = paste0(root, quote(tpath_p4_t  ), ".rda"))
+    save(tpath_p4,   file = paste0(root, quote(tpath_p4),     ".rda"))
+    save(tpath_p6,   file = paste0(root, quote(tpath_p6),     ".rda"))
     message(paste0("Saved all grand tour paths to ", root, " as 'tpath_<factor_model>.rda'. Use load('my.rda') bring obj into env. \n"))
   }
 }
