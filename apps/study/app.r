@@ -9,8 +9,7 @@ server <- function(input, output, session){
 
   ##### Reavtive value initialization -----
   rv                  <- reactiveValues()
-  ## SET STARTING PAGE HERE <<<
-  rv$pg               <- 3L 
+  rv$pg               <- 1L  ## SET STARTING PAGE HERE <<<
   rv$timer            <- 999L
   rv$stopwatch        <- 0L
   rv$timer_active     <- TRUE
@@ -57,7 +56,7 @@ server <- function(input, output, session){
     if(rv$pg %in% period1_pgs){return("period1")}
     if(rv$pg %in% period2_pgs){return("period2")}
     if(rv$pg %in% period3_pgs){return("period3")}
-    if(rv$pg %in% survey_pgs){ return("survey")}
+    if(rv$pg %in% survey_pg){ return("survey")}
     return("!!SECTION NOT DEFINED!!")
   })
   section_pg <- reactive({ ## Current page num of this section.
@@ -69,7 +68,7 @@ server <- function(input, output, session){
     if(section_nm() == "period3")
       return(rv$pg - (min(period3_pgs) - 1L))
     if(section_nm() == "survey")
-      return(rv$pg - (min(survey_pgs) - 1L))
+      return(rv$pg - (min(survey_pg) - 1L))
   })
   period <- reactive({
     req(section_nm())
@@ -78,9 +77,11 @@ server <- function(input, output, session){
     return("NA")
   })
   eval <- reactive({
-    req(section_pg(), period())
+    req(section_pg())
+    req(period())
     if(substr(section_nm(), 1, 6) == "period"){
-      if(section_pg() %in% c(1, 4)) return("NA")
+      if(section_pg() == 1) return("training")
+      if(section_pg() == 4) return("intermission")
       2 * (period() - 1) + (section_pg() - 1)
     }
     return("NA")
@@ -106,13 +107,13 @@ server <- function(input, output, session){
   })
   block_p_dim_nm <- reactive({
     req(eval())
-    p_dim_nm_ord[eval()]
+    this_p_dim_nm_ord[eval()]
   })
   sim_nm <- reactive({
     req(section_nm())
     if(substr(section_nm(), 1, 6) == "period"){ #& do_disp_dev_tools == TRUE){
-      ## TODO: distinguish, between reps.
-      req(block_vc_nm(), block_p_dim_nm(), block_location_nm(), period())
+      if(eval() == "training")
+        return(paste0("EEE_P4_0_1_t", period()))
       return(paste(block_vc_nm(), block_p_dim_nm(), block_location_nm(), 
                    paste0("rep", period()), sep = "_"))
     }
@@ -220,7 +221,7 @@ server <- function(input, output, session){
     round(task_var_score(), 2)
   })
   task_score <- reactive({
-    req(any_active())
+    req(is.logical(any_active()))
     req(task_var_score())
     if(any_active())
       return(sum(task_var_score()))
@@ -787,7 +788,7 @@ server <- function(input, output, session){
       
       ##### __rv$resp_tbl -----
       ## Write responses and ttr to resp_tbl
-      if(section_nm() %in% c("task", "training")){
+      if(substr(section_nm(), 1, 6) == "period"){
         ins_row <- which(rv$resp_tbl$sim_nm  == sim_nm())[1L]
         
         ## Is response concerning?
@@ -802,7 +803,7 @@ server <- function(input, output, session){
         
         ## Did task time run out
         plot_elapsed <- NA
-        if(section_nm() == "task"){
+        if(substr(section_nm(), 1, 6) == "period"){
           if(time_elapsed() >  task_time()) plot_elapsed <- 1L
           if(time_elapsed() <= task_time()) plot_elapsed <- 0L
         }
@@ -819,6 +820,8 @@ server <- function(input, output, session){
         # rv$resp_tbl$concern[ins_row]      <- task_concern
       } ## End of writing to resp_tbl
       cat("!!! ITERATED PG!!!")
+      
+      
       ### __New page ----
       ## Advance to the next page, reset variables
       rv$pg <- rv$pg + 1L
@@ -836,7 +839,7 @@ server <- function(input, output, session){
       rv$stopwatch        <- 0L
       rv$timer_active     <- TRUE
       rv$training_aes     <- FALSE
-      if(rv$pg == survey_start_pg) shinyjs::hide("next_pg_button")
+      if(rv$pg == survey_pg) shinyjs::hide("next_pg_button")
       
       ## Set structure for writeing to resp_tbl
       ## cluster seperation task:

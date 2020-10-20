@@ -175,7 +175,7 @@ intro_pgs   <- 1L:3L   ## Structure, video, splash screen
 period1_pgs <- 4L:7L   ## Training, rep 1, rep 2, and intermission
 period2_pgs <- 8L:11L  ## Training, rep 1, rep 2, and intermission
 period3_pgs <- 12L:14L ## Training, rep 1, rep 2
-survey_pgs  <- 15L     ## Survey
+survey_pg   <- 15L     ## Survey
 
 ##### UI START -----
 ### header_ui -----
