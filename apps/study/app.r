@@ -196,7 +196,7 @@ server <- function(input, output, session){
   #### _Task evaluation -----
   ### Task Response
   task_resp <- reactive({
-    if(section_nm() %in% c("training", "task"))
+    if(substr(section_nm(), 1, 6) == "period")
       ## Vector of the numbers without 'V'
       return(as.integer(gsub(' |V', '', input$task_response)))
     return("NA")
@@ -217,10 +217,11 @@ server <- function(input, output, session){
   })
   task_var_score <- reactive({
     if(any_active()){
-      diff <- task_diff()
-      ans  <- which(diff >= 0L)
+      diff   <- task_diff()
+      ans    <- which(diff >= 0L)
       weight <- sign(diff) * sqrt(abs(diff))
-      resp <- task_resp()
+      resp   <- task_resp()
+      if(resp == "NA") return(integer(0))
       return(weight[resp])
     }
     return("NA")
@@ -766,7 +767,8 @@ server <- function(input, output, session){
       
       ### __Training evaluation -----
       ## if training section, evaluate response
-      if(section_nm() == "training"){
+      ## TODO: NEED TO CHANGE to eval() == "training"
+      if(eval() == "training"){
         this_char <- ""
         ## Evaluation of the training for task
         if(rv$training_aes == FALSE){
@@ -940,7 +942,7 @@ server <- function(input, output, session){
         )
       }
     }
-    if(section_nm() == "training" & section_pg() != 6){ ## Disp timer Counting up if in training.
+    if(eval() == "training"){ ## Disp timer Counting up if in training.
       return(paste0("Time elapsed this task: ", lubridate::seconds_to_period(rv$stopwatch)))
     }
   })
@@ -952,10 +954,9 @@ server <- function(input, output, session){
   output$factor_nm  <- reactive(factor_nm())  ## For sidebar inputs
   output$section_pg <- reactive(section_pg()) ## For navigating training
   output$any_active <- reactive(any_active()) ## For display of the task response.
+  output$eval       <- reactive(eval())
   output$dev_tools  <- reactive({ ## For JS eval of R boolean...
-    if(do_disp_dev_tools == TRUE){
-      return(TRUE)
-    }else return(FALSE)
+    return(do_disp_dev_tools)
   }) 
   #input$task_response
   
@@ -965,6 +966,7 @@ server <- function(input, output, session){
   outputOptions(output, "factor_nm",   suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "section_pg",  suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "any_active",  suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "eval",        suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "dev_tools",   suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
 
   ### General task outputs

@@ -189,7 +189,7 @@ header_ui <- fluidPage(
 
 ##### sidebar_ui ----
 sidebar_ui <- conditionalPanel(
-  condition = "output.section_nm == 'training' || output.section_nm == 'task'",
+  condition = "output.eval == 'training'",
   sidebarPanel(width = 3L,
                ## TODO ENABLE THESE REMOVED TRAINING TEXT DISP AFTER PLANNING
                #,
@@ -407,14 +407,12 @@ main_ui <- mainPanel(width = 9,
   
   ### _Plot mainPanel ----
   conditionalPanel(
-    condition = "(output.section_nm == 'training' && output.section_pg != 6) ||
-      output.section_nm == 'task'", ## output.section_pg == 6 is splash page.
+    condition = "(output.eval == 'training'", 
     htmlOutput("plot_msg"),
     plotOutput("pca_plot", height = "100%"),
     ## PCA axis selection
     conditionalPanel(
-      condition = "(output.factor_nm == 'pca') ||
-                  (output.section_nm == 'training' && input.factor == 'pca')",
+      condition = "output.factor_nm == 'pca'",
       fluidRow(radioButtons(inputId = "x_axis", label = "x axis",
                             choices = paste0("PC", 1:PC_cap),
                             selected =  "PC1", inline = TRUE),
@@ -426,8 +424,7 @@ main_ui <- mainPanel(width = 9,
     plotOutput("radial_plot", height = "100%"),
     ## Radial manip var radio buttons
     conditionalPanel(
-      condition = "(output.factor_nm == 'radial') ||
-                  (output.section_nm == 'training' && input.factor == 'radial')",
+      condition = "output.factor_nm == 'radial'",
       radioButtons(inputId = "manip_var_nm", label = "Manip variable:",
                    choices =  "V1", selected = "V1")
     ), ## Close conditionalPanel()
