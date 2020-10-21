@@ -113,12 +113,21 @@ server <- function(input, output, session){
     req(section_nm())
     if(substr(section_nm(), 1, 6) == "period"){ #& do_disp_dev_tools == TRUE){
       if(eval() == "training")
-        return(paste0("EEE_P4_0_1_t", period()))
+        return(paste0("EEE_p4_0_1_t", period()))
       return(paste(block_vc_nm(), block_p_dim_nm(), block_location_nm(), 
                    paste0("rep", period()), sep = "_"))
     }
-    sim_num <- 1 + (section_pg() - 1) %% length(this_sim_nms)
-    return(this_sim_nms[sim_num])
+    # ## Effectively off
+    # sim_num <- 1 + (section_pg() - 1) %% length(this_sim_nms)
+    # return(this_sim_nms[sim_num])
+  })
+  tpath_nm <- reactive({
+    req(section_nm())
+    if(substr(section_nm(), 1, 6) == "period"){ #& do_disp_dev_tools == TRUE){
+      if(eval() == "training")
+        return(paste0("tpath_p4_t"))
+      return(paste("tpath", block_p_dim_nm(), sep = "_"))
+    }
   })
   task_time <- reactive({
     req(factor_nm())

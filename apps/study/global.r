@@ -141,10 +141,13 @@ sim_nms <- c("EEE_p4_0_1",    "EEE_p4_33_66",    "EEE_p4_50_50",
              "EEV_p6_0_1",    "EEV_p6_33_66",    "EEV_p6_50_50",
              "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
 sim_fps <- paste0(root, "/", sim_nms, ".rda")
-tpath_fps <- paste0(root, "/tpath_", sim_nms, ".rda")
 for(i in 1:length(sim_nms)){
-  ## Load sims by the obj name stored in .rda files.
   load(sim_fps[i])
+}
+## Load the few tpaths.
+tpath_nms <- paste0("tpath_", c("p4_t", "p4", "p6"))
+tpath_fps <- paste0(root, "/", tpath_nms, ".rda")
+for(i in 1:length(tpath_nms)){
   load(tpath_fps[i])
 }
 
