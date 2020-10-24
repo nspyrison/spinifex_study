@@ -56,7 +56,7 @@ server <- function(input, output, session){
     if(rv$pg %in% period1_pgs){return("period1")}
     if(rv$pg %in% period2_pgs){return("period2")}
     if(rv$pg %in% period3_pgs){return("period3")}
-    if(rv$pg %in% survey_pg){ return("survey")}
+    if(rv$pg %in% survey_pg){  return("survey")}
     return("!!SECTION NOT DEFINED!!")
   })
   section_pg <- reactive({ ## Current page num of this section.
@@ -769,7 +769,7 @@ server <- function(input, output, session){
       ## if training section, evaluate response
       ## TODO: NEED TO CHANGE to eval() == "training"
       if(eval() == "training"){
-        this_char <- ""
+        this_char <- "" ## Init
         ## Evaluation of the training for task
         if(rv$training_aes == FALSE){
           rv$training_aes <- TRUE
@@ -954,20 +954,20 @@ server <- function(input, output, session){
   output$factor_nm  <- reactive(factor_nm())  ## For sidebar inputs
   output$section_pg <- reactive(section_pg()) ## For navigating training
   output$any_active <- reactive(any_active()) ## For display of the task response.
-  output$eval       <- reactive(eval())
+  output$eval       <- reactive(eval())       ## For sidebar display
   output$dev_tools  <- reactive({ ## For JS eval of R boolean...
     return(do_disp_dev_tools)
   }) 
   #input$task_response
   
-  outputOptions(output, "is_saved",    suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
-  outputOptions(output, "pg",          suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "section_nm",  suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "factor_nm",   suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "section_pg",  suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "any_active",  suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "eval",        suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "dev_tools",   suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
+  outputOptions(output, "is_saved",   suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
+  outputOptions(output, "pg",         suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "section_nm", suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "factor_nm",  suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "section_pg", suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "any_active", suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "eval",       suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "dev_tools",  suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
 
   ### General task outputs
   ## height: ggplot applies on renderPlot(), plotly applies to a plotly option.

@@ -114,8 +114,8 @@ onStop(function(){
   #### note that rv$resp_tbl is out of scope to the global file.
 })
 ## Survey questions; n = 21 = 9 + 12
-survey_questions <- c("What sex are you?",
-                        "What age group do you belong to?",
+survey_questions <- c("Which sex are you?",
+                        "Which age group do you belong to?",
                         "What is your English proficiency?",
                         "What is your highest completed education?",
                         "I am experienced with data visualization.",
