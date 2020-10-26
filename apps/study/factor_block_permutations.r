@@ -1,4 +1,4 @@
-rand_participant <- function(){
+add_participant <- function(participant_num = sample(22:555, 1)){
   #### Initialize
   ## Given
   factor_perms   <- matrix(c(1, 1,  2, 2,  3, 3, ## The 3 permutations of the 3 factor orders
@@ -17,14 +17,10 @@ rand_participant <- function(){
   n_perms_prr <- ## Number of permutations per round robin
     n_facotor_perms * n_location_perms * n_vc_perms
   
-  ## Selection
-  participant_num <- sample(1:999, 1)
+  
+  ## Find perm number 
   rr_num          <- participant_num %/% n_perms_prr
   perm_num_NEXT   <- 1 + (participant_num - 1) %% n_perms_prr
-  
-  
-  
-  
   #### Permutation count table
   perm_cnt_tbl_init <-
     matrix(rep(rr_num, n_perms_prr), nrow = 1, ncol = n_perms_prr,)
@@ -43,7 +39,7 @@ rand_participant <- function(){
     factor_nms   <- c("pca", "grand", "radial")
     location_nms <- c("0_1", "33_66", "50_50")
     vc_nms       <- c("EEE", "EEV", "banana")
-    p_dim_nms    <- this_p_dim_nm_ord <- c("p4", "p6")
+    p_dim_nms    <- c("p4", "p6")
     ##  
     this_factor_perm   <-
       1 + (perm_num - 1) %% n_facotor_perms
@@ -53,13 +49,14 @@ rand_participant <- function(){
       1 + ((perm_num - 1) %/% (n_facotor_perms * n_location_perms)) %% n_vc_perms
     
     ## Return in order
-    this_factor_nm_ord <- factor_nms[factor_perms[this_factor_perm, ]]
-    this_location_ord  <- location_nms[location_perms[this_location_perm, ]]
-    this_vc_nm_ord     <- vc_nms[vc_perms[this_vc_perm, ]]
+    this_factor_nm_ord   <- factor_nms[factor_perms[this_factor_perm, ]]
+    this_location_nm_ord <- location_nms[location_perms[this_location_perm, ]]
+    this_vc_nm_ord       <- vc_nms[vc_perms[this_vc_perm, ]]
+    this_p_dim_nm_ord    <- rep(p_dim_nms, 3)
     ##
-    this_sim_nms <- paste(rep(this_vc_nm_ord, 3),
-                          rep(p_dim_nms, 3), 
-                          rep(this_location_ord, 3),
+    this_sim_nms <- paste(this_vc_nm_ord,
+                          this_p_dim_nm_ord,
+                          this_location_nm_ord,
                           sep = "_")
     
     ## Messaging
@@ -71,14 +68,29 @@ rand_participant <- function(){
     print("sim names: ")
     print(this_sim_nms)
     
-    return(this_sim_nms)
+    out <- list(this_factor_nm_ord   = this_factor_nm_ord,
+                this_sim_nms         = this_sim_nms,
+                this_location_nm_ord = this_location_nm_ord,
+                this_vc_nm_ord       = this_vc_nm_ord,
+                this_p_dim_nm_ord    = this_p_dim_nm_ord)
+    return(out)
   }
-  sim_nms_NEXT <- decode_perm(perm_num_NEXT, perm_cnt_tbl_NEXT)
-  sim_nms_RAND <- decode_perm(perm_num_RAND, perm_cnt_tbl_RAND)
+  
+  print("===New participant assigned to NEXT permutation===")
+  perm_NEXT <- decode_perm(perm_num_NEXT, perm_cnt_tbl_NEXT)
+  print("_____")
+  print("===New participant assigned to RANDOM remaining permutation===")
+  perm_RAND <- decode_perm(perm_num_RAND, perm_cnt_tbl_RAND)
+  print("_____")
+  
+  out <- list(perm_NEXT = perm_NEXT,
+              perm_RAND = perm_RAND)
 }
 
-for(i in 1:3){
+z <- add_participant(100)$perm_RAND
+#for(i in 1:3)
+{
   tictoc::tic()
-  rand_participant()
+  add_participant()
   tictoc::toc()
 }
