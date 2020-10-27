@@ -21,6 +21,19 @@ height_px <- 500L
 pal <- RColorBrewer::brewer.pal(8, "Dark2")[c(1, 2, 3, 6, 8)]
 #scale_colour_manual(values = pal)
 
+bas_p4 <- matrix(c(.5, .5,
+                   -.5, .5,
+                   -.5, -.5,
+                   .5, -.5),
+                 ncol = 2, nrow = 4, byrow = TRUE)
+bas_p6 <- matrix(c(.2887, .5,
+                   -.2887, .5,
+                   -.5774, 0,
+                   -.2887, -.5,
+                   .2887, -.5,
+                   .5774, 0),
+                 ncol = 2, nrow = 6, byrow = TRUE)
+
 #### Logging -----
 ## browseURL("https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/")
 ## use: loggit("INFO", "<main msg>", "<detail>")

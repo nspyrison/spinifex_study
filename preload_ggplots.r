@@ -1,6 +1,20 @@
 source("~/R/spinifex_study/apps/study/factor_block_permutation")
 input_sims <- add_participant(100)$perm_RAND$this_sim_nms
 pal <- RColorBrewer::brewer.pal(8, "Dark2")[c(1, 2, 3, 6, 8)]
+require("spinifex");require("ggplot2");
+bas_p4 <- matrix(c(.5, .5,
+                   -.5, .5,
+                   -.5, -.5,
+                   .5, -.5),
+                 ncol = 2, nrow = 4, byrow = TRUE)
+bas_p6 <- matrix(c(.2887, .5,
+                   -.2887, .5,
+                   -.5774, 0,
+                   -.2887, -.5,
+                   .2887, -.5,
+                   .5774, 0),
+                 ncol = 2, nrow = 6, byrow = TRUE)
+
 
 #### Single ggplot primitives
 ## _for pca:
@@ -88,9 +102,9 @@ plot_single_grand <- function(sim_nm = "EEE_p4_0_1"){
                  axes = "left",
                  aes_args = list(color = cluster, shape = cluster),
                  identity_args = list(size = 3L), 
-                 ggproto = list(theme_spinifex(), 
-                                scale_colour_manual(values = pal)
-                 ))
+                 ggproto = list(theme_spinifex())
+                 #,scale_colour_manual(values = pal)
+      )
   }
   
   return(gg_ls)
@@ -101,7 +115,8 @@ plot_single_radial <- function(sim_nm, mvar){
   ## Initialize
   dat_std <- get(sim_nm)
   cluster <- attr(dat_std, "cluster")
-  bas <- basis_pca(dat_std)
+  p <- ncol(dat_std)
+  bas <- get(paste0("bas_p", p))
 
   fps <- 6L
   axes_position <- "left"
@@ -122,9 +137,9 @@ plot_single_radial <- function(sim_nm, mvar){
                  manip_var = mvar, axes = "left",
                  aes_args =  list(color = cluster, shape = cluster),
                  identity_args = list(size = 3L),
-                 ggproto = list(theme_spinifex(), 
-                                scale_colour_manual(values = pal)
-                 ))
+                 ggproto = list(theme_spinifex())
+                 #,scale_colour_manual(values = pal)
+      )
   }
   
   return(gg_ls)
@@ -180,21 +195,41 @@ preload_ggplots <- function(sim_nms = c("EEE_p4_0_1", "EEE_p4_33_66")){
   
   
   #### grand_ls ------
-  ## Initialize axes permutations
- 
   ## Pre-loop initialization 
   l_sim_nms <- length(sim_nms)
   grand_ls <- list()
   for(i in 1:l_sim_nms){ ## LOOP OVER SIMS
     this_sim_nm <- sim_nms[i]
     grand_ls[[i]] <- 
-        plot_single_grand(sim_nm = this_sim_nm)
-    }
+      plot_single_grand(sim_nm = this_sim_nm)
   }
   names(grand_ls) <- paste0(sim_nms, "_grand")
-  length(grand_ls)
   ## Parent envr assign
-  pca_ls <<- pca_ls
-  
+  grand_ls <<- grand_ls
+
+  #### radial_ls ------
+  ## Pre-loop initialization 
+  l_sim_nms <- length(sim_nms)
+  radial_ls <- list()
+  ls_nms  <- NULL
+  for(i in 1:l_sim_nms){ ## LOOP OVER SIMS
+    this_sim_nm <- sim_nms[i]
+    p <- ncol(get(this_sim_nm))
+    inc_ls_nms <- paste0(rep(this_sim_nm, each = p),
+                         "__radial_mv",
+                         1:p)
+    ls_nms <- c(ls_nms, inc_ls_nms)
+    for(j in 1:p){ ## LOOP OVER DIMENSIONS
+      this_sim_nm <- sim_nms[i]
+      radial_ls[[(i - 1) * p + j]] <- 
+        plot_single_radial(sim_nm = this_sim_nm, mvar = j)
+    }
   }
+  names(radial_ls) <- paste0(rep(sim_nms, each = p),
+                             "__radial_mv",
+                             rep(1:p, l_sim_nms))
+  ## Parent envr assign
+  radial_ls <<- radial_ls
   
+
+}
