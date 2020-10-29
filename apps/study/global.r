@@ -10,11 +10,12 @@ library("tidyr")
 library("dplyr")
 library("plotly")
 library("GGally")
-library("shinyjs")   ## help with handling conditionalPanels.
+library("shinyjs")   ## Help with handling conditionalPanels
 library("lubridate") ## For timer
 library("loggit")    ## For logging
-library("here")      ## Fixing base dir.
-set.seed(20200927)   ## if tourr starts using seeds
+library("here")      ## Fixing base dir
+set.seed(20200927)   ## If tourr starts using seeds
+time_alotted <- 180L ## Seconds for the task
 
 #### Simulated data series,
 ## "series" or iteration of data to look at. Should be an even hundred
@@ -22,17 +23,17 @@ height_px <- 500L
 pal <- RColorBrewer::brewer.pal(8, "Dark2")[c(1, 2, 3, 6, 8)]
 #scale_colour_manual(values = pal)
 
-bas_p4 <- matrix(c(.5, .5,
+bas_p4 <- matrix(c(.5,  .5,
                    -.5, .5,
                    -.5, -.5,
-                   .5, -.5),
+                   .5,  -.5),
                  ncol = 2, nrow = 4, byrow = TRUE)
-bas_p6 <- matrix(c(.2887, .5,
+bas_p6 <- matrix(c(.2887,  .5,
                    -.2887, .5,
                    -.5774, 0,
                    -.2887, -.5,
-                   .2887, -.5,
-                   .5774, 0),
+                   .2887,  -.5,
+                   .5774,  0),
                  ncol = 2, nrow = 6, byrow = TRUE)
 
 ## Loads plotting functions and preloaders (WIP), run after setting pal and bas_p6.
@@ -209,140 +210,46 @@ header_ui <- fluidPage(
 )
 
 ##### sidebar_ui ----
-sidebar_ui <- conditionalPanel(
-  condition = "output.eval == 'training'",
-  sidebarPanel(width = 3L,
-               ## TODO ENABLE THESE REMOVED TRAINING TEXT DISP AFTER PLANNING
-               #,
-               ##### _Training text -----
-               # conditionalPanel(
-               #   condition = "output.eval == 'training'",
-               #   conditionalPanel( ## interface familiarity
-               #     condition = "output.section_pg == 1",
-               #     p("In this study, you will be working with 3 visualization techniques of
-               #     multivariate data. Each one uses 2-dimensional projections created
-               #     from different combinations of variables. The variable map (grey circle)
-               #     shows the angle and magnitude that each variable contributes to the
-               #     projection."),
-               #     p("Principal Component Analysis (PCA) is displayed first. Use the radio
-               #       buttons on the left sidebar panel to select new components to be
-               #       displayed. Observe how the clusters and the variable contributions
-               #       change."),
-               #     p("Now switch to the grand tour factor. Play the animation. Notice how
-               #       different clusters move as the variable contributions change. Drag
-               #       the slider to select a different frame or animate at your own pace."),
-               #     p("Change to the radial tour. You can select which components are on
-               #       the axes. Using the drop-down, select the variable with the largest
-               #       line segment. Use the slider to change the variable's contribution.
-               #       Watch how the contributions and clusters move as a result. Select a
-               #       change the y-axis to PC3 and back, notice that this resets the
-               #       projection."),
-               #   ), ## Close coditionalPanel()
-               #   conditionalPanel( ## Rraining task 1, pg 2
-               #     condition = "output.task == 2",
-               #     strong("The data points are colored by their cluster again.
-               #            Variables that have a large
-               #            contribution in line with two clusters are important to
-               #            distinguish them. However, you cannot rule out that variables
-               #            with a small contribution are unimportant.
-               #            Use this information to identify which variables distinguish
-               #            the 2 clusters.")
-               #   ), ## Close coditionalPanel()
-               #   hr()
-               # ), ### Close training text coditionalPanel()
-  
-  ##### _Training control inputs -----
-  ## Factor selection
-    conditionalPanel(
-      condition = "output.eval == 'training'",
-      radioButtons(inputId = "factor", label = "Factor",
-                   choices = factor_nms,
-                   selected = factor_nms[1L],
-                   inline = TRUE),
-      fluidRow(column(4, radioButtons(inputId = "simVc", label = "VC",
-                                      choices = c("EEE", "EEV", "banana"), selected = "EEE")),
-               column(4, radioButtons(inputId = "simP", label = "# Clusters & var",
-                                      choices = list("3cl in 4v" = "p4",
-                                                     "4cl in 6v" = "p6"), 
-                                      selected = "p4")),
-               column(4, radioButtons(inputId = "simLocation", label = "Location (1sig, 1noise)",
-                                      choices = list("0%/100%" = "0_1",
-                                                     "33%/66%" = "33_66", 
-                                                     "50%/50%" = "50_50"), 
-                                      selected = "0_1"))
-      )
-    ), 
-  
-  ##### _Task response input -----
-    ## Task 2
-    conditionalPanel(
-      condition = "(output.any_active == true) ", 
-      checkboxGroupInput(
-        inputId = "task_response",
-        label   = "Check any/all variables contribute more than average to the cluster seperation green circles and orange triangles.",
-        choices = "V1",
-        inline  = TRUE
-      )
-    )
-  ) ## Close conditionalPanel(), assigning sidebar_ui
-)
-  
+sidebar_ui <- fluidPage(
+## <CONTENT REMOVED>
 
-##### Initialize survey columns -----
-surv_lab <- HTML("<div style=\"width:300px;\">
-                    <div style=\"float:left;\">strongly disagree</div>
-                    <div style=\"float:right;\">strongly agree</div>
-                  </div>")
-survey_fct_q_start <- 9L
-col_p1 <- column(4L,
-                 h3(this_factor_nm_ord[1]),
-                 hr(),
-                 h4(survey_questions[survey_fct_q_start + 1]),
-                 sliderInput(paste0("survey", survey_fct_q_start + 1),
-                             label = surv_lab, min = 1, max = 9, value = 5),
-                 h4(survey_questions[survey_fct_q_start + 2]),
-                 sliderInput(paste0("survey", survey_fct_q_start + 2),
-                             label = surv_lab, min = 1, max = 9, value = 5),
-                 h4(survey_questions[survey_fct_q_start + 3]),
-                 sliderInput(paste0("survey", survey_fct_q_start + 3),
-                             label = surv_lab, min = 1, max = 9, value = 5),
-                 h4(survey_questions[survey_fct_q_start + 4]),
-                 sliderInput(paste0("survey", survey_fct_q_start + 4),
-                             label = surv_lab, min = 1, max = 9, value = 5)
+
+##### _Training control inputs -----
+## Factor selection
+# conditionalPanel(
+#   condition = "output.eval == 'training'",
+#   radioButtons(inputId = "factor", label = "Factor",
+#                choices = factor_nms,
+#                selected = factor_nms[1L],
+#                inline = TRUE),
+#   fluidRow(column(4, radioButtons(inputId = "simVc", label = "VC",
+#                                   choices = c("EEE", "EEV", "banana"), selected = "EEE")),
+#            column(4, radioButtons(inputId = "simP", label = "# Clusters & var",
+#                                   choices = list("3cl in 4v" = "p4",
+#                                                  "4cl in 6v" = "p6"), 
+#                                   selected = "p4")),
+#            column(4, radioButtons(inputId = "simLocation", label = "Location (1sig, 1noise)",
+#                                   choices = list("0%/100%" = "0_1",
+#                                                  "33%/66%" = "33_66", 
+#                                                  "50%/50%" = "50_50"), 
+#                                   selected = "0_1"))
+#   )
+# ), 
+
+##### _Task response input -----
+## Task 2
+conditionalPanel(
+  condition = "(output.any_active == true) ", 
+  checkboxGroupInput(
+    inputId = "response",
+    label   = "Check any/all variables contribute more than average to the cluster seperation green circles and orange triangles.",
+    choices = "V1",
+    inline  = TRUE
+  )
 )
 
-col_p2 <- column(4,
-                 h3(this_factor_nm_ord[2]),
-                 hr(),
-                 h4(survey_questions[survey_fct_q_start + 5]),
-                 sliderInput(paste0("survey", survey_fct_q_start + 5),
-                             label = surv_lab, min = 1, max = 9, value = 5),
-                 h4(survey_questions[survey_fct_q_start + 6]),
-                 sliderInput(paste0("survey", survey_fct_q_start + 6),
-                             label = surv_lab, min = 1, max = 9, value = 5),
-                 h4(survey_questions[survey_fct_q_start + 7]),
-                 sliderInput(paste0("survey", survey_fct_q_start + 7),
-                             label = surv_lab, min = 1, max = 9, value = 5),
-                 h4(survey_questions[survey_fct_q_start + 8]),
-                 sliderInput(paste0("survey", survey_fct_q_start + 8),
-                             label = surv_lab, min = 1, max = 9, value = 5)
-)
-col_p3 <- column(4,
-                 h3(this_factor_nm_ord[3]),
-                 hr(),
-                 h4(survey_questions[survey_fct_q_start + 9]),
-                 sliderInput(paste0("survey", survey_fct_q_start + 9),
-                             label = surv_lab, min = 1, max = 9, value = 5),
-                 h4(survey_questions[survey_fct_q_start + 10]),
-                 sliderInput(paste0("survey", survey_fct_q_start + 10),
-                             label = surv_lab, min = 1, max = 9, value = 5),
-                 h4(survey_questions[survey_fct_q_start + 11]),
-                 sliderInput(paste0("survey", survey_fct_q_start + 11),
-                             label = surv_lab, min = 1, max = 9, value = 5),
-                 h4(survey_questions[survey_fct_q_start + 12]),
-                 sliderInput(paste0("survey", survey_fct_q_start + 12),
-                             label = surv_lab, min = 1, max = 9, value = 5)
-)
+) ## Close conditionalPanel(), assigning sidebar_ui
+
 
 ##### main_ui -----
 main_ui <- mainPanel(width = 9,
@@ -354,80 +261,6 @@ main_ui <- mainPanel(width = 9,
     h2(textOutput('header')),
     hr()
   ), ## close task section conditional panel title text
-  
-  ### _Intro mainPanel -----
-  conditionalPanel(
-    condition = "output.section_nm == 'intro'",
-    conditionalPanel(
-      condition = "output.pg == 1", ## First page
-      h3("Welcome to the study"),
-      br(),
-      p("This a completely voluntary study that will take approximately 45-50
-          minutes to complete. If at any point you would like to stop,
-          please let the invigilator know."),
-      br(),
-      p("You are helping to compare the effectiveness of different
-          multivariate data visualization techniques.
-          The study is structured as follows:"),
-      p("Training -- questions encouraged"),
-      HTML("<ul>
-              <li>Video training: you will first watch a five minute video
-                  explaining the techniques</li>
-              <li>Interface familiarity: you will get to explore the interface
-                    for the different tasks, answer questions about the data, and
-                    receive feedback</li>
-            </ul>"),
-      p("Evaluation, for each of the 3 visuals -- independent effort with no questions"),
-      HTML("<ul>
-              <li>Cluster seperation task (x2 difficulties, 180 sec)</li>
-            </ul>"),
-      p("Wrap up study"),
-      HTML("<ul>
-              <li>Complete survey</li>
-              <li>Save and exit from app</li>
-            </ul>"),
-      p("We really appreciate your participation in this study.")
-    ), ## End first page
-    conditionalPanel(
-      condition = "output.pg == 2", ## Video
-      h2("Video training"), br(), br(),
-      p("Watch the following video before proceeding:"), br(),
-      ## Adding the 'a' tag to the sidebar linking external file
-      p("Minimize the study and watch the training video."),
-      a(href = 'training.mp4', target = 'blank', 'training video (4:17)'),
-      br(), br(),
-      p("If this link only contains audio let the invigilator know.")
-    ) ## End of video
-  ), ## Close conditionalPanel -- intro section text
-  
- 
-  
-  # ### _Training mainPanel -----
-  # conditionalPanel(
-  #   condition = "output.eval == 'training'",
-  #   conditionalPanel(condition = "output.section_pg == 'period1'", ## ui intro
-  #                    h2(textOutput('training_header'))
-  #   ),
-  #   conditionalPanel(condition = "output.section_pg == 2",
-  #                    h2("Training -- cluster seperation task")
-  #   ),
-  #   conditionalPanel(condition = "output.section_pg == 3",
-  #                    h2("Training -- cluster seperation task, set 2")
-  #   ),
-  #   conditionalPanel( ## splash page
-  #     condition = "output.section_pg == 4",
-  #     h1(), h1(), h1(),
-  #     h1("Training complete, Great job!"),
-  #     h4("Take a break and strech if you feel like it."),
-  #     HTML("<h3><span style='color:red'>
-  #         Keep in mind that we are evaluating the factors, not you.
-  #         Don't worry if you don't fully understand a visualization or find the task difficult.
-  #          </span></h3>"),
-  #     h4("Ask any final clarification questions. Then continue on to the
-  #       evaluation section. The task is timed, with a time remaining displayed on top.")
-  #   ),
-  #   hr()
-  # ), ## close training section main panel text
   
   ### _Plot mainPanel ----
   conditionalPanel(
@@ -456,66 +289,6 @@ main_ui <- mainPanel(width = 9,
     uiOutput("grand_ui")
   ), ## Close plot conditional panel
   
-  # ### _Survey mainPanel -----
-  # conditionalPanel(
-  #   condition = "output.section_nm == 'survey'",
-  #   #### TO REMOVE **
-  #   verbatimTextOutput("section_nm"),
-  #   conditionalPanel(
-  #     condition = "output.section_nm == 'survey'",
-  #     p("DOES == SURVEY")
-  #   ),
-  #   conditionalPanel(
-  #     condition = "output.section_nm != 'survey'",
-  #     p("DOES NOT == SURVEY")
-  #   ),
-  #   #### TO REMOVE **
-  #   conditionalPanel(
-  #     condition = "output.is_saved == 0",
-  #     selectInput("survey1", label = survey_questions[1],
-  #                 choices = c("decline to answer", "female", "male",
-  #                             "intersex, non-binary, or other")
-  #     ),
-  #     selectInput("survey2", label = survey_questions[2],
-  #                 choices = c("decline to answer", "19 or younger", "20 to 29",
-  #                             "30 to 39", "40 or older")
-  #     ),
-  #     selectInput("survey3", label = survey_questions[3],
-  #                 choices = c("decline to answer", "fluent",
-  #                             "conversational", "less than conversational")
-  #     ),
-  #     selectInput("survey4", label = survey_questions[4],
-  #                 choices = c("decline to answer", "high school",
-  #                             "undergraduate", "honors, masters, mba", "doctorate")
-  #     ),
-  #     h3("To what extent do you agree with the following statements?"),
-  #     strong(survey_questions[5]),
-  #     sliderInput("survey5", label = surv_lab,
-  #                 min = 1, max = 9, value = 5),
-  #     strong(survey_questions[6]),
-  #     sliderInput("survey6",label = surv_lab,
-  #                 min = 1, max = 9, value = 5),
-  #     strong(survey_questions[7]),
-  #     sliderInput("survey7",label = surv_lab,
-  #                 min = 1, max = 9, value = 5),
-  #     strong(survey_questions[8]),
-  #     sliderInput("survey8",label = surv_lab,
-  #                 min = 1, max = 9, value = 5),
-  #     strong(survey_questions[9]),
-  #     sliderInput("survey9",label = surv_lab,
-  #                 min = 1, max = 9, value = 5),
-  #     fluidRow(col_p1, col_p2, col_p3),
-  #     hr(),
-  #     actionButton("save_resp", "save responses")
-  #   ),
-  #   htmlOutput("save_msg"),
-  #   conditionalPanel(
-  #     condition = "output.is_saved == 1",
-  #     h3("Thank you for participating!"),
-  #     br(),
-  #     h4("Let the invigilator know you have completed the study and have a good day.")
-  #   )
-  # ) ## close survey condition panel
   
 ) ## close mainPanel() End of main_ui section.
 
@@ -524,13 +297,14 @@ dev_tools <- conditionalPanel(
   "output.dev_tools == true",
   p("===== Development display below ====="),
   actionButton("browser", "browser()"),
-  p("Variable level diff from avg: "), textOutput("task_diff"),
-  p("Variable level response: "), textOutput("task_resp"),
-  p("Variable level score: "), textOutput("task_var_score"),
-  p("Task score: "), textOutput("task_score"),
+  p("Variable level diff from avg: "), textOutput("diff"),
+  p("Variable level response: "), textOutput("response"),
+  p("Variable level score: "), textOutput("var_score"),
+  p("Task score: "), textOutput("score"),
   ##
-  textOutput("dev_msg"),
-  tableOutput("resp_tbl")
+  textOutput("dev_msg")
+  # ,
+  # tableOutput("resp_tbl")
 ) ## close conditionPanel, assigning dev_tools
 
 ##### UI, combine panels -----
