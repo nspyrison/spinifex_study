@@ -1,6 +1,7 @@
-### Global init for each factor variant.
+### Global initalize for each factor variant.
 
 ##### global.r, spinifex_study -----
+
 ### Setup -----
 library("ggplot2")
 library("spinifex")
@@ -33,6 +34,11 @@ bas_p6 <- matrix(c(.2887, .5,
                    .2887, -.5,
                    .5774, 0),
                  ncol = 2, nrow = 6, byrow = TRUE)
+
+## Loads plotting functions and preloaders (WIP), run after setting pal and bas_p6.
+source(here::here("apps/study/preload_ggplots.r"))
+
+
 
 #### Logging -----
 ## browseURL("https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/")
@@ -153,6 +159,8 @@ sim_nms <- c("EEE_p4_0_1",    "EEE_p4_33_66",    "EEE_p4_50_50",
              "EEE_p6_0_1",    "EEE_p6_33_66",    "EEE_p6_50_50",
              "EEV_p6_0_1",    "EEV_p6_33_66",    "EEV_p6_50_50",
              "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
+sim_nms <- c(paste0("EEE_p4_0_1_t", 1:3), ## 3 training sets
+             as.vector(outer(sim_nms, paste0("_rep", 1:3), FUN = "paste0"))) ## 
 sim_fps <- paste0(root, "/", sim_nms, ".rda")
 for(i in 1:length(sim_nms)){
   load(sim_fps[i])

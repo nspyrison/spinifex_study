@@ -1,6 +1,6 @@
 source('global.r', local = TRUE)
 ## Also try: shiny::runApp(appDir = "apps/study", display.mode = "showcase")
-?shiny::runApp(appDir = "apps/study", display.mode = "showcase")
+#?shiny::runApp(appDir = "apps/study", display.mode = "showcase")
 
 
 ####### Server function, for shiny app
@@ -251,59 +251,14 @@ server <- function(input, output, session){
   }
   pca_plot <- reactive({
     if(pca_active() == TRUE){
-      req(input$x_axis, input$y_axis)
-      dat_std <- dat()
-      cluster <- cl()
-      axes_position <- "left"
+      req(sim_nm())
+      req(input$x_axis)
+      req(input$y_axis)
       
-      x_axis <- input$x_axis
-      y_axis <- input$y_axis
-      x_num  <- as.integer(substr(x_axis, 3L, 3L))
-      y_num  <- as.integer(substr(y_axis, 3L, 3L))
+      x_num  <- as.integer(substr(input$x_axis, 3L, 3L))
+      y_num  <- as.integer(substr(input$y_axis, 3L, 3L))
       
-      pca     <- prcomp(dat_std)
-      pca_x   <- as.data.frame(pca$x)
-      pca_rot <- data.frame(pca$rotation[ , c(x_num, y_num)])
-      pca_rot <- scale_axes(pca_rot, axes_position, pca_x)
-      
-      angle <- seq(0L, 2L * pi, length = 360L)
-      circ  <- scale_axes(data.frame(x = cos(angle), y = sin(angle)),
-                                     axes_position, pca_x)
-      zero  <- scale_axes(data.frame(x = 0L, y = 0L),
-                          axes_position, pca_x)
-      x_range <- max(pca_x[, 1L], circ[, 1L]) - min(pca_x[, 1L], circ[, 1L])
-      y_range <- max(pca_x[, 2L], circ[, 2L]) - min(pca_x[, 2L], circ[, 2L])
-      
-      ### ggplot2
-      gg <- ggplot() +
-        ## Themes and aesthetics
-        theme_void() +
-        scale_colour_manual(values = pal) +
-        scale_fill_manual(values = pal) +
-        theme(legend.position = "none", ## no legend
-              aspect.ratio = y_range / x_range) +
-        ## Data points
-        geom_point(pca_x,
-                   mapping = aes(x = get(x_axis), y = get(y_axis),
-                                 color = cluster,
-                                 fill  = cluster,
-                                 shape = cluster),
-                   size = 3L) +
-        ## Axis segments
-        geom_segment(pca_rot,
-                     mapping = aes(x = get(x_axis), xend = zero[, 1L],
-                                   y = get(y_axis), yend = zero[, 2L]),
-                     size = 1L, colour = "grey50") +
-        ## Axis label text
-        geom_text(pca_rot,
-                  mapping = aes(x = get(x_axis),
-                                y = get(y_axis),
-                                label = colnames(dat_std)),
-                  size = 5L, colour = "grey50", fontface = "bold",
-                  vjust = "outward", hjust = "outward") +
-        ## Circle path
-        geom_path(circ, mapping = aes(x = x, y = y),
-                  color = "grey80", size = 1L, inherit.aes = F)
+      plot_single_pca(sim_nm(), x_num, y_num)
       
       return(gg)
     }
@@ -338,9 +293,11 @@ server <- function(input, output, session){
                      axes = "left",
                      aes_args = list(color = cluster, shape = cluster),
                      identity_args = list(size = 3L), 
-                     ggproto = list(theme_spinifex(), 
+                     ggproto = list(theme_spinifex(),
+                                    theme(legend.position = "none"),
                                     scale_colour_manual(values = pal)
-                     ))
+                     )
+          )
       }
       
       return(gg_ls)
@@ -381,8 +338,10 @@ server <- function(input, output, session){
                      aes_args =  list(color = cluster, shape = cluster),
                      identity_args = list(size = 3L),
                      ggproto = list(theme_spinifex(), 
+                                    theme(legend.position = "none"),
                                     scale_colour_manual(values = pal)
-                     ))
+                     )
+          )
       }
       
       return(gg_ls)

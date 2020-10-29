@@ -86,11 +86,6 @@ add_participant <- function(participant_num = sample(22:555, 1)){
   out <- list(perm_NEXT = perm_NEXT,
               perm_RAND = perm_RAND)
 }
-
-z <- add_participant(100)$perm_RAND
-#for(i in 1:3)
-{
-  tictoc::tic()
-  add_participant()
-  tictoc::toc()
-}
+#' @examples 
+#' a_rand_perm <- add_participant(100)$perm_RAND
+#' a_rand_perm

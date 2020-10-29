@@ -354,10 +354,11 @@ sim_user_study <- function(cl_obs = 140,
   if(do_save == TRUE){
     ## Using .rda. .rds not working b/c of long path? issue may be in the loading more than the saving.
     
-    #### rep 1
+    #### Training
     save(EEE_p4_0_1_t1, file = paste0(root, quote(EEE_p4_0_1_t1), ".rda"))
     save(EEE_p4_0_1_t2, file = paste0(root, quote(EEE_p4_0_1_t2), ".rda"))
     save(EEE_p4_0_1_t3, file = paste0(root, quote(EEE_p4_0_1_t3), ".rda"))
+    #### rep 1
     ## p = 4
     save(EEE_p4_0_1_rep1     , file = paste0(root, quote(EEE_p4_0_1_rep1     ), ".rda"))
     save(EEE_p4_33_66_rep1   , file = paste0(root, quote(EEE_p4_33_66_rep1   ), ".rda"))

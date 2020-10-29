@@ -1,19 +1,20 @@
-source("~/R/spinifex_study/apps/study/factor_block_permutation")
-input_sims <- add_participant(100)$perm_RAND$this_sim_nms
-pal <- RColorBrewer::brewer.pal(8, "Dark2")[c(1, 2, 3, 6, 8)]
-require("spinifex");require("ggplot2");
-bas_p4 <- matrix(c(.5, .5,
-                   -.5, .5,
-                   -.5, -.5,
-                   .5, -.5),
-                 ncol = 2, nrow = 4, byrow = TRUE)
-bas_p6 <- matrix(c(.2887, .5,
-                   -.2887, .5,
-                   -.5774, 0,
-                   -.2887, -.5,
-                   .2887, -.5,
-                   .5774, 0),
-                 ncol = 2, nrow = 6, byrow = TRUE)
+if("pal" %in% ls() == FALSE){
+  ## Initialize from apps/study/global.r.
+  require("spinifex");require("tidyverse");
+  pal <- RColorBrewer::brewer.pal(8, "Dark2")[c(1, 2, 3, 6, 8)]
+  bas_p4 <- matrix(c(.5, .5,
+                     -.5, .5,
+                     -.5, -.5,
+                     .5,  -.5),
+                   ncol = 2, nrow = 4, byrow = TRUE)
+  bas_p6 <- matrix(c(.2887,  .5,
+                     -.2887, .5,
+                     -.5774, 0,
+                     -.2887, -.5,
+                     .2887,  -.5,
+                     .5774,  0),
+                   ncol = 2, nrow = 6, byrow = TRUE)
+}
 
 
 #### Single ggplot primitives
@@ -71,8 +72,8 @@ plot_single_pca <- function(sim_nm, x_num, y_num){
     ## Circle path
     geom_path(circ, mapping = aes(x = x, y = y),
               color = "grey80", size = 1L, inherit.aes = F)
-  
-  return(gg)
+  print(gg) ## Eager eval for preloader.
+  return(gg) 
 }
 
 ## _for grand tour:
@@ -80,7 +81,7 @@ plot_single_grand <- function(sim_nm = "EEE_p4_0_1"){
   ## Initialize
   dat_std <- get(sim_nm)
   cluster <- attr(dat_std, "cluster")
-  .srt_char <- regexpr("p", sim_nm)[1]
+  .srt_char <- regexpr("_", sim_nm)[1] + 1  ## The number of characaters of the "p"
   tpath <- get(paste0("tpath_", substr(sim_nm,
                                    start = .srt_char,
                                    stop = .srt_char + 1))) ## Will need _t at end if trainig.
@@ -102,9 +103,12 @@ plot_single_grand <- function(sim_nm = "EEE_p4_0_1"){
                  axes = "left",
                  aes_args = list(color = cluster, shape = cluster),
                  identity_args = list(size = 3L), 
-                 ggproto = list(theme_spinifex())
-                 #,scale_colour_manual(values = pal)
+                 ggproto = list(theme_spinifex(),
+                                theme(legend.position = "none"),
+                                scale_colour_manual(values = pal)
+                 )
       )
+    print(gg_ls[[i]]) ## Eager eval for preloader.
   }
   
   return(gg_ls)
@@ -137,78 +141,110 @@ plot_single_radial <- function(sim_nm, mvar){
                  manip_var = mvar, axes = "left",
                  aes_args =  list(color = cluster, shape = cluster),
                  identity_args = list(size = 3L),
-                 ggproto = list(theme_spinifex())
-                 #,scale_colour_manual(values = pal)
+                 ggproto = list(theme_spinifex(),
+                                theme(legend.position = "none"),
+                                scale_colour_manual(values = pal)
+                 )
       )
+    print(gg_ls[[i]]) ## Eager eval for preloader.
   }
   
   return(gg_ls)
 }
 
+nictic <- function(...){
+  #beepr::beep(1);
+  tictoc::tic();
+  paste0(..., " --- ", Sys.time())
+}
+nictoc <- function(...){
+  #beepr::beep(4);
+  tictoc::toc();
+  paste0(..., " --- ", Sys.time())
+}
 
+
+#### preload_ggplots() ----
 ## Bringing it all together
-preload_ggplots <- function(sim_nms = c("EEE_p4_0_1", "EEE_p4_33_66")){
+
+## TESTING args:
+#sim_nms <- add_participant(100)$perm_RAND$this_sim_nms; do_print_location <- TRUE
+
+preload_ggplots <- function(sim_nms = c("EEE_p4_0_1", "EEE_p4_33_66"),
+                           do_print_location = FALSE){
+  if(do_print_location == TRUE) nictic("top of preload_ggplots()")
   ## Load simulations
   root <- ("~/R/spinifex_study/apps/data") # here("apps/data/") ## Filepaths cannot be too long....
   sim_fps <- paste0(root, "/", sim_nms, ".rda")
   for(i in 1:length(sim_nms)){
-    load(sim_fps[i])
+    load(sim_fps[i], envir = globalenv())
   }
   ## Load the few tpaths
   tpath_nms <- paste0("tpath_", c("p4_t", "p4", "p6"))
   tpath_fps <- paste0(root, "/", tpath_nms, ".rda")
   for(i in 1:length(tpath_nms)){
-    load(tpath_fps[i])
+    load(tpath_fps[i], envir = globalenv())
   }
   
-  #### pca_ls ------
-  ## Initialize axes permutations
-  pc_opts <- 1:4
-  axis_perms <- data.frame(x = pc_opts,
-                        y = pc_opts) %>%
-    tidyr::expand(x, y)
-  axis_perms <- axis_perms[-c(1, 6, 11, 16), ] ## Remove duplicates.
-  n_perms <- nrow(df_opts)
-  ## Pre-loop initialization 
-  l_sim_nms <- length(sim_nms)
-  pca_ls <- list()
-  for(i in 1:l_sim_nms){ ## LOOP OVER SIMS
-    this_sim_nm <- sim_nms[i]
-    
-    for(j in 1:n_perms){ ## LOOP OVER axes permutations
-      .axes_nums <- axis_perms[j, ]
-      
-      pca_ls[[(i - 1) * n_perms + j]] <- 
-        plot_single_pca(sim_nm = this_sim_nm, 
-                        x_num = .axes_nums$x, 
-                        y_num = .axes_nums$y)
-    }
-  }
-  names(pca_ls) <- paste(rep(sim_nms, each = n_perms),
-                       paste0("_pca_x", 
-                              rep(axis_perms$x, l_sim_nms),
-                              "y", 
-                              rep(axis_perms$y, l_sim_nms)),
-                       sep = "_")
-  ## Parent envr assign
-  pca_ls <<- pca_ls
+  
+  # #### pca_ls ------
+  # if(do_print_location == TRUE) nictic("starting pca preloading")
+  # ## Initialize axes permutations
+  # pc_opts <- 1:4
+  # axis_perms <- data.frame(x = pc_opts,
+  #                       y = pc_opts) %>%
+  #   tidyr::expand(x, y)
+  # axis_perms <- axis_perms[-c(1, 6, 11, 16), ] ## Remove duplicates.
+  # n_perms <- nrow(axis_perms)
+  # ## Pre-loop initialization 
+  # l_sim_nms <- length(sim_nms)
+  # pca_ls <- list()
+  # for(i in 1:l_sim_nms){ ## LOOP OVER SIMS
+  #   this_sim_nm <- sim_nms[i]
+  #   
+  #   for(j in 1:n_perms){ ## LOOP OVER axes permutations
+  #     .axes_nums <- axis_perms[j, ]
+  #     
+  #     pca_ls[[(i - 1) * n_perms + j]] <- 
+  #       plot_single_pca(sim_nm = this_sim_nm, 
+  #                       x_num = .axes_nums$x, 
+  #                       y_num = .axes_nums$y)
+  #   }
+  # }
+  # names(pca_ls) <- paste(rep(sim_nms, each = n_perms),
+  #                      paste0("_pca_x", 
+  #                             rep(axis_perms$x, l_sim_nms),
+  #                             "y", 
+  #                             rep(axis_perms$y, l_sim_nms)),
+  #                      sep = "_")
+  # ## Parent envr assign
+  # pca_ls <<- pca_ls
+  # if(do_print_location == TRUE) nictoc("assigned pca_ls")
+  # ####
   
   
-  #### grand_ls ------
-  ## Pre-loop initialization 
-  l_sim_nms <- length(sim_nms)
-  grand_ls <- list()
-  for(i in 1:l_sim_nms){ ## LOOP OVER SIMS
-    this_sim_nm <- sim_nms[i]
-    grand_ls[[i]] <- 
-      plot_single_grand(sim_nm = this_sim_nm)
-  }
-  names(grand_ls) <- paste0(sim_nms, "_grand")
-  ## Parent envr assign
-  grand_ls <<- grand_ls
-
+  
+  # #### grand_ls ------
+  # ## Pre-loop initialization
+  # if(do_print_location == TRUE) nictic("starting grand preloading")
+  # l_sim_nms <- length(sim_nms)
+  # grand_ls <- list()
+  # for(i in 1:l_sim_nms){ ## LOOP OVER SIMS
+  #   this_sim_nm <- sim_nms[i]
+  #   grand_ls[[i]] <-
+  #     plot_single_grand(sim_nm = this_sim_nm)
+  # }
+  # names(grand_ls) <- paste0(sim_nms, "_grand")
+  # ## Parent envr assign
+  # grand_ls <<- grand_ls
+  # if(do_print_location == TRUE) nictoc("assigned grand_ls")
+  # ####
+  
+  
+  
   #### radial_ls ------
-  ## Pre-loop initialization 
+  ## Pre-loop initialization
+  if(do_print_location == TRUE) nictic("starting radial preloading")
   l_sim_nms <- length(sim_nms)
   radial_ls <- list()
   ls_nms  <- NULL
@@ -221,15 +257,23 @@ preload_ggplots <- function(sim_nms = c("EEE_p4_0_1", "EEE_p4_33_66")){
     ls_nms <- c(ls_nms, inc_ls_nms)
     for(j in 1:p){ ## LOOP OVER DIMENSIONS
       this_sim_nm <- sim_nms[i]
-      radial_ls[[(i - 1) * p + j]] <- 
+      radial_ls[[(i - 1) * p + j]] <-
         plot_single_radial(sim_nm = this_sim_nm, mvar = j)
     }
   }
-  names(radial_ls) <- paste0(rep(sim_nms, each = p),
-                             "__radial_mv",
-                             rep(1:p, l_sim_nms))
+  names(radial_ls) <- ls_nms
   ## Parent envr assign
   radial_ls <<- radial_ls
+  if(do_print_location == TRUE) nictoc("assigned radial_ls")
+  ####
   
-
+  if(do_print_location == TRUE) nictoc("done with preload_ggplots().")
 }
+
+### EXMAPLE -----
+#' @examples 
+#' { ## Initialize, sourcing add_participant()
+#'   source("~/R/spinifex_study/apps/study/factor_block_permutations.r")
+#'   input_sims <- add_participant(100)$perm_RAND$this_sim_nms
+#'   preload_ggplots(input_sims, TRUE)
+#' }
