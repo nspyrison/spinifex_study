@@ -9,7 +9,7 @@ server <- function(input, output, session){
 
   ##### Reavtive value initialization -----
   rv                  <- reactiveValues()
-  rv$pg               <- 1L  ## SET STARTING PAGE HERE <<<
+  rv$pg               <- 4L  ## SET STARTING PAGE HERE <<<
   rv$timer            <- 999L
   rv$stopwatch        <- 0L
   rv$timer_active     <- TRUE
@@ -117,9 +117,6 @@ server <- function(input, output, session){
       return(paste(block_vc_nm(), block_p_dim_nm(), block_location_nm(), 
                    paste0("rep", period()), sep = "_"))
     }
-    # ## Effectively off
-    # sim_num <- 1 + (section_pg() - 1) %% length(this_sim_nms)
-    # return(this_sim_nms[sim_num])
   })
   tpath_nm <- reactive({
     req(section_nm())
