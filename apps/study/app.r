@@ -177,16 +177,25 @@ server <- function(input, output, session){
   any_active <- reactive({
     return(pca_active() | grand_active() | radial_active())
   })
-  task_header <- reactive({
-    paste0("Evaluation -- factor: ", factor_nm())
+  header <- reactive({
+    req(eval())
+    num_eval <- suppressWarnings(as.numeric(eval())) ## suppress: NAs introduced by coercion
+    if(is.numeric(num_eval) & is.na(num_eval) == FALSE)
+      return(paste0("Evaluation -- factor: ", factor_nm()))
+    if(eval() == "training")
+      return(paste0("Training -- factor: ", factor_nm()))
+    return("")
+  })
+  training_header <- reactive({
+    paste0("Training -- factor: ", factor_nm())
   })
   timer_info <- reactive({
     paste0("time_elapsed() of task_time(): ", time_elapsed(), " of ", task_time())
   })
   page_info <- reactive({
-    paste0(paste0("rv$pg, section_pg(), section_nm(): ", rv$pg, 
+    paste0(paste0("rv$pg, section_pg(), section_nm(): ", rv$pg,
                   ", ", section_pg(), ", ", section_nm()),
-           paste0("task_header(): ", task_header()),
+           paste0("header(): ", header()),
            sep = " /n")
   })
   pfs <- reactive({
@@ -217,6 +226,7 @@ server <- function(input, output, session){
   })
   task_var_score <- reactive({
     if(any_active()){
+      req(task_resp())
       diff   <- task_diff()
       ans    <- which(diff >= 0L)
       weight <- sign(diff) * sqrt(abs(diff))
@@ -259,8 +269,6 @@ server <- function(input, output, session){
       y_num  <- as.integer(substr(input$y_axis, 3L, 3L))
       
       plot_single_pca(sim_nm(), x_num, y_num)
-      
-      return(gg)
     }
   })
   
@@ -292,7 +300,7 @@ server <- function(input, output, session){
           view_frame(basis = tour_array[,, i], data = dat_std,
                      axes = "left",
                      aes_args = list(color = cluster, shape = cluster),
-                     identity_args = list(size = 3L), 
+                     identity_args = list(size = 3L),
                      ggproto = list(theme_spinifex(),
                                     theme(legend.position = "none"),
                                     scale_colour_manual(values = pal)
@@ -758,7 +766,7 @@ server <- function(input, output, session){
       
       ##### __rv$resp_tbl -----
       ## Write responses and ttr to resp_tbl
-      if(substr(section_nm(), 1, 6) == "period"){
+      if(substr(section_nm(), 1L, 6L) == "period"){
         ins_row <- which(rv$resp_tbl$sim_nm  == sim_nm())[1L]
         
         ## Is response concerning?
@@ -773,7 +781,7 @@ server <- function(input, output, session){
         
         ## Did task time run out
         plot_elapsed <- NA
-        if(substr(section_nm(), 1, 6) == "period"){
+        if(substr(section_nm(), 1L, 6L) == "period"){
           if(time_elapsed() >  task_time()) plot_elapsed <- 1L
           if(time_elapsed() <= task_time()) plot_elapsed <- 0L
         }
@@ -814,11 +822,11 @@ server <- function(input, output, session){
       ## Set structure for writeing to resp_tbl
       ## cluster seperation task:
       ##TODO: responce table writing.
-      n_rows <- 1
+      n_rows <- 1L
       def <- "none (default)"
       if(section_nm() == "survey"){
-        def <- c(rep("decline to answer (default)", 3),
-                 rep("5 (default)", n_survey_questions - 3))
+        def <- c(rep("decline to answer (default)", 3L),
+                 rep("5 (default)", n_survey_questions - 3L))
       }
       rv$task_response <- def
       rv$task_ttr      <- "(default)"
@@ -831,11 +839,11 @@ server <- function(input, output, session){
   
   ### _Obs save responses button -----
   observeEvent(input$save_resp, {
-    filebase = paste("responses", this_group, Sys.info()[4], sep = "_")
+    filebase = paste("responses", this_group, Sys.info()[4L], sep = "_")
     prefix = ""
     
     ## Write survey responses to rv$resp_tbl
-    ins_row_start <- nrow(rv$resp_tbl) - n_survey_questions + 1
+    ins_row_start <- nrow(rv$resp_tbl) - n_survey_questions + 1L
     ins_row_end   <- nrow(rv$resp_tbl)
     rv$resp_tbl$response[ins_row_start:ins_row_end] <- rv$task_response
     rv$resp_tbl$ttr[ins_row_start:ins_row_end] <- rv$task_ttr
@@ -877,12 +885,12 @@ server <- function(input, output, session){
   
   ### _Obs timer -----
   observe({
-    invalidateLater(1000, session)
+    invalidateLater(1000L, session)
     isolate({
-      rv$timer     <- rv$timer - 1
-      rv$stopwatch <- rv$stopwatch + 1
+      rv$timer     <- rv$timer - 1L
+      rv$stopwatch <- rv$stopwatch + 1L
     })
-    if(rv$timer < 0 & section_nm() == "task" & rv$timer_active == TRUE){
+    if(rv$timer < 0L & section_nm() == "task" & rv$timer_active == TRUE){
       rv$timer_active <- FALSE
       loggit("INFO", "Timer elapsed.",
              pfs())
@@ -907,7 +915,7 @@ server <- function(input, output, session){
   })
   
   ### Condition handling for ui coditionalPanels
-  output$is_saved   <- reactive(if(is.null(rv$save_file)){0}else{1}) ## Control save_msg.
+  output$is_saved   <- reactive(if(is.null(rv$save_file)){0L}else{1L}) ## Control save_msg.
   output$pg         <- reactive(rv$pg)        ## For hiding ui next_task button
   output$section_nm <- reactive(section_nm()) ## For ui between sections
   output$factor_nm  <- reactive(factor_nm())  ## For sidebar inputs
@@ -930,7 +938,7 @@ server <- function(input, output, session){
 
   ### General task outputs
   ## height: ggplot applies on renderPlot(), plotly applies to a plotly option.
-  output$task_header <- renderText(task_header())
+  output$header <- renderText(header())
   output$pca_plot <- renderPlot({pca_plot()}, height = pca_height)
   output$grand_ui <- renderUI({
     if(grand_active()){
@@ -943,8 +951,8 @@ server <- function(input, output, session){
       fluidRow(
         plotOutput("grand_plot", height = "100%"),
         sliderInput("grand_frame", "Grand tour frame:",
-                    min = 1, max = 90,
-                    value = 1, step = 1,
+                    min = 1L, max = 90L,
+                    value = 1L, step = 1L,
                     animate =
                       animationOptions(interval = 167L, loop = FALSE))
       ) ## End fluidRow()
@@ -965,8 +973,8 @@ server <- function(input, output, session){
         # radioButtons(inputId = "manip_var_nm", label = "Manip variable:",
         #              choices =  "V1", selected = "V1"),
         sliderInput("radial_slider", "Radial tour frame:",
-                    min = 1, max = n_frames,
-                    value = 1, step = 1,
+                    min = 1L, max = n_frames,
+                    value = 1L, step = 1L,
                     animate =
                       animationOptions(interval = 167L, loop = FALSE))
       )
@@ -1005,7 +1013,7 @@ server <- function(input, output, session){
     if(do_disp_dev_tools == TRUE){
       cat("dev msg -- \n",
           page_info(),
-          task_header(),
+          header(),
           timer_info(),
           pfs()
       )

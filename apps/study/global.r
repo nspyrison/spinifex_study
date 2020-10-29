@@ -163,13 +163,13 @@ sim_nms <- c(paste0("EEE_p4_0_1_t", 1:3), ## 3 training sets
              as.vector(outer(sim_nms, paste0("_rep", 1:3), FUN = "paste0"))) ## 
 sim_fps <- paste0(root, "/", sim_nms, ".rda")
 for(i in 1:length(sim_nms)){
-  load(sim_fps[i])
+  load(sim_fps[i], envir = globalenv())
 }
 ## Load the few tpaths.
 tpath_nms <- paste0("tpath_", c("p4_t", "p4", "p6"))
 tpath_fps <- paste0(root, "/", tpath_nms, ".rda")
 for(i in 1:length(tpath_nms)){
-  load(tpath_fps[i])
+  load(tpath_fps[i], envir = globalenv())
 }
 
 # ## Load just needed files
@@ -204,7 +204,7 @@ survey_pg   <- 15L     ## Survey
 ##### UI START -----
 ### header_ui -----
 header_ui <- fluidPage(
-  titlePanel("Multivariate data visualization study"),
+  titlePanel("User study"),
   actionButton("next_pg_button", "Next page")
 )
 
@@ -216,7 +216,7 @@ sidebar_ui <- conditionalPanel(
                #,
                ##### _Training text -----
                # conditionalPanel(
-               #   condition = "output.section_nm == 'training'",
+               #   condition = "output.eval == 'training'",
                #   conditionalPanel( ## interface familiarity
                #     condition = "output.section_pg == 1",
                #     p("In this study, you will be working with 3 visualization techniques of
@@ -254,7 +254,7 @@ sidebar_ui <- conditionalPanel(
   ##### _Training control inputs -----
   ## Factor selection
     conditionalPanel(
-      condition = "output.section_nm == 'training' && output.section_pg < 6",
+      condition = "output.eval == 'training'",
       radioButtons(inputId = "factor", label = "Factor",
                    choices = factor_nms,
                    selected = factor_nms[1L],
@@ -346,7 +346,15 @@ col_p3 <- column(4,
 
 ##### main_ui -----
 main_ui <- mainPanel(width = 9,
+  ### _Timer_disp
   textOutput("timer_disp"),
+  ### _Header
+  conditionalPanel(
+    condition = "output.any_active == true",
+    h2(textOutput('header')),
+    hr()
+  ), ## close task section conditional panel title text
+  
   ### _Intro mainPanel -----
   conditionalPanel(
     condition = "output.section_nm == 'intro'",
@@ -386,45 +394,40 @@ main_ui <- mainPanel(width = 9,
       p("Watch the following video before proceeding:"), br(),
       ## Adding the 'a' tag to the sidebar linking external file
       p("Minimize the study and watch the training video."),
-      a(href='training.mp4', target='blank', 'training video (4:17)'),
+      a(href = 'training.mp4', target = 'blank', 'training video (4:17)'),
       br(), br(),
       p("If this link only contains audio let the invigilator know.")
     ) ## End of video
   ), ## Close conditionalPanel -- intro section text
   
-  ### _Training mainPanel -----
-  conditionalPanel(
-    condition = "output.section_nm == 'training'",
-    conditionalPanel(condition = "output.section_pg == 1", ## ui intro
-                     h2("Training -- interface")
-    ),
-    conditionalPanel(condition = "output.section_pg == 2",
-                     h2("Training -- cluster seperation task")
-    ),
-    conditionalPanel(condition = "output.section_pg == 3",
-                     h2("Training -- cluster seperation task, set 2")
-    ),
-    conditionalPanel( ## splash page
-      condition = "output.section_pg == 4",
-      h1(), h1(), h1(),
-      h1("Training complete, Great job!"),
-      h4("Take a break and strech if you feel like it."),
-      HTML("<h3><span style='color:red'>
-          Keep in mind that we are evaluating the factors, not you.
-          Don't worry if you don't fully understand a visualization or find the task difficult.
-           </span></h3>"),
-      h4("Ask any final clarification questions. Then continue on to the
-        evaluation section. The task is timed, with a time remaining displayed on top.")
-    ),
-    hr()
-  ), ## close training section main panel text
+ 
   
-  ### _Task mainPanel -----
-  conditionalPanel(
-    condition = "output.section_nm == 'task'",
-    h2(textOutput('task_header')),
-    hr()
-  ), ## close task section conditional panel title text
+  # ### _Training mainPanel -----
+  # conditionalPanel(
+  #   condition = "output.eval == 'training'",
+  #   conditionalPanel(condition = "output.section_pg == 'period1'", ## ui intro
+  #                    h2(textOutput('training_header'))
+  #   ),
+  #   conditionalPanel(condition = "output.section_pg == 2",
+  #                    h2("Training -- cluster seperation task")
+  #   ),
+  #   conditionalPanel(condition = "output.section_pg == 3",
+  #                    h2("Training -- cluster seperation task, set 2")
+  #   ),
+  #   conditionalPanel( ## splash page
+  #     condition = "output.section_pg == 4",
+  #     h1(), h1(), h1(),
+  #     h1("Training complete, Great job!"),
+  #     h4("Take a break and strech if you feel like it."),
+  #     HTML("<h3><span style='color:red'>
+  #         Keep in mind that we are evaluating the factors, not you.
+  #         Don't worry if you don't fully understand a visualization or find the task difficult.
+  #          </span></h3>"),
+  #     h4("Ask any final clarification questions. Then continue on to the
+  #       evaluation section. The task is timed, with a time remaining displayed on top.")
+  #   ),
+  #   hr()
+  # ), ## close training section main panel text
   
   ### _Plot mainPanel ----
   conditionalPanel(
@@ -433,7 +436,7 @@ main_ui <- mainPanel(width = 9,
     plotOutput("pca_plot", height = "100%"),
     ## PCA axis selection
     conditionalPanel(
-      condition = "output.factor_nm == 'pca'",
+      condition = "output.any_active == true",
       fluidRow(radioButtons(inputId = "x_axis", label = "x axis",
                             choices = paste0("PC", 1:PC_cap),
                             selected =  "PC1", inline = TRUE),
@@ -453,55 +456,67 @@ main_ui <- mainPanel(width = 9,
     uiOutput("grand_ui")
   ), ## Close plot conditional panel
   
-  ### _Survey mainPanel -----
-  conditionalPanel(
-    condition = "output.section_nm == 'survey'",
-    conditionalPanel(
-      condition = "output.is_saved == 0",
-      selectInput("survey1", label = survey_questions[1],
-                  choices = c("decline to answer", "female", "male",
-                              "intersex, non-binary, or other")
-      ),
-      selectInput("survey2", label = survey_questions[2],
-                  choices = c("decline to answer", "19 or younger", "20 to 29",
-                              "30 to 39", "40 or older")
-      ),
-      selectInput("survey3", label = survey_questions[3],
-                  choices = c("decline to answer", "fluent",
-                              "conversational", "less than conversational")
-      ),
-      selectInput("survey4", label = survey_questions[4],
-                  choices = c("decline to answer", "high school",
-                              "undergraduate", "honors, masters, mba", "doctorate")
-      ),
-      h3("To what extent do you agree with the following statements?"),
-      strong(survey_questions[5]),
-      sliderInput("survey5", label = surv_lab,
-                  min = 1, max = 9, value = 5),
-      strong(survey_questions[6]),
-      sliderInput("survey6",label = surv_lab,
-                  min = 1, max = 9, value = 5),
-      strong(survey_questions[7]),
-      sliderInput("survey7",label = surv_lab,
-                  min = 1, max = 9, value = 5),
-      strong(survey_questions[8]),
-      sliderInput("survey8",label = surv_lab,
-                  min = 1, max = 9, value = 5),
-      strong(survey_questions[9]),
-      sliderInput("survey9",label = surv_lab,
-                  min = 1, max = 9, value = 5),
-      fluidRow(col_p1, col_p2, col_p3),
-      hr(),
-      actionButton("save_resp", "save responses")
-    ),
-    htmlOutput("save_msg"),
-    conditionalPanel(
-      condition = "output.is_saved == 1",
-      h3("Thank you for participating!"),
-      br(),
-      h4("Let the invigilator know you have completed the study and have a good day.")
-    )
-  ) ## close survey condition panel
+  # ### _Survey mainPanel -----
+  # conditionalPanel(
+  #   condition = "output.section_nm == 'survey'",
+  #   #### TO REMOVE **
+  #   verbatimTextOutput("section_nm"),
+  #   conditionalPanel(
+  #     condition = "output.section_nm == 'survey'",
+  #     p("DOES == SURVEY")
+  #   ),
+  #   conditionalPanel(
+  #     condition = "output.section_nm != 'survey'",
+  #     p("DOES NOT == SURVEY")
+  #   ),
+  #   #### TO REMOVE **
+  #   conditionalPanel(
+  #     condition = "output.is_saved == 0",
+  #     selectInput("survey1", label = survey_questions[1],
+  #                 choices = c("decline to answer", "female", "male",
+  #                             "intersex, non-binary, or other")
+  #     ),
+  #     selectInput("survey2", label = survey_questions[2],
+  #                 choices = c("decline to answer", "19 or younger", "20 to 29",
+  #                             "30 to 39", "40 or older")
+  #     ),
+  #     selectInput("survey3", label = survey_questions[3],
+  #                 choices = c("decline to answer", "fluent",
+  #                             "conversational", "less than conversational")
+  #     ),
+  #     selectInput("survey4", label = survey_questions[4],
+  #                 choices = c("decline to answer", "high school",
+  #                             "undergraduate", "honors, masters, mba", "doctorate")
+  #     ),
+  #     h3("To what extent do you agree with the following statements?"),
+  #     strong(survey_questions[5]),
+  #     sliderInput("survey5", label = surv_lab,
+  #                 min = 1, max = 9, value = 5),
+  #     strong(survey_questions[6]),
+  #     sliderInput("survey6",label = surv_lab,
+  #                 min = 1, max = 9, value = 5),
+  #     strong(survey_questions[7]),
+  #     sliderInput("survey7",label = surv_lab,
+  #                 min = 1, max = 9, value = 5),
+  #     strong(survey_questions[8]),
+  #     sliderInput("survey8",label = surv_lab,
+  #                 min = 1, max = 9, value = 5),
+  #     strong(survey_questions[9]),
+  #     sliderInput("survey9",label = surv_lab,
+  #                 min = 1, max = 9, value = 5),
+  #     fluidRow(col_p1, col_p2, col_p3),
+  #     hr(),
+  #     actionButton("save_resp", "save responses")
+  #   ),
+  #   htmlOutput("save_msg"),
+  #   conditionalPanel(
+  #     condition = "output.is_saved == 1",
+  #     h3("Thank you for participating!"),
+  #     br(),
+  #     h4("Let the invigilator know you have completed the study and have a good day.")
+  #   )
+  # ) ## close survey condition panel
+  
 ) ## close mainPanel() End of main_ui section.
 
 ### _dev_tools
