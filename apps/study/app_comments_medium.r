@@ -42,7 +42,7 @@ server <- function(input, output, session){
     if(section_nm() == "period3")
       return(rv$pg - (min(period3_pgs) - 1L))
     if(section_nm() == "survey")
-      return(rv$pg - (min(survey_pg)   - 1L))
+      return(rv$pg - (min(survey_pg) - 1L))
   })
   section_nm <- reactive({ ## Text name of section
     req(rv$pg)
@@ -103,23 +103,6 @@ server <- function(input, output, session){
     }
   })
   output$sim_nm <- renderText(paste("sim_nm(): ", sim_nm()))
-  image_fp <- reactive({
-    req(sim_nm())
-    req(factor_nm())
-    img_nm <- paste0("./images/", factor_nm(), "_", sim_nm(), '.png')
-    return(normalizePath(img_nm))
-  })
-  output$image_fp <- renderText({image_fp()})
-  output$image_plot <- renderImage({
-    ## Reactive height and width
-    width  <- session$clientData$output_image_plot_width
-    height <- session$clientData$output_image_plot_height*2
-    
-    list(src = image_fp(),
-         width = width,
-         height = height)
-  }, deleteFile = FALSE)
-
   tpath_nm <- reactive({
     req(factor_nm())
       if(factor_nm() == "grand"){
@@ -415,8 +398,194 @@ server <- function(input, output, session){
     }
   )
   
-  ##### _Obs survey answers -----
-  ### <REMOVED, see comments_medium.r>
+  # ##### _Obs survey answers -----
+  # observeEvent(input$survey1, {
+  #   if(rv$sec_on_pg > 1){
+  #     i <- 1
+  #     rv$ttr[i] <- rv$sec_on_pg
+  #     rv$response[i] <- input$survey1
+  #     loggit("INFO", "Survey 1 entered.",
+  #            paste0("Response: ", rv$response[i],
+  #                   ". ttr: ", rv$ttr[i], ".")
+  #     )
+  #   }
+  # })
+  # observeEvent(input$survey2, {
+  #   if(rv$sec_on_pg > 1){
+  #     i <- 2
+  #     rv$ttr[i] <- rv$sec_on_pg
+  #     rv$response[i] <- input$survey2
+  #     loggit("INFO", "Survey 2 entered.",
+  #            paste0("Response: ", rv$response[i],
+  #                   ". ttr: ", rv$ttr[i], ".")
+  #     )
+  #   }
+  # })
+  # observeEvent(input$survey3, {
+  #   if(rv$sec_on_pg > 1){
+  #     i <- 3
+  #     rv$ttr[i] <- rv$sec_on_pg
+  #     rv$response[i] <- input$survey3
+  #     loggit("INFO", "Survey 3 entered.",
+  #            paste0("Response: ", rv$response[i],
+  #                   ". ttr: ", rv$ttr[i], ".")
+  #     )
+  #   }
+  # })
+  # observeEvent(input$survey4, {
+  #   if(rv$sec_on_pg > 1){
+  #     i <- 4
+  #     rv$ttr[i] <- rv$sec_on_pg
+  #     rv$response[i] <- input$survey4
+  #     loggit("INFO", "Survey 4 entered.",
+  #            paste0("Response: ", rv$response[i],
+  #                   ". ttr: ", rv$ttr[i], ".")
+  #     )
+  #   }
+  # })
+  # observeEvent(input$survey5, {
+  #   if(rv$sec_on_pg > 1){
+  #     i <- 5
+  #     rv$ttr[i] <- rv$sec_on_pg
+  #     rv$response[i] <- input$survey5
+  #     loggit("INFO", "Survey 5 entered.",
+  #            paste0("Response: ", rv$response[i],
+  #                   ". ttr: ", rv$ttr[i], ".")
+  #     )
+  #   }
+  # })
+  # observeEvent(input$survey6, {
+  #   if(rv$sec_on_pg > 1){
+  #     i <- 6
+  #     rv$ttr[i] <- rv$sec_on_pg
+  #     rv$response[i] <- input$survey6
+  #     loggit("INFO", "Survey 6 entered.",
+  #            paste0("Response: ", rv$response[i],
+  #                   ". ttr: ", rv$ttr[i], ".")
+  #     )
+  #   }
+  # })
+  # observeEvent(input$survey7, {
+  #   if(rv$sec_on_pg > 1){
+  #     i <- 7
+  #     rv$ttr[i] <- rv$sec_on_pg
+  #     rv$response[i] <- input$survey7
+  #     loggit("INFO", "Survey 7 entered.",
+  #            paste0("Response: ", rv$response[i],
+  #                   ". ttr: ", rv$ttr[i], ".")
+  #     )
+  #   }
+  # })
+  # observeEvent(input$survey8, {
+  #   if(rv$sec_on_pg > 1){
+  #     i <- 8
+  #     rv$ttr[i] <- rv$sec_on_pg
+  #     rv$response[i] <- input$survey8
+  #     loggit("INFO", "Survey 8 entered.",
+  #            paste0("Response: ", rv$response[i],
+  #                   ". ttr: ", rv$ttr[i], ".")
+  #     )
+  #   }
+  # })
+  # observeEvent(input$survey9, {
+  #   if(rv$sec_on_pg > 1){
+  #     i <- 9
+  #     rv$ttr[i] <- rv$sec_on_pg
+  #     rv$response[i] <- input$survey9
+  #     loggit("INFO", "Survey 9 entered.",
+  #            paste0("Response: ", rv$response[i],
+  #                   ". ttr: ", rv$ttr[i], ".")
+  #     )
+  #   }
+  # })
+  # observeEvent(input$survey10, {
+  #   if(rv$sec_on_pg > 1){
+  #     i <- 10
+  #     rv$ttr[i] <- rv$sec_on_pg
+  #     rv$response[i] <- input$survey10
+  #     loggit("INFO", "Survey 10 entered.",
+  #            paste0("Response: ", rv$response[i],
+  #                   ". ttr: ", rv$ttr[i], ".")
+  #     )
+  #   }
+  # })
+  # observeEvent(input$survey11, {
+  #   if(rv$sec_on_pg > 1){
+  #     i <- 11
+  #     rv$ttr[i] <- rv$sec_on_pg
+  #     rv$response[i] <- input$survey11
+  #     loggit("INFO", "Survey 11 entered.",
+  #            paste0("Response: ", rv$response[i],
+  #                   ". ttr: ", rv$ttr[i], ".")
+  #     )
+  #   }
+  # })
+  # observeEvent(input$survey12, {
+  #   if(rv$sec_on_pg > 1){
+  #     i <- 12
+  #     rv$ttr[i] <- rv$sec_on_pg
+  #     rv$response[i] <- input$survey12
+  #     loggit("INFO", "Survey 12 entered.",
+  #            paste0("Response: ", rv$response[i],
+  #                   ". ttr: ", rv$ttr[i], ".")
+  #     )
+  #   }
+  # })
+  # observeEvent(input$survey13, {
+  #   if(rv$sec_on_pg > 1){
+  #     i <- 13
+  #     rv$ttr[i] <- rv$sec_on_pg
+  #     rv$response[i] <- input$survey13
+  #     loggit("INFO", "Survey 13 entered.",
+  #            paste0("Response: ", rv$response[i],
+  #                   ". ttr: ", rv$ttr[i], ".")
+  #     )
+  #   }
+  # })
+  # observeEvent(input$survey14, {
+  #   if(rv$sec_on_pg > 1){
+  #     i <- 14
+  #     rv$ttr[i] <- rv$sec_on_pg
+  #     rv$response[i] <- input$survey14
+  #     loggit("INFO", "Survey 14 entered.",
+  #            paste0("Response: ", rv$response[i],
+  #                   ". ttr: ", rv$ttr[i], ".")
+  #     )
+  #   }
+  # })
+  # observeEvent(input$survey15, {
+  #   if(rv$sec_on_pg > 1){
+  #     i <- 15L
+  #     rv$ttr[i] <- rv$sec_on_pg
+  #     rv$response[i] <- input$survey15
+  #     loggit("INFO", "Survey 15 entered.",
+  #            paste0("Response: ", rv$response[i],
+  #                   ". ttr: ", rv$ttr[i], ".")
+  #     )
+  #   }
+  # })
+  # observeEvent(input$survey16, {
+  #   if(rv$sec_on_pg > 1L){
+  #     i <- 16L
+  #     rv$ttr[i] <- rv$sec_on_pg
+  #     rv$response[i] <- input$survey16
+  #     loggit("INFO", "Survey 16 entered.",
+  #            paste0("Response: ", rv$response[i],
+  #                   ". ttr: ", rv$ttr[i], ".")
+  #     )
+  #   }
+  # })
+  # observeEvent(input$survey17, {
+  #   if(rv$sec_on_pg > 1L){
+  #     i <- 17L
+  #     rv$ttr[i] <- rv$sec_on_pg
+  #     rv$response[i] <- input$survey17
+  #     loggit("INFO", "Survey 17 entered.",
+  #            paste0("Response: ", rv$response[i],
+  #                   ". ttr: ", rv$ttr[i], ".")
+  #     )
+  #   }
+  # })
   
   ### _Obs next page button -----
   observeEvent(input$next_pg_button, {
@@ -426,7 +595,36 @@ server <- function(input, output, session){
       marks <- marks()
       
       ### __Training evaluation -----
-      ### <REMOVED, see comments_medium.r>
+      ## if training section, evaluate response
+      ## TODO: NEED TO CHANGE to eval() == "training"
+      # if(eval() == "training"){
+      #   this_char <- "" ## Init
+      #   ## Evaluation of the training for task
+      #   if(rv$training_aes == FALSE){
+      #     rv$training_aes <- TRUE
+      #     bar   <- -.5
+      #     if(marks < bar){ ## marks not passing
+      #       this_char <-
+      #         "That seems a little off. Remember that the importance of a
+      #         variable for distinguishing a group is related to variables in a
+      #         separating direction with large magnitudes in the projection, but
+      #         variables with small contributions cannot be ruled out, multiple
+      #         projections most be looked at."
+      #     }
+      #     if(marks >= bar){ ## marks is passing
+      #       this_char <-
+      #         "Very good! As a reminder, the importance of a variable for
+      #         distinguishing a group is related to variables in a separating
+      #         direction with large magnidutes in the projection, but variables
+      #         with small contributions cannot be ruled out, multiple
+      #         projections most be looked at."
+      #     }
+      #     output$plot_msg <- renderText(
+      #       app_html_red(this_char)
+      #     )
+      #     return("NA")
+      #   }
+      # } ## end of training section evaluation
       
       ##### __rv$resp_tbl -----
       ## Write responses and ttr to resp_tbl
@@ -532,7 +730,7 @@ server <- function(input, output, session){
       }
     }
     if(eval() == "training"){ ## Disp timer Counting up if in training.
-      return(paste0("Time elapsed this page: ", lubridate::seconds_to_period(rv$sec_on_pg)))
+      return(paste0("Time elapsed this task: ", lubridate::seconds_to_period(rv$sec_on_pg)))
     }
   })
   
@@ -560,8 +758,106 @@ server <- function(input, output, session){
   ### General task outputs
   ## height: ggplot applies on renderPlot(), plotly applies to a plotly option.
   output$header <- renderText(header())
+  output$the_plot <- renderPlot({
+    if(factor_nm() == "pca") pca_plot()
+    if(factor_nm() == "grand") grand_plot()
+    if(factor_nm() == "radial") radial_plot()
+  }, height = plot_height)
+  output$plot_ui <- renderUI({
+    if(factor_nm() == "pca"){
+      ## Initialize
+      output$the_plot <- renderPlot({pca_plot()}, height = plot_height)
+      
+      ## UI
+      fluidRow(
+        plotOutput("the_plot", height = "100%")
+      ) ## End fluidRow()
+    } ## End if(active)
+    if(factor_nm() == "grand"){
+      req(grand_plot_ls())
+      ## Initialize
+      output$the_plot <-
+        renderPlot({grand_plot_ls()[[input$grand_slider]]}, height = plot_height)
+      
+      ## UI
+      fluidRow(
+        plotOutput("the_plot", height = "100%"),
+        sliderInput("grand_slider", "Grand tour frame:",
+                    min = 1L, max = 90L,
+                    value = 1L, step = 1L,
+                    animate =
+                      animationOptions(interval = 167L, loop = FALSE))
+      ) ## End fluidRow()
+    } ## End if(active)
+    if(factor_nm() == "radial"){
+      req(radial_plot_ls())
+      ## Initialize
+      output$the_plot <-
+        renderPlot({radial_plot_ls()[[input$radial_slider]]}, height = plot_height)
+      
+      ## UI
+      fluidRow(
+        plotOutput("the_plot", height = "100%"),
+        sliderInput("radial_slider", "Radial tour frame:",
+                    min = 1L, max = p(),
+                    value = 1L, step = 1L,
+                    animate =
+                      animationOptions(interval = 167L, loop = FALSE))
+      ) ## End fluidRow()
+    } ## End if(active)
+  }) ## End renderUI(), assigning output$plot_ui
+  output$radial_slider <- renderUI({
+    req(factor_nm())
+    if(factor_nm() == "radial"){
+      ## Initialize
+      req(radial_plot_ls())
+      n_frames <- length(radial_plot_ls())
+      #n_frames <- 40
+      
+      # output$radial_plot <-
+      #   renderPlot({radial_plot_ls()[[input$radial_slider]]}, height = plot_height)
+      
+      fluidRow(
+        # # plotOutput("radial_plot", height = "100%"),
+        # radioButtons(inputId = "manip_var_nm", label = "Manip variable:",
+        #              choices =  "V1", selected = "V1"),
+        sliderInput("radial_slider", "Radial tour frame:",
+                    min = 1L, max = n_frames,
+                    value = 1L, step = 1L,
+                    animate =
+                      animationOptions(interval = 167L, loop = FALSE))
+      )
+    } ## End if(active)
+  }) ## End renderUI(), assigning output$radial_input
+  # output$radial_slider <- renderUI({
+  #   if(factor_nm() == "radial"){
+  #     ## Initialize
+  #     req(radial_plot_ls())
+  #     n_frames <- length(radial_plot_ls())
+  #     
+  #     sliderInput("radial_slider", "Radial tour frame:",
+  #                 min = 1, max = n_frames,
+  #                 value = 1, step = 1,
+  #                 animate =
+  #                   animationOptions(interval = 167L, loop = FALSE))
+  #   } ## End if(active)
+  # }) ## End renderUI(), assigning output$radial_input
   
-  ### dev_tools display -----
+  output$radial_plot <-
+    renderPlot({radial_plot_ls()[[input$radial_slider]]}, height = plot_height)
+  
+  dummy_txt <- reactive({
+    paste0("dummy slider value: ", input$dummy)
+  })
+  output$dummy          <- renderPrint(dummy_txt())
+  # output$resp_tbl       <- renderTable({rv$resp_tbl})
+  # 
+  # ### dev_tools display -----
+  # output$resp_tbl <- renderTable({
+  #   if(do_disp_dev_tools == TRUE){
+  #     rv$resp_tbl
+  #   }
+  # })
   output$dev_msg  <- renderPrint({
     if(do_disp_dev_tools == TRUE){
       cat("dev msg -- \n",

@@ -56,7 +56,7 @@ cat("do_log:", do_log)
 ## TODO: need to read the unique perm numbers in load file, and find the perm_numbers in the min count table. 
 ## Initialize
 participant_num <- 1
-log_file <- "inialize"
+log_file <- "initalize"
 if(do_log == TRUE){
   full_perm_num <- 1 + participant_num %% 56
   log_file <- paste0("log_participant_", participant_num, ".json")
@@ -206,35 +206,36 @@ survey_pg   <- 15L     ## Survey
 ### header_ui -----
 header_ui <- fluidPage(
   titlePanel("User study"),
-  actionButton("next_pg_button", "Next page")
+  actionButton("next_pg_button", "Next page"),
+  tableOutput("resp_row"),
+  tableOutput("ui_row"),
 )
 
 ##### sidebar_ui ----
 sidebar_ui <- fluidPage(
-## <CONTENT REMOVED>
 
 
 ##### _Training control inputs -----
 ## Factor selection
-# conditionalPanel(
-#   condition = "output.eval == 'training'",
-#   radioButtons(inputId = "factor", label = "Factor",
-#                choices = factor_nms,
-#                selected = factor_nms[1L],
-#                inline = TRUE),
-#   fluidRow(column(4, radioButtons(inputId = "simVc", label = "VC",
-#                                   choices = c("EEE", "EEV", "banana"), selected = "EEE")),
-#            column(4, radioButtons(inputId = "simP", label = "# Clusters & var",
-#                                   choices = list("3cl in 4v" = "p4",
-#                                                  "4cl in 6v" = "p6"), 
-#                                   selected = "p4")),
-#            column(4, radioButtons(inputId = "simLocation", label = "Location (1sig, 1noise)",
-#                                   choices = list("0%/100%" = "0_1",
-#                                                  "33%/66%" = "33_66", 
-#                                                  "50%/50%" = "50_50"), 
-#                                   selected = "0_1"))
-#   )
-# ), 
+conditionalPanel(
+  condition = "output.eval == 'training'",
+  radioButtons(inputId = "factor", label = "Factor",
+               choices = factor_nms,
+               selected = factor_nms[1L],
+               inline = TRUE),
+  fluidRow(column(4, radioButtons(inputId = "simVc", label = "VC",
+                                  choices = c("EEE", "EEV", "banana"), selected = "EEE")),
+           column(4, radioButtons(inputId = "simP", label = "# Clusters & var",
+                                  choices = list("3cl in 4v" = "p4",
+                                                 "4cl in 6v" = "p6"),
+                                  selected = "p4")),
+           column(4, radioButtons(inputId = "simLocation", label = "Location (1sig, 1noise)",
+                                  choices = list("0%/100%" = "0_1",
+                                                 "33%/66%" = "33_66",
+                                                 "50%/50%" = "50_50"),
+                                  selected = "0_1"))
+  )
+),
 
 ##### _Task response input -----
 ## Task 2
@@ -266,7 +267,6 @@ main_ui <- mainPanel(width = 9,
   conditionalPanel(
     condition = "(output.eval == 'training'", 
     htmlOutput("plot_msg"),
-    plotOutput("pca_plot", height = "100%"),
     ## PCA axis selection
     conditionalPanel(
       condition = "output.any_active == true",
@@ -278,15 +278,14 @@ main_ui <- mainPanel(width = 9,
                             selected =  "PC2", inline = TRUE)
       )
     ),
-    plotOutput("radial_plot", height = "100%"),
     ## Radial manip var radio buttons
     conditionalPanel(
       condition = "output.factor_nm == 'radial'",
       radioButtons(inputId = "manip_var_nm", label = "Manip variable:",
                    choices =  "V1", selected = "V1")
     ), ## Close conditionalPanel()
-    uiOutput("radial_slider"),
-    uiOutput("grand_ui")
+    textOutput("image_fp"),
+    imageOutput("image_plot")
   ), ## Close plot conditional panel
   
   
@@ -299,8 +298,8 @@ dev_tools <- conditionalPanel(
   actionButton("browser", "browser()"),
   p("Variable level diff from avg: "), textOutput("diff"),
   p("Variable level response: "), textOutput("response"),
-  p("Variable level score: "), textOutput("var_score"),
-  p("Task score: "), textOutput("score"),
+  p("Variable level marks: "), textOutput("var_marks"),
+  p("Task marks: "), textOutput("marks"),
   ##
   textOutput("dev_msg")
   # ,
