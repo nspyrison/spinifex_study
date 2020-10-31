@@ -47,6 +47,9 @@ source(here::here("apps/study/preload_ggplots.r"))
 ## SET do_log to TRUE to start logging 
 do_log            <- FALSE
 do_disp_dev_tools <- TRUE
+do_shiny_autoreload <- TRUE
+if(do_shiny_autoreload == TRUE)
+  options(shiny.autoreload = TRUE)
 do_browse_err     <- FALSE
 if(do_browse_err == TRUE)
   options(error = browser)
@@ -201,6 +204,26 @@ period1_pgs <- 4L:7L   ## Training, rep 1, rep 2, and intermission
 period2_pgs <- 8L:11L  ## Training, rep 1, rep 2, and intermission
 period3_pgs <- 12L:14L ## Training, rep 1, rep 2
 survey_pg   <- 15L     ## Survey
+
+default_resp_tbl_row <-
+  data.frame(
+    participant_num = participant_num,
+    full_perm_num   = full_perm_num,
+    period          = NA,
+    eval            = NA,
+    factor          = NA,
+    vc              = NA,
+    p_dim           = NA,
+    sim_nm          = NA,
+    grand_path      = NA,
+    ctrl_inter      = NA,
+    resp_inter      = NA,
+    ttr             = NA,
+    response        = NA,
+    answer          = NA,
+    marks           = NA
+  )
+
 
 ##### UI START -----
 ### header_ui -----

@@ -3,34 +3,19 @@ source('global.r', local = TRUE)
 #?shiny::runApp(appDir = "apps/study", display.mode = "showcase")
 
 
+
 ####### Server function, for shiny app
 server <- function(input, output, session){
   output$TMP <- renderText(input$TMP)
 
   ##### Reactive value initialization -----
-  rv              <- reactiveValues()
-  rv$pg           <- 4L  ## SET STARTING PAGE HERE <<<
-  rv$sec_on_pg    <- 0L
-  rv$interactions <- 0L
-  rv$ttr          <- 0L
-  rv$response     <- 0L
-  # rv$resp_tbl         <- 
-  #   data.frame(
-  #     participant_num = participant_num,
-  #     full_perm_num   = full_perm_num,
-  #     period,
-  #     eval
-  #     factor          = rep(this_factor_nm_ord, length.out = 99),
-  #     VC,
-  #     p_dim,
-  #     sim_nm,
-  #     grand_path,
-  #     interactions,
-  #     ttr,
-  #     response,
-  #     answer,
-  #     marks
-  # )
+  rv            <- reactiveValues()
+  rv$pg         <- 1L  ## SET STARTING PAGE HERE <<<
+  rv$sec_on_pg  <- 0L
+  rv$ctrl_inter <- 0L
+  rv$resp_inter <- 0L
+  rv$ttr        <- 0L
+  rv$resp_tbl   <- default_resp_tbl_row 
   
   ##### Reactive functions -----
   section_pg <- reactive({ ## Current page num of this section.
@@ -66,7 +51,7 @@ server <- function(input, output, session){
     if(substr(section_nm(), 1, 6) == "period"){
       if(section_pg() == 1) return("training")
       if(section_pg() == 4) return("intermission")
-      2 * (period() - 1) + (section_pg() - 1)
+      return(2 * (period() - 1) + (section_pg() - 1))
     }
     return("NA")
   }) 
@@ -94,13 +79,14 @@ server <- function(input, output, session){
     this_p_dim_nm_ord[eval()]
   })
   sim_nm <- reactive({
-    req(section_nm())
+    req(section_nm(), eval(), period())
     if(substr(section_nm(), 1, 6) == "period"){ #& do_disp_dev_tools == TRUE){
       if(eval() == "training")
         return(paste0("EEE_p4_0_1_t", period()))
       return(paste(vc_nm(), p_dim_nm(), location_nm(), 
                    paste0("rep", period()), sep = "_"))
     }
+    return("NA")
   })
   output$sim_nm <- renderText(paste("sim_nm(): ", sim_nm()))
   image_fp <- reactive({
@@ -127,27 +113,30 @@ server <- function(input, output, session){
           return(paste0("tpath_p4_t"))
         return(paste("tpath", p_dim_nm(), sep = "_"))
       } ## else factor not grand
-    return(NA)
+    return("NA")
   })
   output$tpath_nm <- renderText(paste("tpath_nm(): ", tpath_nm()))
   resp_row <- reactive({
-    data.frame(
-      participant_num = participant_num,
-      full_perm_num   = full_perm_num,
-      period          = period(),
-      eval            = eval(), 
-      factor          = factor_nm(),
-      vc              = vc_nm(),
-      p_dim           = p_dim_nm(),
-      sim_nm          = sim_nm(),
-      grand_path      = tpath_nm(),
-      interactions    = rv$interactions,
-      ttr             = rv$ttr,
-      response        = paste(response(), collapse = ", "), ## Collapse vector of var nums to, 1 string.
-      ## Answer is difference from avg.
-      answer          = paste(diff(), collapse = ", "),   ## Collapse vector of var nums to, 1 string.
-      marks           = marks()
-    )
+    if(any_active() == TRUE){
+      data.frame(
+        participant_num = participant_num,
+        full_perm_num   = full_perm_num,
+        period          = period(),
+        eval            = eval(), 
+        factor          = factor_nm(),
+        vc              = vc_nm(),
+        p_dim           = p_dim_nm(),
+        sim_nm          = sim_nm(),
+        grand_path      = tpath_nm(),
+        ctrl_inter      = rv$ctrl_inter,
+        resp_inter      = rv$resp_inter,
+        ttr             = rv$ttr,
+        response        = paste(response(), collapse = ", "), ## Collapse vector of var nums to, 1 string.
+        ## Answer is difference from avg.
+        answer          = paste(diff(), collapse = ", "),   ## Collapse vector of var nums to, 1 string.
+        marks           = marks()
+      )
+    }
   })
   output$resp_row <- renderTable(resp_row())
   ui_row <- reactive({
@@ -155,25 +144,42 @@ server <- function(input, output, session){
       pg         = rv$pg,
       section_pg = section_pg(),
       section_nm = section_nm(),
-      sim_nm          = sim_nm(),
-      grand_path      = tpath_nm()
+      sim_nm     = sim_nm(),
+      grand_path = tpath_nm()
     )
   })
   output$ui_row <- renderTable(ui_row())
   
   dat <- reactive({ ## Simulation df with attachments.
-    req(sim_nm())
-    return(get(sim_nm()))
+    req(any_active())
+    if(any_active() == TRUE){
+      req(sim_nm())
+      return(get(sim_nm()))
+    }
+    return("NA")
   })
   cl <- reactive({ ## Simulation df with attachments.
-    req(dat())
-    return(attr(dat(), "cluster"))
+    req(any_active())
+    if(any_active() == TRUE){
+      req(dat())
+      return(attr(dat(), "cluster"))
+    }
+    return("NA")
   })
-  p <- reactive(ncol(dat()))
+  p <- reactive({
+    req(any_active())
+    if(any_active() == TRUE){
+      return(ncol(dat()))
+    }
+    return("NA")
+  })
   tpath <- reactive({
-    sim_nm <- sim_nm()
-    req(sim_nm)
-    return(get(paste0("tpath_", sim_nm)))
+    req(factor_nm())
+    if(factor_nm() == "grand"){
+      req(sim_nm())
+      return(get(paste0("tpath_", sim_nm())))
+    }
+    return("NA")
   })
   manip_var <- reactive({
     mv <- which(colnames(dat()) == input$manip_var_nm)
@@ -181,7 +187,8 @@ server <- function(input, output, session){
   })
   any_active <- reactive({
     req(factor_nm())
-    if(factor_nm() %in% c("pca", "grand", "radial"))
+    if(factor_nm() %in% c("pca", "grand", "radial") &
+       eval() != "intermission")
       return(TRUE)
     return(FALSE)
   })
@@ -212,10 +219,14 @@ server <- function(input, output, session){
   #### _Task evaluation -----
   ### Task Response
   response <- reactive({
-    if(substr(section_nm(), 1, 6) == "period")
+    if(substr(section_nm(), 1, 6) == "period"){
+      resp <- input$response
+      if(is.null(resp)) return("NA")
       ## Vector of the numbers without 'V'
       return(as.integer(gsub(' |V', '', input$response)))
+    }
     return("NA")
+    
   })
   output$response <- renderPrint(response())
   ### Task scoring
@@ -238,7 +249,7 @@ server <- function(input, output, session){
       ans    <- which(diff >= 0L)
       weight <- sign(diff) * sqrt(abs(diff))
       response   <- response()
-      if(response == "NA") return(integer(0))
+      if(response == "NA") return(0)
       return(weight[response])
     }
     return("NA")
@@ -250,7 +261,7 @@ server <- function(input, output, session){
   marks <- reactive({
     req(is.logical(any_active()))
     req(var_marks())
-    if(any_active())
+    if(any_active() == TRUE)
       return(sum(var_marks()))
     return("NA")
   })
@@ -258,6 +269,7 @@ server <- function(input, output, session){
     req(marks())
     if(any_active() == TRUE)
       round(marks(), 2)
+    return("NA")
   })
   
   
@@ -338,46 +350,46 @@ server <- function(input, output, session){
   })
   
   ### _Obs radial basis -----
-  observeEvent({
-    dat()
-    input$x_axis
-    input$y_axis
-    factor_nm()
-    input$factor
-  }, {
-    if(factor_nm() == "radial"){
-      dat_std <- tourr::rescale(dat())
-      pca <- prcomp(dat_std)
-      x <- input$x_axis
-      y <- input$y_axis
-      x_num <- as.integer(substr(x, nchar(x), nchar(x)))
-      y_num <- as.integer(substr(y, nchar(y), nchar(y)))
-      rv$curr_basis <- pca$rotation[, c(x_num, y_num)]
-      loggit("INFO",
-             paste0("New basis set (from dat/axes) "),
-             paste0("x_axis: ", x, ", y_axis: ", y, ". rv$curr_basis: ",
-                    paste0(round(rv$curr_basis, 2), e = ", "),
-                    pfs()
-             )
-      )
-    }
-  })
+  # observeEvent({
+  #   dat()
+  #   input$x_axis
+  #   input$y_axis
+  #   factor_nm()
+  #   input$factor
+  # }, {
+  #   if(factor_nm() == "radial"){
+  #     dat_std <- tourr::rescale(dat())
+  #     pca <- prcomp(dat_std)
+  #     x <- input$x_axis
+  #     y <- input$y_axis
+  #     x_num <- as.integer(substr(x, nchar(x), nchar(x)))
+  #     y_num <- as.integer(substr(y, nchar(y), nchar(y)))
+  #     rv$curr_basis <- pca$rotation[, c(x_num, y_num)]
+  #     loggit("INFO",
+  #            paste0("New basis set (from dat/axes) "),
+  #            paste0("x_axis: ", x, ", y_axis: ", y, ". rv$curr_basis: ",
+  #                   paste0(round(rv$curr_basis, 2), e = ", "),
+  #                   pfs()
+  #            )
+  #     )
+  #   }
+  # })
   
  
   
-  ### _Obs radial update manip_var_nm choices -----
-  observeEvent({
-    dat()
-    input$factor
-  }, {
-    ## Init manip_var_nm choices on data change.
-    if(factor_nm() == "radial"){
-      these_colnames <- colnames(dat())
-      updateRadioButtons(session, "manip_var_nm", choices = these_colnames,
-                         selected = these_colnames[1], inline = TRUE)
-      loggit("INFO", paste0("Task data or training factor changed; input$manip_var_nm choices updated."))
-    }
-  })
+  # ### _Obs radial update manip_var_nm choices -----
+  # observeEvent({
+  #   dat()
+  #   input$factor
+  # }, {
+  #   ## Init manip_var_nm choices on data change.
+  #   if(factor_nm() == "radial"){
+  #     these_colnames <- colnames(dat())
+  #     updateRadioButtons(session, "manip_var_nm", choices = these_colnames,
+  #                        selected = these_colnames[1], inline = TRUE)
+  #     loggit("INFO", paste0("Task data or training factor changed; input$manip_var_nm choices updated."))
+  #   }
+  # })
   
  
   
@@ -399,19 +411,19 @@ server <- function(input, output, session){
       input$x_axis
       input$y_axis
     }, {
-      rv$pca_inter <- rv$pca_inter + 1L
+      rv$interactions <- rv$interactions + 1L
     }
   )
   observeEvent({
       input$manip_var_nm
     }, {
-      rv$radial_inter <- rv$radial_inter + 1L
+      rv$interactions <- rv$interactions + 1L
     }
   )
   observeEvent({
       input$response
     }, {
-      rv$resp_inter <- rv$resp_inter + 1L
+      rv$interactions <- rv$interactions + 1L
     }
   )
   
@@ -422,7 +434,7 @@ server <- function(input, output, session){
   observeEvent(input$next_pg_button, {
     if((rv$sec_on_pg > 1L & do_log == TRUE) | do_log == FALSE){
       cat(paste0("in loop, top --", rv$pg))
-      response  <- response()
+      response <- response()
       marks <- marks()
       
       ### __Training evaluation -----
@@ -452,13 +464,12 @@ server <- function(input, output, session){
       ## cluster seperation task:
       ##TODO: response table writing.
       n_rows <- 1L
-      def <- "none (default)"
       if(section_nm() == "survey"){
         def <- c(rep("decline to answer (default)", 3L),
                  rep("5 (default)", n_survey_questions - 3L))
       }
-      rv$response <- def
-      rv$ttr      <- "(default)"
+      rv$response <- "none (default)"
+      rv$ttr      <- 0
       loggit("INFO", paste0("Next page:"), pfs())
       cat("bottom of loop -- ")
     }
