@@ -34,7 +34,7 @@ pt_size <- 3L
 ### Saving
 
 ## _GIF -- Export gganimate to .gif
-play_manual_tour(basis = bas_p6, data = flea_std, manip_var = mv,
+?play_manual_tour(basis = bas_p6, data = flea_std, manip_var = mv,
                  axes = axes_position, fps = fps, angle = angle,
                  aes_args = list(color = cluster, shape = cluster),
                  identity_args = list(size = pt_size),
@@ -58,3 +58,11 @@ view_frame(basis = bas_p6, data = flea_std, manip_var = mv,
 )
 ggsave("./apps/study/images/png_example.png")
 
+?gganimate::anim_save()
+?gganimate::gganimate
+?gganimate::animate
+
+
+# save as a GIF
+animate(warming_plot, fps = 10, width = 750, height = 450)
+anim_save("warming.gif")

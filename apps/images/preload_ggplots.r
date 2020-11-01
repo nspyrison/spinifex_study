@@ -19,7 +19,8 @@ if("pal" %in% ls() == FALSE){
 
 #### Single ggplot primitives
 ## _for pca:
-plot_single_pca <- function(sim_nm, x_num, y_num){
+plot_single_pca <- function(sim_nm, x_num, y_num,
+                            do_eager_eval = FALSE){
   ## Initialize
   dat_std <- get(sim_nm)
   cluster <- attr(dat_std, "cluster")
@@ -72,12 +73,16 @@ plot_single_pca <- function(sim_nm, x_num, y_num){
     ## Circle path
     geom_path(circ, mapping = aes(x = x, y = y),
               color = "grey80", size = 1L, inherit.aes = F)
-  print(gg) ## Eager eval for preloader.
+  
+  if(do_eager_eval == TRUE)
+    print(gg) ## Eager eval for preloader.
+  
   return(gg) 
 }
 
 ## _for grand tour:
-plot_single_grand <- function(sim_nm = "EEE_p4_0_1"){
+plot_single_grand <- function(sim_nm = "EEE_p4_0_1",
+                              do_eager_eval = FALSE){
   ## Initialize
   dat_std <- get(sim_nm)
   cluster <- attr(dat_std, "cluster")
@@ -108,14 +113,16 @@ plot_single_grand <- function(sim_nm = "EEE_p4_0_1"){
                                 scale_colour_manual(values = pal)
                  )
       )
-    print(gg_ls[[i]]) ## Eager eval for preloader.
+    if (do_eager_eval == TRUE)
+      print(gg_ls[[i]]) ## Eager eval for preloader.
   }
   
   return(gg_ls)
 }
 
 ## _for radial tour:
-plot_single_radial <- function(sim_nm, mvar){
+plot_single_radial <- function(sim_nm, mvar,
+                               do_eager_eval = FALSE){
   ## Initialize
   dat_std <- get(sim_nm)
   cluster <- attr(dat_std, "cluster")
@@ -146,7 +153,8 @@ plot_single_radial <- function(sim_nm, mvar){
                                 scale_colour_manual(values = pal)
                  )
       )
-    print(gg_ls[[i]]) ## Eager eval for preloader.
+    if(do_eager_eval == TRUE)
+      print(gg_ls[[i]]) ## Eager eval for preloader.
   }
   
   return(gg_ls)
@@ -166,13 +174,10 @@ nictoc <- function(...){
 
 #### preload_ggplots() ----
 ## Bringing it all together
-
 ## TESTING args:
-#sim_nms <- add_participant(100)$perm_RAND$this_sim_nms; do_print_location <- TRUE
-
-preload_ggplots <- function(sim_nms = c("EEE_p4_0_1", "EEE_p4_33_66"),
-                           do_print_location = FALSE){
-  if(do_print_location == TRUE) nictic("top of preload_ggplots()")
+#sim_nms <- add_participant(100)$perm_RAND$this_sim_nms;
+preload_ggplots <- function(sim_nms = c("EEE_p4_0_1", "EEE_p4_33_66")){
+  nictic("top of preload script")
   ## Load simulations
   root <- ("~/R/spinifex_study/apps/data") # here("apps/data/") ## Filepaths cannot be too long....
   sim_fps <- paste0(root, "/", sim_nms, ".rda")
@@ -186,47 +191,55 @@ preload_ggplots <- function(sim_nms = c("EEE_p4_0_1", "EEE_p4_33_66"),
     load(tpath_fps[i], envir = globalenv())
   }
   
-  
-  # #### pca_ls ------
-  # if(do_print_location == TRUE) nictic("starting pca preloading")
-  # ## Initialize axes permutations
-  # pc_opts <- 1:4
-  # axis_perms <- data.frame(x = pc_opts,
-  #                       y = pc_opts) %>%
-  #   tidyr::expand(x, y)
-  # axis_perms <- axis_perms[-c(1, 6, 11, 16), ] ## Remove duplicates.
-  # n_perms <- nrow(axis_perms)
-  # ## Pre-loop initialization 
-  # l_sim_nms <- length(sim_nms)
-  # pca_ls <- list()
-  # for(i in 1:l_sim_nms){ ## LOOP OVER SIMS
-  #   this_sim_nm <- sim_nms[i]
-  #   
-  #   for(j in 1:n_perms){ ## LOOP OVER axes permutations
-  #     .axes_nums <- axis_perms[j, ]
-  #     
-  #     pca_ls[[(i - 1) * n_perms + j]] <- 
-  #       plot_single_pca(sim_nm = this_sim_nm, 
-  #                       x_num = .axes_nums$x, 
-  #                       y_num = .axes_nums$y)
-  #   }
-  # }
-  # names(pca_ls) <- paste(rep(sim_nms, each = n_perms),
-  #                      paste0("_pca_x", 
-  #                             rep(axis_perms$x, l_sim_nms),
-  #                             "y", 
-  #                             rep(axis_perms$y, l_sim_nms)),
-  #                      sep = "_")
-  # ## Parent envr assign
-  # pca_ls <<- pca_ls
-  # if(do_print_location == TRUE) nictoc("assigned pca_ls")
-  # ####
+  #### pca_ls ------
+  nictic("starting pca preloading")
+  ## Initialize axes permutations
+  pc_opts <- 1:4
+  axis_perms <- data.frame(x = pc_opts,
+                        y = pc_opts) %>%
+    tidyr::expand(x, y)
+  axis_perms <- axis_perms[-c(1, 6, 11, 16), ] ## Remove duplicates.
+  n_perms <- nrow(axis_perms)
+  ## Pre-loop initialization
+  l_sim_nms <- length(sim_nms)
+  pca_ls <- list()
+  this_path <- "./apps/images/"
+  for(i in 1:l_sim_nms){ ## LOOP OVER SIMS
+    this_sim_nm <- sim_nms[i]
+
+    for(j in 1:n_perms){ ## LOOP OVER axes permutations
+      .axes_nums <- axis_perms[j, ]
+      fn <- paste0(this_sim_nm, "__pca_x", .axes_nums$x, 
+                   "_y", .axes_nums$y, ".png")
+      
+      ## Create
+      this_pca <-
+        plot_single_pca(sim_nm = this_sim_nm,
+                        x_num = .axes_nums$x,
+                        y_num = .axes_nums$y)
+      ## Assign to ls
+      pca_ls[[(i - 1) * n_perms + j]] <- this_pca
+      ## Save
+      ggsave(this_pca, height = 4, units = "in", dpi = "screen",
+             path = this_path, filename = fn)
+    }
+  }
+  names(pca_ls) <- paste(rep(sim_nms, each = n_perms),
+                       paste0("__pca_x",
+                              rep(axis_perms$x, l_sim_nms),
+                              "y",
+                              rep(axis_perms$y, l_sim_nms)),
+                       sep = "_")
+  ## Parent envr assign
+  pca_ls <<- pca_ls
+  nictoc("assigned pca_ls")
+  ####
   
   
   
   # #### grand_ls ------
   # ## Pre-loop initialization
-  # if(do_print_location == TRUE) nictic("starting grand preloading")
+  # nictic("starting grand preloading")
   # l_sim_nms <- length(sim_nms)
   # grand_ls <- list()
   # for(i in 1:l_sim_nms){ ## LOOP OVER SIMS
@@ -237,14 +250,14 @@ preload_ggplots <- function(sim_nms = c("EEE_p4_0_1", "EEE_p4_33_66"),
   # names(grand_ls) <- paste0(sim_nms, "_grand")
   # ## Parent envr assign
   # grand_ls <<- grand_ls
-  # if(do_print_location == TRUE) nictoc("assigned grand_ls")
+  # nictoc("assigned grand_ls")
   # ####
   
   
   
   #### radial_ls ------
   ## Pre-loop initialization
-  if(do_print_location == TRUE) nictic("starting radial preloading")
+  nictic("starting radial preloading")
   l_sim_nms <- length(sim_nms)
   radial_ls <- list()
   ls_nms  <- NULL
@@ -264,16 +277,27 @@ preload_ggplots <- function(sim_nms = c("EEE_p4_0_1", "EEE_p4_33_66"),
   names(radial_ls) <- ls_nms
   ## Parent envr assign
   radial_ls <<- radial_ls
-  if(do_print_location == TRUE) nictoc("assigned radial_ls")
+  nictoc("assigned radial_ls")
   ####
   
-  if(do_print_location == TRUE) nictoc("done with preload_ggplots().")
+  nictoc("done with preload_ggplots().")
 }
 
-### EXMAPLE -----
+### EXAMPLE -----
 #' @examples 
 #' { ## Initialize, sourcing add_participant()
-#'   source("~/R/spinifex_study/apps/study/factor_block_permutations.r")
-#'   input_sims <- add_participant(100)$perm_RAND$this_sim_nms
-#'   preload_ggplots(input_sims, TRUE)
+#'    source("~/R/spinifex_study/apps/study/factor_block_permutations.r")
+#'    input_sims <- add_participant(100)$perm_RAND$this_sim_nms
+#'    preload_ggplots(input_sims)
+#'    
+#'    ## ALL SIMS:
+#'    ALL_nms <- c("EEE_p4_0_1",    "EEE_p4_33_66",    "EEE_p4_50_50",
+#'                 "EEV_p4_0_1",    "EEV_p4_33_66",    "EEV_p4_50_50",
+#'                 "banana_p4_0_1", "banana_p4_33_66", "banana_p4_50_50",
+#'                 "EEE_p6_0_1",    "EEE_p6_33_66",    "EEE_p6_50_50",
+#'                 "EEV_p6_0_1",    "EEV_p6_33_66",    "EEV_p6_50_50",
+#'                 "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
+#'    ALL_nms <- c(paste0("EEE_p4_0_1_t", 1:3), ## 3 training sets
+#'                 as.vector(outer(ALL_nms, paste0("_rep", 1:3), FUN = "paste0"))) ## cross product paste
+#'    preload_ggplots(ALL_nms)
 #' }

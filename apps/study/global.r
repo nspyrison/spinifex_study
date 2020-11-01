@@ -36,9 +36,6 @@ bas_p6 <- matrix(c(.2887,  .5,
                    .5774,  0),
                  ncol = 2, nrow = 6, byrow = TRUE)
 
-## Loads plotting functions and preloaders (WIP), run after setting pal and bas_p6.
-source(here::here("apps/study/preload_ggplots.r"))
-
 
 
 #### Logging -----
@@ -164,7 +161,7 @@ sim_nms <- c("EEE_p4_0_1",    "EEE_p4_33_66",    "EEE_p4_50_50",
              "EEV_p6_0_1",    "EEV_p6_33_66",    "EEV_p6_50_50",
              "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
 sim_nms <- c(paste0("EEE_p4_0_1_t", 1:3), ## 3 training sets
-             as.vector(outer(sim_nms, paste0("_rep", 1:3), FUN = "paste0"))) ## 
+             as.vector(outer(sim_nms, paste0("_rep", 1:3), FUN = "paste0"))) ## cross product paste
 sim_fps <- paste0(root, "/", sim_nms, ".rda")
 for(i in 1:length(sim_nms)){
   load(sim_fps[i], envir = globalenv())
@@ -236,30 +233,6 @@ header_ui <- fluidPage(
 
 ##### sidebar_ui ----
 sidebar_ui <- fluidPage(
-
-
-##### _Training control inputs -----
-## Factor selection
-conditionalPanel(
-  condition = "output.eval == 'training'",
-  radioButtons(inputId = "factor", label = "Factor",
-               choices = factor_nms,
-               selected = factor_nms[1L],
-               inline = TRUE),
-  fluidRow(column(4, radioButtons(inputId = "simVc", label = "VC",
-                                  choices = c("EEE", "EEV", "banana"), selected = "EEE")),
-           column(4, radioButtons(inputId = "simP", label = "# Clusters & var",
-                                  choices = list("3cl in 4v" = "p4",
-                                                 "4cl in 6v" = "p6"),
-                                  selected = "p4")),
-           column(4, radioButtons(inputId = "simLocation", label = "Location (1sig, 1noise)",
-                                  choices = list("0%/100%" = "0_1",
-                                                 "33%/66%" = "33_66",
-                                                 "50%/50%" = "50_50"),
-                                  selected = "0_1"))
-  )
-),
-
 ##### _Task response input -----
 ## Task 2
 conditionalPanel(
@@ -292,7 +265,7 @@ main_ui <- mainPanel(width = 9,
     htmlOutput("plot_msg"),
     ## PCA axis selection
     conditionalPanel(
-      condition = "output.any_active == true",
+      condition = "output.factor_nm == 'pca'",
       fluidRow(radioButtons(inputId = "x_axis", label = "x axis",
                             choices = paste0("PC", 1:PC_cap),
                             selected =  "PC1", inline = TRUE),
@@ -340,5 +313,11 @@ ui <- fluidPage(useShinyjs(), ## Required in ui to use shinyjs.
 ##### App local functions -----
 app_html_red <- function(string){
   paste0("<strong><span style='color:red'>", string, "</span><strong>")
+}
+##
+plot_height <- function(){
+  if(any_active() == TRUE){
+    return(height_px)
+  } else return(1L)
 }
 

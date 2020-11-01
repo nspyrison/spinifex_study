@@ -59,11 +59,6 @@ server <- function(input, output, session){
     req(period(), section_nm(), eval())
     ## "intro" and "survey" NA
     if(substr(section_nm(), 1, 6) != "period") return("NA")
-    ## If dev_tools on, give button selector
-    if(substr(section_nm(), 1, 6) == "period" &
-       section_pg() == 1 & do_disp_dev_tools == TRUE)
-      return(input$factor)
-    ## Else, return factor name
     return(this_factor_nm_ord[eval()])
   })
   location_nm <- reactive({
@@ -90,21 +85,31 @@ server <- function(input, output, session){
   })
   output$sim_nm <- renderText(paste("sim_nm(): ", sim_nm()))
   image_fp <- reactive({
-    req(sim_nm())
-    req(factor_nm())
-    img_nm <- paste0("./images/", factor_nm(), "_", sim_nm(), '.png')
-    return(normalizePath(img_nm))
+    if(any_active()){
+      dir_sim_nm <- paste0("../images/", sim_nm())
+      fct_nm <- factor_nm()
+      if(fct_nm == "pca")
+        fct_suffix <- paste0("x", x_axis_num(), "_y", y_axis_num(), ".png")
+      if(fct_nm == "grand")
+        fct_suffix <- paste0(".gif")
+      if(fct_nm == "radial")
+        fct_suffix <- paste0("mv", manip_var(), ".png")
+      img_nm <- paste0(dir_sim_nm, "__", fct_nm, "_", fct_suffix)
+      return(normalizePath(img_nm))
+    }
+    return("")
   })
   output$image_fp <- renderText({image_fp()})
-  output$image_plot <- renderImage({
-    ## Reactive height and width
-    width  <- session$clientData$output_image_plot_width
-    height <- session$clientData$output_image_plot_height*2
-    
-    list(src = image_fp(),
-         width = width,
-         height = height)
-  }, deleteFile = FALSE)
+  image_plot <- reactive({
+      ## Reactive height and width
+      width  <- session$clientData$output_image_plot_width
+      height <- session$clientData$output_image_plot_height
+      
+      return(list(src = image_fp(),
+                  width = width,
+                  height = height))
+  })
+  output$image_plot <- renderImage({image_plot()}, deleteFile = FALSE)
 
   tpath_nm <- reactive({
     req(factor_nm())
@@ -181,6 +186,8 @@ server <- function(input, output, session){
     }
     return("NA")
   })
+  x_axis_num <- reactive(as.integer(substr(input$x_axis, 3, 3)))
+  y_axis_num <- reactive(as.integer(substr(input$y_axis, 3, 3)))
   manip_var <- reactive({
     mv <- which(colnames(dat()) == input$manip_var_nm)
     return(max(mv, 1))
@@ -272,14 +279,6 @@ server <- function(input, output, session){
     return("NA")
   })
   
-  
-  ### _PCA plot reactive -----
-  plot_height <- function(){
-    if(any_active() == TRUE){
-      return(height_px)
-    } else return(1L)
-  }
-  
   ##### Observers ----
   observeEvent({
     dat()
@@ -291,14 +290,18 @@ server <- function(input, output, session){
   ### _Obs update axis/task choices -----
   observeEvent({
     dat()
-    input$factor
   }, {
     ## Initialize axis choices when data changes
     if(factor_nm() == "pca"){
       choices <- paste0("PC", 1:PC_cap)
       updateRadioButtons(session, "x_axis", choices = choices, selected = "PC1", inline = TRUE)
       updateRadioButtons(session, "y_axis", choices = choices, selected = "PC2", inline = TRUE)
-      loggit("INFO", "Task data changed while axes active; updated PC axes choices.")
+      loggit("INFO", "Task data changed while pca active; updated PC axes choices.")
+    }
+    if(factor_nm() == "radial"){
+      choices <- paste0("V", 1:p())
+      updateRadioButtons(session, "manip_var_nm", choices = choices, selected = "PC1", inline = TRUE)
+      loggit("INFO", "Task data changed while radial active; updated manip var choices.")
     }
     choices <- paste0("V", 1:p())
     updateCheckboxGroupInput(session, "response",
@@ -308,10 +311,10 @@ server <- function(input, output, session){
   ## Bump x_axis when set to the same as y_axis
   observeEvent(input$x_axis, {
     output$plot_msg <- renderText("")
-    if(input$x_axis == input$y_axis){
+    if(factor_nm() == "pca" & input$x_axis == input$y_axis){
       x_axis_out <- NULL
       choices <- paste0("PC", 1:PC_cap)
-      x_axis_num <- as.integer(substr(input$x_axis, 3, 3))
+      x_axis_num <- x_axis_num()
       if(x_axis_num <= 3){x_axis_out <- paste0("PC", x_axis_num + 1)
       }else{x_axis_out <- paste0("PC", x_axis_num - 1)}
       
@@ -333,7 +336,7 @@ server <- function(input, output, session){
     if(input$x_axis == input$y_axis){
       y_axis_out <- NULL
       choices <- paste0("PC", 1:PC_cap)
-      y_axis_num <- as.integer(substr(input$x_axis, 3, 3))
+      y_axis_num <- y_axis_num()
       if(y_axis_num <= 3){y_axis_out <- paste0("PC", y_axis_num + 1)
       }else{y_axis_out <- paste0("PC", y_axis_num - 1)}
       
@@ -349,47 +352,18 @@ server <- function(input, output, session){
     }
   })
   
-  ### _Obs radial basis -----
-  # observeEvent({
-  #   dat()
-  #   input$x_axis
-  #   input$y_axis
-  #   factor_nm()
-  #   input$factor
-  # }, {
-  #   if(factor_nm() == "radial"){
-  #     dat_std <- tourr::rescale(dat())
-  #     pca <- prcomp(dat_std)
-  #     x <- input$x_axis
-  #     y <- input$y_axis
-  #     x_num <- as.integer(substr(x, nchar(x), nchar(x)))
-  #     y_num <- as.integer(substr(y, nchar(y), nchar(y)))
-  #     rv$curr_basis <- pca$rotation[, c(x_num, y_num)]
-  #     loggit("INFO",
-  #            paste0("New basis set (from dat/axes) "),
-  #            paste0("x_axis: ", x, ", y_axis: ", y, ". rv$curr_basis: ",
-  #                   paste0(round(rv$curr_basis, 2), e = ", "),
-  #                   pfs()
-  #            )
-  #     )
-  #   }
-  # })
-  
- 
-  
-  # ### _Obs radial update manip_var_nm choices -----
-  # observeEvent({
-  #   dat()
-  #   input$factor
-  # }, {
-  #   ## Init manip_var_nm choices on data change.
-  #   if(factor_nm() == "radial"){
-  #     these_colnames <- colnames(dat())
-  #     updateRadioButtons(session, "manip_var_nm", choices = these_colnames,
-  #                        selected = these_colnames[1], inline = TRUE)
-  #     loggit("INFO", paste0("Task data or training factor changed; input$manip_var_nm choices updated."))
-  #   }
-  # })
+  ### _Obs radial update manip_var_nm choices -----
+  observeEvent({
+    dat()
+  }, {
+    ## Init manip_var_nm choices on data change.
+    if(factor_nm() == "radial"){
+      these_colnames <- colnames(dat())
+      updateRadioButtons(session, "manip_var_nm", choices = these_colnames,
+                         selected = these_colnames[1], inline = TRUE)
+      loggit("INFO", paste0("Task data or training factor changed; input$manip_var_nm choices updated."))
+    }
+  })
   
  
   
@@ -411,13 +385,13 @@ server <- function(input, output, session){
       input$x_axis
       input$y_axis
     }, {
-      rv$interactions <- rv$interactions + 1L
+      rv$ctrl_inter <- rv$ctrl_inter + 1L
     }
   )
   observeEvent({
       input$manip_var_nm
     }, {
-      rv$interactions <- rv$interactions + 1L
+      rv$ctrl_inter <- rv$ctrl_inter + 1L
     }
   )
   observeEvent({

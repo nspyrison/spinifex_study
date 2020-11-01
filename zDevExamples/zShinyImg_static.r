@@ -11,8 +11,9 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   filename <- reactive({
-    normalizePath(file.path('./images',
-                            paste(input$n, '.png', sep='')))
+    # normalizePath(file.path('./images',
+    #                         paste(input$n, '.png', sep='')))
+    normalizePath(file.path("../apps/images/EEE_p4_0_1_t1__pca_x1_y2.png"))
   })
   output$fp <- renderText({filename()})
 
