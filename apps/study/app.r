@@ -56,10 +56,10 @@ server <- function(input, output, session){
     return("NA")
   }) 
   factor_nm <- reactive({ ## ~ for group 1: pca, grand, radial
-    req(period(), section_nm(), eval())
+    req(section_nm(), eval())
     ## "intro" and "survey" NA
     if(substr(section_nm(), 1, 6) != "period") return("NA")
-    return(this_factor_nm_ord[eval()])
+    return(this_factor_nm_ord[2*period()])
   })
   location_nm <- reactive({
     req(eval())
@@ -78,7 +78,17 @@ server <- function(input, output, session){
     if(substr(section_nm(), 1, 6) == "period"){ #& do_disp_dev_tools == TRUE){
       if(eval() == "training")
         return(paste0("EEE_p4_0_1_t", period()))
-      return(paste(vc_nm(), p_dim_nm(), location_nm(), 
+      return(paste(vc_nm(), p_dim_nm(), location_nm(),
+                   paste0("rep", period()), sep = "_"))
+    }
+    return("NA")
+  })
+  sim_fct_nm <- reactive({
+    req(section_nm(), eval(), period())
+    if(substr(section_nm(), 1, 6) == "period"){ #& do_disp_dev_tools == TRUE){
+      if(eval() == "training")
+        return(paste0("EEE_p4_0_1_t", period()))
+      return(paste(vc_nm(), p_dim_nm(), location_nm(),
                    paste0("rep", period()), sep = "_"))
     }
     return("NA")
@@ -86,31 +96,48 @@ server <- function(input, output, session){
   output$sim_nm <- renderText(paste("sim_nm(): ", sim_nm()))
   image_fp <- reactive({
     if(any_active()){
-      dir_sim_nm <- paste0("../images/", sim_nm())
+      #dir_sim_nm <- paste0("../images/", sim_nm())
       fct_nm <- factor_nm()
       if(fct_nm == "pca")
-        fct_suffix <- paste0("x", x_axis_num(), "_y", y_axis_num(), ".png")
+        fct_suffix <- paste0("pca_x", x_axis_num(), "_y", y_axis_num(), ".png")
       if(fct_nm == "grand")
-        fct_suffix <- paste0(".gif")
+        fct_suffix <- paste0("grand.gif")
       if(fct_nm == "radial")
-        fct_suffix <- paste0("mv", manip_var(), ".png")
-      img_nm <- paste0(dir_sim_nm, "__", fct_nm, "_", fct_suffix)
-      return(normalizePath(img_nm))
+        fct_suffix <- paste0("radial_mv", manip_var(), ".gif")
+        return(paste(sim_nm(), "", fct_suffix, sep = "_"))
     }
-    return("")
+    return("any_active() == false")
   })
   output$image_fp <- renderText({image_fp()})
-  image_plot <- reactive({
+  # image_plot <- reactive({
+  #   
+
+  # })
+  output$image_plot <- renderImage({
+    cat(dir())
+    fp <- "./www/images/training_pca.png" ## Default
+    if(any_active() == TRUE){
+      fp <- image_fp()
+      #normalizePath(file.path("./www/images", image_fp())) ## local path, not www/images
+      #dir() shows "www".
       ## Reactive height and width
       width  <- session$clientData$output_image_plot_width
       height <- session$clientData$output_image_plot_height
-      
-      return(list(src = image_fp(),
-                  width = width,
-                  height = height))
-  })
-  output$image_plot <- renderImage({image_plot()}, deleteFile = FALSE)
-
+      # ## Alt list() image path
+      # return(list(
+      #   src = paste0("www/images",
+      #   contentType = "image/png",
+      #   alt = "We're losing money!"
+      # ))
+      fp <- "./training_pca.png" ## Default
+      message(fp)
+    }
+    list(src = normalizePath(file.path(fp)),
+         height = 200,
+         width = 200,
+         alt = "image text!")
+  }, deleteFile = FALSE)
+  
   tpath_nm <- reactive({
     req(factor_nm())
       if(factor_nm() == "grand"){
@@ -138,7 +165,7 @@ server <- function(input, output, session){
         ttr             = rv$ttr,
         response        = paste(response(), collapse = ", "), ## Collapse vector of var nums to, 1 string.
         ## Answer is difference from avg.
-        answer          = paste(diff(), collapse = ", "),   ## Collapse vector of var nums to, 1 string.
+        answer          = paste(diff(), collapse = ", "), ## Collapse vector of var nums to, 1 string.
         marks           = marks()
       )
     }
@@ -193,9 +220,7 @@ server <- function(input, output, session){
     return(max(mv, 1))
   })
   any_active <- reactive({
-    req(factor_nm())
-    if(factor_nm() %in% c("pca", "grand", "radial") &
-       eval() != "intermission")
+    if(period() %in% 1:3 & eval() != "intermission")
       return(TRUE)
     return(FALSE)
   })
@@ -214,10 +239,8 @@ server <- function(input, output, session){
     paste0("rv$sec_on_pg of time_alotted: ", rv$sec_on_pg, " of ", time_alotted)
   })
   page_info <- reactive({
-    paste0(paste0("rv$pg, section_pg(), section_nm(): ", rv$pg,
-                  ", ", section_pg(), ", ", section_nm()),
-           paste0("header(): ", header()),
-           sep = " /n")
+    paste0("rv$pg, section_pg(), section_nm(), header(): ",
+           rv$pg, ", ", section_pg(), ", ", section_nm(), header())
   })
   pfs <- reactive({
     paste("period(), factor_nm(), sim_nm(): ", period(), factor_nm(), sim_nm())
@@ -233,7 +256,6 @@ server <- function(input, output, session){
       return(as.integer(gsub(' |V', '', input$response)))
     }
     return("NA")
-    
   })
   output$response <- renderPrint(response())
   ### Task scoring
@@ -284,7 +306,7 @@ server <- function(input, output, session){
     dat()
   }, {
     choices <- paste0("V", 1:p())
-    updateCheckboxGroupInput(session, "response", 
+    updateCheckboxGroupInput(session, "response",
                              choices = choices, selected = "", inline = TRUE)
   })
   ### _Obs update axis/task choices -----

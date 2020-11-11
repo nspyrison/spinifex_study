@@ -249,7 +249,8 @@ conditionalPanel(
 
 
 ##### main_ui -----
-main_ui <- mainPanel(width = 9,
+main_ui <- mainPanel(
+  width = 9,
   ### _Timer_disp
   textOutput("timer_disp"),
   ### _Header
@@ -258,6 +259,11 @@ main_ui <- mainPanel(width = 9,
     h2(textOutput('header')),
     hr()
   ), ## close task section conditional panel title text
+  
+  ## Image text and image. 
+  verbatimTextOutput("image_fp"),
+  imageOutput("image_plot"),
+  img(src = "./training_pca.png", align = "right", height = 200, weight = 200),
   
   ### _Plot mainPanel ----
   conditionalPanel(
@@ -280,10 +286,7 @@ main_ui <- mainPanel(width = 9,
       radioButtons(inputId = "manip_var_nm", label = "Manip variable:",
                    choices =  "V1", selected = "V1")
     ), ## Close conditionalPanel()
-    textOutput("image_fp"),
-    imageOutput("image_plot")
   ), ## Close plot conditional panel
-  
   
 ) ## close mainPanel() End of main_ui section.
 
@@ -296,10 +299,8 @@ dev_tools <- conditionalPanel(
   p("Variable level response: "), textOutput("response"),
   p("Variable level marks: "), textOutput("var_marks"),
   p("Task marks: "), textOutput("marks"),
-  ##
   textOutput("dev_msg")
-  # ,
-  # tableOutput("resp_tbl")
+  # ,tableOutput("resp_tbl")
 ) ## close conditionPanel, assigning dev_tools
 
 ##### UI, combine panels -----
