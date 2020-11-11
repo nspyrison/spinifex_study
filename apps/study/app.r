@@ -104,37 +104,22 @@ server <- function(input, output, session){
         fct_suffix <- paste0("grand.gif")
       if(fct_nm == "radial")
         fct_suffix <- paste0("radial_mv", manip_var(), ".gif")
-        return(paste(sim_nm(), "", fct_suffix, sep = "_"))
+        return(paste(paste0("./www/", sim_nm()), 
+                     "", fct_suffix, sep = "_"))
     }
     return("any_active() == false")
   })
   output$image_fp <- renderText({image_fp()})
-  # image_plot <- reactive({
-  #   
-
-  # })
   output$image_plot <- renderImage({
-    cat(dir())
-    fp <- "./www/images/training_pca.png" ## Default
-    if(any_active() == TRUE){
+    fp <- "./www/white_placeholder.png" ## Default to thin white strip
+    ## Reactive height and width
+    w <- session$clientData$output_image_plot_width
+    h <- session$clientData$output_image_plot_height
+    if(any_active() == TRUE)
       fp <- image_fp()
-      #normalizePath(file.path("./www/images", image_fp())) ## local path, not www/images
-      #dir() shows "www".
-      ## Reactive height and width
-      width  <- session$clientData$output_image_plot_width
-      height <- session$clientData$output_image_plot_height
-      # ## Alt list() image path
-      # return(list(
-      #   src = paste0("www/images",
-      #   contentType = "image/png",
-      #   alt = "We're losing money!"
-      # ))
-      fp <- "./training_pca.png" ## Default
-      message(fp)
-    }
-    list(src = normalizePath(file.path(fp)),
-         height = 200,
-         width = 200,
+    list(src = normalizePath(fp),
+         width  = w,
+         height = h,
          alt = "image text!")
   }, deleteFile = FALSE)
   

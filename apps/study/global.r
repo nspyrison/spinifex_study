@@ -263,7 +263,8 @@ main_ui <- mainPanel(
   ## Image text and image. 
   verbatimTextOutput("image_fp"),
   imageOutput("image_plot"),
-  img(src = "./training_pca.png", align = "right", height = 200, weight = 200),
+  ## This doesn't need /www/, but app.r will, go figure.
+  #img(src = "./training_grand.gif", align = "right", height = 200, weight = 200),
   
   ### _Plot mainPanel ----
   conditionalPanel(
