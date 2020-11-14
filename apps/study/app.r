@@ -10,7 +10,7 @@ server <- function(input, output, session){
 
   ##### Reactive value initialization -----
   rv            <- reactiveValues()
-  rv$pg         <- 1L  ## SET STARTING PAGE HERE <<<
+  rv$pg         <- 1L ## SET STARTING PAGE HERE <<<
   rv$sec_on_pg  <- 0L
   rv$ctrl_inter <- 0L
   rv$resp_inter <- 0L
@@ -104,7 +104,7 @@ server <- function(input, output, session){
         fct_suffix <- paste0("grand.gif")
       if(fct_nm == "radial")
         fct_suffix <- paste0("radial_mv", manip_var(), ".gif")
-        return(paste(paste0("./www/", sim_nm()), 
+        return(paste(paste0("./images", sim_nm()), 
                      "", fct_suffix, sep = "_"))
     }
     return("any_active() == false")

@@ -1,4 +1,4 @@
-### Global initalize for each factor variant.
+### Global initialize for each factor variant.
 
 ##### global.r, spinifex_study -----
 
