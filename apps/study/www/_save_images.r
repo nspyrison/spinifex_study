@@ -3,7 +3,8 @@ library("ggplot2")
 set.seed(20200927) ## If tourr starts using seeds
 
 ### Global parameters
-height_px <- 500L
+height_in <- 5 ## fixed to 8" x 5" for small screens
+height_px <- height_in * 72  ## "screen" is 72 dpi/ppi
 pal <- RColorBrewer::brewer.pal(8, "Dark2")[c(1, 2, 3, 6, 8)]
 bas_p4 <- matrix(c(.5,  .5,
                    -.5, .5,
@@ -66,10 +67,12 @@ save_pca <- function(sim_nm = "EEE_p4_0_1_rep1"){
     invisible(lapply(1:nrow(pc_opts), function(row_i){
       this_bas  <- get(paste0("bas_p", p))
       this_clas <- attr(this_sim, "cluster")
-      x_num <- pc_opts[row_i, 1] 
-      y_num <- pc_opts[row_i, 2] 
+      x_num <- pc_opts[row_i, 1]
+      y_num <- pc_opts[row_i, 2]
+      x_pc  <- paste0("PC", x_num)
+      y_pc  <- paste0("PC", y_num)
       ## Save grand tour
-      fn <- paste0(this_sim, "__pca_x", x_num, "y", y_num, ".gif")
+      fn <- paste0(this_sim_nm, "__pca_x", x_num, "y", y_num, ".png")
       
       pca     <- prcomp(this_sim)
       pca_x   <- as.data.frame(pca$x)
@@ -94,20 +97,20 @@ save_pca <- function(sim_nm = "EEE_p4_0_1_rep1"){
               aspect.ratio = y_range / x_range) +
         ## Data points
         geom_point(pca_x,
-                   mapping = aes(x = get(x_axis), y = get(y_axis),
-                                 color = cluster,
-                                 fill  = cluster,
-                                 shape = cluster),
+                   mapping = aes(x = get(x_pc), y = get(y_pc),
+                                 color = this_clas,
+                                 fill  = this_clas,
+                                 shape = this_clas),
                    size = 3L) +
         ## Axis segments
         geom_segment(pca_rot,
-                     mapping = aes(x = get(x_axis), xend = zero[, 1L],
-                                   y = get(y_axis), yend = zero[, 2L]),
+                     mapping = aes(x = get(x_pc), xend = zero[, 1L],
+                                   y = get(y_pc), yend = zero[, 2L]),
                      size = 1L, colour = "grey50") +
         ## Axis label text
         geom_text(pca_rot,
-                  mapping = aes(x = get(x_axis),
-                                y = get(y_axis),
+                  mapping = aes(x = get(x_pc),
+                                y = get(y_pc),
                                 label = colnames(this_sim)),
                   size = 5L, colour = "grey50", fontface = "bold",
                   vjust = "outward", hjust = "outward") +
@@ -115,17 +118,22 @@ save_pca <- function(sim_nm = "EEE_p4_0_1_rep1"){
         geom_path(circ, mapping = aes(x = x, y = y),
                   color = "grey80", size = 1L, inherit.aes = F)
       
-      ggsave(fn, gg, path = "./apps/study/www/images", 
-             height = height_px, dpi = "screen")
+      
+      suppressMessages(
+        ggsave(fn, gg, device = "png", path = "./apps/study/www/images",
+               height = height_in, units = "in", dpi = "screen")
+      )
     }))
     
-    message("Saved a PC images for", this_sim, ".")
+    message("Saved the 12x png images for PC permutations of ", this_sim_nm, ".")
   }))
 }
 
 ### save_grand(), for 1 sim
+## !ERR from tourr::interpolate(), within play_tour_path(); ----
+## !ERR, Error in dim(x) <- length(x) : attempt to set an attribute on NULL
+#### did we see this before? i think the examples still work.
 save_grand <- function(sim_nm = "EEE_p4_0_1_rep1"){
-  
   ## Loop over sim_nm,
   lapply(sim_nm, function(this_sim_nm){
     this_sim <- get(this_sim_nm)
@@ -136,8 +144,8 @@ save_grand <- function(sim_nm = "EEE_p4_0_1_rep1"){
     this_tpath <- get(paste0("tpath_p", p)) ##TODO: this needs to cover training sets as well.
     
     ## Save grand tour
-    fn <- paste0(this_sim, "__grand.gif")
-    
+    fn <- paste0(this_sim_nm, "__grand.gif")
+    browser()
     play_tour_path(basis = this_bas, data = this_sim, manip_var = this_mv,
                    axes = axes_position, fps = fps, angle = angle,
                    aes_args = list(color = this_clas, shape = this_clas),
@@ -150,7 +158,7 @@ save_grand <- function(sim_nm = "EEE_p4_0_1_rep1"){
                    gif_filename = "radialTour_example.gif",
                    gif_path = "./apps/study/www/images"
     )
-    message("Saved a grand tour for", this_sim, ".")
+    message("Saved a grand tour gif of ", this_sim_nm, ".")
   })
 }
 
@@ -166,7 +174,7 @@ save_radial <- function(sim_nm = "EEE_p4_0_1_rep1"){
     
     ## Loop over number of columns, setting mv, and save a radial.
     invisible(lapply(1:p, function(this_mv){
-      fn <- paste0(this_sim, "__radial_mv", this_mv, ".gif")
+      fn <- paste0(this_sim_nm, "__radial_mv", this_mv, ".gif")
       
       play_manual_tour(basis = this_bas, data = this_sim, manip_var = this_mv,
                        axes = axes_position, fps = fps, angle = angle,
@@ -181,7 +189,7 @@ save_radial <- function(sim_nm = "EEE_p4_0_1_rep1"){
                        gif_path = "./apps/study/www/images"
       )
     }))
-    message("Saved radial tours for each mv of ", this_sim, ".")
+    message("Saved all ", p, " radial tours for each mv of ", this_sim_nm, ".")
   }))
 }
 save_all_static <- function(){
