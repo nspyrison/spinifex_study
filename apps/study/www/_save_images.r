@@ -190,34 +190,40 @@ save_radial <- function(sim_nm = "EEE_p4_0_1_rep1"){
     invisible(lapply(1:p, function(this_mv){
       fn <- paste0(this_sim_nm, "__radial_mv", this_mv, ".gif")
       
-      play_manual_tour(basis = this_bas, data = this_sim, manip_var = this_mv,
-                       axes = axes_position, fps = fps, angle = angle,
-                       aes_args = list(color = this_clas, shape = this_clas),
-                       identity_args = list(size = pt_size),
-                       ggproto = list(theme_spinifex(),
-                                      theme(legend.position = "none"),
-                                      scale_colour_manual(values = pal)
-                       ),
-                       render_type = render_gganimate,
-                       gif_filename = "radialTour_example.gif",
-                       gif_path = "./apps/study/www/images"
+      tour_hist <- manual_tour(basis = this_bas, manip_var = this_mv)
+      tour_df <- array2df(array = tour_hist, data = this_sim)
+      gg <- render_(frames = tour_df,
+                    axes = axes_position,
+                    aes_args = list(color = this_clas, shape = this_clas),
+                    identity_args = list(size = pt_size),
+                    ggproto = list(theme_spinifex(),
+                                   theme(legend.position = "none"),
+                                   scale_colour_manual(values = pal))
       )
+      gga <- gg + gganimate::transition_states(frame, transition_length = 0L)
+      anim <- gganimate::animate(gga, fps = 5, height = height_px, renderer = gifski_renderer())
+      ## Save.
+      gganimate::anim_save(filename = fn,
+                           animation = anim,
+                           path = "./apps/study/www/images")
     }))
+    
     message("Saved all ", p, " radial tours for each mv of ", this_sim_nm, ".")
   }))
 }
+
 save_all_static <- function(){
   invisible(lapply(1:length(sim_nms), function(i){
     require(tictoc)
     # tic("pca")
     # save_pca(sim_nms[i])
     # toc()
-    tic("grand")
-    save_grand(sim_nms[i])
-    toc()
-    # tic("radial")
-    # save_radial(sim_nms[i])
+    # tic("grand")
+    # save_grand(sim_nms[i])
     # toc()
+    tic("radial")
+    save_radial(sim_nms[i])
+    toc()
   }))
 }
 
