@@ -1,5 +1,8 @@
 library("spinifex")
 library("ggplot2")
+library("gganimate")
+library("gifski")
+
 set.seed(20200927) ## If tourr starts using seeds
 
 ### Global parameters
@@ -129,8 +132,9 @@ save_pca <- function(sim_nm = "EEE_p4_0_1_rep1"){
   }))
 }
 
+
 ### save_grand(), for 1 sim
-## !ERR from tourr::interpolate(), within play_tour_path(); ----
+## !ERR from tourr::interpolate(), within play_tour_path();
 ## !ERR, Error in dim(x) <- length(x) : attempt to set an attribute on NULL
 #### did we see this before? i think the examples still work.
 save_grand <- function(sim_nm = "EEE_p4_0_1_rep1"){
@@ -146,25 +150,31 @@ save_grand <- function(sim_nm = "EEE_p4_0_1_rep1"){
     ## Save grand tour
     fn <- paste0(this_sim_nm, "__grand.gif")
     
-    message(paste0("the fps is ", fps, ". 100%%fps is ", 100%%fps, "."))
-    #debugonce(render_gganimate)
-    #debugonce(magick::image_animate)
-    play_tour_path(tour_path = this_tpath, data = this_sim,
-                   axes = axes_position, fps = fps, angle = angle,
-                   aes_args = list(color = this_clas, shape = this_clas),
-                   identity_args = list(size = pt_size),
-                   ggproto = list(theme_spinifex(),
-                                  theme(legend.position = "none"),
-                                  scale_colour_manual(values = pal)
-                   ),
-                   render_type = render_gganimate,
-                   gif_filename = "radialTour_example.gif",
-                   gif_path = "./apps/study/www/images"
+    ## manually wade through play_tour_path, odd behavior occuring
+    tour_path <- tourr::interpolate(basis_set = this_tpath, angle = angle)
+    attr(tour_path, "class") <- "array"
+    tour_df <- array2df(array = tour_path, data = this_sim)
+    
+    gg <- render_(frames = tour_df,
+              axes = axes_position,
+              aes_args = list(color = this_clas, shape = this_clas),
+              identity_args = list(size = pt_size),
+              ggproto = list(theme_spinifex(),
+                             theme(legend.position = "none"),
+                             scale_colour_manual(values = pal))
     )
-
+    gga <- gg + gganimate::transition_states(frame, transition_length = 0L)
+    anim <- gganimate::animate(gga, fps = 5, height = height_px, renderer = gifski_renderer())
+    ## Save.
+    gganimate::anim_save(filename = fn,
+                         animation = anim,
+                         path = "./apps/study/www/images")
+    
     message("Saved a grand tour gif of ", this_sim_nm, ".")
   })
 }
+
+
 
 ### save_radial(), for 1 sim
 save_radial <- function(sim_nm = "EEE_p4_0_1_rep1"){
@@ -199,12 +209,12 @@ save_radial <- function(sim_nm = "EEE_p4_0_1_rep1"){
 save_all_static <- function(){
   invisible(lapply(1:length(sim_nms), function(i){
     require(tictoc)
-    tic("pca")
-    save_pca(sim_nms[i])
-    toc()
-    # tic("grand")
-    # save_grand(sim_nms[i])
+    # tic("pca")
+    # save_pca(sim_nms[i])
     # toc()
+    tic("grand")
+    save_grand(sim_nms[i])
+    toc()
     # tic("radial")
     # save_radial(sim_nms[i])
     # toc()
