@@ -20,7 +20,7 @@ bas_p6 <- matrix(c(.2887,  .5,
                  ncol = 2, nrow = 6, byrow = TRUE)
 ### Aesthetic options
 angle <- .1
-fps   <- 6L
+fps   <- 5L ## .gif format only handles factors of 100!?
 max_frames <- 90L
 axes_position <- "left"
 pt_size <- 3L
@@ -145,8 +145,11 @@ save_grand <- function(sim_nm = "EEE_p4_0_1_rep1"){
     
     ## Save grand tour
     fn <- paste0(this_sim_nm, "__grand.gif")
-    browser()
-    play_tour_path(basis = this_bas, data = this_sim, manip_var = this_mv,
+    
+    message(paste0("the fps is ", fps, ". 100%%fps is ", 100%%fps, "."))
+    #debugonce(render_gganimate)
+    #debugonce(magick::image_animate)
+    play_tour_path(tour_path = this_tpath, data = this_sim,
                    axes = axes_position, fps = fps, angle = angle,
                    aes_args = list(color = this_clas, shape = this_clas),
                    identity_args = list(size = pt_size),
@@ -158,6 +161,7 @@ save_grand <- function(sim_nm = "EEE_p4_0_1_rep1"){
                    gif_filename = "radialTour_example.gif",
                    gif_path = "./apps/study/www/images"
     )
+
     message("Saved a grand tour gif of ", this_sim_nm, ".")
   })
 }
@@ -198,12 +202,12 @@ save_all_static <- function(){
     tic("pca")
     save_pca(sim_nms[i])
     toc()
-    tic("grand")
-    save_grand(sim_nms[i])
-    toc()
-    tic("radial")
-    save_radial(sim_nms[i])
-    toc()
+    # tic("grand")
+    # save_grand(sim_nms[i])
+    # toc()
+    # tic("radial")
+    # save_radial(sim_nms[i])
+    # toc()
   }))
 }
 
