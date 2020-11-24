@@ -317,9 +317,5 @@ app_html_red <- function(string){
   paste0("<strong><span style='color:red'>", string, "</span><strong>")
 }
 ##
-plot_height <- function(){
-  if(any_active() == TRUE){
-    return(height_px)
-  } else return(1L)
-}
+
 

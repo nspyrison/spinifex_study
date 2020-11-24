@@ -40,7 +40,7 @@ pt_size <- 3L
                "EEE_p6_0_1",    "EEE_p6_33_66",    "EEE_p6_50_50",
                "EEV_p6_0_1",    "EEV_p6_33_66",    "EEV_p6_50_50",
                "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
-  sim_nms <<- c(paste0("EEE_p4_0_1_t", 1:3), ## 3 training sets
+  sim_nms <- c(paste0("EEE_p4_0_1_t", 1:3), ## 3 training sets
                as.vector(outer(sim_nms, paste0("_rep", 1:3), FUN = "paste0"))) ## Cross product paste
   sim_fps <- paste0(root, "/", sim_nms, ".rda")
   for(i in 1:length(sim_nms)){

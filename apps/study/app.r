@@ -63,23 +63,26 @@ server <- function(input, output, session){
   })
   location_nm <- reactive({
     req(eval())
-    this_location[eval()]
+    if(eval() == "training") return("0_1")
+    return(this_location[eval()])
   })
   vc_nm <- reactive({
     req(eval())
+    if(eval() == "training") return("EEE")
     this_vc_nm_ord[eval()]
   })
   p_dim_nm <- reactive({
     req(eval())
-    this_p_dim_nm_ord[eval()]
+    if(eval() == "training") return("p4")
+    return(this_p_dim_nm_ord[eval()])
   })
   sim_nm <- reactive({
     req(section_nm(), eval(), period())
     if(substr(section_nm(), 1, 6) == "period"){ #& do_disp_dev_tools == TRUE){
-      if(eval() == "training")
-        return(paste0("EEE_p4_0_1_t", period()))
+      rep <- "rep"
+      if(eval() == "training") rep <- "t"
       return(paste(vc_nm(), p_dim_nm(), location_nm(),
-                   paste0("rep", period()), sep = "_"))
+                   paste0(rep, period()), sep = "_"))
     }
     return("NA")
   })
@@ -104,8 +107,9 @@ server <- function(input, output, session){
         fct_suffix <- paste0("grand.gif")
       if(fct_nm == "radial")
         fct_suffix <- paste0("radial_mv", manip_var(), ".gif")
-        return(paste(paste0("./images", sim_nm()), 
-                     "", fct_suffix, sep = "_"))
+        return(paste(paste0("./www/images/", sim_nm()), "", ## for extra "_"
+                     fct_suffix, sep = "_"))
+      ## 
     }
     return("any_active() == false")
   })
