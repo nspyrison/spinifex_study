@@ -68,7 +68,7 @@ if(do_log == TRUE){
   }
   set_logfile(log_file)
 }else{ ## When do_log == F
-  participant_num  <- sample(1:999, 1)
+  participant_num <- sample(1:999, 1)
   full_perm_num <- 1 + participant_num %% 56
   log_file <- paste0("log_participant_", participant_num,
                      "Logging is off! Log and responses not being recorded.")
@@ -82,33 +82,31 @@ this_factor_perm   <- 1 + (full_perm_num - 1) %% 6 ## %% is mod
 this_location_perm <- 1 #1 + floor((full_perm_num - 1) / 3) %% 3
 this_vc_perm       <- 1 #1 + floor((full_perm_num - 1) / 9) %% 6
 ## The permutations
-factor_perms   <- rbind(c(1, 1,  2, 2,  3, 3), ## The 3 permutations of the 3 factor orders
+factor_perms   <- rbind(c(1, 1,  2, 2,  3, 3),
                         c(1, 1,  3, 3,  2, 2),
                         c(2, 2,  3, 3,  1, 1),
                         c(2, 2,  1, 1,  3, 3),
                         c(3, 3,  1, 1,  2, 2),
                         c(3, 3,  2, 2,  1, 1))
-location_perms <- rbind(c(1, 2,  3, 1,  2, 3))
+location_perms <- rbind(c(1, 1,  2, 2,  3, 3),
+                        c(1, 1,  3, 3,  2, 2),
+                        c(2, 2,  3, 3,  1, 1),
+                        c(2, 2,  1, 1,  3, 3),
+                        c(3, 3,  1, 1,  2, 2),
+                        c(3, 3,  2, 2,  1, 1))
 vc_perms       <- rbind(c(1, 1,  2, 2,  3, 3))
-  # rbind(c(1, 2), ## The 6 permutations of the 3 location orders
-  #                       c(1, 3),
-  #                       c(2, 3),
-  #                       c(2, 1),
-  #                       c(3, 1),
-  #                       c(3, 2))
 ## set factor and block names
 factor_nms   <- c("pca", "grand", "radial")
 location_nms <- c("0_1", "33_66", "50_50")
 vc_nms       <- c("EEE", "EEV", "banana")
 p_dim_nms <- this_p_dim_nm_ord <- c("p4", "p6")
-## The decoded names 
-this_factor_nm_ord <- 
+## The decoded names
+this_factor_nm_ord <-
   factor_nms[factor_perms[this_factor_perm, ]]
-this_location <- 
-  location_nms[location_perms[this_location_perm, ]]
-this_vc_nm_ord <- 
+this_vc_nm_ord <-
   vc_nms[vc_perms[this_vc_perm, ]]
-
+this_location_nm_ord <-
+  location_nms[location_perms[this_location_perm, ]]
 
 ## Context, "onStart()" and onStop()
 context_line <- paste0("Spinifex STUDY, --- (spinifex v", packageVersion("spinifex"),
@@ -135,22 +133,22 @@ onStop(function(){
 })
 ## Survey questions; n = 21 = 9 + 12
 survey_questions <- c("Which sex are you?",
-                        "Which age group do you belong to?",
-                        "What is your English proficiency?",
-                        "What is your highest completed education?",
-                        "I am experienced with data visualization.",
-                        "I am experienced with tabular data.",
-                        "I am experienced with clustering classification techniques.",
-                        "I am experienced with multivariate statistical analysis.",
-                        "I am experienced with machine learning.",
-                        rep(c("I was already familiar with this visualization.",
-                              "I found this visualization easy to use.",
-                              "I felt confident in my answers with this visualization.",
-                              "I liked using this visualization."), 3)
+                      "Which age group do you belong to?",
+                      "What is your English proficiency?",
+                      "What is your highest completed education?",
+                      "I am experienced with data visualization.",
+                      "I am experienced with tabular data.",
+                      "I am experienced with clustering classification techniques.",
+                      "I am experienced with multivariate statistical analysis.",
+                      "I am experienced with machine learning.",
+                      rep(c("I was already familiar with this visualization.",
+                            "I found this visualization easy to use.",
+                            "I felt confident in my answers with this visualization.",
+                            "I liked using this visualization."), 3)
 )
 
 #### Load data and tour paths -----
-this_sim_nms <- paste(rep(this_vc_nm_ord, 3), rep(p_dim_nms, 3), rep(this_location, 3), sep = "_")
+this_sim_nms <- paste(rep(this_vc_nm_ord, 3), rep(p_dim_nms, 3), rep(this_location_nm_ord, 3), sep = "_")
 root <- ("~/R/spinifex_study/apps/data") # here("apps/data/") ## Filepaths cannot be too long....
 
 ## Load all sim names, for dev control

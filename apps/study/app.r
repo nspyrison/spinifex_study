@@ -64,7 +64,7 @@ server <- function(input, output, session){
   location_nm <- reactive({
     req(eval())
     if(eval() == "training") return("0_1")
-    return(this_location[eval()])
+    return(this_location_nm_ord[eval()])
   })
   vc_nm <- reactive({
     req(eval())
