@@ -234,7 +234,7 @@ sidebar_ui <- fluidPage(
 ##### _Task response input -----
 ## Task 2
 conditionalPanel(
-  condition = "(output.any_active == true) ", 
+  condition = "(output.plot_active == true) ", 
   checkboxGroupInput(
     inputId = "response",
     label   = "Check any/all variables contribute more than average to the cluster seperation green circles and orange triangles.",
@@ -253,7 +253,7 @@ main_ui <- mainPanel(
   textOutput("timer_disp"),
   ### _Header
   conditionalPanel(
-    condition = "output.any_active == true",
+    condition = "output.plot_active == true",
     h2(textOutput('header')),
     hr()
   ), ## close task section conditional panel title text
@@ -270,7 +270,7 @@ main_ui <- mainPanel(
     htmlOutput("plot_msg"),
     ## PCA axis selection
     conditionalPanel(
-      condition = "output.factor_nm == 'pca'",
+      condition = "output.factor == 'pca'",
       fluidRow(radioButtons(inputId = "x_axis", label = "x axis",
                             choices = paste0("PC", 1:PC_cap),
                             selected =  "PC1", inline = TRUE),
@@ -281,7 +281,7 @@ main_ui <- mainPanel(
     ),
     ## Radial manip var radio buttons
     conditionalPanel(
-      condition = "output.factor_nm == 'radial'",
+      condition = "output.factor == 'radial'",
       radioButtons(inputId = "manip_var_nm", label = "Manip variable:",
                    choices =  "V1", selected = "V1")
     ), ## Close conditionalPanel()

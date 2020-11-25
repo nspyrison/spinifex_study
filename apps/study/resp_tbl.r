@@ -1,4 +1,5 @@
 require("tibble")
+require("dplyr")
 
 ## Initialize participant and perm number.
 participant_num <- 1
@@ -56,39 +57,64 @@ this_location_nm_ord <-
 
 
 ## Response table ----
-resp_tbl <- tibble(
-  pg         = 1:15,
-  section_pg = c(1:3,1:4,1:4,1:3, 1),
-  section_nm = c(rep("intro", 3),
-                 rep("period1", 4),
-                 rep("period2", 4),
-                 rep("period3", 3),
-                 "survey"),
-  participant_number = 999,
-  full_perm_number   = 1,
-  period = c(rep(0, 3),
-             rep(1, 4),
-             rep(2, 4),
-             rep(3, 3),
-             4),
-  eval   = c("study structure", "video", "intermission",
-             "t1", 1, 2, "intermission", 
-             "t2", 3, 4, "intermission",
-             "t3", 5, 6, "study questions"),
-  factor = c(rep(NA, 3),
-             rep(this_factor_nm_ord[1], 3), NA,
-             rep(this_factor_nm_ord[3], 3), NA,
-             rep(this_factor_nm_ord[5], 3), NA),
-  vc     = c(rep(NA, 3),
-             rep(this_vc_nm_ord[1], 3), NA,
-             rep(this_vc_nm_ord[3], 3), NA,
-             rep(this_vc_nm_ord[5], 3), NA),
-  p_dim  = c(rep(NA, 3),
-             rep(c("p4", "p4", "p6", NA), 3)),
-  location = c(rep(NA, 3),
-               rep(this_location_nm_ord[1], 3), NA,
-               rep(this_location_nm_ord[3], 3), NA,
-               rep(this_location_nm_ord[5], 3), NA),
-  sim_nm = paste(vc, p_dim, location, sep = "_")
-)
+make_resp_tbl <- function(participant_num = sample(1:1000, 1)){
+  full_perm_num <- 1 + participant_num %% 56
+  
+  resp_tbl <- tibble(
+    pg         = 1:15,
+    section_pg = c(1:3,1:4,1:4,1:3, 1),
+    section_nm = c(rep("intro", 3),
+                   rep("period1", 4),
+                   rep("period2", 4),
+                   rep("period3", 3),
+                   "survey"),
+    participant_num = participant_num,
+    full_perm_num   = full_perm_num,
+    period = c(rep(0, 3),
+               rep(1, 4),
+               rep(2, 4),
+               rep(3, 3),
+               4),
+    plot_active = c(rep(FALSE, 3),
+                    rep(TRUE, 3), FALSE,
+                    rep(TRUE, 3), FALSE,
+                    rep(TRUE, 3), 
+                    FALSE),
+    eval   = c("study structure", "video", "intermission",
+               "t1", 1, 2, "intermission", 
+               "t2", 3, 4, "intermission",
+               "t3", 5, 6, "study questions"),
+    factor = c(rep(NA, 3),
+               rep(this_factor_nm_ord[1], 3), NA,
+               rep(this_factor_nm_ord[3], 3), NA,
+               rep(this_factor_nm_ord[5], 3), NA),
+    vc     = c(rep(NA, 3),
+               rep(this_vc_nm_ord[1], 3), NA,
+               rep(this_vc_nm_ord[3], 3), NA,
+               rep(this_vc_nm_ord[5], 3), NA),
+    p_dim  = c(rep(NA, 3),
+               rep(c("p4", "p4", "p6", NA), 3)),
+    location = c(rep(NA, 3),
+                 rep(this_location_nm_ord[1], 3), NA,
+                 rep(this_location_nm_ord[3], 3), NA,
+                 rep(this_location_nm_ord[5], 3), NA),
+    sim_nm = case_when(
+      is.na(vc) ~ NA_character_, ## wow, have to use NA_char_
+      substr(eval, 1, 1) == "t" ~  paste(sep = "_", vc, p_dim, location,
+                                 paste0("_t", period)),
+      TRUE ~ paste(sep = "_", vc, p_dim, location,
+                   paste0("_rep", period))
+    ),
+    ctrl_inter = NULL,
+    resp_inter = NULL,
+    ttr = NULL,
+    resp = NULL,
+    ans = NULL,
+    marks = NULL
+  )
 resp_tbl
+}
+#' @examples
+#' (resp_tbl <- make_resp_tbl())
+#' View(resp_tbl)
+#' 

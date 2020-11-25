@@ -3,7 +3,6 @@ source('global.r', local = TRUE)
 #?shiny::runApp(appDir = "apps/study", display.mode = "showcase")
 
 
-
 ####### Server function, for shiny app
 server <- function(input, output, session){
   output$TMP <- renderText(input$TMP)
@@ -15,92 +14,24 @@ server <- function(input, output, session){
   rv$ctrl_inter <- 0L
   rv$resp_inter <- 0L
   rv$ttr        <- 0L
-  rv$resp_tbl   <- default_resp_tbl_row 
+  rv$resp_tbl   <- make_resp_tbl(participant_num) ## in resp_tbl.r
   
   ##### Reactive functions -----
-  section_pg <- reactive({ ## Current page num of this section.
-    if(section_nm() == "intro"){return(rv$pg)}
-    if(section_nm() == "period1")
-      return(rv$pg - (min(period1_pgs) - 1L))
-    if(section_nm() == "period2")
-      return(rv$pg - (min(period2_pgs) - 1L))
-    if(section_nm() == "period3")
-      return(rv$pg - (min(period3_pgs) - 1L))
-    if(section_nm() == "survey")
-      return(rv$pg - (min(survey_pg)   - 1L))
-  })
-  section_nm <- reactive({ ## Text name of section
-    req(rv$pg)
-    if(rv$pg %in% intro_pgs){  return("intro")}
-    if(rv$pg %in% period1_pgs){return("period1")}
-    if(rv$pg %in% period2_pgs){return("period2")}
-    if(rv$pg %in% period3_pgs){return("period3")}
-    if(rv$pg %in% survey_pg){  return("survey")}
-    return("!!SECTION NOT DEFINED!!")
-  })
-
-  period <- reactive({
-    req(section_nm())
-    if(substr(section_nm(), 1, 6) == "period")
-      return(as.integer(substr(section_nm(), 7, 7)))
-    return("NA")
-  })
-  eval <- reactive({
-    req(section_pg())
-    req(period())
-    if(substr(section_nm(), 1, 6) == "period"){
-      if(section_pg() == 1) return("training")
-      if(section_pg() == 4) return("intermission")
-      return(2 * (period() - 1) + (section_pg() - 1))
-    }
-    return("NA")
-  }) 
-  factor_nm <- reactive({ ## ~ for group 1: pca, grand, radial
-    req(section_nm(), eval())
-    ## "intro" and "survey" NA
-    if(substr(section_nm(), 1, 6) != "period") return("NA")
-    return(this_factor_nm_ord[2*period()])
-  })
-  location_nm <- reactive({
-    req(eval())
-    if(eval() == "training") return("0_1")
-    return(this_location_nm_ord[eval()])
-  })
-  vc_nm <- reactive({
-    req(eval())
-    if(eval() == "training") return("EEE")
-    this_vc_nm_ord[eval()]
-  })
-  p_dim_nm <- reactive({
-    req(eval())
-    if(eval() == "training") return("p4")
-    return(this_p_dim_nm_ord[eval()])
-  })
-  sim_nm <- reactive({
-    req(section_nm(), eval(), period())
-    if(substr(section_nm(), 1, 6) == "period"){ #& do_disp_dev_tools == TRUE){
-      rep <- "rep"
-      if(eval() == "training") rep <- "t"
-      return(paste(vc_nm(), p_dim_nm(), location_nm(),
-                   paste0(rep, period()), sep = "_"))
-    }
-    return("NA")
-  })
-  sim_fct_nm <- reactive({
-    req(section_nm(), eval(), period())
-    if(substr(section_nm(), 1, 6) == "period"){ #& do_disp_dev_tools == TRUE){
-      if(eval() == "training")
-        return(paste0("EEE_p4_0_1_t", period()))
-      return(paste(vc_nm(), p_dim_nm(), location_nm(),
-                   paste0("rep", period()), sep = "_"))
-    }
-    return("NA")
-  })
-  output$sim_nm <- renderText(paste("sim_nm(): ", sim_nm()))
+  resp_row <- reactive(rv$resp_tbl[, rv$pg])
+  output$resp_row <- renderTable(resp_row())
+  plot_active <- reactive({req(resp_row)
+    resp_row$plot_active})
+  sim_nm <- reactive({req(resp_row) 
+    resp_row$sim_nm})
+  #output$sim_nm <- renderText(paste("sim_nm(): ", sim_nm()))
+  factor <- reactive({req(resp_row)
+    resp_row$factor})
+  eval <- reactive({req(resp_row)
+    resp_row$eval})
   image_fp <- reactive({
-    if(any_active()){
+    if(plot_active()){
       #dir_sim_nm <- paste0("../images/", sim_nm())
-      fct_nm <- factor_nm()
+      fct_nm <- factor()
       if(fct_nm == "pca")
         fct_suffix <- paste0("pca_x", x_axis_num(), "_y", y_axis_num(), ".png")
       if(fct_nm == "grand")
@@ -109,57 +40,23 @@ server <- function(input, output, session){
         fct_suffix <- paste0("radial_mv", manip_var(), ".gif")
         return(paste(paste0("./www/images/", sim_nm()), "", ## for extra "_"
                      fct_suffix, sep = "_"))
-      ## 
     }
-    return("any_active() == false")
+    return("plot_active() == false")
   })
   output$image_fp <- renderText({image_fp()})
   output$image_plot <- renderImage({
     fp <- "./www/white_placeholder.png" ## Default to thin white strip
     ## Reactive height and width
-    w <- session$clientData$output_image_plot_width
-    h <- session$clientData$output_image_plot_height
-    if(any_active() == TRUE)
+    # w <- session$clientData$output_image_plot_width
+    # h <- session$clientData$output_image_plot_height
+    if(plot_active() == TRUE)
       fp <- image_fp()
     list(src = normalizePath(fp),
-         width  = w,
-         height = h,
+         # width  = w,
+         # height = h,
          alt = "image text!")
   }, deleteFile = FALSE)
   
-  tpath_nm <- reactive({
-    req(factor_nm())
-      if(factor_nm() == "grand"){
-        if(eval() == "training")
-          return(paste0("tpath_p4_t"))
-        return(paste("tpath", p_dim_nm(), sep = "_"))
-      } ## else factor not grand
-    return("NA")
-  })
-  output$tpath_nm <- renderText(paste("tpath_nm(): ", tpath_nm()))
-  resp_row <- reactive({
-    if(any_active() == TRUE){
-      data.frame(
-        participant_num = participant_num,
-        full_perm_num   = full_perm_num,
-        period          = period(),
-        eval            = eval(), 
-        factor          = factor_nm(),
-        vc              = vc_nm(),
-        p_dim           = p_dim_nm(),
-        sim_nm          = sim_nm(),
-        grand_path      = tpath_nm(),
-        ctrl_inter      = rv$ctrl_inter,
-        resp_inter      = rv$resp_inter,
-        ttr             = rv$ttr,
-        response        = paste(response(), collapse = ", "), ## Collapse vector of var nums to, 1 string.
-        ## Answer is difference from avg.
-        answer          = paste(diff(), collapse = ", "), ## Collapse vector of var nums to, 1 string.
-        marks           = marks()
-      )
-    }
-  })
-  output$resp_row <- renderTable(resp_row())
   ui_row <- reactive({
     data.frame(
       pg         = rv$pg,
@@ -172,33 +69,25 @@ server <- function(input, output, session){
   output$ui_row <- renderTable(ui_row())
   
   dat <- reactive({ ## Simulation df with attachments.
-    req(any_active())
-    if(any_active() == TRUE){
+    req(plot_active())
+    if(plot_active() == TRUE){
       req(sim_nm())
       return(get(sim_nm()))
     }
     return("NA")
   })
   cl <- reactive({ ## Simulation df with attachments.
-    req(any_active())
-    if(any_active() == TRUE){
+    req(plot_active())
+    if(plot_active() == TRUE){
       req(dat())
       return(attr(dat(), "cluster"))
     }
     return("NA")
   })
   p <- reactive({
-    req(any_active())
-    if(any_active() == TRUE){
+    req(plot_active())
+    if(plot_active() == TRUE){
       return(ncol(dat()))
-    }
-    return("NA")
-  })
-  tpath <- reactive({
-    req(factor_nm())
-    if(factor_nm() == "grand"){
-      req(sim_nm())
-      return(get(paste0("tpath_", sim_nm())))
     }
     return("NA")
   })
@@ -208,17 +97,12 @@ server <- function(input, output, session){
     mv <- which(colnames(dat()) == input$manip_var_nm)
     return(max(mv, 1))
   })
-  any_active <- reactive({
-    if(period() %in% 1:3 & eval() != "intermission")
-      return(TRUE)
-    return(FALSE)
-  })
   header <- reactive({
     req(eval())
     if(eval() %in% 1:6)
-      return(paste0("Evaluation -- factor: ", factor_nm()))
+      return(paste0("Evaluation -- factor: ", factor()))
     if(eval() == "training")
-      return(paste0("Training -- factor: ", factor_nm()))
+      return(paste0("Training -- factor: ", factor()))
     return("")
   })
   time_left <- reactive({
@@ -226,13 +110,6 @@ server <- function(input, output, session){
   })
   timer_info <- reactive({
     paste0("rv$sec_on_pg of time_alotted: ", rv$sec_on_pg, " of ", time_alotted)
-  })
-  page_info <- reactive({
-    paste0("rv$pg, section_pg(), section_nm(), header(): ",
-           rv$pg, ", ", section_pg(), ", ", section_nm(), header())
-  })
-  pfs <- reactive({
-    paste("period(), factor_nm(), sim_nm(): ", period(), factor_nm(), sim_nm())
   })
   
   #### _Task evaluation -----
@@ -249,7 +126,7 @@ server <- function(input, output, session){
   output$response <- renderPrint(response())
   ### Task scoring
   diff <- reactive({
-    if(any_active()){
+    if(plot_active()){
       signal <- attr(dat(), "var_mean_diff_ab")
       bar    <- sum(signal) / p()
       return(signal - bar)
@@ -257,11 +134,11 @@ server <- function(input, output, session){
     return("NA")
   })
   output$diff <- renderPrint({
-    if(any_active() == TRUE)
+    if(plot_active() == TRUE)
       round(diff(), 2)
   })
   var_marks <- reactive({
-    if(any_active()){
+    if(plot_active()){
       req(response())
       diff   <- diff()
       ans    <- which(diff >= 0L)
@@ -273,19 +150,19 @@ server <- function(input, output, session){
     return("NA")
   })
   output$var_marks <- renderPrint({
-    if(any_active() == TRUE)
+    if(plot_active() == TRUE)
     round(var_marks(), 2)
   })
   marks <- reactive({
-    req(is.logical(any_active()))
+    req(is.logical(plot_active()))
     req(var_marks())
-    if(any_active() == TRUE)
+    if(plot_active() == TRUE)
       return(sum(var_marks()))
     return("NA")
   })
   output$marks <- renderPrint({
     req(marks())
-    if(any_active() == TRUE)
+    if(plot_active() == TRUE)
       round(marks(), 2)
     return("NA")
   })
@@ -303,13 +180,13 @@ server <- function(input, output, session){
     dat()
   }, {
     ## Initialize axis choices when data changes
-    if(factor_nm() == "pca"){
+    if(factor() == "pca"){
       choices <- paste0("PC", 1:PC_cap)
       updateRadioButtons(session, "x_axis", choices = choices, selected = "PC1", inline = TRUE)
       updateRadioButtons(session, "y_axis", choices = choices, selected = "PC2", inline = TRUE)
       loggit("INFO", "Task data changed while pca active; updated PC axes choices.")
     }
-    if(factor_nm() == "radial"){
+    if(factor() == "radial"){
       choices <- paste0("V", 1:p())
       updateRadioButtons(session, "manip_var_nm", choices = choices, selected = "PC1", inline = TRUE)
       loggit("INFO", "Task data changed while radial active; updated manip var choices.")
@@ -322,7 +199,7 @@ server <- function(input, output, session){
   ## Bump x_axis when set to the same as y_axis
   observeEvent(input$x_axis, {
     output$plot_msg <- renderText("")
-    if(factor_nm() == "pca" & input$x_axis == input$y_axis){
+    if(factor() == "pca" & input$x_axis == input$y_axis){
       x_axis_out <- NULL
       choices <- paste0("PC", 1:PC_cap)
       x_axis_num <- x_axis_num()
@@ -368,7 +245,7 @@ server <- function(input, output, session){
     dat()
   }, {
     ## Init manip_var_nm choices on data change.
-    if(factor_nm() == "radial"){
+    if(factor() == "radial"){
       these_colnames <- colnames(dat())
       updateRadioButtons(session, "manip_var_nm", choices = these_colnames,
                          selected = these_colnames[1], inline = TRUE)
@@ -533,25 +410,25 @@ server <- function(input, output, session){
   })
   
   ### Condition handling for ui coditionalPanels
-  output$is_saved   <- reactive(if(is.null(rv$save_file)){0L}else{1L}) ## Control save_msg.
-  output$pg         <- reactive(rv$pg)        ## For hiding ui next_task button
-  output$section_nm <- reactive(section_nm()) ## For ui between sections
-  output$factor_nm  <- reactive(factor_nm())  ## For sidebar inputs
-  output$section_pg <- reactive(section_pg()) ## For navigating training
-  output$any_active <- reactive(any_active()) ## For display of the task response.
-  output$eval       <- reactive(eval())       ## For sidebar display
-  output$dev_tools  <- reactive({             ## For JS eval of R boolean...
+  output$is_saved    <- reactive(if(is.null(rv$save_file)){0L}else{1L}) ## Control save_msg.
+  output$pg          <- reactive(rv$pg)        ## For hiding ui next_task button
+  output$section_nm  <- reactive(section_nm()) ## For ui between sections
+  output$factor   <- reactive(factor())  ## For sidebar inputs
+  output$section_pg  <- reactive(section_pg()) ## For navigating training
+  output$plot_active <- reactive(plot_active()) ## For display of the task response.
+  output$eval        <- reactive(eval())       ## For sidebar display
+  output$dev_tools   <- reactive({             ## For JS eval of R boolean...
     return(do_disp_dev_tools)
   }) 
   #input$response
   
-  outputOptions(output, "pg",         suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
-  outputOptions(output, "section_pg", suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "section_nm", suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "factor_nm",  suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "any_active", suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "eval",       suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "dev_tools",  suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
+  outputOptions(output, "pg",          suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
+  outputOptions(output, "section_pg",  suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "section_nm",  suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "factor",   suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "plot_active", suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "eval",        suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "dev_tools",   suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
 
   ### General task outputs
   ## height: ggplot applies on renderPlot(), plotly applies to a plotly option.
