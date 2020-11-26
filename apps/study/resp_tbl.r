@@ -60,7 +60,13 @@ this_location_nm_ord <-
 make_resp_tbl <- function(participant_num = sample(1:1000, 1)){
   full_perm_num <- 1 + participant_num %% 56
   
+  message(paste0("Participant_num: ", participant_num,
+                 ", full_perm_num: ", full_perm_num))
+  
   resp_tbl <- tibble(
+    key = paste(sep = "_", participant_num, full_perm_num, 1:15),
+    participant_num = participant_num,
+    full_perm_num   = full_perm_num,
     pg         = 1:15,
     section_pg = c(1:3,1:4,1:4,1:3, 1),
     section_nm = c(rep("intro", 3),
@@ -68,8 +74,6 @@ make_resp_tbl <- function(participant_num = sample(1:1000, 1)){
                    rep("period2", 4),
                    rep("period3", 3),
                    "survey"),
-    participant_num = participant_num,
-    full_perm_num   = full_perm_num,
     period = c(rep(0, 3),
                rep(1, 4),
                rep(2, 4),
@@ -105,16 +109,16 @@ make_resp_tbl <- function(participant_num = sample(1:1000, 1)){
       TRUE ~ paste(sep = "_", vc, p_dim, location,
                    paste0("_rep", period))
     ),
-    ctrl_inter = NULL,
-    resp_inter = NULL,
-    ttr = NULL,
-    resp = NULL,
-    ans = NULL,
-    marks = NULL
+    ctrl_inter = NA,
+    resp_inter = NA,
+    ttr = NA,
+    resp = NA,
+    ans = NA,
+    marks = NA
   )
 resp_tbl
 }
 #' @examples
 #' (resp_tbl <- make_resp_tbl())
 #' View(resp_tbl)
-#' 
+#' resp_tbl[,1]

@@ -17,17 +17,23 @@ server <- function(input, output, session){
   rv$resp_tbl   <- make_resp_tbl(participant_num) ## in resp_tbl.r
   
   ##### Reactive functions -----
-  resp_row <- reactive(rv$resp_tbl[, rv$pg])
+  resp_row <- reactive(rv$resp_tbl[rv$pg, ])
   output$resp_row <- renderTable(resp_row())
   plot_active <- reactive({req(resp_row)
-    resp_row$plot_active})
-  sim_nm <- reactive({req(resp_row) 
-    resp_row$sim_nm})
+    resp_row()$plot_active})
+  sim_nm <- reactive({req(resp_row)
+    resp_row()$sim_nm})
+  section_nm <- reactive({req(resp_row)
+    resp_row()$section_nm}) ## For ui between sections
+  key <- reactive({req(resp_row)
+    resp_row()$key
+  })
+  
   #output$sim_nm <- renderText(paste("sim_nm(): ", sim_nm()))
   factor <- reactive({req(resp_row)
-    resp_row$factor})
+    resp_row()$factor})
   eval <- reactive({req(resp_row)
-    resp_row$eval})
+    resp_row()$eval})
   image_fp <- reactive({
     if(plot_active()){
       #dir_sim_nm <- paste0("../images/", sim_nm())
@@ -56,17 +62,6 @@ server <- function(input, output, session){
          # height = h,
          alt = "image text!")
   }, deleteFile = FALSE)
-  
-  ui_row <- reactive({
-    data.frame(
-      pg         = rv$pg,
-      section_pg = section_pg(),
-      section_nm = section_nm(),
-      sim_nm     = sim_nm(),
-      grand_path = tpath_nm()
-    )
-  })
-  output$ui_row <- renderTable(ui_row())
   
   dat <- reactive({ ## Simulation df with attachments.
     req(plot_active())
@@ -167,7 +162,7 @@ server <- function(input, output, session){
     return("NA")
   })
   
-  ##### Observers ----
+  ##### Observers -----
   observeEvent({
     dat()
   }, {
@@ -209,7 +204,7 @@ server <- function(input, output, session){
       updateRadioButtons(session, "x_axis", choices = choices, selected = x_axis_out, inline = TRUE)
       loggit("INFO", paste0("x_axis set to ", input$x_axis,
                             ", same as y_axis; x_axis bumped to ", x_axis_out, "."),
-             pfs()
+             key()
       )
       
       output$plot_msg <- renderText(
@@ -231,7 +226,7 @@ server <- function(input, output, session){
       updateRadioButtons(session, "y_axis", choices = choices, selected = y_axis_out, inline = TRUE)
       loggit("INFO", paste0("y_axis set to ", input$y_axis,
                             ", same as x_axis; y_axis bumped to ", y_axis_out, "."),
-             pfs()
+             key()
       )
       
       output$plot_msg <- renderText(
@@ -332,7 +327,7 @@ server <- function(input, output, session){
       }
       rv$response <- "none (default)"
       rv$ttr      <- 0
-      loggit("INFO", paste0("Next page:"), pfs())
+      loggit("INFO", paste0("Next page:"), key())
       cat("bottom of loop -- ")
     }
     cat("after loop \n")
@@ -411,21 +406,17 @@ server <- function(input, output, session){
   
   ### Condition handling for ui coditionalPanels
   output$is_saved    <- reactive(if(is.null(rv$save_file)){0L}else{1L}) ## Control save_msg.
-  output$pg          <- reactive(rv$pg)        ## For hiding ui next_task button
-  output$section_nm  <- reactive(section_nm()) ## For ui between sections
-  output$factor   <- reactive(factor())  ## For sidebar inputs
-  output$section_pg  <- reactive(section_pg()) ## For navigating training
+  output$pg          <- reactive(rv$pg)         ## For hiding ui next_task button
+  output$factor      <- reactive(factor())      ## For sidebar inputs
   output$plot_active <- reactive(plot_active()) ## For display of the task response.
-  output$eval        <- reactive(eval())       ## For sidebar display
-  output$dev_tools   <- reactive({             ## For JS eval of R boolean...
+  output$eval        <- reactive(eval())        ## For sidebar display
+  output$dev_tools   <- reactive({              ## For JS eval of R boolean...
     return(do_disp_dev_tools)
   }) 
   #input$response
   
   outputOptions(output, "pg",          suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
-  outputOptions(output, "section_pg",  suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "section_nm",  suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "factor",   suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "factor",      suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "plot_active", suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "eval",        suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "dev_tools",   suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
@@ -438,10 +429,9 @@ server <- function(input, output, session){
   output$dev_msg  <- renderPrint({
     if(do_disp_dev_tools == TRUE){
       cat("dev msg -- \n",
-          page_info(),
           header(),
           timer_info(),
-          pfs()
+          key()
       )
     }
   })

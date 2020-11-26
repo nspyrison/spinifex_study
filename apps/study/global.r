@@ -225,8 +225,7 @@ default_resp_tbl_row <-
 header_ui <- fluidPage(
   titlePanel("User study"),
   actionButton("next_pg_button", "Next page"),
-  tableOutput("resp_row"),
-  tableOutput("ui_row"),
+  tableOutput("resp_row")
 )
 
 ##### sidebar_ui ----
@@ -266,7 +265,7 @@ main_ui <- mainPanel(
   
   ### _Plot mainPanel ----
   conditionalPanel(
-    condition = "(output.eval == 'training'", 
+    condition = "(output.eval == 'training'",
     htmlOutput("plot_msg"),
     ## PCA axis selection
     conditionalPanel(
