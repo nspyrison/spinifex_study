@@ -64,14 +64,14 @@ if(do_log == TRUE){
   while (file.exists(log_file)){ ## Find an unused log number
     participant_num <- participant_num + 1
     full_perm_num <- 1 + participant_num %% 56
-    log_file <- paste0("log_participant_", participant_num, ".json")
+    log_file <- paste0("participant_", participant_num, ".json")
   }
   set_logfile(log_file)
 }else{ ## When do_log == F
   participant_num <- sample(1:999, 1)
   full_perm_num <- 1 + participant_num %% 56
-  log_file <- paste0("log_participant_", participant_num,
-                     "Logging is off! Log and responses not being recorded.")
+  log_file <- paste0("<LOGGING OFF> participant_num: ", participant_num,
+                     " Logging is off! Log and responses not being recorded.")
 }
 full_perm_num <- 1 + participant_num %% 56
 cat("do_log, log_file: ", do_log, log_file, " /n")

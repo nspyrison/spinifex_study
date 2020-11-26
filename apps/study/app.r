@@ -1,7 +1,9 @@
 source('global.r', local = TRUE)
+source('resp_tbl.r', local = TRUE) ## Needs initialization from global.r.
+resp_tbl <- make_resp_tbl(participant_num)
+
 ## Also try: shiny::runApp(appDir = "apps/study", display.mode = "showcase")
 #?shiny::runApp(appDir = "apps/study", display.mode = "showcase")
-
 
 ####### Server function, for shiny app
 server <- function(input, output, session){
