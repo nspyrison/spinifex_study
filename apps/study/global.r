@@ -224,25 +224,23 @@ default_resp_tbl_row <-
 ### header_ui -----
 header_ui <- fluidPage(
   titlePanel("User study"),
-  actionButton("next_pg_button", "Next page"),
-  tableOutput("resp_row")
+  actionButton("next_pg_button", "Next page")
 )
 
 ##### sidebar_ui ----
 sidebar_ui <- fluidPage(
-##### _Task response input -----
-## Task 2
-conditionalPanel(
-  condition = "(output.plot_active == true) ", 
-  checkboxGroupInput(
-    inputId = "response",
-    label   = "Check any/all variables contribute more than average to the cluster seperation green circles and orange triangles.",
-    choices = "V1",
-    inline  = TRUE
+  ##### _Task response input -----
+  ## Task 2
+  conditionalPanel(
+    condition = "(output.plot_active == true) ", 
+    checkboxGroupInput(
+      inputId = "response",
+      label   = "Check any/all variables that contribute more than average to the cluster seperation green circles and orange triangles.",
+      choices = "V1",
+      inline  = TRUE)
   )
-)
-
 ) ## Close conditionalPanel(), assigning sidebar_ui
+
 
 
 ##### main_ui -----
@@ -254,65 +252,61 @@ main_ui <- mainPanel(
   conditionalPanel(
     condition = "output.plot_active == true",
     h2(textOutput('header')),
-    hr()
+    hr(),
+    ## Image text and image.
+    verbatimTextOutput("image_fp"),
+    imageOutput("image_plot"),
   ), ## close task section conditional panel title text
   
-  ## Image text and image. 
-  verbatimTextOutput("image_fp"),
-  imageOutput("image_plot"),
-  ## This doesn't need /www/, but app.r will, go figure.
-  #img(src = "./training_grand.gif", align = "right", height = 200, weight = 200),
-  
   ### _Plot mainPanel ----
+  ## PCA axis selection
   conditionalPanel(
-    condition = "(output.eval == 'training'",
-    htmlOutput("plot_msg"),
-    ## PCA axis selection
-    conditionalPanel(
-      condition = "output.factor == 'pca'",
-      fluidRow(radioButtons(inputId = "x_axis", label = "x axis",
-                            choices = paste0("PC", 1:PC_cap),
-                            selected =  "PC1", inline = TRUE),
-               radioButtons(inputId = "y_axis", label = "y axis",
-                            choices = paste0("PC", 1:PC_cap),
-                            selected =  "PC2", inline = TRUE)
-      )
-    ),
-    ## Radial manip var radio buttons
-    conditionalPanel(
-      condition = "output.factor == 'radial'",
-      radioButtons(inputId = "manip_var_nm", label = "Manip variable:",
-                   choices =  "V1", selected = "V1")
-    ), ## Close conditionalPanel()
-  ), ## Close plot conditional panel
-  
-) ## close mainPanel() End of main_ui section.
+    condition = "output.factor == 'pca'",
+    fluidRow(radioButtons(inputId = "x_axis", label = "x axis",
+                          choices = paste0("PC", 1:PC_cap),
+                          selected = "PC1", inline = TRUE),
+             radioButtons(inputId = "y_axis", label = "y axis",
+                          choices = paste0("PC", 1:PC_cap),
+                          selected = "PC2", inline = TRUE)
+    )
+  ),
+  ## Radial manip var radio buttons
+  conditionalPanel(
+    condition = "output.factor == 'radial'",
+    radioButtons(inputId = "manip_var_nm", label = "Manip variable:",
+                 choices =  "V1", selected = "V1")
+  ), ## Close conditionalPanel()
+  ## No input for grand tour.
+) ## Close mainPanel() End of main_ui section.
 
 ### _dev_tools
 dev_tools <- conditionalPanel(
   "output.dev_tools == true",
   p("===== Development display below ====="),
   actionButton("browser", "browser()"),
-  p("Variable level diff from avg: "), textOutput("diff"),
-  p("Variable level response: "), textOutput("response"),
-  p("Variable level marks: "), textOutput("var_marks"),
-  p("Task marks: "), textOutput("marks"),
-  textOutput("dev_msg")
-  # ,tableOutput("resp_tbl")
+  textOutput("dev_msg"),
+  tableOutput("resp_row"),
+  tableOutput("resp_tbl"),
+  conditionalPanel(
+    "output.plot_active == true",
+    p("Variable level diff from avg: "), textOutput("diff"),
+    p("Variable level response: "), textOutput("response"),
+    p("Variable level marks: "), textOutput("var_marks"),
+    p("Task marks: "), textOutput("marks")
+  )
 ) ## close conditionPanel, assigning dev_tools
 
-##### UI, combine panels -----
+##### ui, combined *_ui pieces -----
 ui <- fluidPage(useShinyjs(), ## Required in ui to use shinyjs.
                 header_ui,
-                sidebar_ui,
-                main_ui,
+                sidebarLayout(
+                  sidebarPanel(sidebar_ui),
+                  mainPanel(main_ui)
+                ),
                 dev_tools
 )
 
-##### App local functions -----
-app_html_red <- function(string){
+## App text formatting function (js wrapper for bold, red text)
+text_boldred <- function(string){
   paste0("<strong><span style='color:red'>", string, "</span><strong>")
 }
-##
-
-

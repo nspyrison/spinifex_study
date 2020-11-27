@@ -10,32 +10,37 @@ server <- function(input, output, session){
   output$TMP <- renderText(input$TMP)
 
   ##### Reactive value initialization -----
-  rv            <- reactiveValues()
-  rv$pg         <- 1L ## SET STARTING PAGE HERE <<<
-  rv$sec_on_pg  <- 0L
-  rv$ctrl_inter <- 0L
-  rv$resp_inter <- 0L
-  rv$ttr        <- 0L
-  rv$resp_tbl   <- make_resp_tbl(participant_num) ## in resp_tbl.r
+  rv             <- reactiveValues()
+  rv$pg          <- 1L ## SET STARTING PAGE HERE <<<
+  rv$sec_on_pg   <- 0L
+  rv$resp_tbl    <- make_resp_tbl(participant_num) ## in resp_tbl.r
+  ## Below are not needed, but to be explicit,
+  rv$input_inter <- 0L
+  rv$resp_inter  <- 0L
+  rv$ttr         <- 0L
+  rv$response    <- NA
+  rv$answer      <- NA
+  rv$marks       <- NA
   
   ##### Reactive functions -----
+  resp_tbl <- reactive(rv$resp_tbl)
+  output$resp_tbl <- renderTable(resp_tbl())
   resp_row <- reactive(rv$resp_tbl[rv$pg, ])
   output$resp_row <- renderTable(resp_row())
-  plot_active <- reactive({req(resp_row)
-    resp_row()$plot_active})
-  sim_nm <- reactive({req(resp_row)
-    resp_row()$sim_nm})
-  section_nm <- reactive({req(resp_row)
-    resp_row()$section_nm}) ## For ui between sections
   key <- reactive({req(resp_row)
     resp_row()$key
   })
-  
-  #output$sim_nm <- renderText(paste("sim_nm(): ", sim_nm()))
+  plot_active <- reactive({req(resp_row)
+    resp_row()$plot_active})
   factor <- reactive({req(resp_row)
     resp_row()$factor})
   eval <- reactive({req(resp_row)
     resp_row()$eval})
+  sim_nm <- reactive({req(resp_row)
+    resp_row()$sim_nm})
+  section_nm <- reactive({req(resp_row)
+    resp_row()$section_nm})
+  
   image_fp <- reactive({
     if(plot_active()){
       #dir_sim_nm <- paste0("../images/", sim_nm())
@@ -46,26 +51,21 @@ server <- function(input, output, session){
         fct_suffix <- paste0("grand.gif")
       if(fct_nm == "radial")
         fct_suffix <- paste0("radial_mv", manip_var(), ".gif")
-        return(paste(paste0("./www/images/", sim_nm()), "", ## for extra "_"
+        return(paste(paste0("./www/images/", sim_nm()), "", ## for extra "_" sep
                      fct_suffix, sep = "_"))
     }
     return("plot_active() == false")
   })
   output$image_fp <- renderText({image_fp()})
   output$image_plot <- renderImage({
-    fp <- "./www/white_placeholder.png" ## Default to thin white strip
-    ## Reactive height and width
-    # w <- session$clientData$output_image_plot_width
-    # h <- session$clientData$output_image_plot_height
+    fp <- "./www/white_placeholder.png" ## Default thin white strip .png
     if(plot_active() == TRUE)
       fp <- image_fp()
     list(src = normalizePath(fp),
-         # width  = w,
-         # height = h,
          alt = "image text!")
   }, deleteFile = FALSE)
   
-  dat <- reactive({ ## Simulation df with attachments.
+  dat <- reactive({ ## Simulation data (in df) with attributes
     req(plot_active())
     if(plot_active() == TRUE){
       req(sim_nm())
@@ -73,7 +73,7 @@ server <- function(input, output, session){
     }
     return("NA")
   })
-  cl <- reactive({ ## Simulation df with attachments.
+  cl <- reactive({ ## Vector containing the class.
     req(plot_active())
     if(plot_active() == TRUE){
       req(dat())
@@ -81,7 +81,7 @@ server <- function(input, output, session){
     }
     return("NA")
   })
-  p <- reactive({
+  p <- reactive({ ## Scalar number of variables
     req(plot_active())
     if(plot_active() == TRUE){
       return(ncol(dat()))
@@ -90,7 +90,7 @@ server <- function(input, output, session){
   })
   x_axis_num <- reactive(as.integer(substr(input$x_axis, 3, 3)))
   y_axis_num <- reactive(as.integer(substr(input$y_axis, 3, 3)))
-  manip_var <- reactive({
+  manip_var  <- reactive({
     mv <- which(colnames(dat()) == input$manip_var_nm)
     return(max(mv, 1))
   })
@@ -193,48 +193,19 @@ server <- function(input, output, session){
                              choices = choices, inline  = TRUE)
     loggit("INFO", "Task data changed; updated responce choices.")
   })
-  ## Bump x_axis when set to the same as y_axis
+  ## When x_axis set, disable corresponding y_axis opt.
   observeEvent(input$x_axis, {
-    output$plot_msg <- renderText("")
-    if(factor() == "pca" & input$x_axis == input$y_axis){
-      x_axis_out <- NULL
-      choices <- paste0("PC", 1:PC_cap)
-      x_axis_num <- x_axis_num()
-      if(x_axis_num <= 3){x_axis_out <- paste0("PC", x_axis_num + 1)
-      }else{x_axis_out <- paste0("PC", x_axis_num - 1)}
-      
-      updateRadioButtons(session, "x_axis", choices = choices, selected = x_axis_out, inline = TRUE)
-      loggit("INFO", paste0("x_axis set to ", input$x_axis,
-                            ", same as y_axis; x_axis bumped to ", x_axis_out, "."),
-             key()
-      )
-      
-      output$plot_msg <- renderText(
-        app_html_red(paste0("Please select different principal components.
-                            X axis randomed selected to ", x_axis_out, "."))
-      )
-    }
+    disable(selector = paste0("#y_axis button:eq(", 
+                              as.integer(substr(input$x_axis, 3, 3)),
+                              ")")
+    )
   })
-  ## Bump y_axis when set to the same as x_axis
+  ## When y_axis set, disable corresponding x_axis opt.
   observeEvent(input$y_axis, {
-    output$plot_msg <- renderText("")
-    if(input$x_axis == input$y_axis){
-      y_axis_out <- NULL
-      choices <- paste0("PC", 1:PC_cap)
-      y_axis_num <- y_axis_num()
-      if(y_axis_num <= 3){y_axis_out <- paste0("PC", y_axis_num + 1)
-      }else{y_axis_out <- paste0("PC", y_axis_num - 1)}
-      
-      updateRadioButtons(session, "y_axis", choices = choices, selected = y_axis_out, inline = TRUE)
-      loggit("INFO", paste0("y_axis set to ", input$y_axis,
-                            ", same as x_axis; y_axis bumped to ", y_axis_out, "."),
-             key()
-      )
-      
-      output$plot_msg <- renderText(
-        app_html_red(paste0("Must select different principal components."))
-      )
-    }
+    disable(selector = paste0("#x_axis button:eq(", 
+                              as.integer(substr(input$y_axis, 3, 3)),
+                              ")")
+    )
   })
   
   ### _Obs radial update manip_var_nm choices -----
@@ -269,16 +240,12 @@ server <- function(input, output, session){
   observeEvent({
       input$x_axis
       input$y_axis
-    }, {
-      rv$ctrl_inter <- rv$ctrl_inter + 1L
-    }
-  )
-  observeEvent({
       input$manip_var_nm
     }, {
-      rv$ctrl_inter <- rv$ctrl_inter + 1L
+      rv$input_inter <- rv$ctrl_inter + 1L
     }
   )
+  
   observeEvent({
       input$response
     }, {
@@ -308,15 +275,15 @@ server <- function(input, output, session){
       
       
       ### __New page ----
-      ## Advance to the next page, reset variables
-      rv$pg <- rv$pg + 1L
-      ## Reset responses, ttr, and timer for next task
-      output$plot_msg     <- renderText("")
-      rv$interactions     <- 0L
-      rv$ttr              <- 0L
-      rv$response         <- NULL
-      rv$answer           <- NULL
-      rv$marks            <- NULL
+      ## Advance to the next page, reset other rv variables
+      rv$pg           <- rv$pg + 1L
+      output$plot_msg <- renderText("")
+      rv$input_inter  <- 0L
+      rv$resp_inter   <- 0L
+      rv$ttr          <- 0L
+      rv$response     <- NA
+      rv$answer       <- NA
+      rv$marks        <- NA
       if(rv$pg == survey_pg) shinyjs::hide("next_pg_button")
       
       ## Set structure for writing to resp_tbl
@@ -362,7 +329,7 @@ server <- function(input, output, session){
     rv$save_file <- save_file
     
     save_msg <- paste0("Reponses saved as ", save_file, " (log file: ", log_file, "). Thank you for participating!")
-    output$save_msg <- renderText(app_html_red(save_msg))
+    output$save_msg <- renderText(text_boldred(save_msg))
     
     if(prefix == ""){
       loggit("INFO", "Save button pressed.",

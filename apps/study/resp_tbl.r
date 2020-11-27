@@ -112,12 +112,12 @@ make_resp_tbl <- function(participant_num = sample(1:1000, 1)){
       TRUE ~ paste(sep = "_", vc, p_dim, location,
                    paste0("rep", period))
     ),
-    ctrl_inter = NA,
-    resp_inter = NA,
-    ttr = NA,
-    resp = NA,
-    ans = NA,
-    marks = NA
+    input_inter = NA,
+    resp_inter  = NA,
+    ttr         = NA,
+    resp        = NA,
+    ans         = NA,
+    marks       = NA
   )
 resp_tbl
 }
