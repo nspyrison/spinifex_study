@@ -7,7 +7,29 @@ resp_tbl <- make_resp_tbl(participant_num)
 
 ####### Server function, for shiny app
 server <- function(input, output, session){
-  output$TMP <- renderText(input$TMP)
+
+  ## Google sheets authentication
+  tryCatch({
+    drive_auth(email = "nicholas.spyrison@monash.edu")
+  }, error = function(e){
+    txt <- "App could not authenticate to Google sheet. Please try again in 5 minutes. Closing app in 15 seconds."
+    showNotification(txt, type = "error")
+    warning(txt)
+    Sys.sleep(15)
+    stopApp()
+    return(NULL)
+  })
+  
+  ## onStop() This code will be run after the client has disconnected
+  session$onSessionEnded(function() {
+    cat(context_msg)
+    message("ran session$onSessionEnded(f()).")
+    if(do_log == TRUE){
+      loggit("INFO", "=====Spinifex study app stop.=====")
+      set_logfile(logfile = NULL, confirm = TRUE)
+      
+    }
+  })
 
   ##### Reactive value initialization -----
   rv             <- reactiveValues()
