@@ -33,35 +33,19 @@ options(shiny.autoreload = TRUE)
 # options(error = browser) ## occasionally helpful for troubleshooting
 
 #### participant and perm_number -----
-## TODO: need to read the unique perm numbers in load file, and find the perm_numbers in the min count table. 
 ## Initialize
 participant_num <- 1
-log_file <- "initalize"
-if(do_log == TRUE){
-  full_perm_num <- 1 + participant_num %% 56
-  log_file <- paste0("log_participant_", participant_num, ".json")
-  ## TODO: Need to get participant_num, from google docs.
-  while (file.exists(log_file)){ ## Find an unused log number
-    participant_num <- participant_num + 1
-    full_perm_num <- 1 + participant_num %% 56
-    log_file <- paste0("participant_", participant_num, ".json")
-  }
-  set_logfile(log_file)
-}else{ ## When do_log == F
+## TODO: need to read the unique perm numbers in load file, and find the perm_numbers in the min count table. 
+if(F){ ## Read response sheet and set participant number
+  prev_saves <- read_sheet(ss_id)
+  participant_num <- length(unique(prev_saves$participant_num)) + 1
+}else{ ## ELSE assign random participant and perm numbers.
   participant_num <- sample(1:999, 1)
-  full_perm_num <- 1 + participant_num %% 56
-  log_file <- paste0("<LOGGING OFF> participant_num: ", participant_num,
-                     " Logging is off! Log and responses not being recorded.")
 }
 full_perm_num <- 1 + participant_num %% 56
-cat("do_log, log_file: ", do_log, log_file, " /n")
 
 #### Select factor and block permutations
-## The permutation number
-this_factor_perm   <- 1 + (full_perm_num - 1) %% 6 ## %% is mod
-this_location_perm <- 1 #1 + floor((full_perm_num - 1) / 3) %% 3
-this_vc_perm       <- 1 #1 + floor((full_perm_num - 1) / 9) %% 6
-## The permutations
+## Possible permutations
 factor_perms   <- rbind(c(1, 1,  2, 2,  3, 3),
                         c(1, 1,  3, 3,  2, 2),
                         c(2, 2,  3, 3,  1, 1),
@@ -80,6 +64,13 @@ factor_nms   <- c("pca", "grand", "radial")
 location_nms <- c("0_1", "33_66", "50_50")
 vc_nms       <- c("EEE", "EEV", "banana")
 p_dim_nms <- this_p_dim_nm_ord <- c("p4", "p6")
+## The permutation numbers
+r_fct <- nrow(factor_perms)   ##~6
+r_loc <- nrow(location_perms) ##~3
+r_vc  <- nrow(vc_perms)       ##~3
+this_factor_perm   <- 1 + (full_perm_num - 1) %% r_fct
+this_location_perm <- 1 #1 + floor((full_perm_num - 1) / r_fct) %% r_loc
+this_vc_perm       <- 1 #1 + floor((full_perm_num - 1) / (r_fct * r_Loc)) %% r_vc
 ## The decoded names
 this_factor_nm_ord <-
   factor_nms[factor_perms[this_factor_perm, ]]
@@ -97,19 +88,10 @@ message("ran onStart() code.")
 ## dummy onStart(function(){})
 context_msg <- paste(sep = " \n",
                      context_line,
-                     paste0("Log file: ", log_file),
-                     paste0("Participant number: ", participant_num, ".")
+                     paste0("Participant number: ", participant_num, "."),
+                     paste0("Perm number: ", full_perm_num, ".")
 )
-if(do_log == TRUE) loggit("INFO", "=====Spinifex study app start.=====")
 cat(context_msg)
-## onStop()
-
-onStop(function(){
-  cat(context_msg)
-  message("ran onStop(f())")
-  ## Try to autosave if not saved and do_log == T?
-})
-
 
 ## Survey questions; n = 21 = 9 + 12
 survey_questions <- c("Which sex are you?",
@@ -161,13 +143,7 @@ for(i in 1:length(tpath_nms)){
 # }
 
 
-#TODO: is this the best spot for it?
-## Enumerate and eagerly eval all ggplots
-
-
-
 ##### Global variable initialization -----
-n_trainings        <- 2L #length(s_t_dat)      ## ~2
 n_factors          <- length(factor_nms)       ## ~3
 n_p_dim            <- length(p_dim_nms)        ## ~2
 n_survey_questions <- length(survey_questions) ## ~21
