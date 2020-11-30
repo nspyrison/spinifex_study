@@ -7,12 +7,12 @@ library("shiny")
 library("googlesheets4") ## Google sheets (with api v4) for read/write responses.
 library("shinyjs")   ## Help with handling conditionalPanels
 library("lubridate") ## For timer
-library("loggit")    ## For logging
 library("here")      ## Fixing base dir
 set.seed(20200927)   ## If tourr starts using seeds
 time_alotted <- 180L ## Seconds for the task
 height_px <- 500L
 pal <- RColorBrewer::brewer.pal(8, "Dark2")[c(1, 2, 3, 6, 8)]
+ss_id <- "1KaWOFGyfosxdMBHDXvEn3YMmdA_o7tsZ-ILyqjtbqQA" ## the 'id' or name of the google sheet, 1Ka* is "TEST_gsheet"
 
 bas_p4 <- matrix(c(.5,  .5,
                    -.5, .5,
@@ -27,23 +27,12 @@ bas_p6 <- matrix(c(.2887,  .5,
                    .5774,  0),
                  ncol = 2, nrow = 6, byrow = TRUE)
 
-#### Logging -----
-## browseURL("https://www.r-bloggers.com/adding-logging-to-a-shiny-app-with-loggit/")
-## use: loggit("INFO", "<main msg>", "<detail>")
-## SET do_log to TRUE to start logging 
-do_log              <- FALSE
+
 do_disp_dev_tools   <- TRUE
-do_shiny_autoreload <- TRUE
-do_browse_err       <- FALSE
+options(shiny.autoreload = TRUE)
+# options(error = browser) ## occasionally helpful for troubleshooting
 
-if(do_shiny_autoreload == TRUE)
-  options(shiny.autoreload = TRUE)
-if(do_browse_err == TRUE)
-  options(error = browser)
-
-cat("do_log:", do_log)
-
-#### Set log file, participant_num is the next number after reading last writen participant_num
+#### participant and perm_number -----
 ## TODO: need to read the unique perm numbers in load file, and find the perm_numbers in the min count table. 
 ## Initialize
 participant_num <- 1
@@ -117,13 +106,8 @@ cat(context_msg)
 
 onStop(function(){
   cat(context_msg)
-  if(do_log == TRUE){
-    loggit("INFO", "=====Spinifex study app stop.=====")
-    set_logfile(logfile = NULL, confirm = TRUE)
-    message("ran onStop(f())")
-  }
+  message("ran onStop(f())")
   ## Try to autosave if not saved and do_log == T?
-  #### note that rv$resp_tbl is out of scope to the global file.
 })
 
 

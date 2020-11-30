@@ -24,11 +24,7 @@ server <- function(input, output, session){
   session$onSessionEnded(function() {
     cat(context_msg)
     message("ran session$onSessionEnded(f()).")
-    if(do_log == TRUE){
-      loggit("INFO", "=====Spinifex study app stop.=====")
-      set_logfile(logfile = NULL, confirm = TRUE)
-      
-    }
+    ##TODO: add save on close here.
   })
 
   ##### Reactive value initialization -----
@@ -203,17 +199,14 @@ server <- function(input, output, session){
       choices <- paste0("PC", 1:PC_cap)
       updateRadioButtons(session, "x_axis", choices = choices, selected = "PC1", inline = TRUE)
       updateRadioButtons(session, "y_axis", choices = choices, selected = "PC2", inline = TRUE)
-      loggit("INFO", "Task data changed while pca active; updated PC axes choices.")
     }
     if(factor() == "radial"){
       choices <- paste0("V", 1:p())
       updateRadioButtons(session, "manip_var_nm", choices = choices, selected = "PC1", inline = TRUE)
-      loggit("INFO", "Task data changed while radial active; updated manip var choices.")
     }
     choices <- paste0("V", 1:p())
     updateCheckboxGroupInput(session, "response",
                              choices = choices, inline  = TRUE)
-    loggit("INFO", "Task data changed; updated responce choices.")
   })
   ## When x_axis set, disable corresponding y_axis opt.
   observeEvent(input$x_axis, {
@@ -239,7 +232,6 @@ server <- function(input, output, session){
       these_colnames <- colnames(dat())
       updateRadioButtons(session, "manip_var_nm", choices = these_colnames,
                          selected = these_colnames[1], inline = TRUE)
-      loggit("INFO", paste0("Task data or training factor changed; input$manip_var_nm choices updated."))
     }
   })
   
@@ -251,9 +243,6 @@ server <- function(input, output, session){
     if(rv$sec_on_pg > 1){
       rv$ttr[1] <- rv$sec_on_pg
       rv$response[1] <- paste(input$response, collapse = ", ")
-      loggit("INFO", "Task response changed.",
-             paste0("Response: ", rv$response[1],
-                    ". ttr: ", rv$ttr[1], ".")
       )
     }
   })
@@ -280,7 +269,7 @@ server <- function(input, output, session){
   
   ### _Obs next page button -----
   observeEvent(input$next_pg_button, {
-    if((rv$sec_on_pg > 1L & do_log == TRUE) | do_log == FALSE){
+    if((rv$sec_on_pg > 1L & do_disp_dev_tools == TRUE) | do_disp_dev_tools == FALSE){
       cat(paste0("in loop, top --", rv$pg))
       response <- response()
       marks <- marks()
@@ -318,7 +307,6 @@ server <- function(input, output, session){
       }
       rv$response <- "none (default)"
       rv$ttr      <- 0
-      loggit("INFO", paste0("Next page:"), key())
       cat("bottom of loop -- ")
     }
     cat("after loop \n")
@@ -350,22 +338,8 @@ server <- function(input, output, session){
     write.csv(get(save_name), file = save_file, row.names = FALSE)
     rv$save_file <- save_file
     
-    save_msg <- paste0("Reponses saved as ", save_file, " (log file: ", log_file, "). Thank you for participating!")
+    save_msg <- paste0("Reponses saved. Thank you for participating!")
     output$save_msg <- renderText(text_boldred(save_msg))
-    
-    if(prefix == ""){
-      loggit("INFO", "Save button pressed.",
-             paste0("rv$save_file: ", rv$save_file,
-                    ". save_msg: ", save_msg,
-                    "."))
-    }
-    if(prefix != ""){
-      loggit("INFO", paste0("NOTE: Prefixed save script run. Prefix was '", prefix, "'."),
-             paste0("Save may not have been user initiated",
-                    ". PREFIX USED: ", prefix,
-                    ". rv$save_file: ", rv$save_file,
-                    ". save_msg: ", save_msg, "."))
-    }
   })
   
   ### _Obs browser -----
