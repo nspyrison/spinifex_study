@@ -115,7 +115,7 @@ make_resp_tbl <- function(participant_num = sample(1:1000, 1)){
     input_inter = NA_integer_,
     resp_inter  = NA_integer_,
     ttr         = NA_integer_,
-    resp        = NA_list_,
+    resp        = list(NA_integer_),
     ans         = NA_character_,
     marks       = NA_real_
   )

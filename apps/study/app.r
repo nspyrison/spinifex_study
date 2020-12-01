@@ -267,7 +267,7 @@ server <- function(input, output, session){
       ## Write responses and ttr to resp_tbl
       if(is.na(factor()) == FALSE){
         this_row <- resp_row()
-        browser()
+
         this_row$input_inter <- rv$input_inter
         this_row$resp_inter  <- rv$resp_inter
         this_row$ttr         <- rv$ttr
