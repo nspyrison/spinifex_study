@@ -68,20 +68,20 @@ make_resp_tbl <- function(participant_num = sample(1:1000, 1)){
   
   resp_tbl <- tibble(
     key = paste(sep = "_", participant_num, full_perm_num, 1:15),
-    participant_num = participant_num,
-    full_perm_num   = full_perm_num,
-    pg         = 1:15,
-    section_pg = c(1:3,1:4,1:4,1:3, 1),
+    participant_num = as.integer(participant_num),
+    full_perm_num   = as.integer(full_perm_num),
+    pg         = as.integer(1:15),
+    section_pg = as.integer(c(1:3,1:4,1:4,1:3, 1)),
     section_nm = c(rep("intro", 3),
                    rep("period1", 4),
                    rep("period2", 4),
                    rep("period3", 3),
                    "survey"),
-    period = c(rep(0, 3),
-               rep(1, 4),
-               rep(2, 4),
-               rep(3, 3),
-               4),
+    period = as.integer(c(rep(0, 3),
+                          rep(1, 4),
+                          rep(2, 4),
+                          rep(3, 3),
+                          4)),
     plot_active = c(rep(FALSE, 3),
                     rep(TRUE, 3), FALSE,
                     rep(TRUE, 3), FALSE,
@@ -112,12 +112,12 @@ make_resp_tbl <- function(participant_num = sample(1:1000, 1)){
       TRUE ~ paste(sep = "_", vc, p_dim, location,
                    paste0("rep", period))
     ),
-    input_inter = NA,
-    resp_inter  = NA,
-    ttr         = NA,
-    resp        = NA,
-    ans         = NA,
-    marks       = NA
+    input_inter = NA_integer_,
+    resp_inter  = NA_integer_,
+    ttr         = NA_integer_,
+    resp        = NA_list_,
+    ans         = NA_character_,
+    marks       = NA_real_
   )
 resp_tbl
 }

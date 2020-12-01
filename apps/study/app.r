@@ -29,16 +29,13 @@ server <- function(input, output, session){
 
   ##### Reactive value initialization -----
   rv             <- reactiveValues()
-  rv$pg          <- 1L ## SET STARTING PAGE HERE <<<
+  rv$pg          <- 4L ## SET STARTING PAGE HERE <<<
   rv$sec_on_pg   <- 0L
   rv$resp_tbl    <- make_resp_tbl(participant_num) ## in resp_tbl.r
   ## Below are not needed, but to be explicit,
   rv$input_inter <- 0L
   rv$resp_inter  <- 0L
   rv$ttr         <- 0L
-  rv$response    <- NA
-  rv$answer      <- NA
-  rv$marks       <- NA
   
   ##### Reactive functions -----
   resp_tbl <- reactive(rv$resp_tbl)
@@ -132,34 +129,34 @@ server <- function(input, output, session){
   response <- reactive({
     if(substr(section_nm(), 1, 6) == "period"){
       resp <- input$response
-      if(is.null(resp)) return("NA")
+      if(is.null(resp)) return(NA)
       ## Vector of the numbers without 'V'
       return(as.integer(gsub(' |V', '', input$response)))
     }
-    return("NA")
+    return(NA)
   })
   output$response <- renderPrint(response())
   ### Task scoring
-  diff <- reactive({
+  var_diff <- reactive({
     if(plot_active()){
-      signal <- attr(dat(), "var_mean_diff_ab")
-      bar    <- sum(signal) / p()
-      return(signal - bar)
+      var_signal <- attr(dat(), "var_mean_diff_ab")
+      bar <- sum(var_signal) / p()
+      return(var_signal - bar)
     }
     return("NA")
   })
-  output$diff <- renderPrint({
+  output$var_diff <- renderPrint({
     if(plot_active() == TRUE)
-      round(diff(), 2)
+      round(var_diff(), 2)
   })
   var_marks <- reactive({
     if(plot_active()){
       req(response())
-      diff   <- diff()
-      ans    <- which(diff >= 0L)
-      weight <- sign(diff) * sqrt(abs(diff))
-      response   <- response()
-      if(response == "NA") return(0)
+      var_diff <- var_diff()
+      ans <- which(var_diff >= 0L)
+      weight <- sign(var_diff) * sqrt(abs(var_diff))
+      response <- response()
+      if(is.na(response[1])) return(0)
       return(weight[response])
     }
     return("NA")
@@ -235,55 +232,55 @@ server <- function(input, output, session){
     }
   })
   
- 
   
-  ##### _Obs task responses -----
+  ##### _Obs responses and counts -----
   ### task responses & ttr
   observeEvent(input$response, {
     if(rv$sec_on_pg > 1){
       rv$ttr[1] <- rv$sec_on_pg
       rv$response[1] <- paste(input$response, collapse = ", ")
-      )
     }
   })
   
-  ### _Obs interaction count -----
+  ### _Obs interaction count
   observeEvent({
       input$x_axis
       input$y_axis
       input$manip_var_nm
     }, {
-      rv$input_inter <- rv$ctrl_inter + 1L
+      rv$input_inter <- rv$input_inter + 1L
     }
   )
   
   observeEvent({
       input$response
     }, {
-      rv$interactions <- rv$interactions + 1L
+      rv$resp_inter <- rv$resp_inter + 1L
     }
   )
-  
-  ##### _Obs survey answers -----
-  ### <REMOVED, see comments_medium.r>
   
   ### _Obs next page button -----
   observeEvent(input$next_pg_button, {
     if((rv$sec_on_pg > 1L & do_disp_dev_tools == TRUE) | do_disp_dev_tools == FALSE){
-      cat(paste0("in loop, top --", rv$pg))
-      response <- response()
-      marks <- marks()
-      
-      ### __Training evaluation -----
-      ### <REMOVED, see comments_medium.r>
       
       ##### __rv$resp_tbl -----
       ## Write responses and ttr to resp_tbl
-      if(substr(section_nm(), 1L, 6L) == "period"){
-      #TODO
+      if(is.na(factor()) == FALSE){
+        this_row <- resp_row()
+        browser()
+        this_row$input_inter <- rv$input_inter
+        this_row$resp_inter  <- rv$resp_inter
+        this_row$ttr         <- rv$ttr
+        this_row$resp        <- list(response())
+        this_row$marks       <- marks()
+        
+        ## Save local and remote line
+        rv$resp_tbl[rv$pg, ] <- this_row
+        googlesheets4::sheet_append(ss_id, this_row)
+        message("Data row apended for page: ", rv$pg, " -- ", substr(Sys.time(), 12, 16))
+        browser()
       } ## End of writing to resp_tbl
-      cat("!!! ITERATED PG!!!")
-      
+
       
       ### __New page ----
       ## Advance to the next page, reset other rv variables
@@ -292,54 +289,21 @@ server <- function(input, output, session){
       rv$input_inter  <- 0L
       rv$resp_inter   <- 0L
       rv$ttr          <- 0L
-      rv$response     <- NA
-      rv$answer       <- NA
-      rv$marks        <- NA
       if(rv$pg == survey_pg) shinyjs::hide("next_pg_button")
-      
-      ## Set structure for writing to resp_tbl
-      ## cluster seperation task:
-      ##TODO: response table writing.
-      n_rows <- 1L
-      if(section_nm() == "survey"){
-        def <- c(rep("decline to answer (default)", 3L),
-                 rep("5 (default)", n_survey_questions - 3L))
-      }
-      rv$response <- "none (default)"
-      rv$ttr      <- 0
-      cat("bottom of loop -- ")
     }
-    cat("after loop \n")
   })
   
-  
+
   ### _Obs save responses button -----
   observeEvent(input$save_resp, {
-    filebase = paste("responses", this_group, Sys.info()[4L], sep = "_")
-    prefix = ""
-    
-    # ## Write survey responses to rv$resp_tbl
-    # ins_row_start <- nrow(rv$resp_tbl) - n_survey_questions + 1L
-    # ins_row_end   <- nrow(rv$resp_tbl)
-    # rv$resp_tbl$response[ins_row_start:ins_row_end] <- rv$response
-    # rv$resp_tbl$ttr[ins_row_start:ins_row_end] <- rv$ttr
+    ## THIS IS THE FINAL SAVE BUTTON NOT THE NEXT PAGE BUTTON.
     
     ## Do the actual saving
-    save_base <- paste0(prefix, filebase, "_")
-    save_num  <- 1
-    save_name <- sprintf(paste0(save_base, "%03d"), save_num)
-    save_file <- paste0(save_name, ".csv")
-    while (file.exists(save_file)){ ## set the correct file number to use
-      save_name <- sprintf(paste0(save_base, "%03d"), save_num)
-      save_file <- paste0(save_name, ".csv")
-      save_num  <- save_num + 1
-    }
-    # assign(save_name, rv$resp_tbl)
-    write.csv(get(save_name), file = save_file, row.names = FALSE)
-    rv$save_file <- save_file
+    ## TODO: the saving, see googlesheets4::sheet_append( ss_id)
     
+    ## Message back
     save_msg <- paste0("Reponses saved. Thank you for participating!")
-    output$save_msg <- renderText(text_boldred(save_msg))
+    showNotification(save_msg, type = "message", duration = 10)
   })
   
   ### _Obs browser -----
@@ -364,7 +328,7 @@ server <- function(input, output, session){
         )
       }
     }
-    if(eval() == "training"){ ## Disp timer Counting up if in training.
+    if(eval() == "training"){ ## Disp timer counting up if in training.
       return(paste0("Time elapsed this page: ", lubridate::seconds_to_period(rv$sec_on_pg)))
     }
   })
@@ -394,9 +358,9 @@ server <- function(input, output, session){
   output$dev_msg  <- renderPrint({
     if(do_disp_dev_tools == TRUE){
       cat("dev msg -- \n",
-          header(),
-          timer_info(),
-          key()
+          ", header(): ", header(),
+          ", timer_info(): ", timer_info(),
+          ", key(): ", key()
       )
     }
   })

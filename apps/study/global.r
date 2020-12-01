@@ -66,8 +66,9 @@ vc_nms       <- c("EEE", "EEV", "banana")
 p_dim_nms <- this_p_dim_nm_ord <- c("p4", "p6")
 ## The permutation numbers
 r_fct <- nrow(factor_perms)   ##~6
-r_loc <- nrow(location_perms) ##~3
-r_vc  <- nrow(vc_perms)       ##~3
+r_loc <- nrow(location_perms) ##~6
+r_vc  <- nrow(vc_perms)       ##~1
+r_perms <- r_fct * r_loc * r_vc ##~36
 this_factor_perm   <- 1 + (full_perm_num - 1) %% r_fct
 this_location_perm <- 1 #1 + floor((full_perm_num - 1) / r_fct) %% r_loc
 this_vc_perm       <- 1 #1 + floor((full_perm_num - 1) / (r_fct * r_Loc)) %% r_vc
