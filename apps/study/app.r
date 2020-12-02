@@ -10,7 +10,7 @@ server <- function(input, output, session){
 
   ## Google sheets authentication
   tryCatch({
-    drive_auth(email = "nicholas.spyrison@monash.edu")
+    googledrive::drive_auth(email = "nicholas.spyrison@monash.edu")
   }, error = function(e){
     txt <- "App could not authenticate to Google sheet. Please try again in 5 minutes. Closing app in 15 seconds."
     showNotification(txt, type = "error")
@@ -126,16 +126,16 @@ server <- function(input, output, session){
   
   #### _Task evaluation -----
   ### Task Response
-  response <- reactive({
+  var_resp <- reactive({
     if(substr(section_nm(), 1, 6) == "period"){
-      resp <- input$response
+      resp <- input$var_resp
       if(is.null(resp)) return(NA)
       ## Vector of the numbers without 'V'
-      return(as.integer(gsub(' |V', '', input$response)))
+      return(as.integer(gsub(' |V', '', input$var_resp)))
     }
     return(NA)
   })
-  output$response <- renderPrint(response())
+  output$var_resp <- renderPrint(var_resp())
   ### Task scoring
   var_diff <- reactive({
     if(plot_active()){
@@ -151,13 +151,13 @@ server <- function(input, output, session){
   })
   var_marks <- reactive({
     if(plot_active()){
-      req(response())
+      req(var_resp())
       var_diff <- var_diff()
       ans <- which(var_diff >= 0L)
       weight <- sign(var_diff) * sqrt(abs(var_diff))
-      response <- response()
-      if(is.na(response[1])) return(0)
-      return(weight[response])
+      var_resp <- var_resp()
+      if(is.na(var_resp[1])) return(0)
+      return(weight[var_resp])
     }
     return("NA")
   })
@@ -184,7 +184,7 @@ server <- function(input, output, session){
     dat()
   }, {
     choices <- paste0("V", 1:p())
-    updateCheckboxGroupInput(session, "response",
+    updateCheckboxGroupInput(session, "var_resp",
                              choices = choices, selected = "", inline = TRUE)
   })
   ### _Obs update axis/task choices -----
@@ -202,7 +202,7 @@ server <- function(input, output, session){
       updateRadioButtons(session, "manip_var_nm", choices = choices, selected = "PC1", inline = TRUE)
     }
     choices <- paste0("V", 1:p())
-    updateCheckboxGroupInput(session, "response",
+    updateCheckboxGroupInput(session, "var_resp",
                              choices = choices, inline  = TRUE)
   })
   ## When x_axis set, disable corresponding y_axis opt.
@@ -235,10 +235,10 @@ server <- function(input, output, session){
   
   ##### _Obs responses and counts -----
   ### task responses & ttr
-  observeEvent(input$response, {
+  observeEvent(input$var_resp, {
     if(rv$sec_on_pg > 1){
       rv$ttr[1] <- rv$sec_on_pg
-      rv$response[1] <- paste(input$response, collapse = ", ")
+      rv$var_resp[1] <- paste(input$var_resp, collapse = ", ")
     }
   })
   
@@ -253,7 +253,7 @@ server <- function(input, output, session){
   )
   
   observeEvent({
-      input$response
+      input$var_resp
     }, {
       rv$resp_inter <- rv$resp_inter + 1L
     }
@@ -267,11 +267,11 @@ server <- function(input, output, session){
       ## Write responses and ttr to resp_tbl
       if(is.na(factor()) == FALSE){
         this_row <- resp_row()
-
         this_row$input_inter <- rv$input_inter
         this_row$resp_inter  <- rv$resp_inter
         this_row$ttr         <- rv$ttr
-        this_row$resp        <- list(response())
+        this_row$var_resp    <- list(var_resp())
+        this_row$var_marks   <- list(var_marks())
         this_row$marks       <- marks()
         
         ## Save local and remote line
@@ -342,7 +342,6 @@ server <- function(input, output, session){
   output$dev_tools   <- reactive({              ## For JS eval of R boolean...
     return(do_disp_dev_tools)
   }) 
-  #input$response
   
   outputOptions(output, "pg",          suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
   outputOptions(output, "factor",      suspendWhenHidden = FALSE) ##  "

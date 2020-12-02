@@ -157,25 +157,6 @@ period2_pgs <- 8L:11L  ## Training, rep 1, rep 2, and intermission
 period3_pgs <- 12L:14L ## Training, rep 1, rep 2
 survey_pg   <- 15L     ## Survey
 
-default_resp_tbl_row <-
-  data.frame(
-    participant_num = participant_num,
-    full_perm_num   = full_perm_num,
-    period          = NA,
-    eval            = NA,
-    factor          = NA,
-    vc              = NA,
-    p_dim           = NA,
-    sim_nm          = NA,
-    grand_path      = NA,
-    ctrl_inter      = NA,
-    resp_inter      = NA,
-    ttr             = NA,
-    response        = NA,
-    answer          = NA,
-    marks           = NA
-  )
-
 
 ##### UI START -----
 ### header_ui -----
@@ -191,7 +172,7 @@ sidebar_ui <- fluidPage(
   conditionalPanel(
     condition = "(output.plot_active == true) ", 
     checkboxGroupInput(
-      inputId = "response",
+      inputId = "var_resp",
       label   = "Check any/all variables that contribute more than average to the cluster seperation green circles and orange triangles.",
       choices = "V1",
       inline  = TRUE)
@@ -247,7 +228,7 @@ dev_tools <- conditionalPanel(
   conditionalPanel(
     "output.plot_active == true",
     p("Variable level diff from avg: "), textOutput("diff"),
-    p("Variable level response: "), textOutput("response"),
+    p("Variable level response: "), textOutput("var_resp"),
     p("Variable level marks: "), textOutput("var_marks"),
     p("Task marks: "), textOutput("marks")
   )
