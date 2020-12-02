@@ -1,13 +1,12 @@
 source('global.r', local = TRUE)
 source('resp_tbl.r', local = TRUE) ## Needs initialization from global.r.
-resp_tbl <- make_resp_tbl(participant_num)
 
 ## Also try: shiny::runApp(appDir = "apps/study", display.mode = "showcase")
 #?shiny::runApp(appDir = "apps/study", display.mode = "showcase")
 
 ####### Server function, for shiny app
 server <- function(input, output, session){
-
+  
   ## Google sheets authentication
   tryCatch({
     googledrive::drive_auth(email = "nicholas.spyrison@monash.edu")
@@ -25,53 +24,79 @@ server <- function(input, output, session){
     cat(context_msg)
     message("ran session$onSessionEnded(f()).")
     
-    if(input$save_resp < 1){
-      ### Attempt to save, when closed early
-      these_rows <- resp_row()
-      these_rows$input_inter <- rv$input_inter
-      these_rows$resp_inter  <- rv$resp_inter
-      these_rows$ttr         <- rv$ttr
-      these_rows$var_resp    <- list(var_resp())
-      these_rows$var_marks   <- list(var_marks())
-      these_rows$marks       <- marks()
-      these_rows$write_dt    <- sys.time()
-      
-      extra_row <- tibble::tibble(
-        key = "!!App ended without save button!!",
-        participant_num = as.integer(participant_num),
-        full_perm_num   = as.integer(full_perm_num),
-        pg              = NA_real_,
-        section_pg      = NA_real_,
-        section_nm      = paste0("rv$pg on close: ", rv$pg, ", ", 
-                                 round(100 * rv$pg / 15, 2), "% of the pages."),
-        period          = NA_real_,
-        plot_active     = NA_real_,
-        eval            = paste0("!Participant num ", participant_num, " dind't save app!"),
-        factor          = paste0("!Participant num ", participant_num, " dind't save app!"),
-        vc              = paste0("!Participant num ", participant_num, " dind't save app!"),
-        p_dim           = paste0("!Participant num ", participant_num, " dind't save app!"),
-        location        = paste0("!Participant num ", participant_num, " dind't save app!"),
-        sim_nm          = paste0("!Participant num ", participant_num, " dind't save app!"),
-        input_inter     = NA_integer_,
-        resp_inter      = NA_integer_,
-        ttr             = NA_integer_,
-        var_resp        = list(NA_integer_),
-        var_marks       = list(NA_real_),
-        marks           = NA_real_,
-        write_dt        = sys.time()
-      )
-      
-      these_rows <- cbind(these_rows, extra_row)
-      
-      ## Save local and remote line
-      rv$resp_tbl[c(rv$pg, rv$pg + 1), ] <- these_rows
-      googlesheets4::sheet_append(ss_id, these_rows)
-      message("onStop(): Data rows apended for page: ", rv$pg, " -- ", substr(Sys.time(), 12, 16))
-    } ## End of writing to resp_tbl
+    reactive({
+      if(input$save_resp < 1){
+        ### Attempt to save, when closed early
+        these_rows <- resp_row()
+        these_rows$input_inter <- rv$input_inter
+        these_rows$resp_inter  <- rv$resp_inter
+        these_rows$ttr         <- rv$ttr
+        these_rows$var_resp    <- list(var_resp())
+        these_rows$var_marks   <- list(var_marks())
+        these_rows$marks       <- marks()
+        these_rows$write_dt    <- as.character(sys.time())
+        these_rows$v1_resp     <- v1_resp()
+        these_rows$v2_resp     <- v2_resp()
+        these_rows$v3_resp     <- v3_resp()
+        these_rows$v4_resp     <- v4_resp()
+        these_rows$v5_resp     <- v5_resp()
+        these_rows$v6_resp     <- v6_resp()
+        these_rows$v1_marks    <- v1_marks()
+        these_rows$v2_marks    <- v2_marks()
+        these_rows$v3_marks    <- v3_marks()
+        these_rows$v4_marks    <- v4_marks()
+        these_rows$v5_marks    <- v5_marks()
+        these_rows$v6_marks    <- v6_marks()
+        
+        extra_row <- tibble::tibble(
+          key = "!!App ended without save button!!",
+          participant_num = as.integer(participant_num),
+          full_perm_num   = as.integer(full_perm_num),
+          pg              = NA_real_,
+          section_pg      = NA_real_,
+          section_nm      = paste0("rv$pg on close: ", rv$pg, ", ", 
+                                   round(100 * rv$pg / 15, 2), "% of the pages."),
+          period          = NA_real_,
+          plot_active     = NA_real_,
+          eval            = paste0("!Participant num ", participant_num, " dind't save app!"),
+          factor          = paste0("!Participant num ", participant_num, " dind't save app!"),
+          vc              = paste0("!Participant num ", participant_num, " dind't save app!"),
+          p_dim           = paste0("!Participant num ", participant_num, " dind't save app!"),
+          location        = paste0("!Participant num ", participant_num, " dind't save app!"),
+          sim_nm          = paste0("!Participant num ", participant_num, " dind't save app!"),
+          input_inter     = NA_integer_,
+          resp_inter      = NA_integer_,
+          ttr             = NA_integer_,
+          marks           = NA_real_,
+          write_dt        = Sys.time(),
+          v1_resp    = NA_integer_,
+          v2_resp    = NA_integer_,
+          v3_resp    = NA_integer_,
+          v4_resp    = NA_integer_,
+          v5_resp    = NA_integer_,
+          v6_resp    = NA_integer_,
+          v1_marks   = NA_real_,
+          v2_marks   = NA_real_,
+          v3_marks   = NA_real_,
+          v4_marks   = NA_real_,
+          v5_marks   = NA_real_,
+          v6_marks   = NA_real_,
+        )
+        these_rows <- cbind(these_rows, extra_row)
+        
+        ## Save local and remote line
+        rv$resp_tbl[c(rv$pg, rv$pg + 1), ] <- these_rows
+        googlesheets4::sheet_append(ss_id, these_rows)
+        message("onStop(): Data rows apended for page: ", rv$pg, " -- ", substr(Sys.time(), 12, 16))
+        
+      } ## End of writing to resp_tbl
+      ## Else do nothing
+    })
   })
   
   ##### Reactive value initialization -----
   rv             <- reactiveValues()
+  rv$resp_tbl    <- make_resp_tbl(participant_num)
   rv$pg          <- 4L ## SET STARTING PAGE HERE <<<
   rv$sec_on_pg   <- 0L
   rv$resp_tbl    <- make_resp_tbl(participant_num) ## in resp_tbl.r
@@ -179,6 +204,30 @@ server <- function(input, output, session){
     return(NA)
   })
   output$var_resp <- renderPrint(var_resp())
+  v1_resp <- reactive({
+    req(var_resp())
+    return(1 %in% var_resp())
+  })
+  v2_resp <- reactive({
+    req(var_resp())
+    return(2 %in% var_resp())
+  })
+  v3_resp <- reactive({
+    req(var_resp())
+    return(3 %in% var_resp())
+  })
+  v4_resp <- reactive({
+    req(var_resp())
+    return(4 %in% var_resp())
+  })
+  v5_resp <- reactive({
+    req(var_resp())
+    return(5 %in% var_resp())
+  })
+  v6_resp <- reactive({
+    req(var_resp())
+    return(6 %in% var_resp())
+  })
   ### Task scoring
   var_diff <- reactive({
     if(plot_active()){
@@ -192,22 +241,54 @@ server <- function(input, output, session){
     if(plot_active() == TRUE)
       round(var_diff(), 2)
   })
-  var_marks <- reactive({
+  var_weight <- reactive({
     if(plot_active()){
       req(var_resp())
       var_diff <- var_diff()
       ans <- which(var_diff >= 0L)
-      weight <- sign(var_diff) * sqrt(abs(var_diff))
+      var_weight <- sign(var_diff) * sqrt(abs(var_diff))
+      return(var_weight)
+    }
+    return("NA")
+  })
+  var_marks <- reactive({
+    if(plot_active()){
+      var_weight <- var_weight()
       var_resp <- var_resp()
       if(is.na(var_resp[1])) return(0)
-      return(weight[var_resp])
+      return(var_weight[var_resp])
     }
     return("NA")
   })
   output$var_marks <- renderPrint({
     if(plot_active() == TRUE)
-    round(var_marks(), 2)
+      round(var_marks(), 2)
   })
+  v1_marks <- reactive({
+    req(var_marks())
+    return(v1_resp() * var_weight()[1])
+  })
+  v2_marks <- reactive({
+    req(var_marks())
+    return(v2_resp() * var_weight()[2])
+  })
+  v3_marks <- reactive({
+    req(var_marks())
+    return(v3_resp() * var_weight()[3])
+  })
+  v4_marks <- reactive({
+    req(var_marks())
+    return(v4_resp() * var_weight()[4])
+  })
+  v5_marks <- reactive({
+    req(var_marks())
+    return(v5_resp() * var_weight()[5])
+  })
+  v6_marks <- reactive({
+    req(var_marks())
+    return(v6_resp() * var_weight()[6])
+  })
+
   marks <- reactive({
     req(is.logical(plot_active()))
     req(var_marks())
@@ -313,10 +394,20 @@ server <- function(input, output, session){
         this_row$input_inter <- rv$input_inter
         this_row$resp_inter  <- rv$resp_inter
         this_row$ttr         <- rv$ttr
-        this_row$var_resp    <- list(var_resp())
-        this_row$var_marks   <- list(var_marks())
         this_row$marks       <- marks()
-        this_row$write_dt    <- sys.time()
+        this_row$write_dt    <- as.character(Sys.time())
+        this_row$v1_resp     <- v1_resp()
+        this_row$v2_resp     <- v2_resp()
+        this_row$v3_resp     <- v3_resp()
+        this_row$v4_resp     <- v4_resp()
+        this_row$v5_resp     <- v5_resp()
+        this_row$v6_resp     <- v6_resp()
+        this_row$v1_marks    <- v1_marks()
+        this_row$v2_marks    <- v2_marks()
+        this_row$v3_marks    <- v3_marks()
+        this_row$v4_marks    <- v4_marks()
+        this_row$v5_marks    <- v5_marks()
+        this_row$v6_marks    <- v6_marks()
         
         ## Save local and remote line
         rv$resp_tbl[rv$pg, ] <- this_row

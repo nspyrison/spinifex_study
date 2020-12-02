@@ -115,10 +115,20 @@ make_resp_tbl <- function(participant_num = sample(1:1000, 1)){
     input_inter = NA_integer_,
     resp_inter  = NA_integer_,
     ttr         = NA_integer_,
-    var_resp    = list(NA_integer_),
-    var_marks   = list(NA_real_),
     marks       = NA_real_,
-    write_dt    = NA_character_
+    write_dt    = NA_character_,
+    v1_resp    = NA_integer_,
+    v2_resp    = NA_integer_,
+    v3_resp    = NA_integer_,
+    v4_resp    = NA_integer_,
+    v5_resp    = NA_integer_,
+    v6_resp    = NA_integer_,
+    v1_marks   = NA_real_,
+    v2_marks   = NA_real_,
+    v3_marks   = NA_real_,
+    v4_marks   = NA_real_,
+    v5_marks   = NA_real_,
+    v6_marks   = NA_real_,
   )
 resp_tbl
 }
