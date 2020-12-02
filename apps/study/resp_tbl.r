@@ -66,7 +66,7 @@ make_resp_tbl <- function(participant_num = sample(1:1000, 1)){
   message(paste0("Participant_num: ", participant_num,
                  ", full_perm_num: ", full_perm_num))
   
-  resp_tbl <- tibble(
+  resp_tbl <- tibble::tibble(
     key = paste(sep = "_", participant_num, full_perm_num, 1:15),
     participant_num = as.integer(participant_num),
     full_perm_num   = as.integer(full_perm_num),
@@ -117,7 +117,8 @@ make_resp_tbl <- function(participant_num = sample(1:1000, 1)){
     ttr         = NA_integer_,
     var_resp    = list(NA_integer_),
     var_marks   = list(NA_real_),
-    marks       = NA_real_
+    marks       = NA_real_,
+    write_dt    = NA_character_
   )
 resp_tbl
 }

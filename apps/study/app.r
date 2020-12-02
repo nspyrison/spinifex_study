@@ -24,9 +24,52 @@ server <- function(input, output, session){
   session$onSessionEnded(function() {
     cat(context_msg)
     message("ran session$onSessionEnded(f()).")
-    ##TODO: add save on close here.
+    
+    if(input$save_resp < 1){
+      ### Attempt to save, when closed early
+      these_rows <- resp_row()
+      these_rows$input_inter <- rv$input_inter
+      these_rows$resp_inter  <- rv$resp_inter
+      these_rows$ttr         <- rv$ttr
+      these_rows$var_resp    <- list(var_resp())
+      these_rows$var_marks   <- list(var_marks())
+      these_rows$marks       <- marks()
+      these_rows$write_dt    <- sys.time()
+      
+      extra_row <- tibble::tibble(
+        key = "!!App ended without save button!!",
+        participant_num = as.integer(participant_num),
+        full_perm_num   = as.integer(full_perm_num),
+        pg              = NA_real_,
+        section_pg      = NA_real_,
+        section_nm      = paste0("rv$pg on close: ", rv$pg, ", ", 
+                                 round(100 * rv$pg / 15, 2), "% of the pages."),
+        period          = NA_real_,
+        plot_active     = NA_real_,
+        eval            = paste0("!Participant num ", participant_num, " dind't save app!"),
+        factor          = paste0("!Participant num ", participant_num, " dind't save app!"),
+        vc              = paste0("!Participant num ", participant_num, " dind't save app!"),
+        p_dim           = paste0("!Participant num ", participant_num, " dind't save app!"),
+        location        = paste0("!Participant num ", participant_num, " dind't save app!"),
+        sim_nm          = paste0("!Participant num ", participant_num, " dind't save app!"),
+        input_inter     = NA_integer_,
+        resp_inter      = NA_integer_,
+        ttr             = NA_integer_,
+        var_resp        = list(NA_integer_),
+        var_marks       = list(NA_real_),
+        marks           = NA_real_,
+        write_dt        = sys.time()
+      )
+      
+      these_rows <- cbind(these_rows, extra_row)
+      
+      ## Save local and remote line
+      rv$resp_tbl[c(rv$pg, rv$pg + 1), ] <- these_rows
+      googlesheets4::sheet_append(ss_id, these_rows)
+      message("onStop(): Data rows apended for page: ", rv$pg, " -- ", substr(Sys.time(), 12, 16))
+    } ## End of writing to resp_tbl
   })
-
+  
   ##### Reactive value initialization -----
   rv             <- reactiveValues()
   rv$pg          <- 4L ## SET STARTING PAGE HERE <<<
@@ -273,12 +316,12 @@ server <- function(input, output, session){
         this_row$var_resp    <- list(var_resp())
         this_row$var_marks   <- list(var_marks())
         this_row$marks       <- marks()
+        this_row$write_dt    <- sys.time()
         
         ## Save local and remote line
         rv$resp_tbl[rv$pg, ] <- this_row
         googlesheets4::sheet_append(ss_id, this_row)
         message("Data row apended for page: ", rv$pg, " -- ", substr(Sys.time(), 12, 16))
-        browser()
       } ## End of writing to resp_tbl
 
       

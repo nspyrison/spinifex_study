@@ -12,7 +12,10 @@ set.seed(20200927)   ## If tourr starts using seeds
 time_alotted <- 180L ## Seconds for the task
 height_px <- 500L
 pal <- RColorBrewer::brewer.pal(8, "Dark2")[c(1, 2, 3, 6, 8)]
-ss_id <- "1KaWOFGyfosxdMBHDXvEn3YMmdA_o7tsZ-ILyqjtbqQA" ## the 'id' or name of the google sheet, 1Ka* is "TEST_gsheet"
+ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" ## the 'id' or name of the google sheet
+## name                       id
+## <chr>                      <chr>
+## spinifex_study resp_tbl    1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU
 
 bas_p4 <- matrix(c(.5,  .5,
                    -.5, .5,
@@ -27,8 +30,7 @@ bas_p6 <- matrix(c(.2887,  .5,
                    .5774,  0),
                  ncol = 2, nrow = 6, byrow = TRUE)
 
-
-do_disp_dev_tools   <- TRUE
+do_disp_dev_tools <- TRUE
 options(shiny.autoreload = TRUE)
 # options(error = browser) ## occasionally helpful for troubleshooting
 
@@ -133,15 +135,6 @@ tpath_fps <- paste0(root, "/", tpath_nms, ".rda")
 for(i in 1:length(tpath_nms)){
   load(tpath_fps[i], envir = globalenv())
 }
-
-# ## Load just needed files
-# sim_fps <- paste0(root, "/", this_sim_nms, ".rda")
-# tpath_fps <- paste0(root, "/tpath_", this_sim_nms, ".rda")
-# for(i in 1:length(this_sim_nms)){
-#   ## Load sims by the obj name stored in .rda files.
-#   load(sim_fps[i])
-#   load(tpath_fps[i])
-# }
 
 
 ##### Global variable initialization -----
