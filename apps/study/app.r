@@ -12,7 +12,7 @@ server <- function(input, output, session){
     googledrive::drive_auth(email = "nicholas.spyrison@monash.edu")
   }, error = function(e){
     txt <- "App could not authenticate to Google sheet. Please try again in 5 minutes. Closing app in 15 seconds."
-    showNotification(txt, type = "error")
+    showNotification(txt, type = "error", duration = 15)
     warning(txt)
     Sys.sleep(15)
     stopApp()
@@ -25,28 +25,9 @@ server <- function(input, output, session){
     message("ran session$onSessionEnded(f()).")
     
     reactive({
-      if(input$save_resp < 1){
+      if(input$save_survey < 1){
         ### Attempt to save, when closed early
-        these_rows <- resp_row()
-        these_rows$input_inter <- rv$input_inter
-        these_rows$resp_inter  <- rv$resp_inter
-        these_rows$ttr         <- rv$ttr
-        these_rows$var_resp    <- list(var_resp())
-        these_rows$var_marks   <- list(var_marks())
-        these_rows$marks       <- marks()
-        these_rows$write_dt    <- as.character(sys.time())
-        these_rows$v1_resp     <- v1_resp()
-        these_rows$v2_resp     <- v2_resp()
-        these_rows$v3_resp     <- v3_resp()
-        these_rows$v4_resp     <- v4_resp()
-        these_rows$v5_resp     <- v5_resp()
-        these_rows$v6_resp     <- v6_resp()
-        these_rows$v1_marks    <- v1_marks()
-        these_rows$v2_marks    <- v2_marks()
-        these_rows$v3_marks    <- v3_marks()
-        these_rows$v4_marks    <- v4_marks()
-        these_rows$v5_marks    <- v5_marks()
-        these_rows$v6_marks    <- v6_marks()
+        this_row <- output_row()
         
         extra_row <- tibble::tibble(
           key = "!!App ended without save button!!",
@@ -82,7 +63,7 @@ server <- function(input, output, session){
           v5_marks   = NA_real_,
           v6_marks   = NA_real_,
         )
-        these_rows <- cbind(these_rows, extra_row)
+        these_rows <- cbind(this_row, extra_row)
         
         ## Save local and remote line
         rv$resp_tbl[c(rv$pg, rv$pg + 1), ] <- these_rows
@@ -288,7 +269,7 @@ server <- function(input, output, session){
     req(var_marks())
     return(v6_resp() * var_weight()[6])
   })
-
+  
   marks <- reactive({
     req(is.logical(plot_active()))
     req(var_marks())
@@ -382,6 +363,29 @@ server <- function(input, output, session){
       rv$resp_inter <- rv$resp_inter + 1L
     }
   )
+  output_row <- reactive({
+    if(is.na(factor()) == FALSE){
+      this_row <- resp_row()
+      this_row$input_inter <- rv$input_inter
+      this_row$resp_inter  <- rv$resp_inter
+      this_row$ttr         <- rv$ttr
+      this_row$marks       <- marks()
+      this_row$write_dt    <- as.character(Sys.time())
+      this_row$v1_resp     <- v1_resp()
+      this_row$v2_resp     <- v2_resp()
+      this_row$v3_resp     <- v3_resp()
+      this_row$v4_resp     <- v4_resp()
+      this_row$v5_resp     <- v5_resp()
+      this_row$v6_resp     <- v6_resp()
+      this_row$v1_marks    <- v1_marks()
+      this_row$v2_marks    <- v2_marks()
+      this_row$v3_marks    <- v3_marks()
+      this_row$v4_marks    <- v4_marks()
+      this_row$v5_marks    <- v5_marks()
+      this_row$v6_marks    <- v6_marks()
+      return(this_row)
+    }
+  })
   
   ### _Obs next page button -----
   observeEvent(input$next_pg_button, {
@@ -390,31 +394,12 @@ server <- function(input, output, session){
       ##### __rv$resp_tbl -----
       ## Write responses and ttr to resp_tbl
       if(is.na(factor()) == FALSE){
-        this_row <- resp_row()
-        this_row$input_inter <- rv$input_inter
-        this_row$resp_inter  <- rv$resp_inter
-        this_row$ttr         <- rv$ttr
-        this_row$marks       <- marks()
-        this_row$write_dt    <- as.character(Sys.time())
-        this_row$v1_resp     <- v1_resp()
-        this_row$v2_resp     <- v2_resp()
-        this_row$v3_resp     <- v3_resp()
-        this_row$v4_resp     <- v4_resp()
-        this_row$v5_resp     <- v5_resp()
-        this_row$v6_resp     <- v6_resp()
-        this_row$v1_marks    <- v1_marks()
-        this_row$v2_marks    <- v2_marks()
-        this_row$v3_marks    <- v3_marks()
-        this_row$v4_marks    <- v4_marks()
-        this_row$v5_marks    <- v5_marks()
-        this_row$v6_marks    <- v6_marks()
-        
-        ## Save local and remote line
+        this_row <- output_row()
+        ## Update local table and write to google sheet.
         rv$resp_tbl[rv$pg, ] <- this_row
         googlesheets4::sheet_append(ss_id, this_row)
         message("Data row apended for page: ", rv$pg, " -- ", substr(Sys.time(), 12, 16))
       } ## End of writing to resp_tbl
-
       
       ### __New page ----
       ## Advance to the next page, reset other rv variables
@@ -427,12 +412,12 @@ server <- function(input, output, session){
     }
   })
   
-
+  
   ### _Obs save responses button -----
-  observeEvent(input$save_resp, {
-    ## THIS IS THE FINAL SAVE BUTTON NOT THE NEXT PAGE BUTTON.
+  observeEvent(input$save_survey, {
+    ## resp_tbl writes every line with the next page, this is for SURVEY ONLY.
     
-    ## Do the actual saving
+    ## Saves the survey info.
     ## TODO: the saving, see googlesheets4::sheet_append( ss_id)
     
     ## Message back

@@ -30,7 +30,7 @@ bas_p6 <- matrix(c(.2887,  .5,
                    .5774,  0),
                  ncol = 2, nrow = 6, byrow = TRUE)
 
-do_disp_dev_tools <- TRUE
+do_disp_dev_tools <- FALSE#TRUE
 options(shiny.autoreload = TRUE)
 # options(error = browser) ## occasionally helpful for troubleshooting
 
@@ -125,16 +125,6 @@ sim_nms <- c("EEE_p4_0_1",    "EEE_p4_33_66",    "EEE_p4_50_50",
              "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
 sim_nms <- c(paste0("EEE_p4_0_1_t", 1:3), ## 3 training sets
              as.vector(outer(sim_nms, paste0("_rep", 1:3), FUN = "paste0"))) ## cross product paste
-sim_fps <- paste0(root, "/", sim_nms, ".rda")
-for(i in 1:length(sim_nms)){
-  load(sim_fps[i], envir = globalenv())
-}
-## Load the few tpaths.
-tpath_nms <- paste0("tpath_", c("p4_t", "p4", "p6"))
-tpath_fps <- paste0(root, "/", tpath_nms, ".rda")
-for(i in 1:length(tpath_nms)){
-  load(tpath_fps[i], envir = globalenv())
-}
 
 
 ##### Global variable initialization -----
@@ -209,6 +199,16 @@ main_ui <- mainPanel(
   ), ## Close conditionalPanel()
   ## No input for grand tour.
 ) ## Close mainPanel() End of main_ui section.
+
+
+### survey_ui -----
+survey_ui <- mainPanel(
+  conditionalPanel(
+    "(output.pg == 15)", ## hardcoded.
+    actionButton("save_survey", "Save survey responses")
+  )
+) 
+
 
 ### _dev_tools
 dev_tools <- conditionalPanel(
