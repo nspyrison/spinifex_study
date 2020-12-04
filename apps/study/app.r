@@ -9,7 +9,15 @@ server <- function(input, output, session){
   
   ## Google sheets authentication
   tryCatch({
-    googledrive::drive_auth(email = "nicholas.spyrison@monash.edu")
+    ## ATTEMPT 6: 
+    #gs4_auth(cache = ".secrets", email = "nicholas.spyrison@monash.edu") #for the first time running the app in R to get the OAuth token
+    gs4_auth(cache = ".secrets", email = "nicholas.spyrison@monash.edu", use_oob = TRUE)
+    ## 4/1AY0e-g71-o7vtCB6Dp-j7-qsQunYFJCzqLxJ_FX_o1wUCMnjUAjhcsZhU8o
+    ## ATTEMPT 5: gs4_auth(email = "nicholas.spyrison@monash.edu")
+    ## ATTEMPT 4: gs4_auth("data/authentication.rds")
+    ## ATTEMPT 3: options(gargle_oauth_email = "nicholas.spyrison@monash.edu") ## for gs4 auth
+    ## ATTEMPT 3: drive_auth(email = "nicholas.spyrison@monash.edu") ## I think
+    ## ATTEMPT 1: googledrive::drive_auth(email = "nicholas.spyrison@monash.edu")
   }, error = function(e){
     txt <- "App could not authenticate to Google sheet. Please try again in 5 minutes. Closing app in 15 seconds."
     showNotification(txt, type = "error", duration = 15)
@@ -438,7 +446,7 @@ server <- function(input, output, session){
   
   ##### Outputs -----
   output$timer_disp <- renderText({
-    if(section_nm() == "task"){ ## Disp timer counting down if on a task.
+    if(section_nm() == "task"){ ## Timer display counting down if on a task.
       if(time_left() < 1){return("Time has expired, please enter your best guess and proceed.")
       }else{
         return(

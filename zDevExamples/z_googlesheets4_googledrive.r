@@ -4,11 +4,14 @@ require(googledrive)
 require(googlesheets4)
 
 drive_auth(email = "nicholas.spyrison@monash.edu") ## I think this is sufficient for the app too. otherwise see below.
-# if(F){
-#   options(gargle_oauth_email = "nicholas.spyrison@monash.edu") ## for gs4 auth
-#   auth_env <- environment()
-#   saveRDS(auth_env, "./apps/study/www/auth_env.rds")
-# }
+if(F){
+  require(googledrive)
+  require(googlesheets4)
+  options(gargle_oauth_email = "nicholas.spyrison@monash.edu") ## for gs4 auth
+  gs4_auth(email = "nicholas.spyrison@monash.edu") ## I think
+  token <- environment()
+  saveRDS(token, "./apps/study/www/auth_env.rds")
+}
 
 ## List all spreadsheets
 (my_drive_sheets <- drive_find(type = "spreadsheet"))

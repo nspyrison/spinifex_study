@@ -5,5 +5,5 @@
 .httr-oauth
 output_sim_clSep/
 output_SimDifficulty/
-
 _cache/
+.secrets
