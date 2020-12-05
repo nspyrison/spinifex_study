@@ -113,7 +113,7 @@ survey_questions <- c("Which sex are you?",
 )
 
 #### Load data and tour paths -----
-root <- ("~/R/spinifex_study/apps/data/") # here("apps/data/") ## Filepaths cannot be too long....
+root <- ("./www/data/") ## Local 
 
 this_sim_nms <- paste(rep(this_vc_nm_ord, 3), rep(p_dim_nms, 3), rep(this_location_nm_ord, 3), sep = "_")
 this_sim_nms <- c(paste0("EEE_p4_0_1_t", 1:3), 
