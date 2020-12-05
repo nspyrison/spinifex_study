@@ -113,18 +113,30 @@ survey_questions <- c("Which sex are you?",
 )
 
 #### Load data and tour paths -----
-this_sim_nms <- paste(rep(this_vc_nm_ord, 3), rep(p_dim_nms, 3), rep(this_location_nm_ord, 3), sep = "_")
-root <- ("~/R/spinifex_study/apps/data") # here("apps/data/") ## Filepaths cannot be too long....
+root <- ("~/R/spinifex_study/apps/data/") # here("apps/data/") ## Filepaths cannot be too long....
 
-## Load all sim names, for dev control
-sim_nms <- c("EEE_p4_0_1",    "EEE_p4_33_66",    "EEE_p4_50_50",
-             "EEV_p4_0_1",    "EEV_p4_33_66",    "EEV_p4_50_50",
-             "banana_p4_0_1", "banana_p4_33_66", "banana_p4_50_50",
-             "EEE_p6_0_1",    "EEE_p6_33_66",    "EEE_p6_50_50",
-             "EEV_p6_0_1",    "EEV_p6_33_66",    "EEV_p6_50_50",
-             "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
-sim_nms <- c(paste0("EEE_p4_0_1_t", 1:3), ## 3 training sets
-             as.vector(outer(sim_nms, paste0("_rep", 1:3), FUN = "paste0"))) ## cross product paste
+this_sim_nms <- paste(rep(this_vc_nm_ord, 3), rep(p_dim_nms, 3), rep(this_location_nm_ord, 3), sep = "_")
+this_sim_nms <- c(paste0("EEE_p4_0_1_t", 1:3), 
+                  as.vector(outer(this_sim_nms, paste0("_rep", 1:3), FUN = "paste0")) ## cross product paste
+) 
+
+
+# ## Load all sim names, for dev control
+# sim_nms <- c("EEE_p4_0_1",    "EEE_p4_33_66",    "EEE_p4_50_50",
+#              "EEV_p4_0_1",    "EEV_p4_33_66",    "EEV_p4_50_50",
+#              "banana_p4_0_1", "banana_p4_33_66", "banana_p4_50_50",
+#              "EEE_p6_0_1",    "EEE_p6_33_66",    "EEE_p6_50_50",
+#              "EEV_p6_0_1",    "EEV_p6_33_66",    "EEV_p6_50_50",
+#              "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
+# sim_nms <- c(paste0("EEE_p4_0_1_t", 1:3), ## 3 training sets
+#              as.vector(outer(sim_nms, paste0("_rep", 1:3), FUN = "paste0"))) ## cross product paste
+
+sapply(this_sim_nms, function(i){
+  this_fq_fp_sim_nm <-paste0(root, i, ".rda")
+  load(this_fq_fp_sim_nm, envir = globalenv())
+  })
+
+
 
 
 ##### Global variable initialization -----

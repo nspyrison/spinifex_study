@@ -8,11 +8,20 @@ source('resp_tbl.r', local = TRUE) ## Needs initialization from global.r.
 server <- function(input, output, session){
   
   ## Google sheets authentication
+  ## for setup see "./.secrets/save_token.r
   tryCatch({
-    ## ATTEMPT 6: 
-    #gs4_auth(cache = ".secrets", email = "nicholas.spyrison@monash.edu") #for the first time running the app in R to get the OAuth token
-    gs4_auth(cache = ".secrets", email = "nicholas.spyrison@monash.edu", use_oob = TRUE)
-    ## 4/1AY0e-g71-o7vtCB6Dp-j7-qsQunYFJCzqLxJ_FX_o1wUCMnjUAjhcsZhU8o
+    ## ATTEMPT 8:
+    googlesheets4::gs4_auth(
+      cache = ".secrets", email = "nicholas.spyrison@monash.edu", use_oob = TRUE)
+    
+    ## ATTEMPT 7: library(googledrive)
+    ## ATTEMPT 7: options(
+    ## ATTEMPT 7:   gargle_oauth_cache = ".secrets",
+    ## ATTEMPT 7:   gargle_oauth_email = TRUE
+    ## ATTEMPT 7: )
+    ## ATTEMPT 7: # now use googledrive with no need for explicit auth
+    ## ATTEMPT 7: drive_find(n_max = 5)
+    ## ATTEMPT 6: gs4_auth(cache = ".secrets", email = "nicholas.spyrison@monash.edu", use_oob = TRUE)
     ## ATTEMPT 5: gs4_auth(email = "nicholas.spyrison@monash.edu")
     ## ATTEMPT 4: gs4_auth("data/authentication.rds")
     ## ATTEMPT 3: options(gargle_oauth_email = "nicholas.spyrison@monash.edu") ## for gs4 auth
@@ -136,7 +145,6 @@ server <- function(input, output, session){
     list(src = normalizePath(fp),
          alt = "image text!")
   }, deleteFile = FALSE)
-  
   dat <- reactive({ ## Simulation data (in df) with attributes
     req(plot_active())
     if(plot_active() == TRUE){
