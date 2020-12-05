@@ -10,7 +10,9 @@ server <- function(input, output, session){
   ## Google sheets authentication
   ## for setup see "./.secrets/save_token.r
   tryCatch({
-    ## ATTEMPT 8:
+    
+    ##gs4_auth(cache = ".secrets") ##for the first time running the app in R to get the OAuth token
+    # ## ATTEMPT 8:
     googlesheets4::gs4_auth(
       cache = ".secrets", email = "nicholas.spyrison@monash.edu", use_oob = TRUE)
     
