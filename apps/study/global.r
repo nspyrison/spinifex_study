@@ -8,6 +8,9 @@ library("googlesheets4") ## Google sheets (with api v4) for read/write responses
 library("shinyjs")   ## Help with handling conditionalPanels
 library("lubridate") ## For timer
 library("here")      ## Fixing base dir
+do_disp_dev_tools <- TRUE #FALSE#
+options(shiny.autoreload = TRUE)
+# options(error = browser) ## occasionally helpful for troubleshooting
 set.seed(20200927)   ## If tourr starts using seeds
 time_alotted <- 180L ## Seconds for the task
 height_px <- 500L
@@ -30,9 +33,7 @@ bas_p6 <- matrix(c(.2887,  .5,
                    .5774,  0),
                  ncol = 2, nrow = 6, byrow = TRUE)
 
-do_disp_dev_tools <- FALSE#TRUE
-options(shiny.autoreload = TRUE)
-# options(error = browser) ## occasionally helpful for troubleshooting
+
 
 #### participant and perm_number -----
 ## Initialize
@@ -163,9 +164,9 @@ header_ui <- fluidPage(
 ##### sidebar_ui ----
 sidebar_ui <- fluidPage(
   ##### _Task response input -----
-  ## Task 2
+  # shiny::htmlOutput("var_resp")
   conditionalPanel(
-    condition = "(output.plot_active == true) ", 
+    condition = "(output.plot_active == true) ",
     checkboxGroupInput(
       inputId = "var_resp",
       label   = "Check any/all variables that contribute more than average to the cluster seperation green circles and orange triangles.",

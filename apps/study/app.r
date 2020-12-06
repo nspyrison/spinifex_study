@@ -155,18 +155,10 @@ server <- function(input, output, session){
     }
     return("NA")
   })
-  cl <- reactive({ ## Vector containing the class.
-    req(plot_active())
-    if(plot_active() == TRUE){
-      req(dat())
-      return(attr(dat(), "cluster"))
-    }
-    return("NA")
-  })
   p <- reactive({ ## Scalar number of variables
     req(plot_active())
     if(plot_active() == TRUE){
-      return(ncol(dat()))
+      return(as.integer(substr(resp_row()$p_dim, 2, 2)))
     }
     return("NA")
   })
@@ -303,6 +295,17 @@ server <- function(input, output, session){
   })
   
   ##### Observers -----
+  # output$var_resp <- renderUI({
+  #   if(plot_active() == TRUE){
+  #     tagList(
+  #       checkboxGroupInput(inputId = "var_resp",
+  #                          label   = "Check any/all variables that contribute more than average to the cluster seperation green circles and orange triangles.",
+  #                          choices = paste0("V", 1:p()),
+  #                          inline  = TRUE)
+  #     )
+  #   }
+  # })
+  
   observeEvent({
     dat()
   }, {
