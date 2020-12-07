@@ -412,6 +412,18 @@ server <- function(input, output, session){
   observeEvent(input$next_pg_button, {
     if((rv$sec_on_pg > 1L & do_disp_dev_tools == TRUE) | do_disp_dev_tools == FALSE){
       
+      ##### __ eval training
+      if(substr(eval(), 1, 2) == "t1" &
+         marks() <= 0){ ## If first training and marks less than/eq to 0, fail early.
+        txt <- "You did not meet the required thershold for the training data set. 
+        Please enter the following code to <blah, blah>"
+        showNotification(txt, type = "error", duration = 30)
+        warning(txt)
+        Sys.sleep(30)
+        stopApp()
+        return(NULL)
+      }
+      
       ##### __rv$resp_tbl -----
       ## Write responses and ttr to resp_tbl
       if(is.na(factor()) == FALSE){
