@@ -155,14 +155,102 @@ survey_pg   <- 15L     ## Survey
 
 
 ##### UI START -----
-### header_ui -----
-header_ui <- fluidPage(
-  titlePanel("User study"),
-  actionButton("next_pg_button", "Next page")
-)
 
-##### sidebar_ui ----
-sidebar_ui <- fluidPage(
+### intro_page -----
+intro_page <- fluidPage(
+  conditionalPanel(
+    condition = "output.section == 'intro'",
+    conditionalPanel(
+      condition = "output.pg == 1", ## First page
+      h3("Welcome to the study")
+      , br()
+      , p("This a completely voluntary study that will take approximately 45-50 
+          minutes to complete. If at any point you would like to stop, 
+          please let the invigilator know.")
+      , br()
+      , p("You are helping to compare the effectiveness of different 
+          multivariate data visualization techniques. 
+          The study is structured as follows:")
+      , p("Training -- questions encouraged")
+      , tags$ul(
+        tags$li("Video training: you will first watch a five minute video 
+              explaining the techniques")
+        , tags$li("Interface familiarity: you will get to explore the interface 
+                for the different tasks, answer questions about the data, and 
+                receive feedback")
+      )
+      , p("Evaluation, for each of the 3 visuals -- independent effort with no questions")
+      , tags$ul(
+        tags$li("Task 1 (x2 difficulties, 60 sec)")
+        , tags$li("Task 2 (x2 difficulties, 180 sec)")
+      )
+      , p("Wrap up study")
+      , tags$ul(
+        tags$li("Complete survey")
+        , tags$li("Save and exit from app")
+        , tags$li("Collect a voucher for a free hot beverage on campus, from the invigilator.")
+      )
+      , p("We really appreciate your participation in this study.")
+    ), ## End first page
+    conditionalPanel(
+      condition = "output.pg == 2", ## Video, second page
+      h2("Video training"), tags$br(), tags$br(),
+      p("Watch the following video before proceeding:"), tags$br(), 
+      # Adding the 'a' tag to the sidebar linking external file
+      p("Minimize the study and watch the training video."),
+      #tags$a(href='training.mp4', target='blank', 'training video (4:17)'), 
+      tags$br(), tags$br(), 
+      p("If this link only contains audio let the invigilator know.")
+    )  ## End of video, second page
+  ) ## Close conditionPanel -- intro section text
+) ## Close fuildPage, assign intro_page
+  
+  ## training_page -----
+  traning_page <- fluidPage(
+    conditionalPanel(
+      condition = "output.section == 'training'",
+      conditionalPanel(condition = "output.section_pg == 1", 
+                       h2("Training -- interface")
+      ),
+      conditionalPanel(condition = "output.section_pg == 2",
+                       h2("Training -- task 1")
+      ),
+      conditionalPanel(condition = "output.section_pg == 3",
+                       h2("Training -- task 1, set 2")
+      ),
+      conditionalPanel(condition = "output.section_pg == 4",
+                       h2("Training -- task 2")
+      ),
+      conditionalPanel(condition = "output.section_pg == 5",
+                       h2("Training -- task 2, set 2")
+      ),
+      conditionalPanel( ##TODO: double check, splash page spacing. ## splash page 
+        condition = "output.section_pg == 6",
+        h1(), h1(), h1(),
+        h1("Training complete, Great job!"),
+        h4("Take a break and strech if you feel like it."),
+        HTML("<h3><span style='color:red'>
+          Keep in mind that we are evaluating the factors, not your performance. 
+          Don't worry if you don't fully understand the theory or find a task difficult.
+           </span></h3>"),
+        h4("Ask any final clarification questions. Then continue on to the 
+        evaluation section. Task 1 is limited to 1 minute, and task 2 is limited
+        to 3 minutes (time displayed on top).")
+      ),
+      textOutput('stopwatch_disp'),
+      hr()
+    ) ## Close conditionalPanel
+  ) ## Close fluidPage, assigning training_page
+  
+  ### header_page -----
+  header_page <- fluidPage(
+    titlePanel("User study"),
+    actionButton("next_pg_button", "Next page")
+  )
+
+
+##### sidebar_page ----
+sidebar_page <- fluidPage(
   ##### _Task response input -----
   # shiny::htmlOutput("var_resp")
   conditionalPanel(
@@ -173,12 +261,12 @@ sidebar_ui <- fluidPage(
       choices = "V1",
       inline  = TRUE)
   )
-) ## Close conditionalPanel(), assigning sidebar_ui
+) ## Close fluidPage(), assigning sidebar_page
 
 
 
-##### main_ui -----
-main_ui <- mainPanel(
+##### main_page -----
+main_page <- mainPanel(
   width = 9,
   ### _Timer_disp
   textOutput("timer_disp"),
@@ -211,15 +299,13 @@ main_ui <- mainPanel(
                  choices =  "V1", selected = "V1")
   ), ## Close conditionalPanel()
   ## No input for grand tour.
-) ## Close mainPanel() End of main_ui section.
+) ## Close mainPanel() End of main_page section.
 
 
-### survey_ui -----
-survey_ui <- mainPanel(
-  conditionalPanel(
-    "(output.pg == 15)", ## hardcoded.
-    actionButton("save_survey", "Save survey responses")
-  )
+### survey_page -----
+survey_page <- mainPanel(
+  conditionalPanel("(output.pg == 15)", ## hardcoded.
+                   actionButton("save_survey", "Save survey responses"))
 ) 
 
 
@@ -240,12 +326,12 @@ dev_tools <- conditionalPanel(
   )
 ) ## close conditionPanel, assigning dev_tools
 
-##### ui, combined *_ui pieces -----
+##### ui, combined *_page pieces -----
 ui <- fluidPage(useShinyjs(), ## Required in ui to use shinyjs.
-                header_ui,
+                header_page,
                 sidebarLayout(
-                  sidebarPanel(sidebar_ui),
-                  mainPanel(main_ui)
+                  sidebarPanel(sidebar_page),
+                  mainPanel(main_page)
                 ),
                 dev_tools
 )
