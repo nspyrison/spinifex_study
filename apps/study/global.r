@@ -113,6 +113,7 @@ survey_questions <- c("Which sex are you?",
                             "I liked using this visualization."), 3)
 )
 
+
 #### Load data and tour paths -----
 root <- ("./www/data/") ## Local 
 
@@ -157,102 +158,196 @@ survey_pg   <- 15L     ## Survey
 ##### UI START -----
 
 ### intro_page -----
-intro_page <- fluidPage(
-  conditionalPanel(
-    condition = "output.section == 'intro'",
-    conditionalPanel(
-      condition = "output.pg == 1", ## First page
-      h3("Welcome to the study")
-      , br()
-      , p("This a completely voluntary study that will take approximately 45-50 
-          minutes to complete. If at any point you would like to stop, 
-          please let the invigilator know.")
-      , br()
-      , p("You are helping to compare the effectiveness of different 
-          multivariate data visualization techniques. 
-          The study is structured as follows:")
-      , p("Training -- questions encouraged")
-      , tags$ul(
-        tags$li("Video training: you will first watch a five minute video 
-              explaining the techniques")
-        , tags$li("Interface familiarity: you will get to explore the interface 
+intro_page <- conditionalPanel(
+  condition = "output.section == 'intro'",
+  conditionalPanel( ## First page conditionalPanel
+    condition = "output.pg == 1",
+    h3("Welcome to the study"),
+    br(),
+    p("This a completely voluntary study that will take approximately 45-50 
+        minutes to complete. If at any point you would like to stop, 
+        please let the invigilator know."),
+    br(),
+    p("You are helping to compare the effectiveness of different 
+        multivariate data visualization techniques. 
+        The study is structured as follows:"),
+    p("Training -- questions encouraged"),
+    tags$ul(
+      tags$li("Video training: you will first watch a five minute video 
+              explaining the techniques"),
+      tags$li("Interface familiarity: you will get to explore the interface 
                 for the different tasks, answer questions about the data, and 
                 receive feedback")
-      )
-      , p("Evaluation, for each of the 3 visuals -- independent effort with no questions")
-      , tags$ul(
-        tags$li("Task 1 (x2 difficulties, 60 sec)")
-        , tags$li("Task 2 (x2 difficulties, 180 sec)")
-      )
-      , p("Wrap up study")
-      , tags$ul(
-        tags$li("Complete survey")
-        , tags$li("Save and exit from app")
-        , tags$li("Collect a voucher for a free hot beverage on campus, from the invigilator.")
-      )
-      , p("We really appreciate your participation in this study.")
-    ), ## End first page
-    conditionalPanel(
-      condition = "output.pg == 2", ## Video, second page
-      h2("Video training"), tags$br(), tags$br(),
-      p("Watch the following video before proceeding:"), tags$br(), 
-      # Adding the 'a' tag to the sidebar linking external file
-      p("Minimize the study and watch the training video."),
-      #tags$a(href='training.mp4', target='blank', 'training video (4:17)'), 
-      tags$br(), tags$br(), 
-      p("If this link only contains audio let the invigilator know.")
-    )  ## End of video, second page
-  ) ## Close conditionPanel -- intro section text
-) ## Close fuildPage, assign intro_page
-  
-  ## training_page -----
-  traning_page <- fluidPage(
-    conditionalPanel(
-      condition = "output.section == 'training'",
-      conditionalPanel(condition = "output.section_pg == 1", 
-                       h2("Training -- interface")
-      ),
-      conditionalPanel(condition = "output.section_pg == 2",
-                       h2("Training -- task 1")
-      ),
-      conditionalPanel(condition = "output.section_pg == 3",
-                       h2("Training -- task 1, set 2")
-      ),
-      conditionalPanel(condition = "output.section_pg == 4",
-                       h2("Training -- task 2")
-      ),
-      conditionalPanel(condition = "output.section_pg == 5",
-                       h2("Training -- task 2, set 2")
-      ),
-      conditionalPanel( ##TODO: double check, splash page spacing. ## splash page 
-        condition = "output.section_pg == 6",
-        h1(), h1(), h1(),
-        h1("Training complete, Great job!"),
-        h4("Take a break and strech if you feel like it."),
-        HTML("<h3><span style='color:red'>
+    ),
+    p("Evaluation, for each of the 3 visuals -- independent effort with no questions"),
+    tags$ul(
+      tags$li("Task 1 (x2 difficulties, 60 sec)"),
+      tags$li("Task 2 (x2 difficulties, 180 sec)")
+    ),
+    p("Wrap up study"),
+    tags$ul(
+      tags$li("Complete survey"),
+      tags$li("Save and exit from app"),
+      tags$li("Collect a voucher for a free hot beverage on campus, from the invigilator.")
+    ),
+    p("We really appreciate your participation in this study.")
+  ), ## End of first page conditionalPanel
+  conditionalPanel( ## Second page, video conditionalPanel
+    condition = "output.pg == 2", 
+    h2("Video training"), tags$br(), tags$br(),
+    p("Watch the following video before proceeding:"), tags$br(), 
+    # Adding the 'a' tag to the sidebar linking external file
+    p("Minimize the study and watch the training video."),
+    #tags$a(href='training.mp4', target='blank', 'training video (4:17)'), 
+    tags$br(), tags$br(), 
+    p("If this link only contains audio let the invigilator know.")
+  )  ## End of second page, video conditionalPanel
+) ## Close conditionPanel, assigning intro_page
+
+## training_page -----
+traning_page <- conditionalPanel(
+  condition = "output.section == 'training'",
+  conditionalPanel(condition = "output.section_pg == 1", 
+                   h2("Training -- interface")),
+  conditionalPanel(condition = "output.section_pg == 2",
+                   h2("Training -- task 1")),
+  conditionalPanel(condition = "output.section_pg == 3",
+                   h2("Training -- task 1, set 2")),
+  conditionalPanel(condition = "output.section_pg == 4",
+                   h2("Training -- task 2")),
+  conditionalPanel(condition = "output.section_pg == 5",
+                   h2("Training -- task 2, set 2")),
+  conditionalPanel( ##TODO: double check, splash page spacing. ## splash page 
+    condition = "output.section_pg == 6",
+    h1(), h1(), h1(),
+    h1("Training complete, Great job!"),
+    h4("Take a break and strech if you feel like it."),
+    HTML("<h3><span style='color:red'>
           Keep in mind that we are evaluating the factors, not your performance. 
           Don't worry if you don't fully understand the theory or find a task difficult.
            </span></h3>"),
-        h4("Ask any final clarification questions. Then continue on to the 
+    h4("Ask any final clarification questions. Then continue on to the 
         evaluation section. Task 1 is limited to 1 minute, and task 2 is limited
         to 3 minutes (time displayed on top).")
-      ),
-      textOutput('stopwatch_disp'),
-      hr()
-    ) ## Close conditionalPanel
-  ) ## Close fluidPage, assigning training_page
-  
-  ### header_page -----
-  header_page <- fluidPage(
-    titlePanel("User study"),
-    actionButton("next_pg_button", "Next page")
-  )
+  ),
+  textOutput('stopwatch_disp'),
+  hr()
+) ## Close conditionalPanel, assigning training_page
 
+### Initialize for survey -----
+.surv_lab <-  div(style = 'width:300px;',
+                  div(style = 'float:left;', 'strongly disagree'),
+                  div(style = 'float:right;', 'strongly agree')) 
+col_p1 <- column(4, 
+                 h3(this_factor_nm_ord[1]),
+                 hr(),
+                 h4(survey_questions[7]),
+                 sliderInput("survey7",label = .surv_lab,
+                             min = 1, max = 9, value = 5),
+                 h4(survey_questions[8]),
+                 sliderInput("survey8",label = .surv_lab,
+                             min = 1, max = 9, value = 5),
+                 h4(survey_questions[9]),
+                 sliderInput("survey9", label = .surv_lab,
+                             min = 1, max = 9, value = 5),
+                 h4(survey_questions[10]),
+                 sliderInput("survey10",
+                             label = .surv_lab,
+                             min = 1, max = 9, value = 5)
+)
+
+col_p2 <- column(4, 
+                 h3(this_factor_nm_ord[2]),
+                 hr(),
+                 h4(survey_questions[11]),
+                 sliderInput("survey11", label = .surv_lab,
+                             min = 1, max = 9, value = 5),
+                 h4(survey_questions[12]),
+                 sliderInput("survey12",label = .surv_lab,
+                             min = 1, max = 9, value = 5),
+                 h4(survey_questions[13]),
+                 sliderInput("survey13", label = .surv_lab,
+                             min = 1, max = 9, value = 5),
+                 h4(survey_questions[14]),
+                 sliderInput("survey14", label = .surv_lab,
+                             min = 1, max = 9, value = 5),
+)
+col_p3 <- column(4, 
+                 h3(this_factor_nm_ord[3]),
+                 hr(),
+                 h4(survey_questions[15]),
+                 sliderInput("survey15", label = .surv_lab,
+                             min = 1, max = 9, value = 5),
+                 h4(survey_questions[16]),
+                 sliderInput("survey16", label = .surv_lab,
+                             min = 1, max = 9, value = 5),
+                 h4(survey_questions[17]),
+                 sliderInput("survey17", label = .surv_lab,
+                             min = 1, max = 9, value = 5),
+                 h4(survey_questions[18]),
+                 sliderInput("survey18", label = .surv_lab,
+                             min = 1, max = 9, value = 5)
+)
+
+### survey_page -----
+suvery_page <- conditionalPanel(
+  condition = "output.section == 'survey'",
+  conditionalPanel(
+    condition = "output.is_saved == 0",
+    selectInput("survey1", label = survey_questions[1], 
+                choices = c("decline to answer",
+                            "female",
+                            "male",
+                            "intergender/other")
+    ),
+    selectInput("survey2", label = survey_questions[2], 
+                choices = c("decline to answer",
+                            "19 or younger",
+                            "20 to 29",
+                            "30 to 39",
+                            "40 or older")
+    ),
+    selectInput("survey3", label = survey_questions[3], 
+                choices = c("decline to answer",
+                            "English first language",
+                            "English not first language")
+    ),
+    selectInput("survey4", label = survey_questions[4], 
+                choices = c("decline to answer",
+                            "High school",
+                            "Undergraduate",
+                            "Honors, masters, mba", 
+                            "Doctorate")
+    ),
+    h3("How much do you agree with the following statements?"),
+    h4(survey_questions[5]),
+    sliderInput("survey5", label = .surv_lab,
+                min = 1, max = 9, value = 5),
+    h4(survey_questions[6]),
+    sliderInput("survey6",label = .surv_lab,
+                min = 1, max = 9, value = 5),
+    fluidRow(col_p1, col_p2, col_p3),
+    hr(),
+    actionButton("save_resp", "save responses")
+  ),
+  htmlOutput("save_msg"),
+  conditionalPanel(
+    condition = "output.is_saved == 1",
+    h3("Thank you for participating!"),
+    br(),
+    h4("Let the invigilator know you have completed the study and have a good day.")
+  )
+) ## close condition panel, assigning survey_page
+
+
+### header_page -----
+header_page <- fluidPage(
+  titlePanel("User study"),
+  actionButton("next_pg_button", "Next page")
+)
 
 ##### sidebar_page ----
 sidebar_page <- fluidPage(
-  ##### _Task response input -----
-  # shiny::htmlOutput("var_resp")
   conditionalPanel(
     condition = "(output.plot_active == true) ",
     checkboxGroupInput(
