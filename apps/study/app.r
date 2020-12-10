@@ -10,25 +10,11 @@ server <- function(input, output, session){
   ## Google sheets authentication
   ## for setup see "./.secrets/save_token.r
   tryCatch({
-    
-    ##gs4_auth(cache = ".secrets") ##for the first time running the app in R to get the OAuth token
-    # ## ATTEMPT 8:
+    ## For the first time running the app in R to get the OAuth token:
+    #googlesheets4::gs4_auth(cache = ".secrets") 
+    ## Downstream runs use:
     googlesheets4::gs4_auth(
       cache = ".secrets", email = "nicholas.spyrison@monash.edu", use_oob = TRUE)
-    
-    ## ATTEMPT 7: library(googledrive)
-    ## ATTEMPT 7: options(
-    ## ATTEMPT 7:   gargle_oauth_cache = ".secrets",
-    ## ATTEMPT 7:   gargle_oauth_email = TRUE
-    ## ATTEMPT 7: )
-    ## ATTEMPT 7: # now use googledrive with no need for explicit auth
-    ## ATTEMPT 7: drive_find(n_max = 5)
-    ## ATTEMPT 6: gs4_auth(cache = ".secrets", email = "nicholas.spyrison@monash.edu", use_oob = TRUE)
-    ## ATTEMPT 5: gs4_auth(email = "nicholas.spyrison@monash.edu")
-    ## ATTEMPT 4: gs4_auth("data/authentication.rds")
-    ## ATTEMPT 3: options(gargle_oauth_email = "nicholas.spyrison@monash.edu") ## for gs4 auth
-    ## ATTEMPT 3: drive_auth(email = "nicholas.spyrison@monash.edu") ## I think
-    ## ATTEMPT 1: googledrive::drive_auth(email = "nicholas.spyrison@monash.edu")
   }, error = function(e){
     txt <- "App could not authenticate to Google sheet. Please try again in 5 minutes. Closing app in 15 seconds."
     showNotification(txt, type = "error", duration = 15)
@@ -97,7 +83,7 @@ server <- function(input, output, session){
   ##### Reactive value initialization -----
   rv             <- reactiveValues()
   rv$resp_tbl    <- make_resp_tbl(participant_num)
-  rv$pg          <- 4L ## SET STARTING PAGE HERE <<<
+  rv$pg          <- 1L ## SET STARTING PAGE HERE <<<
   rv$sec_on_pg   <- 0L
   rv$resp_tbl    <- make_resp_tbl(participant_num) ## in resp_tbl.r
   ## Below are not needed, but to be explicit,
@@ -411,17 +397,17 @@ server <- function(input, output, session){
   ### _Obs next page button -----
   observeEvent(input$next_pg_button, {
     if((rv$sec_on_pg > 1L & do_disp_dev_tools == TRUE) | do_disp_dev_tools == FALSE){
-      
       ##### __ eval training
       if(substr(eval(), 1, 2) == "t1" &
          marks() <= 0){ ## If first training and marks less than/eq to 0, fail early.
+        browser()
         txt <- "You did not meet the required thershold for the training data set. 
         Please enter the following code to <blah, blah>"
         showNotification(txt, type = "error", duration = 30)
         warning(txt)
-        Sys.sleep(30)
-        stopApp()
-        return(NULL)
+        # Sys.sleep(30)
+        # stopApp()
+        # return(NULL)
       }
       
       ##### __rv$resp_tbl -----
@@ -489,6 +475,8 @@ server <- function(input, output, session){
   output$is_saved    <- reactive(if(is.null(rv$save_file)){0L}else{1L}) ## Control save_msg.
   output$pg          <- reactive(rv$pg)         ## For hiding ui next_task button
   output$factor      <- reactive(factor())      ## For sidebar inputs
+  output$section_nm  <- reactive(section_nm())  ## For controlling text display
+  output$section_pg  <- reactive(section_pg())  ## For controlling training display
   output$plot_active <- reactive(plot_active()) ## For display of the task response.
   output$eval        <- reactive(eval())        ## For sidebar display
   output$dev_tools   <- reactive({              ## For JS eval of R boolean...

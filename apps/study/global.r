@@ -157,56 +157,61 @@ survey_pg   <- 15L     ## Survey
 
 ##### UI START -----
 
-### intro_page -----
-intro_page <- conditionalPanel(
-  condition = "output.section == 'intro'",
-  conditionalPanel( ## First page conditionalPanel
-    condition = "output.pg == 1",
-    h3("Welcome to the study"),
-    br(),
-    p("This a completely voluntary study that will take approximately 45-50 
+### intro_page1 -----
+intro_page1 <- conditionalPanel( ## First page conditionalPanel
+  condition = "output.pg == 1",
+  h3("Welcome to the study"),
+  br(),
+  p("This a completely voluntary study that will take approximately 45-50 
         minutes to complete. If at any point you would like to stop, 
         please let the invigilator know."),
-    br(),
-    p("You are helping to compare the effectiveness of different 
+  br(),
+  p("You are helping to compare the effectiveness of different 
         multivariate data visualization techniques. 
         The study is structured as follows:"),
-    p("Training -- questions encouraged"),
-    tags$ul(
-      tags$li("Video training: you will first watch a five minute video 
+  p("Training -- questions encouraged"),
+  tags$ul(
+    tags$li("Video training: you will first watch a five minute video 
               explaining the techniques"),
-      tags$li("Interface familiarity: you will get to explore the interface 
+    tags$li("Interface familiarity: you will get to explore the interface 
                 for the different tasks, answer questions about the data, and 
                 receive feedback")
-    ),
-    p("Evaluation, for each of the 3 visuals -- independent effort with no questions"),
-    tags$ul(
-      tags$li("Task 1 (x2 difficulties, 60 sec)"),
-      tags$li("Task 2 (x2 difficulties, 180 sec)")
-    ),
-    p("Wrap up study"),
-    tags$ul(
-      tags$li("Complete survey"),
-      tags$li("Save and exit from app"),
-      tags$li("Collect a voucher for a free hot beverage on campus, from the invigilator.")
-    ),
-    p("We really appreciate your participation in this study.")
-  ), ## End of first page conditionalPanel
-  conditionalPanel( ## Second page, video conditionalPanel
-    condition = "output.pg == 2", 
-    h2("Video training"), tags$br(), tags$br(),
-    p("Watch the following video before proceeding:"), tags$br(), 
-    # Adding the 'a' tag to the sidebar linking external file
-    p("Minimize the study and watch the training video."),
-    #tags$a(href='training.mp4', target='blank', 'training video (4:17)'), 
-    tags$br(), tags$br(), 
-    p("If this link only contains audio let the invigilator know.")
-  )  ## End of second page, video conditionalPanel
-) ## Close conditionPanel, assigning intro_page
+  ),
+  p("Evaluation, for each of the 3 visuals -- independent effort with no questions"),
+  tags$ul(
+    tags$li("Task 1 (x2 difficulties, 60 sec)"),
+    tags$li("Task 2 (x2 difficulties, 180 sec)")
+  ),
+  p("Wrap up study"),
+  tags$ul(
+    tags$li("Complete survey"),
+    tags$li("Save and exit from app"),
+    tags$li("Collect a voucher for a free hot beverage on campus, from the invigilator.")
+  ),
+  p("We really appreciate your participation in this study.")
+) ## End of first page conditionalPanel, assigning intro_page1
+
+### intro_page2 -----
+intro_page2 <- conditionalPanel(
+  condition = "output.pg == 2", 
+  h2("Video training"), tags$br(), tags$br(),
+  p("Watch the following video before proceeding:"), tags$br(), 
+  # Adding the 'a' tag to the sidebar linking external file
+  p("Minimize the study and watch the training video."),
+  #tags$a(href='training.mp4', target='blank', 'training video (4:17)'), 
+  tags$br(), tags$br(), 
+  p("If this link only contains audio let the invigilator know.")
+)  ## End of conditionalPanel, assigning intro_page2
+
+### intro_page3 -----
+intro_page3 <- conditionalPanel(
+  condition = "output.pg == 3", 
+  h2("<INTERMISSION TEXT HERE>"), tags$br(), tags$br()
+)  ## End of conditionalPanel, assigning intro_page3
 
 ## training_page -----
-traning_page <- conditionalPanel(
-  condition = "output.section == 'training'",
+training_page <- conditionalPanel(
+  condition = "output.section_nm == 'training'",
   conditionalPanel(condition = "output.section_pg == 1", 
                    h2("Training -- interface")),
   conditionalPanel(condition = "output.section_pg == 2",
@@ -346,29 +351,34 @@ header_page <- fluidPage(
   actionButton("next_pg_button", "Next page")
 )
 
-##### sidebar_page ----
-sidebar_page <- fluidPage(
-  conditionalPanel(
-    condition = "(output.plot_active == true) ",
+##### sidebar_panel ----
+sidebar_panel <- conditionalPanel(
+  condition = "(output.plot_active == true)",
+  sidebarPanel(
     checkboxGroupInput(
       inputId = "var_resp",
       label   = "Check any/all variables that contribute more than average to the cluster seperation green circles and orange triangles.",
       choices = "V1",
       inline  = TRUE)
   )
-) ## Close fluidPage(), assigning sidebar_page
+) ## Close fluidPage(), assigning sidebar_panel
 
 
 
 ##### main_page -----
 main_page <- mainPanel(
   width = 9,
-  ### _Timer_disp
-  textOutput("timer_disp"),
-  ### _Header
+  intro_page1,
+  intro_page2,
+  intro_page3,
+  training_page,
+  suvery_page,
+  ### Header, timer, and plot display
   conditionalPanel(
     condition = "output.plot_active == true",
     h2(textOutput('header')),
+    hr(),
+    textOutput("timer_disp"),
     hr(),
     ## Image text and image.
     verbatimTextOutput("image_fp"),
@@ -392,16 +402,12 @@ main_page <- mainPanel(
     condition = "output.factor == 'radial'",
     radioButtons(inputId = "manip_var_nm", label = "Manip variable:",
                  choices =  "V1", selected = "V1")
-  ), ## Close conditionalPanel()
+  ), ## Close conditionalPanel(), plot interactions
   ## No input for grand tour.
 ) ## Close mainPanel() End of main_page section.
 
 
-### survey_page -----
-survey_page <- mainPanel(
-  conditionalPanel("(output.pg == 15)", ## hardcoded.
-                   actionButton("save_survey", "Save survey responses"))
-) 
+
 
 
 ### _dev_tools
@@ -425,7 +431,7 @@ dev_tools <- conditionalPanel(
 ui <- fluidPage(useShinyjs(), ## Required in ui to use shinyjs.
                 header_page,
                 sidebarLayout(
-                  sidebarPanel(sidebar_page),
+                  sidebar_panel,
                   mainPanel(main_page)
                 ),
                 dev_tools
