@@ -82,10 +82,9 @@ server <- function(input, output, session){
   
   ##### Reactive value initialization -----
   rv             <- reactiveValues()
-  rv$resp_tbl    <- make_resp_tbl(participant_num)
+  rv$resp_tbl    <- make_resp_tbl(participant_num) ## func from ./resp_tbl.r
   rv$pg          <- 1L ## SET STARTING PAGE HERE <<<
   rv$sec_on_pg   <- 0L
-  rv$resp_tbl    <- make_resp_tbl(participant_num) ## in resp_tbl.r
   ## Below are not needed, but to be explicit,
   rv$input_inter <- 0L
   rv$resp_inter  <- 0L
@@ -373,6 +372,7 @@ server <- function(input, output, session){
   output_row <- reactive({
     if(is.na(factor()) == FALSE){
       this_row <- resp_row()
+      this_row$prolific_id <- input$prolific_id
       this_row$input_inter <- rv$input_inter
       this_row$resp_inter  <- rv$resp_inter
       this_row$ttr         <- rv$ttr
@@ -400,11 +400,12 @@ server <- function(input, output, session){
       ##### __ eval training
       if(substr(eval(), 1, 2) == "t1" &
          marks() <= 0){ ## If first training and marks less than/eq to 0, fail early.
-        browser()
-        txt <- "You did not meet the required thershold for the training data set. 
-        Please enter the following code to <blah, blah>"
+        
+        txt <- paste0("You did not meet the required thershold for the training data set. 
+        Please enter the following code to <blah, blah>. On rv$pg ", rv$pg, ".")
         showNotification(txt, type = "error", duration = 30)
         warning(txt)
+        browser()
         # Sys.sleep(30)
         # stopApp()
         # return(NULL)

@@ -16,6 +16,10 @@ time_alotted <- 180L ## Seconds for the task
 height_px <- 500L
 pal <- RColorBrewer::brewer.pal(8, "Dark2")[c(1, 2, 3, 6, 8)]
 ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" ## the 'id' or name of the google sheet
+## Prolific.co to see the study draft page go to:
+if(F)
+  browseURL("https://app.prolific.co/studies/5fd808e32ce90812aeb9cd90")
+
 ## name                       id
 ## <chr>                      <chr>
 ## spinifex_study resp_tbl    1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU
@@ -162,32 +166,42 @@ intro_page1 <- conditionalPanel( ## First page conditionalPanel
   condition = "output.pg == 1",
   h3("Welcome to the study"),
   br(),
-  p("This a completely voluntary study that will take approximately 45-50 
-        minutes to complete. If at any point you would like to stop, 
-        please let the invigilator know."),
+  p("This a completely voluntary study that will take approximately 15-20
+    minutes to complete. You may quit the study an any time by closing the 
+    browser. All data stored (including) partial is not identified."),
   br(),
-  p("You are helping to compare the effectiveness of different 
-        multivariate data visualization techniques. 
-        The study is structured as follows:"),
-  p("Training -- questions encouraged"),
+  p("You will be helping to compare and contrast between 3 different forms of 
+    viewing multivariate data. The structure of the study is:"),
+  p(),
+  p("Introduction"),
   tags$ul(
-    tags$li("Video training: you will first watch a five minute video 
-              explaining the techniques"),
-    tags$li("Interface familiarity: you will get to explore the interface 
-                for the different tasks, answer questions about the data, and 
-                receive feedback")
+    tags$li("This study overview"),
+    tags$li("Explanatory video (n min)")
   ),
-  p("Evaluation, for each of the 3 visuals -- independent effort with no questions"),
+  p("Period 1"),
   tags$ul(
-    tags$li("Task 1 (x2 difficulties, 60 sec)"),
-    tags$li("Task 2 (x2 difficulties, 180 sec)")
+    tags$li("Practice task"),
+    tags$li("Task, 2x (60 sec each)")
   ),
-  p("Wrap up study"),
+  p("Period 2"),
   tags$ul(
-    tags$li("Complete survey"),
-    tags$li("Save and exit from app"),
-    tags$li("Collect a voucher for a free hot beverage on campus, from the invigilator.")
+    tags$li("Practice task"),
+    tags$li("Task, 2x (60 sec each)")
   ),
+  p("Period 3"),
+  tags$ul(
+    tags$li("Practice task"),
+    tags$li("Task, 2x (60 sec each)")
+  ),
+  p("Wrap up"),
+  tags$ul(
+    tags$li("Survey"),
+    tags$li("Save and exit")
+  ),
+  p("Before we get started, Prolific.co participants must enter their Prolific ID below"),
+  textInput(inputId = "prolific_id", 
+            label = "If you are a Prolific.co participants, enter your Prolific ID (otherwise blank)",
+            placeholder = "<Prolific ID or blank>"),
   p("We really appreciate your participation in this study.")
 ) ## End of first page conditionalPanel, assigning intro_page1
 

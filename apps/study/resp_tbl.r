@@ -70,6 +70,7 @@ make_resp_tbl <- function(participant_num = sample(1:1000, 1)){
     key = paste(sep = "_", participant_num, full_perm_num, 1:15),
     participant_num = as.integer(participant_num),
     full_perm_num   = as.integer(full_perm_num),
+    prolific_id = NA_character_,
     pg         = as.integer(1:15),
     section_pg = as.integer(c(1:3,1:4,1:4,1:3, 1)),
     section_nm = c(rep("intro", 3),
