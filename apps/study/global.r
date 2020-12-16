@@ -14,7 +14,7 @@ options(shiny.autoreload = TRUE)
 set.seed(20200927)   ## If tourr starts using seeds
 time_alotted <- 180L ## Seconds for the task
 height_px <- 500L
-pal <- RColorBrewer::brewer.pal(8, "Dark2")[c(1, 2, 3, 6, 8)]
+pal <- RColorBrewer::brewer.pal(8L, "Dark2")[c(1L, 2L, 3L, 6L, 8L)] ## Even more color safe
 ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" ## the 'id' or name of the google sheet
 ## Prolific.co to see the study draft page go to:
 if(F)
@@ -41,31 +41,31 @@ bas_p6 <- matrix(c(.2887,  .5,
 
 #### participant and perm_number -----
 ## Initialize
-participant_num <- 1
+participant_num <- 1L
 ## TODO: need to read the unique perm numbers in load file, and find the perm_numbers in the min count table. 
 if(F){ ## Read response sheet and set participant number
   prev_saves <- read_sheet(ss_id)
   participant_num <- length(unique(prev_saves$participant_num)) + 1
 }else{ ## ELSE assign random participant and perm numbers.
-  participant_num <- sample(1:999, 1)
+  participant_num <- sample(1L:999L, 1L)
 }
-full_perm_num <- 1 + participant_num %% 56
+full_perm_num <- 1 + participant_num %% 56L
 
 #### Select factor and block permutations
 ## Possible permutations
-factor_perms   <- rbind(c(1, 1,  2, 2,  3, 3),
-                        c(1, 1,  3, 3,  2, 2),
-                        c(2, 2,  3, 3,  1, 1),
-                        c(2, 2,  1, 1,  3, 3),
-                        c(3, 3,  1, 1,  2, 2),
-                        c(3, 3,  2, 2,  1, 1))
-location_perms <- rbind(c(1, 1,  2, 2,  3, 3),
-                        c(1, 1,  3, 3,  2, 2),
-                        c(2, 2,  3, 3,  1, 1),
-                        c(2, 2,  1, 1,  3, 3),
-                        c(3, 3,  1, 1,  2, 2),
-                        c(3, 3,  2, 2,  1, 1))
-vc_perms       <- rbind(c(1, 1,  2, 2,  3, 3))
+factor_perms   <- rbind(c(1L, 1L,  2L, 2L,  3L, 3L),
+                        c(1L, 1L,  3L, 3L,  2L, 2L),
+                        c(2L, 2L,  3L, 3L,  1L, 1L),
+                        c(2L, 2L,  1L, 1L,  3L, 3L),
+                        c(3L, 3L,  1L, 1L,  2L, 2L),
+                        c(3L, 3L,  2L, 2L,  1L, 1L))
+location_perms <- rbind(c(1L, 1L,  2L, 2L,  3L, 3L),
+                        c(1L, 1L,  3L, 3L,  2L, 2L),
+                        c(2L, 2L,  3L, 3L,  1L, 1L),
+                        c(2L, 2L,  1L, 1L,  3L, 3L),
+                        c(3L, 3L,  1L, 1L,  2L, 2L),
+                        c(3L, 3L,  2L, 2L,  1L, 1L))
+vc_perms       <- rbind(c(1L, 1L,  2L, 2L,  3L, 3L))
 ## set factor and block names
 factor_nms   <- c("pca", "grand", "radial")
 location_nms <- c("0_1", "33_66", "50_50")
@@ -76,9 +76,9 @@ r_fct <- nrow(factor_perms)   ##~6
 r_loc <- nrow(location_perms) ##~6
 r_vc  <- nrow(vc_perms)       ##~1
 r_perms <- r_fct * r_loc * r_vc ##~36
-this_factor_perm   <- 1 + (full_perm_num - 1) %% r_fct
-this_location_perm <- 1 #1 + floor((full_perm_num - 1) / r_fct) %% r_loc
-this_vc_perm       <- 1 #1 + floor((full_perm_num - 1) / (r_fct * r_Loc)) %% r_vc
+this_factor_perm   <- 1L + (full_perm_num - 1L) %% r_fct
+this_location_perm <- 1L #1 + floor((full_perm_num - 1) / r_fct) %% r_loc
+this_vc_perm       <- 1L #1 + floor((full_perm_num - 1) / (r_fct * r_Loc)) %% r_vc
 ## The decoded names
 this_factor_nm_ord <-
   factor_nms[factor_perms[this_factor_perm, ]]
@@ -121,9 +121,9 @@ survey_questions <- c("Which sex are you?",
 #### Load data and tour paths -----
 root <- ("./www/data/") ## Local 
 
-this_sim_nms <- paste(rep(this_vc_nm_ord, 3), rep(p_dim_nms, 3), rep(this_location_nm_ord, 3), sep = "_")
-this_sim_nms <- c(paste0("EEE_p4_0_1_t", 1:3), 
-                  as.vector(outer(this_sim_nms, paste0("_rep", 1:3), FUN = "paste0")) ## cross product paste
+this_sim_nms <- paste(rep(this_vc_nm_ord, 3L), rep(p_dim_nms, 3L), rep(this_location_nm_ord, 3L), sep = "_")
+this_sim_nms <- c(paste0("EEE_p4_0_1_t", 1L:3L), 
+                  as.vector(outer(this_sim_nms, paste0("_rep", 1L:3L), FUN = "paste0")) ## cross product paste
 ) 
 
 
@@ -257,104 +257,109 @@ training_page <- conditionalPanel(
 .surv_lab <-  div(style = 'width:300px;',
                   div(style = 'float:left;', 'strongly disagree'),
                   div(style = 'float:right;', 'strongly agree')) 
-col_p1 <- column(4, 
-                 h3(this_factor_nm_ord[1]),
+col_p1 <- column(4L,
+                 h3(this_factor_nm_ord[1L]),
                  hr(),
-                 h4(survey_questions[7]),
+                 h4(survey_questions[7L]),
                  sliderInput("survey7",label = .surv_lab,
-                             min = 1, max = 9, value = 5),
-                 h4(survey_questions[8]),
+                             min = 1L, max = 9L, value = 5L),
+                 h4(survey_questions[8L]),
                  sliderInput("survey8",label = .surv_lab,
-                             min = 1, max = 9, value = 5),
-                 h4(survey_questions[9]),
+                             min = 1L, max = 9L, value = 5L),
+                 h4(survey_questions[9L]),
                  sliderInput("survey9", label = .surv_lab,
-                             min = 1, max = 9, value = 5),
-                 h4(survey_questions[10]),
+                             min = 1L, max = 9L, value = 5L),
+                 h4(survey_questions[10L]),
                  sliderInput("survey10",
                              label = .surv_lab,
-                             min = 1, max = 9, value = 5)
+                             min = 1L, max = 9L, value = 5L)
 )
 
-col_p2 <- column(4, 
-                 h3(this_factor_nm_ord[2]),
+col_p2 <- column(4L,
+                 h3(this_factor_nm_ord[2L]),
                  hr(),
-                 h4(survey_questions[11]),
+                 h4(survey_questions[11L]),
                  sliderInput("survey11", label = .surv_lab,
-                             min = 1, max = 9, value = 5),
+                             min = 1L, max = 9L, value = 5L),
                  h4(survey_questions[12]),
                  sliderInput("survey12",label = .surv_lab,
-                             min = 1, max = 9, value = 5),
+                             min = 1L, max = 9L, value = 5L),
                  h4(survey_questions[13]),
                  sliderInput("survey13", label = .surv_lab,
-                             min = 1, max = 9, value = 5),
+                             min = 1L, max = 9L, value = 5L),
                  h4(survey_questions[14]),
                  sliderInput("survey14", label = .surv_lab,
-                             min = 1, max = 9, value = 5),
+                             min = 1L, max = 9L, value = 5L),
 )
 col_p3 <- column(4, 
-                 h3(this_factor_nm_ord[3]),
+                 h3(this_factor_nm_ord[3L]),
                  hr(),
-                 h4(survey_questions[15]),
+                 h4(survey_questions[15L]),
                  sliderInput("survey15", label = .surv_lab,
-                             min = 1, max = 9, value = 5),
-                 h4(survey_questions[16]),
+                             min = 1L, max = 9L, value = 5L),
+                 h4(survey_questions[16L]),
                  sliderInput("survey16", label = .surv_lab,
-                             min = 1, max = 9, value = 5),
-                 h4(survey_questions[17]),
+                             min = 1L, max = 9L, value = 5L),
+                 h4(survey_questions[17L]),
                  sliderInput("survey17", label = .surv_lab,
-                             min = 1, max = 9, value = 5),
-                 h4(survey_questions[18]),
+                             min = 1L, max = 9L, value = 5L),
+                 h4(survey_questions[18L]),
                  sliderInput("survey18", label = .surv_lab,
-                             min = 1, max = 9, value = 5)
+                             min = 1L, max = 9L, value = 5L)
 )
 
 ### survey_page -----
 suvery_page <- conditionalPanel(
   condition = "output.section == 'survey'",
-  conditionalPanel(
-    condition = "output.is_saved == 0",
-    selectInput("survey1", label = survey_questions[1], 
+  ## Before save button:
+  conditionalPanel( 
+    condition = "output.is_saved == false",
+    selectInput("survey1", label = survey_questions[1L], 
                 choices = c("decline to answer",
                             "female",
                             "male",
                             "intergender/other")
     ),
-    selectInput("survey2", label = survey_questions[2], 
+    selectInput("survey2", label = survey_questions[2L],
                 choices = c("decline to answer",
                             "19 or younger",
                             "20 to 29",
                             "30 to 39",
                             "40 or older")
     ),
-    selectInput("survey3", label = survey_questions[3], 
+    selectInput("survey3", label = survey_questions[3L],
                 choices = c("decline to answer",
                             "English first language",
-                            "English not first language")
-    ),
-    selectInput("survey4", label = survey_questions[4], 
+                            "English not first language")),
+    selectInput("survey4", label = survey_questions[4L], 
                 choices = c("decline to answer",
                             "High school",
                             "Undergraduate",
                             "Honors, masters, mba", 
-                            "Doctorate")
-    ),
+                            "Doctorate")),
     h3("How much do you agree with the following statements?"),
-    h4(survey_questions[5]),
+    h4(survey_questions[5L]),
     sliderInput("survey5", label = .surv_lab,
-                min = 1, max = 9, value = 5),
-    h4(survey_questions[6]),
+                min = 1L, max = 9L, value = 5L),
+    h4(survey_questions[6L]),
     sliderInput("survey6",label = .surv_lab,
-                min = 1, max = 9, value = 5),
+                min = 1L, max = 9L, value = 5L),
     fluidRow(col_p1, col_p2, col_p3),
     hr(),
-    actionButton("save_resp", "save responses")
+    actionButton("save_survey", "Save survey responses")
   ),
-  htmlOutput("save_msg"),
+  ## After save button:
   conditionalPanel(
-    condition = "output.is_saved == 1",
-    h3("Thank you for participating!"),
-    br(),
-    h4("Let the invigilator know you have completed the study and have a good day.")
+    condition = "output.is_saved == true",
+    htmlOutput("save_msg"),
+    conditionalPanel(
+      condition = "output.is_saved == 1",
+      h3("Thank you for participating!"),
+      conditionalPanel("output.do_disp_prolific_code == true",
+                       br(),
+                       h4("Enter the completion code '18B6C620' to redeem payment.")
+      )
+    )
   )
 ) ## close condition panel, assigning survey_page
 
@@ -381,7 +386,7 @@ sidebar_panel <- conditionalPanel(
 
 ##### main_page -----
 main_page <- mainPanel(
-  width = 9,
+  width = 9L,
   intro_page1,
   intro_page2,
   intro_page3,

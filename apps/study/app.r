@@ -41,7 +41,7 @@ server <- function(input, output, session){
           pg              = NA_real_,
           section_pg      = NA_real_,
           section_nm      = paste0("rv$pg on close: ", rv$pg, ", ", 
-                                   round(100 * rv$pg / 15, 2), "% of the pages."),
+                                   round(100L * rv$pg / survey_pg, 2L), "% of the pages."),
           period          = NA_real_,
           plot_active     = NA_real_,
           eval            = paste0("!Participant num ", participant_num, " dind't save app!"),
@@ -71,9 +71,9 @@ server <- function(input, output, session){
         these_rows <- cbind(this_row, extra_row)
         
         ## Save local and remote line
-        rv$resp_tbl[c(rv$pg, rv$pg + 1), ] <- these_rows
+        rv$resp_tbl[c(rv$pg, rv$pg + 1L), ] <- these_rows
         googlesheets4::sheet_append(ss_id, these_rows)
-        message("onStop(): Data rows apended for page: ", rv$pg, " -- ", substr(Sys.time(), 12, 16))
+        message("onStop(): Data rows apended for page: ", rv$pg, " -- ", substr(Sys.time(), 12L, 16L))
         
       } ## End of writing to resp_tbl
       ## Else do nothing
@@ -108,6 +108,8 @@ server <- function(input, output, session){
     resp_row()$sim_nm})
   section_nm <- reactive({req(resp_row)
     resp_row()$section_nm})
+  section_pg <- reactive({req(resp_row)
+    resp_row()$section_pg})
   
   image_fp <- reactive({
     if(plot_active()){
@@ -143,19 +145,19 @@ server <- function(input, output, session){
   p <- reactive({ ## Scalar number of variables
     req(plot_active())
     if(plot_active() == TRUE){
-      return(as.integer(substr(resp_row()$p_dim, 2, 2)))
+      return(as.integer(substr(resp_row()$p_dim, 2L, 2L)))
     }
     return("NA")
   })
-  x_axis_num <- reactive(as.integer(substr(input$x_axis, 3, 3)))
-  y_axis_num <- reactive(as.integer(substr(input$y_axis, 3, 3)))
+  x_axis_num <- reactive(as.integer(substr(input$x_axis, 3L, 3L)))
+  y_axis_num <- reactive(as.integer(substr(input$y_axis, 3L, 3L)))
   manip_var  <- reactive({
     mv <- which(colnames(dat()) == input$manip_var_nm)
-    return(max(mv, 1))
+    return(max(mv, 1L))
   })
   header <- reactive({
     req(eval())
-    if(eval() %in% 1:6)
+    if(eval() %in% 1L:6L)
       return(paste0("Evaluation -- factor: ", factor()))
     if(eval() == "training")
       return(paste0("Training -- factor: ", factor()))
@@ -171,7 +173,7 @@ server <- function(input, output, session){
   #### _Task evaluation -----
   ### Task Response
   var_resp <- reactive({
-    if(substr(section_nm(), 1, 6) == "period"){
+    if(substr(section_nm(), 1L, 6L) == "period"){
       resp <- input$var_resp
       if(is.null(resp)) return(NA)
       ## Vector of the numbers without 'V'
@@ -182,27 +184,27 @@ server <- function(input, output, session){
   output$var_resp <- renderPrint(var_resp())
   v1_resp <- reactive({
     req(var_resp())
-    return(1 %in% var_resp())
+    return(1L %in% var_resp())
   })
   v2_resp <- reactive({
     req(var_resp())
-    return(2 %in% var_resp())
+    return(2L %in% var_resp())
   })
   v3_resp <- reactive({
     req(var_resp())
-    return(3 %in% var_resp())
+    return(3L %in% var_resp())
   })
   v4_resp <- reactive({
     req(var_resp())
-    return(4 %in% var_resp())
+    return(4L %in% var_resp())
   })
   v5_resp <- reactive({
     req(var_resp())
-    return(5 %in% var_resp())
+    return(5L %in% var_resp())
   })
   v6_resp <- reactive({
     req(var_resp())
-    return(6 %in% var_resp())
+    return(6L %in% var_resp())
   })
   ### Task scoring
   var_diff <- reactive({
@@ -215,7 +217,7 @@ server <- function(input, output, session){
   })
   output$var_diff <- renderPrint({
     if(plot_active() == TRUE)
-      round(var_diff(), 2)
+      round(var_diff(), 2L)
   })
   var_weight <- reactive({
     if(plot_active()){
@@ -231,38 +233,38 @@ server <- function(input, output, session){
     if(plot_active()){
       var_weight <- var_weight()
       var_resp <- var_resp()
-      if(is.na(var_resp[1])) return(0)
+      if(is.na(var_resp[1L])) return(0)
       return(var_weight[var_resp])
     }
     return("NA")
   })
   output$var_marks <- renderPrint({
     if(plot_active() == TRUE)
-      round(var_marks(), 2)
+      round(var_marks(), 2L)
   })
   v1_marks <- reactive({
     req(var_marks())
-    return(v1_resp() * var_weight()[1])
+    return(v1_resp() * var_weight()[1L])
   })
   v2_marks <- reactive({
     req(var_marks())
-    return(v2_resp() * var_weight()[2])
+    return(v2_resp() * var_weight()[2L])
   })
   v3_marks <- reactive({
     req(var_marks())
-    return(v3_resp() * var_weight()[3])
+    return(v3_resp() * var_weight()[3L])
   })
   v4_marks <- reactive({
     req(var_marks())
-    return(v4_resp() * var_weight()[4])
+    return(v4_resp() * var_weight()[4L])
   })
   v5_marks <- reactive({
     req(var_marks())
-    return(v5_resp() * var_weight()[5])
+    return(v5_resp() * var_weight()[5L])
   })
   v6_marks <- reactive({
     req(var_marks())
-    return(v6_resp() * var_weight()[6])
+    return(v6_resp() * var_weight()[6L])
   })
   
   marks <- reactive({
@@ -275,26 +277,15 @@ server <- function(input, output, session){
   output$marks <- renderPrint({
     req(marks())
     if(plot_active() == TRUE)
-      round(marks(), 2)
+      round(marks(), 2L)
     return("NA")
   })
   
   ##### Observers -----
-  # output$var_resp <- renderUI({
-  #   if(plot_active() == TRUE){
-  #     tagList(
-  #       checkboxGroupInput(inputId = "var_resp",
-  #                          label   = "Check any/all variables that contribute more than average to the cluster seperation green circles and orange triangles.",
-  #                          choices = paste0("V", 1:p()),
-  #                          inline  = TRUE)
-  #     )
-  #   }
-  # })
-  
   observeEvent({
     dat()
   }, {
-    choices <- paste0("V", 1:p())
+    choices <- paste0("V", 1L:p())
     updateCheckboxGroupInput(session, "var_resp",
                              choices = choices, selected = "", inline = TRUE)
   })
@@ -309,10 +300,10 @@ server <- function(input, output, session){
       updateRadioButtons(session, "y_axis", choices = choices, selected = "PC2", inline = TRUE)
     }
     if(factor() == "radial"){
-      choices <- paste0("V", 1:p())
+      choices <- paste0("V", 1L:p())
       updateRadioButtons(session, "manip_var_nm", choices = choices, selected = "PC1", inline = TRUE)
     }
-    choices <- paste0("V", 1:p())
+    choices <- paste0("V", 1L:p())
     updateCheckboxGroupInput(session, "var_resp",
                              choices = choices, inline  = TRUE)
   })
@@ -339,7 +330,7 @@ server <- function(input, output, session){
     if(factor() == "radial"){
       these_colnames <- colnames(dat())
       updateRadioButtons(session, "manip_var_nm", choices = these_colnames,
-                         selected = these_colnames[1], inline = TRUE)
+                         selected = these_colnames[1L], inline = TRUE)
     }
   })
   
@@ -347,7 +338,7 @@ server <- function(input, output, session){
   ##### _Obs responses and counts -----
   ### task responses & ttr
   observeEvent(input$var_resp, {
-    if(rv$sec_on_pg > 1){
+    if(rv$sec_on_pg > 1L){
       rv$ttr[1] <- rv$sec_on_pg
       rv$var_resp[1] <- paste(input$var_resp, collapse = ", ")
     }
@@ -398,12 +389,12 @@ server <- function(input, output, session){
   observeEvent(input$next_pg_button, {
     if((rv$sec_on_pg > 1L & do_disp_dev_tools == TRUE) | do_disp_dev_tools == FALSE){
       ##### __ eval training
-      if(substr(eval(), 1, 2) == "t1" &
-         marks() <= 0){ ## If first training and marks less than/eq to 0, fail early.
+      if(substr(eval(), 1L, 2L) == "t1" &
+         marks() <= 0L){ ## If first training and marks less than/eq to 0, fail early.
         
         txt <- paste0("You did not meet the required thershold for the training data set. 
         Please enter the following code to <blah, blah>. On rv$pg ", rv$pg, ".")
-        showNotification(txt, type = "error", duration = 30)
+        showNotification(txt, type = "error", duration = 30L)
         warning(txt)
         browser()
         # Sys.sleep(30)
@@ -418,7 +409,8 @@ server <- function(input, output, session){
         ## Update local table and write to google sheet.
         rv$resp_tbl[rv$pg, ] <- this_row
         googlesheets4::sheet_append(ss_id, this_row)
-        message("Data row apended for page: ", rv$pg, " -- ", substr(Sys.time(), 12, 16))
+        message("Data row apended for page: ", rv$pg, " -- ", 
+                substr(Sys.time(), 12L, 16L))
       } ## End of writing to resp_tbl
       
       ### __New page ----
@@ -443,6 +435,7 @@ server <- function(input, output, session){
     ## Message back
     save_msg <- paste0("Reponses saved. Thank you for participating!")
     showNotification(save_msg, type = "message", duration = 10)
+    output$save_msg <- renderText(save_msg)
   })
   
   ### _Obs browser -----
@@ -473,22 +466,34 @@ server <- function(input, output, session){
   })
   
   ### Condition handling for ui coditionalPanels
-  output$is_saved    <- reactive(if(is.null(rv$save_file)){0L}else{1L}) ## Control save_msg.
-  output$pg          <- reactive(rv$pg)         ## For hiding ui next_task button
-  output$factor      <- reactive(factor())      ## For sidebar inputs
-  output$section_nm  <- reactive(section_nm())  ## For controlling text display
-  output$section_pg  <- reactive(section_pg())  ## For controlling training display
-  output$plot_active <- reactive(plot_active()) ## For display of the task response.
-  output$eval        <- reactive(eval())        ## For sidebar display
+  output$pg          <- reactive(rv$pg)         ## Hiding ui next_task button
+  output$factor      <- reactive(factor())      ## Sidebar inputs
+  output$section_nm  <- reactive(section_nm())  ## Controlling text display
+  output$section_pg  <- reactive(section_pg())  ## Controlling training display
+  output$plot_active <- reactive(plot_active()) ## Display of the task response.
+  output$eval        <- reactive(eval())        ## Sidebar display
+  output$is_saved    <- reactive({
+    if(input$save_survey == 1L) return(TRUE)
+    return(FALSE)
+  }
+  )
+  output$do_disp_prolific_code <- reactive({    ## Display of prolific pay code
+    if(is.na(input$prolific_id) == FALSE)
+      return(TRUE)
+    return(FALSE)
+  })
   output$dev_tools   <- reactive({              ## For JS eval of R boolean...
     return(do_disp_dev_tools)
   }) 
   
-  outputOptions(output, "pg",          suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
-  outputOptions(output, "factor",      suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "plot_active", suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "eval",        suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "dev_tools",   suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
+  outputOptions(output, "pg",                    suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
+  outputOptions(output, "factor",                suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "section_nm",            suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "section_pg",            suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "plot_active",           suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "eval",                  suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "do_disp_prolific_code", suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "dev_tools",             suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
 
   ### General task outputs
   ## height: ggplot applies on renderPlot(), plotly applies to a plotly option.
