@@ -116,7 +116,7 @@ server <- function(input, output, session){
       #dir_sim_nm <- paste0("../images/", sim_nm())
       fct_nm <- factor()
       if(fct_nm == "pca")
-        fct_suffix <- paste0("pca_x", x_axis_num(), "_y", y_axis_num(), ".png")
+        fct_suffix <- paste0("pca_x", x_axis_num(), "y", y_axis_num(), ".png")
       if(fct_nm == "grand")
         fct_suffix <- paste0("grand.gif")
       if(fct_nm == "radial")
@@ -124,14 +124,11 @@ server <- function(input, output, session){
         return(paste(paste0("./www/images/", sim_nm()), "", ## for extra "_" sep
                      fct_suffix, sep = "_"))
     }
-    return("plot_active() == false")
+    return("./www/white_placeholder.png") ## Thin white strip .png as a silent placeholder
   })
   output$image_fp <- renderText({image_fp()})
   output$image_plot <- renderImage({
-    fp <- "./www/white_placeholder.png" ## Default thin white strip .png
-    if(plot_active() == TRUE)
-      fp <- image_fp()
-    list(src = normalizePath(fp),
+    list(src = normalizePath(image_fp()),
          alt = "image text!")
   }, deleteFile = FALSE)
   dat <- reactive({ ## Simulation data (in df) with attributes
@@ -396,7 +393,7 @@ server <- function(input, output, session){
         Please enter the following code to <blah, blah>. On rv$pg ", rv$pg, ".")
         showNotification(txt, type = "error", duration = 30L)
         warning(txt)
-        browser()
+        #browser()
         # Sys.sleep(30)
         # stopApp()
         # return(NULL)
@@ -472,6 +469,16 @@ server <- function(input, output, session){
   output$section_pg  <- reactive(section_pg())  ## Controlling training display
   output$plot_active <- reactive(plot_active()) ## Display of the task response.
   output$eval        <- reactive(eval())        ## Sidebar display
+  output$p1_intermission <- reactive({
+    req(period(), eval())
+    if(period() == 1 & eval() == "intermission") return(TRUE)
+    return(FALSE)
+  })        ## Sidebar display
+  output$p2_intermission <- reactive({
+    req(period(), eval())
+    if(period() == 2 & eval() == "intermission") return(TRUE)
+    return(FALSE)
+  })        ## Sidebar display
   output$is_saved    <- reactive({
     if(input$save_survey == 1L) return(TRUE)
     return(FALSE)
@@ -493,8 +500,11 @@ server <- function(input, output, session){
   outputOptions(output, "plot_active",           suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "eval",                  suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "do_disp_prolific_code", suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "dev_tools",             suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
-
+  outputOptions(output, "dev_tools",             suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "p1_intermission",       suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "p2_intermission",       suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
+  
+  
   ### General task outputs
   ## height: ggplot applies on renderPlot(), plotly applies to a plotly option.
   output$header <- renderText(header())

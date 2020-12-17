@@ -8,10 +8,10 @@ library("googlesheets4") ## Google sheets (with api v4) for read/write responses
 library("shinyjs")   ## Help with handling conditionalPanels
 library("lubridate") ## For timer
 library("here")      ## Fixing base dir
-do_disp_dev_tools <- TRUE #FALSE#
+do_disp_dev_tools <- TRUE #TRUE #FALSE#
 options(shiny.autoreload = TRUE)
-# options(error = browser) ## occasionally helpful for troubleshooting
-set.seed(20200927)   ## If tourr starts using seeds
+#options(error = browser) ## occasionally helpful for troubleshooting
+#set.seed(20200927)   ## If tourr starts using seeds
 time_alotted <- 180L ## Seconds for the task
 height_px <- 500L
 pal <- RColorBrewer::brewer.pal(8L, "Dark2")[c(1L, 2L, 3L, 6L, 8L)] ## Even more color safe
@@ -220,7 +220,7 @@ intro_page2 <- conditionalPanel(
 ### intro_page3 -----
 intro_page3 <- conditionalPanel(
   condition = "output.pg == 3", 
-  h2("<INTERMISSION TEXT HERE>"), tags$br(), tags$br()
+  h2("<Intro Intermission>"), tags$br(), tags$br()
 )  ## End of conditionalPanel, assigning intro_page3
 
 ## training_page -----
@@ -382,8 +382,12 @@ sidebar_panel <- conditionalPanel(
   )
 ) ## Close fluidPage(), assigning sidebar_panel
 
-
-
+p1_intermission <- conditionalPanel("output$p2_intermission == true",
+                                    h2("<Intermission 1 text>"))
+p2_intermission <- conditionalPanel("output$p2_intermission == true",
+                                    h2("<Intermission 2 text>"))
+  
+  
 ##### main_page -----
 main_page <- mainPanel(
   width = 9L,
