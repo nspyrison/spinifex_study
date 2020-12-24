@@ -1,6 +1,8 @@
 require("tibble")
 require("dplyr")
 
+
+### Stand alone example, typically initialized in global.r:
 #' @examples
 #' #### IF RUN OUTSIDE OF APP ####
 #' ## needs participant#, permutation#, and experimental design.
@@ -59,7 +61,6 @@ require("dplyr")
 #'   location_nms[location_perms[this_location_perm, ]]
 
 
-## Response table ----
 make_resp_tbl <- function(participant_num = sample(1:1000, 1)){
   full_perm_num <- 1 + participant_num %% 56
   
@@ -118,21 +119,52 @@ make_resp_tbl <- function(participant_num = sample(1:1000, 1)){
     ttr         = NA_integer_,
     marks       = NA_real_,
     write_dt    = NA_character_,
-    v1_resp    = NA_integer_,
-    v2_resp    = NA_integer_,
-    v3_resp    = NA_integer_,
-    v4_resp    = NA_integer_,
-    v5_resp    = NA_integer_,
-    v6_resp    = NA_integer_,
-    v1_marks   = NA_real_,
-    v2_marks   = NA_real_,
-    v3_marks   = NA_real_,
-    v4_marks   = NA_real_,
-    v5_marks   = NA_real_,
-    v6_marks   = NA_real_,
+    v1_resp     = NA_integer_,
+    v2_resp     = NA_integer_,
+    v3_resp     = NA_integer_,
+    v4_resp     = NA_integer_,
+    v5_resp     = NA_integer_,
+    v6_resp     = NA_integer_,
+    v1_marks    = NA_real_,
+    v2_marks    = NA_real_,
+    v3_marks    = NA_real_,
+    v4_marks    = NA_real_,
+    v5_marks    = NA_real_,
+    v6_marks    = NA_real_,
   )
-resp_tbl
+  return(resp_tbl)
 }
 #' @examples
 #' (resp_tbl <- make_resp_tbl(participant_num))
+#' View(resp_tbl)
+
+
+
+
+make_survey_tbl <- function(participant_num = sample(1:1000, 1)){
+  full_perm_num <- 1 + participant_num %% 56
+  
+  message(paste0("Participant_num: ", participant_num,
+                 ", full_perm_num: ", full_perm_num))
+  
+  survey_tbl <- tibble::tibble(
+    key = paste(sep = "_", participant_num, full_perm_num, 1:18),
+    participant_num = as.integer(participant_num),
+    full_perm_num   = as.integer(full_perm_num),
+    prolific_id     = NA_character_,
+    survey_num      = 1:18,
+    scope           = c(rep("demographic", 6), 
+                        rep(this_factor_nm_ord[1], 4),
+                        rep(this_factor_nm_ord[3], 4),
+                        rep(this_factor_nm_ord[5], 4) ),
+    question        = NA_character_,
+    response        = NA_character_,
+    seconds_on_page = NA_integer_,
+    write_dt        = NA_character_,
+  )
+  return(survey_tbl)
+}
+
+#' @examples
+#' (resp_tbl <- make_survey_tbl(participant_num))
 #' View(resp_tbl)

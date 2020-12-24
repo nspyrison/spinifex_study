@@ -8,7 +8,7 @@ library("googlesheets4") ## Google sheets (with api v4) for read/write responses
 library("shinyjs")   ## Help with handling conditionalPanels
 library("lubridate") ## For timer
 library("here")      ## Fixing base dir
-do_disp_dev_tools <- TRUE #TRUE #FALSE#
+do_disp_dev_tools <- FALSE ## Expects: TRUE / FALSE
 options(shiny.autoreload = TRUE)
 #options(error = browser) ## occasionally helpful for troubleshooting
 #set.seed(20200927)   ## If tourr starts using seeds
@@ -16,6 +16,7 @@ time_alotted <- 180L ## Seconds for the task
 height_px <- 500L
 pal <- RColorBrewer::brewer.pal(8L, "Dark2")[c(1L, 2L, 3L, 6L, 8L)] ## Even more color safe
 ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" ## the 'id' or name of the google sheet
+## auth code from 23/12/2020, nitro lapop: 4/1AY0e-g5NhEF12mV_4U_d1MzO0GrnNZUlaCCNvq-lLTPJ0Ry8iubLXQJ9uCI
 ## Prolific.co to see the study draft page go to:
 if(F)
   browseURL("https://app.prolific.co/studies/5fd808e32ce90812aeb9cd90")
@@ -87,6 +88,11 @@ this_vc_nm_ord <-
 this_location_nm_ord <-
   location_nms[location_perms[this_location_perm, ]]
 
+
+
+resp_tbl   <- make_resp_tbl(participant_num) ## func from ./resp_tbl.r
+survey_tbl <- make_survey_tbl(participant_num) ## func from ./resp_tbl.r
+
 ## Context, "onStart()" and onStop()
 context_line <- paste0("Spinifex STUDY, --- (spinifex v", packageVersion("spinifex"),
                        ") --- Started ", Sys.time())
@@ -106,11 +112,8 @@ survey_questions <- c("Which sex are you?",
                       "Which age group do you belong to?",
                       "What is your English proficiency?",
                       "What is your highest completed education?",
-                      "I am experienced with data visualization.",
-                      "I am experienced with tabular data.",
-                      "I am experienced with clustering classification techniques.",
-                      "I am experienced with multivariate statistical analysis.",
-                      "I am experienced with machine learning.",
+                      "You are experienced with data visualization.",
+                      "You are experienced with cleaning data.",
                       rep(c("I was already familiar with this visualization.",
                             "I found this visualization easy to use.",
                             "I felt confident in my answers with this visualization.",
@@ -148,7 +151,7 @@ sapply(this_sim_nms, function(i){
 ##### Global variable initialization -----
 n_factors          <- length(factor_nms)       ## ~3
 n_p_dim            <- length(p_dim_nms)        ## ~2
-n_survey_questions <- length(survey_questions) ## ~21
+n_survey_questions <- length(survey_questions) ## ~18 = 6 + 3 * 4
 PC_cap             <- 4L ## Number of principal components to choose from.
 
 #### Define section start pages,

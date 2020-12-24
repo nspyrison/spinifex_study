@@ -82,7 +82,6 @@ server <- function(input, output, session){
   
   ##### Reactive value initialization -----
   rv             <- reactiveValues()
-  rv$resp_tbl    <- make_resp_tbl(participant_num) ## func from ./resp_tbl.r
   rv$pg          <- 1L ## SET STARTING PAGE HERE <<<
   rv$sec_on_pg   <- 0L
   ## Below are not needed, but to be explicit,
