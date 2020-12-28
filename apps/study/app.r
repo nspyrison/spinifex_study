@@ -1,5 +1,4 @@
-source('global.r', local = TRUE)
-source('resp_tbl.r', local = TRUE) ## Needs initialization from global.r.
+source('global.r', local = TRUE) 
 
 ## Also try: shiny::runApp(appDir = "apps/study", display.mode = "showcase")
 #?shiny::runApp(appDir = "apps/study", display.mode = "showcase")
@@ -30,7 +29,7 @@ server <- function(input, output, session){
     message("ran session$onSessionEnded(f()).")
     
     reactive({
-      if(input$save_survey < 1){
+      if(rv$pg < survey_pg | input$save_survey < 1){
         ### Attempt to save, when closed early
         this_row <- output_row()
         
@@ -54,7 +53,7 @@ server <- function(input, output, session){
           resp_inter      = NA_integer_,
           ttr             = NA_integer_,
           marks           = NA_real_,
-          write_dt        = Sys.time(),
+          write_dt        = as.character(Sys.time()),
           v1_resp    = NA_integer_,
           v2_resp    = NA_integer_,
           v3_resp    = NA_integer_,
@@ -88,12 +87,18 @@ server <- function(input, output, session){
   rv$input_inter <- 0L
   rv$resp_inter  <- 0L
   rv$ttr         <- 0L
+  rv$resp_tbl    <- init_resp_tbl
+  rv$survey_tbl  <- init_survey_tbl
   
   ##### Reactive functions -----
-  resp_tbl <- reactive(rv$resp_tbl)
+  resp_tbl        <- reactive(rv$resp_tbl)
   output$resp_tbl <- renderTable(resp_tbl())
-  resp_row <- reactive(rv$resp_tbl[rv$pg, ])
+  resp_row        <- reactive(rv$resp_tbl[rv$pg, ])
   output$resp_row <- renderTable(resp_row())
+  survey_tbl        <- reactive(rv$survey_tbl)
+  output$survey_tbl <- renderTable(survey_tbl())
+  sacve_survey       <- reactive(input$save_survey)
+  output$save_survey <- renderText(sacve_survey())
   key <- reactive({req(resp_row)
     resp_row()$key
   })
@@ -381,6 +386,85 @@ server <- function(input, output, session){
     }
   })
   
+  ## TODO: NEED TO capture resp and seconds on pg more elegantly may need a bunch of observeEvents.
+  ### Captures responses and times to the survey:
+  observeEvents(input$prolific_id, {
+    rv$survey_tbl$prolific_id <- input$prolific_id
+  })
+  observeEvents(input$survey1, {
+      rv$survey_tbl$response[1] <- input$survey1
+      rv$survey_tbl$seconds_on_page[1] <- rv$sec_on_pg
+  })
+  observeEvents(input$survey2, {
+    rv$survey_tbl$response[2] <- input$survey2
+    rv$survey_tbl$seconds_on_page[2] <- rv$sec_on_pg
+  })
+  observeEvents(input$survey3, {
+    rv$survey_tbl$response[3] <- input$survey3
+    rv$survey_tbl$seconds_on_page[3] <- rv$sec_on_pg
+  })
+  observeEvents(input$survey4, {
+    rv$survey_tbl$response[4] <- input$survey4
+    rv$survey_tbl$seconds_on_page[4] <- rv$sec_on_pg
+  })
+  observeEvents(input$survey5, {
+    rv$survey_tbl$response[5] <- input$survey5
+    rv$survey_tbl$seconds_on_page[5] <- rv$sec_on_pg
+  })
+  observeEvents(input$survey6, {
+    rv$survey_tbl$response[6] <- input$survey6
+    rv$survey_tbl$seconds_on_page[6] <- rv$sec_on_pg
+  })
+  observeEvents(input$survey7, {
+    rv$survey_tbl$response[7] <- input$survey7
+    rv$survey_tbl$seconds_on_page[7] <- rv$sec_on_pg
+  })
+  observeEvents(input$survey8, {
+    rv$survey_tbl$response[8] <- input$survey8
+    rv$survey_tbl$seconds_on_page[8] <- rv$sec_on_pg
+  })
+  observeEvents(input$survey9, {
+    rv$survey_tbl$response[9] <- input$survey9
+    rv$survey_tbl$seconds_on_page[9] <- rv$sec_on_pg
+  })
+  observeEvents(input$survey10, {
+    rv$survey_tbl$response[10] <- input$survey10
+    rv$survey_tbl$seconds_on_page[10] <- rv$sec_on_pg
+  })
+  observeEvents(input$survey11, {
+    rv$survey_tbl$response[11] <- input$survey11
+    rv$survey_tbl$seconds_on_page[11] <- rv$sec_on_pg
+  })
+  observeEvents(input$survey12, {
+    rv$survey_tbl$response[12] <- input$survey12
+    rv$survey_tbl$seconds_on_page[12] <- rv$sec_on_pg
+  })
+  observeEvents(input$survey13, {
+    rv$survey_tbl$response[13] <- input$survey13
+    rv$survey_tbl$seconds_on_page[13] <- rv$sec_on_pg
+  })
+  observeEvents(input$survey14, {
+    rv$survey_tbl$response[14] <- input$survey14
+    rv$survey_tbl$seconds_on_page[14] <- rv$sec_on_pg
+  })
+  observeEvents(input$survey15, {
+    rv$survey_tbl$response[15] <- input$survey15
+    rv$survey_tbl$seconds_on_page[15] <- rv$sec_on_pg
+  })
+  observeEvents(input$survey16, {
+    rv$survey_tbl$response[16] <- input$survey16
+    rv$survey_tbl$seconds_on_page[16] <- rv$sec_on_pg
+  })
+  observeEvents(input$survey17, {
+    rv$survey_tbl$response[17] <- input$survey17
+    rv$survey_tbl$seconds_on_page[17] <- rv$sec_on_pg
+  })
+  observeEvents(input$survey18, {
+    rv$survey_tbl$response[18] <- input$survey18
+    rv$survey_tbl$seconds_on_page[18] <- rv$sec_on_pg
+  })
+  
+  
   ### _Obs next page button -----
   observeEvent(input$next_pg_button, {
     if((rv$sec_on_pg > 1L & do_disp_dev_tools == TRUE) | do_disp_dev_tools == FALSE){
@@ -404,7 +488,7 @@ server <- function(input, output, session){
         this_row <- output_row()
         ## Update local table and write to google sheet.
         rv$resp_tbl[rv$pg, ] <- this_row
-        googlesheets4::sheet_append(ss_id, this_row)
+        googlesheets4::sheet_append(ss_id, this_row, 1L)
         message("Data row apended for page: ", rv$pg, " -- ", 
                 substr(Sys.time(), 12L, 16L))
       } ## End of writing to resp_tbl
@@ -427,6 +511,8 @@ server <- function(input, output, session){
     
     ## Saves the survey info.
     ## TODO: the saving, see googlesheets4::sheet_append( ss_id)
+    
+    
     
     ## Message back
     save_msg <- paste0("Reponses saved. Thank you for participating!")

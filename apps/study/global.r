@@ -3,12 +3,13 @@
 ##### global.r, spinifex_study -----
 
 ### Setup -----
+source('resp_tbl.r', local = TRUE) ## Needs initialization from global.r.
 library("shiny")
 library("googlesheets4") ## Google sheets (with api v4) for read/write responses.
 library("shinyjs")   ## Help with handling conditionalPanels
 library("lubridate") ## For timer
 library("here")      ## Fixing base dir
-do_disp_dev_tools <- FALSE ## Expects: TRUE / FALSE
+do_disp_dev_tools <- TRUE ## Expects: TRUE / FALSE
 options(shiny.autoreload = TRUE)
 #options(error = browser) ## occasionally helpful for troubleshooting
 #set.seed(20200927)   ## If tourr starts using seeds
@@ -90,8 +91,9 @@ this_location_nm_ord <-
 
 
 
-resp_tbl   <- make_resp_tbl(participant_num) ## func from ./resp_tbl.r
-survey_tbl <- make_survey_tbl(participant_num) ## func from ./resp_tbl.r
+init_resp_tbl   <- make_resp_tbl(participant_num)   ## func from ./resp_tbl.r
+init_survey_tbl <- make_survey_tbl(participant_num) ## func from ./resp_tbl.r
+survey_tbl$question = survey_questions
 
 ## Context, "onStart()" and onStop()
 context_line <- paste0("Spinifex STUDY, --- (spinifex v", packageVersion("spinifex"),
@@ -444,6 +446,7 @@ dev_tools <- conditionalPanel(
   textOutput("dev_msg"),
   tableOutput("resp_row"),
   tableOutput("resp_tbl"),
+  verbatimTextOutput("save_survey"),
   conditionalPanel(
     "output.plot_active == true",
     p("Variable level diff from avg: "), textOutput("diff"),
