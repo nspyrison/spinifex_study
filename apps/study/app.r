@@ -32,7 +32,6 @@ server <- function(input, output, session){
     ##### May be able to read from sheet and find last, also may not be worth it.\
     ##### Will have to clean in analysis.
   })
-
   
   ##### Reactive value initialization -----
   rv             <- reactiveValues()
@@ -189,7 +188,7 @@ server <- function(input, output, session){
     if(plot_active()){
       var_weight <- var_weight()
       var_resp <- var_resp()
-      if(is.na(var_resp[1L])) return(0)
+      if(is.na(var_resp[1L])) return(0L)
       return(var_weight[var_resp])
     }
     return("NA")
@@ -267,14 +266,14 @@ server <- function(input, output, session){
   ## When x_axis set, disable corresponding y_axis opt.
   observeEvent(input$x_axis, {
     disable(selector = paste0("#y_axis button:eq(", 
-                              as.integer(substr(input$x_axis, 3, 3)),
+                              as.integer(substr(input$x_axis, 3L, 3L)),
                               ")")
     )
   })
   ## When y_axis set, disable corresponding x_axis opt.
   observeEvent(input$y_axis, {
     disable(selector = paste0("#x_axis button:eq(", 
-                              as.integer(substr(input$y_axis, 3, 3)),
+                              as.integer(substr(input$y_axis, 3L, 3L)),
                               ")")
     )
   })
@@ -347,76 +346,76 @@ server <- function(input, output, session){
     rv$survey_tbl$prolific_id <- input$prolific_id
   })
   observeEvent(input$survey1, {
-      rv$survey_tbl$response[1]        <- input$survey1
-      rv$survey_tbl$seconds_on_page[1] <- rv$sec_on_pg
+      rv$survey_tbl$response[1L]        <- input$survey1
+      rv$survey_tbl$seconds_on_page[1L] <- rv$sec_on_pg
   })
   observeEvent(input$survey2, {
-    rv$survey_tbl$response[2]        <- input$survey2
-    rv$survey_tbl$seconds_on_page[2] <- rv$sec_on_pg
+    rv$survey_tbl$response[2L]        <- input$survey2
+    rv$survey_tbl$seconds_on_page[2L] <- rv$sec_on_pg
   })
   observeEvent(input$survey3, {
-    rv$survey_tbl$response[3]        <- input$survey3
-    rv$survey_tbl$seconds_on_page[3] <- rv$sec_on_pg
+    rv$survey_tbl$response[3L]        <- input$survey3
+    rv$survey_tbl$seconds_on_page[3L] <- rv$sec_on_pg
   })
   observeEvent(input$survey4, {
-    rv$survey_tbl$response[4]        <- input$survey4
-    rv$survey_tbl$seconds_on_page[4] <- rv$sec_on_pg
+    rv$survey_tbl$response[4L]        <- input$survey4
+    rv$survey_tbl$seconds_on_page[4L] <- rv$sec_on_pg
   })
   observeEvent(input$survey5, {
-    rv$survey_tbl$response[5]        <- input$survey5
-    rv$survey_tbl$seconds_on_page[5] <- rv$sec_on_pg
+    rv$survey_tbl$response[5L]        <- input$survey5
+    rv$survey_tbl$seconds_on_page[5L] <- rv$sec_on_pg
   })
   observeEvent(input$survey6, {
-    rv$survey_tbl$response[6]        <- input$survey6
-    rv$survey_tbl$seconds_on_page[6] <- rv$sec_on_pg
+    rv$survey_tbl$response[6L]        <- input$survey6
+    rv$survey_tbl$seconds_on_page[6L] <- rv$sec_on_pg
   })
   observeEvent(input$survey7, {
-    rv$survey_tbl$response[7]        <- input$survey7
-    rv$survey_tbl$seconds_on_page[7] <- rv$sec_on_pg
+    rv$survey_tbl$response[7L]        <- input$survey7
+    rv$survey_tbl$seconds_on_page[7L] <- rv$sec_on_pg
   })
   observeEvent(input$survey8, {
-    rv$survey_tbl$response[8]        <- input$survey8
-    rv$survey_tbl$seconds_on_page[8] <- rv$sec_on_pg
+    rv$survey_tbl$response[8L]        <- input$survey8
+    rv$survey_tbl$seconds_on_page[8L] <- rv$sec_on_pg
   })
   observeEvent(input$survey9, {
-    rv$survey_tbl$response[9]        <- input$survey9
-    rv$survey_tbl$seconds_on_page[9] <- rv$sec_on_pg
+    rv$survey_tbl$response[9L]        <- input$survey9
+    rv$survey_tbl$seconds_on_page[9L] <- rv$sec_on_pg
   })
   observeEvent(input$survey10, {
-    rv$survey_tbl$response[10]        <- input$survey10
-    rv$survey_tbl$seconds_on_page[10] <- rv$sec_on_pg
+    rv$survey_tbl$response[10L]        <- input$survey10
+    rv$survey_tbl$seconds_on_page[10L] <- rv$sec_on_pg
   })
   observeEvent(input$survey11, {
-    rv$survey_tbl$response[11]        <- input$survey11
-    rv$survey_tbl$seconds_on_page[11] <- rv$sec_on_pg
+    rv$survey_tbl$response[11L]        <- input$survey11
+    rv$survey_tbl$seconds_on_page[11L] <- rv$sec_on_pg
   })
   observeEvent(input$survey12, {
-    rv$survey_tbl$response[12]        <- input$survey12
-    rv$survey_tbl$seconds_on_page[12] <- rv$sec_on_pg
+    rv$survey_tbl$response[12L]        <- input$survey12
+    rv$survey_tbl$seconds_on_page[12L] <- rv$sec_on_pg
   })
   observeEvent(input$survey13, {
-    rv$survey_tbl$response[13]        <- input$survey13
-    rv$survey_tbl$seconds_on_page[13] <- rv$sec_on_pg
+    rv$survey_tbl$response[13L]        <- input$survey13
+    rv$survey_tbl$seconds_on_page[13L] <- rv$sec_on_pg
   })
   observeEvent(input$survey14, {
-    rv$survey_tbl$response[14]        <- input$survey14
-    rv$survey_tbl$seconds_on_page[14] <- rv$sec_on_pg
+    rv$survey_tbl$response[14L]        <- input$survey14
+    rv$survey_tbl$seconds_on_page[14L] <- rv$sec_on_pg
   })
   observeEvent(input$survey15, {
-    rv$survey_tbl$response[15]        <- input$survey15
-    rv$survey_tbl$seconds_on_page[15] <- rv$sec_on_pg
+    rv$survey_tbl$response[15L]        <- input$survey15
+    rv$survey_tbl$seconds_on_page[15L] <- rv$sec_on_pg
   })
   observeEvent(input$survey16, {
-    rv$survey_tbl$response[16]        <- input$survey16
-    rv$survey_tbl$seconds_on_page[16] <- rv$sec_on_pg
+    rv$survey_tbl$response[16L]        <- input$survey16
+    rv$survey_tbl$seconds_on_page[16L] <- rv$sec_on_pg
   })
   observeEvent(input$survey17, {
-    rv$survey_tbl$response[17]        <- input$survey17
-    rv$survey_tbl$seconds_on_page[17] <- rv$sec_on_pg
+    rv$survey_tbl$response[17L]        <- input$survey17
+    rv$survey_tbl$seconds_on_page[17L] <- rv$sec_on_pg
   })
   observeEvent(input$survey18, {
-    rv$survey_tbl$response[18]        <- input$survey18
-    rv$survey_tbl$seconds_on_page[18] <- rv$sec_on_pg
+    rv$survey_tbl$response[18L]        <- input$survey18
+    rv$survey_tbl$seconds_on_page[18L] <- rv$sec_on_pg
   })
   
   
@@ -460,18 +459,16 @@ server <- function(input, output, session){
   })
   
   
-  ### _Obs save responses button -----
+  ### _Obs save_survey button -----
+  ## resp_tbl writes every line with the next page, this is for SURVEY ONLY.
   observeEvent(input$save_survey, {
-    ## resp_tbl writes every line with the next page, this is for SURVEY ONLY.
-    
-    ## Saves the survey info.
-    ## TODO: the saving, see googlesheets4::sheet_append( ss_id)
-    
-    
+    ## Write to google sheet, second sheet (survey responds).
+    googlesheets4::sheet_append(ss_id, rv$survey_tbl, 2L)
+    message("survey_tbl, full table apended for page: ", rv$pg, " -- ", substr(Sys.time(), 12L, 16L))
     
     ## Message back
     save_msg <- paste0("Reponses saved. Thank you for participating!")
-    showNotification(save_msg, type = "message", duration = 10)
+    showNotification(save_msg, type = "message", duration = 10L)
     output$save_msg <- renderText(save_msg)
   })
   
@@ -489,7 +486,7 @@ server <- function(input, output, session){
   ##### Outputs -----
   output$timer_disp <- renderText({
     if(section_nm() == "task"){ ## Timer display counting down if on a task.
-      if(time_left() < 1){return("Time has expired, please enter your best guess and proceed.")
+      if(time_left() < 1L){return("Time has expired, please enter your best guess and proceed.")
       }else{
         return(
           paste0("Time remaining: ", lubridate::seconds_to_period(time_left()),
@@ -511,12 +508,12 @@ server <- function(input, output, session){
   output$eval        <- reactive(eval())        ## Sidebar display
   output$p1_intermission <- reactive({
     req(period(), eval())
-    if(period() == 1 & eval() == "intermission") return(TRUE)
+    if(period() == 1L & eval() == "intermission") return(TRUE)
     return(FALSE)
   })        ## Sidebar display
   output$p2_intermission <- reactive({
     req(period(), eval())
-    if(period() == 2 & eval() == "intermission") return(TRUE)
+    if(period() == 2L & eval() == "intermission") return(TRUE)
     return(FALSE)
   })        ## Sidebar display
   output$is_saved    <- reactive({

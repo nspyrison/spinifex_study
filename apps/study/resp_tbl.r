@@ -61,55 +61,55 @@ require("dplyr")
 #'   location_nms[location_perms[this_location_perm, ]]
 
 
-make_resp_tbl <- function(participant_num = sample(1:1000, 1)){
-  full_perm_num <- 1 + participant_num %% 56
+make_resp_tbl <- function(participant_num = sample(1L:1000L, 1L)){
+  full_perm_num <- 1 + participant_num %% 56L
   
   message(paste0("Participant_num: ", participant_num,
                  ", full_perm_num: ", full_perm_num))
   
   resp_tbl <- tibble::tibble(
-    key = paste(sep = "_", participant_num, full_perm_num, 1:15),
+    key = paste(sep = "_", participant_num, full_perm_num, 1L:15L),
     participant_num = as.integer(participant_num),
     full_perm_num   = as.integer(full_perm_num),
     prolific_id = NA_character_,
-    pg         = as.integer(1:15),
-    section_pg = as.integer(c(1:3,1:4,1:4,1:3, 1)),
-    section_nm = c(rep("intro", 3),
-                   rep("period1", 4),
-                   rep("period2", 4),
-                   rep("period3", 3),
+    pg         = as.integer(1L:15L),
+    section_pg = as.integer(c(1L:3L, 1L:4L, 1L:4L, 1L:3L, 1L)),
+    section_nm = c(rep("intro", 3L),
+                   rep("period1", 4L),
+                   rep("period2", 4L),
+                   rep("period3", 3L),
                    "survey"),
-    period = as.integer(c(rep(0, 3),
-                          rep(1, 4),
-                          rep(2, 4),
-                          rep(3, 3),
-                          4)),
-    plot_active = c(rep(FALSE, 3),
-                    rep(TRUE, 3), FALSE,
-                    rep(TRUE, 3), FALSE,
-                    rep(TRUE, 3), 
+    period = as.integer(c(rep(0L, 3L),
+                          rep(1L, 4L),
+                          rep(2L, 4L),
+                          rep(3L, 3L),
+                          4L)),
+    plot_active = c(rep(FALSE, 3L),
+                    rep(TRUE,  3L), FALSE,
+                    rep(TRUE,  3L), FALSE,
+                    rep(TRUE,  3L), 
                     FALSE),
     eval   = c("study structure", "video", "intermission",
-               "t1", 1, 2, "intermission", 
-               "t2", 3, 4, "intermission",
-               "t3", 5, 6, "study questions"),
-    factor = c(rep(NA, 3),
-               rep(this_factor_nm_ord[1], 3), NA,
-               rep(this_factor_nm_ord[3], 3), NA,
-               rep(this_factor_nm_ord[5], 3), NA),
-    vc     = c(rep(NA, 3),
-               "EEE", rep(this_vc_nm_ord[1], 2), NA,
-               "EEE", rep(this_vc_nm_ord[3], 2), NA,
-               "EEE", rep(this_vc_nm_ord[5], 2), NA),
-    p_dim  = c(rep(NA, 3),
-               rep(c("p4", "p4", "p6", NA), 3)),
-    location = c(rep(NA, 3),
-                 "0_1", rep(this_location_nm_ord[1], 2), NA,
-                 "0_1", rep(this_location_nm_ord[3], 2), NA,
-                 "0_1", rep(this_location_nm_ord[5], 2), NA),
+               "t1", 1L, 2L, "intermission", 
+               "t2", 3L, 4L, "intermission",
+               "t3", 5L, 6L, "study questions"),
+    factor = c(rep(NA, 3L),
+               rep(this_factor_nm_ord[1L], 3L), NA,
+               rep(this_factor_nm_ord[3L], 3L), NA,
+               rep(this_factor_nm_ord[5L], 3L), NA),
+    vc     = c(rep(NA, 3L),
+               "EEE", rep(this_vc_nm_ord[1L], 2L), NA,
+               "EEE", rep(this_vc_nm_ord[3L], 2L), NA,
+               "EEE", rep(this_vc_nm_ord[5L], 2L), NA),
+    p_dim  = c(rep(NA, 3L),
+               rep(c("p4", "p4", "p6", NA), 3L)),
+    location = c(rep(NA, 3L),
+                 "0_1", rep(this_location_nm_ord[1L], 2L), NA,
+                 "0_1", rep(this_location_nm_ord[3L], 2L), NA,
+                 "0_1", rep(this_location_nm_ord[5L], 2L), NA),
     sim_nm = case_when(
       is.na(vc) ~ NA_character_, ## wow, have to use NA_char_
-      substr(eval, 1, 1) == "t" ~ paste(sep = "_", vc, p_dim, location,
+      substr(eval, 1L, 1L) == "t" ~ paste(sep = "_", vc, p_dim, location,
                                         paste0("t", period)),
       TRUE ~ paste(sep = "_", vc, p_dim, location,
                    paste0("rep", period))
@@ -141,22 +141,22 @@ make_resp_tbl <- function(participant_num = sample(1:1000, 1)){
 
 
 
-make_survey_tbl <- function(participant_num = sample(1:1000, 1)){
-  full_perm_num <- 1 + participant_num %% 56
+make_survey_tbl <- function(participant_num = sample(1L:1000L, 1L)){
+  full_perm_num <- 1L + participant_num %% 56L
   
   message(paste0("Participant_num: ", participant_num,
                  ", full_perm_num: ", full_perm_num))
   
   survey_tbl <- tibble::tibble(
-    key = paste(sep = "_", participant_num, full_perm_num, 1:18),
+    key = paste(sep = "_", participant_num, full_perm_num, 1L:18L),
     participant_num = as.integer(participant_num),
     full_perm_num   = as.integer(full_perm_num),
     prolific_id     = NA_character_,
-    survey_num      = 1:18,
-    scope           = c(rep("demographic", 6), 
-                        rep(this_factor_nm_ord[1], 4),
-                        rep(this_factor_nm_ord[3], 4),
-                        rep(this_factor_nm_ord[5], 4) ),
+    survey_num      = 1L:18L,
+    scope           = c(rep("demographic", 6L), 
+                        rep(this_factor_nm_ord[1L], 4L),
+                        rep(this_factor_nm_ord[3L], 4L),
+                        rep(this_factor_nm_ord[5L], 4L) ),
     question        = NA_character_,
     response        = NA_character_,
     seconds_on_page = NA_integer_,

@@ -320,7 +320,7 @@ suvery_page <- conditionalPanel(
   ## Before save button:
   conditionalPanel( 
     condition = "output.is_saved == false",
-    selectInput("survey1", label = survey_questions[1L], 
+    selectInput("survey1", label = survey_questions[1L],
                 choices = c("decline to answer",
                             "female",
                             "male",
@@ -419,10 +419,10 @@ main_page <- mainPanel(
   conditionalPanel(
     condition = "output.factor == 'pca'",
     fluidRow(radioButtons(inputId = "x_axis", label = "x axis",
-                          choices = paste0("PC", 1:PC_cap),
+                          choices = paste0("PC", 1L:PC_cap),
                           selected = "PC1", inline = TRUE),
              radioButtons(inputId = "y_axis", label = "y axis",
-                          choices = paste0("PC", 1:PC_cap),
+                          choices = paste0("PC", 1L:PC_cap),
                           selected = "PC2", inline = TRUE)
     )
   ),
