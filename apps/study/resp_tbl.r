@@ -166,5 +166,5 @@ make_survey_tbl <- function(participant_num = sample(1:1000, 1)){
 }
 
 #' @examples
-#' (resp_tbl <- make_survey_tbl(participant_num))
-#' View(resp_tbl)
+#' (survey_tbl <- make_survey_tbl(participant_num))
+#' View(survey_tbl)

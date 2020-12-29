@@ -93,7 +93,7 @@ this_location_nm_ord <-
 
 init_resp_tbl   <- make_resp_tbl(participant_num)   ## func from ./resp_tbl.r
 init_survey_tbl <- make_survey_tbl(participant_num) ## func from ./resp_tbl.r
-survey_tbl$question = survey_questions
+
 
 ## Context, "onStart()" and onStop()
 context_line <- paste0("Spinifex STUDY, --- (spinifex v", packageVersion("spinifex"),
@@ -121,6 +121,7 @@ survey_questions <- c("Which sex are you?",
                             "I felt confident in my answers with this visualization.",
                             "I liked using this visualization."), 3)
 )
+init_survey_tbl$question = survey_questions
 
 
 #### Load data and tour paths -----
