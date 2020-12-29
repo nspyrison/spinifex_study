@@ -16,68 +16,75 @@ server <- function(input, output, session){
       cache = ".secrets", email = "nicholas.spyrison@monash.edu", use_oob = TRUE)
   }, error = function(e){
     txt <- "App could not authenticate to Google sheet. Please try again in 5 minutes. Closing app in 15 seconds."
-    showNotification(txt, type = "error", duration = 15)
+    showNotification(txt, type = "error", duration = 15L)
     warning(txt)
-    Sys.sleep(15)
+    Sys.sleep(15L)
     stopApp()
     return(NULL)
+  })
+  
+  
+  save_on_early_exit <- reactive({
+    ### Save resp_tbl on early exit
+    if(rv$pg < survey_pg){
+      this_row <- output_row()
+      
+      extra_row <- tibble::tibble(
+        key = "!!App ended without save button!!",
+        participant_num = as.integer(participant_num),
+        full_perm_num   = as.integer(full_perm_num),
+        pg              = NA_real_,
+        section_pg      = NA_real_,
+        section_nm      = paste0("rv$pg on close: ", rv$pg, ", ", 
+                                 round(100L * rv$pg / survey_pg, 2L), "% of the pages."),
+        period          = NA_real_,
+        plot_active     = NA_real_,
+        eval            = paste0("!Participant num ", participant_num, " dind't save app!"),
+        factor          = paste0("!Participant num ", participant_num, " dind't save app!"),
+        vc              = paste0("!Participant num ", participant_num, " dind't save app!"),
+        p_dim           = paste0("!Participant num ", participant_num, " dind't save app!"),
+        location        = paste0("!Participant num ", participant_num, " dind't save app!"),
+        sim_nm          = paste0("!Participant num ", participant_num, " dind't save app!"),
+        input_inter     = NA_integer_,
+        resp_inter      = NA_integer_,
+        ttr             = NA_integer_,
+        marks           = NA_real_,
+        write_dt        = as.character(Sys.time()),
+        v1_resp    = NA_integer_,
+        v2_resp    = NA_integer_,
+        v3_resp    = NA_integer_,
+        v4_resp    = NA_integer_,
+        v5_resp    = NA_integer_,
+        v6_resp    = NA_integer_,
+        v1_marks   = NA_real_,
+        v2_marks   = NA_real_,
+        v3_marks   = NA_real_,
+        v4_marks   = NA_real_,
+        v5_marks   = NA_real_,
+        v6_marks   = NA_real_,
+      )
+      these_rows <- cbind(this_row, extra_row)
+      
+      ## Save local and remote line
+      rv$resp_tbl[rv$pg:(rv$pg + 1L), ] <- these_rows
+      googlesheets4::sheet_append(ss_id, these_rows, 1L)
+      message("EARLY EXIT, resp_tbl, data rows apended for page: ", rv$pg, " -- ", substr(Sys.time(), 12L, 16L))
+    } ## End of writing to resp_tbl
+    
+    ### Save partial survey_tbl
+    if(input$save_survey < 1){
+      googlesheets4::sheet_append(ss_id, this_row, 2L)
+      message("EARLY EXIT, survey_tbl data row apended on page: ", rv$pg, " -- ", substr(Sys.time(), 12L, 16L))
+    }
   })
   
   ## onStop() This code will be run after the client has disconnected
   session$onSessionEnded(function() {
     cat(context_msg)
     message("ran session$onSessionEnded(f()).")
-    
-    reactive({
-      if(rv$pg < survey_pg | input$save_survey < 1){
-        ### Attempt to save, when closed early
-        this_row <- output_row()
-        
-        extra_row <- tibble::tibble(
-          key = "!!App ended without save button!!",
-          participant_num = as.integer(participant_num),
-          full_perm_num   = as.integer(full_perm_num),
-          pg              = NA_real_,
-          section_pg      = NA_real_,
-          section_nm      = paste0("rv$pg on close: ", rv$pg, ", ", 
-                                   round(100L * rv$pg / survey_pg, 2L), "% of the pages."),
-          period          = NA_real_,
-          plot_active     = NA_real_,
-          eval            = paste0("!Participant num ", participant_num, " dind't save app!"),
-          factor          = paste0("!Participant num ", participant_num, " dind't save app!"),
-          vc              = paste0("!Participant num ", participant_num, " dind't save app!"),
-          p_dim           = paste0("!Participant num ", participant_num, " dind't save app!"),
-          location        = paste0("!Participant num ", participant_num, " dind't save app!"),
-          sim_nm          = paste0("!Participant num ", participant_num, " dind't save app!"),
-          input_inter     = NA_integer_,
-          resp_inter      = NA_integer_,
-          ttr             = NA_integer_,
-          marks           = NA_real_,
-          write_dt        = as.character(Sys.time()),
-          v1_resp    = NA_integer_,
-          v2_resp    = NA_integer_,
-          v3_resp    = NA_integer_,
-          v4_resp    = NA_integer_,
-          v5_resp    = NA_integer_,
-          v6_resp    = NA_integer_,
-          v1_marks   = NA_real_,
-          v2_marks   = NA_real_,
-          v3_marks   = NA_real_,
-          v4_marks   = NA_real_,
-          v5_marks   = NA_real_,
-          v6_marks   = NA_real_,
-        )
-        these_rows <- cbind(this_row, extra_row)
-        
-        ## Save local and remote line
-        rv$resp_tbl[c(rv$pg, rv$pg + 1L), ] <- these_rows
-        googlesheets4::sheet_append(ss_id, these_rows)
-        message("onStop(): Data rows apended for page: ", rv$pg, " -- ", substr(Sys.time(), 12L, 16L))
-        
-      } ## End of writing to resp_tbl
-      ## Else do nothing
-    })
+    save_on_early_exit()
   })
+
   
   ##### Reactive value initialization -----
   rv             <- reactiveValues()
@@ -290,6 +297,7 @@ server <- function(input, output, session){
     updateCheckboxGroupInput(session, "var_resp",
                              choices = choices, selected = "", inline = TRUE)
   })
+  
   ### _Obs update axis/task choices -----
   observeEvent({
     dat()
@@ -364,7 +372,6 @@ server <- function(input, output, session){
   output_row <- reactive({
     if(is.na(factor()) == FALSE){
       this_row <- resp_row()
-      this_row$prolific_id <- input$prolific_id
       this_row$input_inter <- rv$input_inter
       this_row$resp_inter  <- rv$resp_inter
       this_row$ttr         <- rv$ttr
@@ -386,81 +393,81 @@ server <- function(input, output, session){
     }
   })
   
-  ## TODO: NEED TO capture resp and seconds on pg more elegantly may need a bunch of observeEvents.
   ### Captures responses and times to the survey:
   observeEvents(input$prolific_id, {
+    rv$resp_tbl$prolific_id   <- input$prolific_id
     rv$survey_tbl$prolific_id <- input$prolific_id
   })
   observeEvents(input$survey1, {
-      rv$survey_tbl$response[1] <- input$survey1
+      rv$survey_tbl$response[1]        <- input$survey1
       rv$survey_tbl$seconds_on_page[1] <- rv$sec_on_pg
   })
   observeEvents(input$survey2, {
-    rv$survey_tbl$response[2] <- input$survey2
+    rv$survey_tbl$response[2]        <- input$survey2
     rv$survey_tbl$seconds_on_page[2] <- rv$sec_on_pg
   })
   observeEvents(input$survey3, {
-    rv$survey_tbl$response[3] <- input$survey3
+    rv$survey_tbl$response[3]        <- input$survey3
     rv$survey_tbl$seconds_on_page[3] <- rv$sec_on_pg
   })
   observeEvents(input$survey4, {
-    rv$survey_tbl$response[4] <- input$survey4
+    rv$survey_tbl$response[4]        <- input$survey4
     rv$survey_tbl$seconds_on_page[4] <- rv$sec_on_pg
   })
   observeEvents(input$survey5, {
-    rv$survey_tbl$response[5] <- input$survey5
+    rv$survey_tbl$response[5]        <- input$survey5
     rv$survey_tbl$seconds_on_page[5] <- rv$sec_on_pg
   })
   observeEvents(input$survey6, {
-    rv$survey_tbl$response[6] <- input$survey6
+    rv$survey_tbl$response[6]        <- input$survey6
     rv$survey_tbl$seconds_on_page[6] <- rv$sec_on_pg
   })
   observeEvents(input$survey7, {
-    rv$survey_tbl$response[7] <- input$survey7
+    rv$survey_tbl$response[7]        <- input$survey7
     rv$survey_tbl$seconds_on_page[7] <- rv$sec_on_pg
   })
   observeEvents(input$survey8, {
-    rv$survey_tbl$response[8] <- input$survey8
+    rv$survey_tbl$response[8]        <- input$survey8
     rv$survey_tbl$seconds_on_page[8] <- rv$sec_on_pg
   })
   observeEvents(input$survey9, {
-    rv$survey_tbl$response[9] <- input$survey9
+    rv$survey_tbl$response[9]        <- input$survey9
     rv$survey_tbl$seconds_on_page[9] <- rv$sec_on_pg
   })
   observeEvents(input$survey10, {
-    rv$survey_tbl$response[10] <- input$survey10
+    rv$survey_tbl$response[10]        <- input$survey10
     rv$survey_tbl$seconds_on_page[10] <- rv$sec_on_pg
   })
   observeEvents(input$survey11, {
-    rv$survey_tbl$response[11] <- input$survey11
+    rv$survey_tbl$response[11]        <- input$survey11
     rv$survey_tbl$seconds_on_page[11] <- rv$sec_on_pg
   })
   observeEvents(input$survey12, {
-    rv$survey_tbl$response[12] <- input$survey12
+    rv$survey_tbl$response[12]        <- input$survey12
     rv$survey_tbl$seconds_on_page[12] <- rv$sec_on_pg
   })
   observeEvents(input$survey13, {
-    rv$survey_tbl$response[13] <- input$survey13
+    rv$survey_tbl$response[13]        <- input$survey13
     rv$survey_tbl$seconds_on_page[13] <- rv$sec_on_pg
   })
   observeEvents(input$survey14, {
-    rv$survey_tbl$response[14] <- input$survey14
+    rv$survey_tbl$response[14]        <- input$survey14
     rv$survey_tbl$seconds_on_page[14] <- rv$sec_on_pg
   })
   observeEvents(input$survey15, {
-    rv$survey_tbl$response[15] <- input$survey15
+    rv$survey_tbl$response[15]        <- input$survey15
     rv$survey_tbl$seconds_on_page[15] <- rv$sec_on_pg
   })
   observeEvents(input$survey16, {
-    rv$survey_tbl$response[16] <- input$survey16
+    rv$survey_tbl$response[16]        <- input$survey16
     rv$survey_tbl$seconds_on_page[16] <- rv$sec_on_pg
   })
   observeEvents(input$survey17, {
-    rv$survey_tbl$response[17] <- input$survey17
+    rv$survey_tbl$response[17]        <- input$survey17
     rv$survey_tbl$seconds_on_page[17] <- rv$sec_on_pg
   })
   observeEvents(input$survey18, {
-    rv$survey_tbl$response[18] <- input$survey18
+    rv$survey_tbl$response[18]        <- input$survey18
     rv$survey_tbl$seconds_on_page[18] <- rv$sec_on_pg
   })
   
@@ -472,7 +479,7 @@ server <- function(input, output, session){
       if(substr(eval(), 1L, 2L) == "t1" &
          marks() <= 0L){ ## If first training and marks less than/eq to 0, fail early.
         
-        txt <- paste0("You did not meet the required thershold for the training data set. 
+        txt <- paste0("You did not meet the required thershold for the training data set.
         Please enter the following code to <blah, blah>. On rv$pg ", rv$pg, ".")
         showNotification(txt, type = "error", duration = 30L)
         warning(txt)
@@ -489,7 +496,7 @@ server <- function(input, output, session){
         ## Update local table and write to google sheet.
         rv$resp_tbl[rv$pg, ] <- this_row
         googlesheets4::sheet_append(ss_id, this_row, 1L)
-        message("Data row apended for page: ", rv$pg, " -- ", 
+        message("resp_tbl, data row apended for page: ", rv$pg, " -- ", 
                 substr(Sys.time(), 12L, 16L))
       } ## End of writing to resp_tbl
       
