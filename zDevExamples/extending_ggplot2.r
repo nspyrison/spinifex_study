@@ -128,7 +128,6 @@ create_spring <- function(x, y, xend, yend, diameter = 1, tension = 0.75, n = 50
 `%||%` <- function(x, y) {
   if (is.null(x)) y else x
 }
-
 StatSpring <- ggproto("StatSpring", Stat, 
                       setup_data = function(data, params) {
                         if (anyDuplicated(data$group)) {
@@ -152,6 +151,7 @@ StatSpring <- ggproto("StatSpring", Stat,
                           cbind(spring_path, unclass(data[i, cols_to_keep]))
                         })
                         do.call(rbind, springs)
+                        browser()
                       },
                       required_aes = c("x", "y", "xend", "yend")
 )
@@ -242,7 +242,7 @@ ggplot(some_data) +
   ) + 
   facet_wrap(~ class)
 
-#### You turn, planning -----
+#### You turn, geom_proj -----
 ## Idea: consider linear projection as a data transformation.
 ## Following example 2, create_proj, StatProj, stat_proj, and grom_proj
 
@@ -278,14 +278,15 @@ create_proj <- function(data, basis){
 
 
 #### _2) StatProj
-StatProj <- ggproto("StatProj", Stat, 
-                    compute_group = function(data, scales) {
-                      create_proj(data, basis)
-                    },
-                    
-                    required_aes = c("x", "y")
-                    ## requires `data` and `basis`, but not aes() mappings
-                    )
+StatProj <- ggproto(
+  "StatProj", Stat, 
+  compute_group = function(data, scales) {
+    create_proj(data, basis)
+  },
+  ## requires `data` and `basis`, but not aes() mappings
+  ## this is where the issues will be.
+  required_aes = c("x", "y")
+)
 
 
 #### _3) stat_proj
@@ -343,4 +344,131 @@ ggplot(dat) +
   geom_proj(basis = bas, aes(x = tars1, y = tars2))
 
 ## __B) With group
+
+
+#### You turn, geom_myquantile -----
+
+## ribon example
+library(tidyverse)
+huron <- data.frame(year = 1875:1972, 
+                    value = LakeHuron,
+                    std = runif(length(LakeHuron),0,1))
+
+huron %>% 
+  ggplot(aes(year, value)) + 
+  geom_ribbon(aes(ymin = value - std,
+                  ymax = value + std),    # shadowing cnf intervals
+              fill = "steelblue2") + 
+  geom_line(color = "firebrick",
+            size = 1)                     # point estimate
+
+z <- data.frame(
+  x = rep(letters[1:3], each = 5),
+  x_num = rep(1:3, each = 5),
+  y = c(1:5, 
+        seq(10, 25, length.out = 5),
+        seq(-10, -2, length.out = 5))
+)
+data <- z; probs <- seq(.3, .7, .1); type = 1
+
+#### _1) data transform
+## Computes quantiles for y, for each level of x, facet, and group
+create_myquantile <- function(data, prob, type = 1){
+  if(length(probs) %% 2 == 0)
+    rlang::abort("Expects an odd number of `probs`")
+  
+  u_x <- unique(data$x)
+  ## Quantiles as a list within each unique x (applied to group and facet later)
+  lapply(seq_len(length(u_x)), function(i){
+    sub_y <- data$y[which(data$x %in% u_x[i])]
+    quantile(sub_y, probs, na.rm = TRUE, type = type)
+  })
+}
+
+
+#### _2) StatProj
+StatMyquantile <- ggproto(
+  "StatMyquantile", Stat, 
+  ## stat operates on multiple rows; use compute_group() over compute_panel()
+  setup_data = function(data, params){
+    if(anyDuplicated(data$group)){
+      data$group <- paste(data$group, seq_len(nrow(data)), sep = "-")
+    }
+    data
+  },
+  compute_group = function(data, scales,
+                           probs, type = 1){
+    cols_to_keep <- setdiff(names(data), c("x", "y"))
+    l_quantiles <- lapply(seq_len(nrow(data)), function(i){
+      single_quantile_group <- create_myquantile(data, probs, type)
+      cbind(single_quantile_group, unclass(data[i, cols_to_keep]))
+    })
+    do.call(rbind, l_quantiles)
+  },
+  required_aes = c("x", "y")
+)
+
+
+#### _3) stat_proj
+stat_myquantile <- function(mapping = NULL, data = NULL, geom = "ribbon",
+                            position = "identity", ...,
+                            probs = NULL, type = 1,
+                            na.rm = FALSE, show.legend = NA, inherit.aes = TRUE){
+  browser()
+  layer(data = data, 
+        mapping = mapping, 
+        stat = StatMyquantile,
+        geom = geom, 
+        position = position, 
+        show.legend = show.legend,
+        inherit.aes = inherit.aes,
+        params = list(probs = probs,
+                      type = tpye,
+                      na.rm = na.rm,
+                      ...
+        )
+  )
+}
+
+#### _4) geom_proj
+
+geom_myquantile <- function(mapping = NULL,
+                      data = NULL,
+                      stat = "myquantile",
+                      position = "identity",
+                      ...,
+                      basis = NULL,
+                      na.rm = FALSE,
+                      show.legend = NA,
+                      inherit.aes = TRUE){
+  layer(data = data,
+        mapping = mapping,
+        stat = stat,
+        geom = GeomRibbon,
+        position = position,
+        show.legend = show.legend,
+        inherit.aes = inherit.aes,
+        params = list(basis,
+                      na.rm = na.rm,
+                      ...
+        )
+  )
+}
+
+
+## _4) Test drive
+## __A) Without group
+z <- data.frame(
+  x_fct = as.factor(rep(letters[1:3], each = 5)),
+  x_num = rep(1:3, each = 5),
+  measure = c(1:5,
+        seq(10, 25, length.out = 5),
+        seq(-10, -2, length.out = 5))
+)
+
+ggplot(z) + 
+  geom_myquantile(aes(x_fct, measure))
+
+## __B) With group
+
 
