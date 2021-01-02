@@ -260,9 +260,16 @@ training_page <- conditionalPanel(
 ) ## Close conditionalPanel, assigning training_page
 
 ### Initialize for survey -----
-.surv_lab <-  div(style = 'width:300px;',
-                  div(style = 'float:left;', 'strongly disagree'),
-                  div(style = 'float:right;', 'strongly agree')) 
+.surv_lab <-  div(style = 'width:220px;',
+                  div(style = 'float:left;', '|<- disagree'),
+                  div(style = 'float:right;', 'agree ->|'))
+# .surv_lab <- p(style = "float: left;",  "strongly disagree",
+#                span(style = "float: right;", "strongly agree"))
+# .surv_lab <- HTML("<div>
+#        <p style='text-align: right'>Text on the left.</p>
+#        <p style='text-align: left'>Text on the right.</p>
+#        </div>
+#        <div style='clear: both;'></div>")
 col_p1 <- column(4L,
                  h3(this_factor_nm_ord[1L]),
                  hr(),
@@ -282,23 +289,23 @@ col_p1 <- column(4L,
 )
 
 col_p2 <- column(4L,
-                 h3(this_factor_nm_ord[2L]),
+                 h3(this_factor_nm_ord[3L]),
                  hr(),
                  h4(survey_questions[11L]),
                  sliderInput("survey11", label = .surv_lab,
                              min = 1L, max = 9L, value = 5L),
-                 h4(survey_questions[12]),
+                 h4(survey_questions[12L]),
                  sliderInput("survey12",label = .surv_lab,
                              min = 1L, max = 9L, value = 5L),
-                 h4(survey_questions[13]),
+                 h4(survey_questions[13L]),
                  sliderInput("survey13", label = .surv_lab,
                              min = 1L, max = 9L, value = 5L),
-                 h4(survey_questions[14]),
+                 h4(survey_questions[14L]),
                  sliderInput("survey14", label = .surv_lab,
                              min = 1L, max = 9L, value = 5L),
 )
-col_p3 <- column(4, 
-                 h3(this_factor_nm_ord[3L]),
+col_p3 <- column(4L,
+                 h3(this_factor_nm_ord[5L]),
                  hr(),
                  h4(survey_questions[15L]),
                  sliderInput("survey15", label = .surv_lab,
@@ -316,7 +323,7 @@ col_p3 <- column(4,
 
 ### survey_page -----
 suvery_page <- conditionalPanel(
-  condition = "output.section == 'survey'",
+  condition = "output.section_nm == 'survey'",
   ## Before save button:
   conditionalPanel( 
     condition = "output.is_saved == false",

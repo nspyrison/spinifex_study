@@ -35,7 +35,7 @@ server <- function(input, output, session){
   
   ##### Reactive value initialization -----
   rv             <- reactiveValues()
-  rv$pg          <- 1L ## SET STARTING PAGE HERE <<<
+  rv$pg          <- 15L ## SET STARTING PAGE HERE <<<
   rv$sec_on_pg   <- 0L
   ## Below are not needed, but to be explicit,
   rv$input_inter <- 0L
@@ -516,7 +516,7 @@ server <- function(input, output, session){
     if(period() == 2L & eval() == "intermission") return(TRUE)
     return(FALSE)
   })        ## Sidebar display
-  output$is_saved    <- reactive({
+  output$is_saved <- reactive({
     if(input$save_survey == 1L) return(TRUE)
     return(FALSE)
   }
@@ -539,8 +539,8 @@ server <- function(input, output, session){
   outputOptions(output, "do_disp_prolific_code", suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "dev_tools",             suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "p1_intermission",       suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "p2_intermission",       suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
-  
+  outputOptions(output, "p2_intermission",       suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "is_saved",              suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
   
   ### General task outputs
   ## height: ggplot applies on renderPlot(), plotly applies to a plotly option.
