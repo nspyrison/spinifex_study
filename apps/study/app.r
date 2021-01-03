@@ -251,9 +251,8 @@ server <- function(input, output, session){
   }, {
     ## Initialize axis choices when data changes
     if(factor() == "pca"){
-      choices <- paste0("PC", 1:PC_cap)
-      updateRadioButtons(session, "x_axis", choices = choices, selected = "PC1", inline = TRUE)
-      updateRadioButtons(session, "y_axis", choices = choices, selected = "PC2", inline = TRUE)
+      updateRadioButtons(session, "x_axis", choices = pca_choices, selected = "PC1", inline = TRUE)
+      updateRadioButtons(session, "y_axis", choices = pca_choices, selected = "PC2", inline = TRUE)
     }
     if(factor() == "radial"){
       choices <- paste0("V", 1L:p())
@@ -265,17 +264,13 @@ server <- function(input, output, session){
   })
   ## When x_axis set, disable corresponding y_axis opt.
   observeEvent(input$x_axis, {
-    disable(selector = paste0("#y_axis button:eq(", 
-                              as.integer(substr(input$x_axis, 3L, 3L)),
-                              ")")
-    )
+    .remainder <- pca_choices[!(input$x_axis %in% pca_choices)]
+    updateRadioButtons(session, "y_axis", choices = .remainder, selected = .remainder[1], inline = TRUE)
   })
   ## When y_axis set, disable corresponding x_axis opt.
   observeEvent(input$y_axis, {
-    disable(selector = paste0("#x_axis button:eq(", 
-                              as.integer(substr(input$y_axis, 3L, 3L)),
-                              ")")
-    )
+    .remainder <- pca_choices[!(input$y_axis %in% pca_choices)]
+    updateRadioButtons(session, "x_axis", choices = .remainder, selected = .remainder[1], inline = TRUE)
   })
   
   ### _Obs radial update manip_var_nm choices -----
@@ -346,8 +341,8 @@ server <- function(input, output, session){
     rv$survey_tbl$prolific_id <- input$prolific_id
   })
   observeEvent(input$survey1, {
-      rv$survey_tbl$response[1L]        <- input$survey1
-      rv$survey_tbl$seconds_on_page[1L] <- rv$sec_on_pg
+    rv$survey_tbl$response[1L]        <- input$survey1
+    rv$survey_tbl$seconds_on_page[1L] <- rv$sec_on_pg
   })
   observeEvent(input$survey2, {
     rv$survey_tbl$response[2L]        <- input$survey2
@@ -362,8 +357,10 @@ server <- function(input, output, session){
     rv$survey_tbl$seconds_on_page[4L] <- rv$sec_on_pg
   })
   observeEvent(input$survey5, {
-    rv$survey_tbl$response[5L]        <- input$survey5
-    rv$survey_tbl$seconds_on_page[5L] <- rv$sec_on_pg
+    if(rv$sec_on_pg > 0){
+      rv$survey_tbl$response[5L]        <- input$survey5
+      rv$survey_tbl$seconds_on_page[5L] <- rv$sec_on_pg
+    }
   })
   observeEvent(input$survey6, {
     rv$survey_tbl$response[6L]        <- input$survey6

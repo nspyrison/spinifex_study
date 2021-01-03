@@ -260,7 +260,10 @@ training_page <- conditionalPanel(
 ) ## Close conditionalPanel, assigning training_page
 
 ### Initialize for survey -----
-.surv_lab <-  div(style = 'width:220px;',
+.surv_lab <-  div(style = 'width:300px;',
+                  div(style = 'float:left;', '|<- disagree'),
+                  div(style = 'float:right;', 'agree ->|'))
+.surv_lab2 <-  div(style = 'width:220px;',
                   div(style = 'float:left;', '|<- disagree'),
                   div(style = 'float:right;', 'agree ->|'))
 # .surv_lab <- p(style = "float: left;",  "strongly disagree",
@@ -274,51 +277,51 @@ col_p1 <- column(4L,
                  h3(this_factor_nm_ord[1L]),
                  hr(),
                  h4(survey_questions[7L]),
-                 sliderInput("survey7",label = .surv_lab,
-                             min = 1L, max = 9L, value = 5L),
+                 sliderInput("survey7", label = .surv_lab2,
+                             min = 1L, max = 9L, value = 5L, step = 1),
                  h4(survey_questions[8L]),
-                 sliderInput("survey8",label = .surv_lab,
-                             min = 1L, max = 9L, value = 5L),
+                 sliderInput("survey8", label = .surv_lab2,
+                             min = 1L, max = 9L, value = 5L, step = 1),
                  h4(survey_questions[9L]),
-                 sliderInput("survey9", label = .surv_lab,
-                             min = 1L, max = 9L, value = 5L),
+                 sliderInput("survey9", label = .surv_lab2,
+                             min = 1L, max = 9L, value = 5L, step = 1),
                  h4(survey_questions[10L]),
                  sliderInput("survey10",
-                             label = .surv_lab,
-                             min = 1L, max = 9L, value = 5L)
+                             label = .surv_lab2,
+                             min = 1L, max = 9L, value = 5L, step = 1)
 )
 
 col_p2 <- column(4L,
                  h3(this_factor_nm_ord[3L]),
                  hr(),
                  h4(survey_questions[11L]),
-                 sliderInput("survey11", label = .surv_lab,
-                             min = 1L, max = 9L, value = 5L),
+                 sliderInput("survey11", label = .surv_lab2,
+                             min = 1L, max = 9L, value = 5L, step = 1),
                  h4(survey_questions[12L]),
-                 sliderInput("survey12",label = .surv_lab,
-                             min = 1L, max = 9L, value = 5L),
+                 sliderInput("survey12", label = .surv_lab2,
+                             min = 1L, max = 9L, value = 5L, step = 1),
                  h4(survey_questions[13L]),
-                 sliderInput("survey13", label = .surv_lab,
-                             min = 1L, max = 9L, value = 5L),
+                 sliderInput("survey13", label = .surv_lab2,
+                             min = 1L, max = 9L, value = 5L, step = 1),
                  h4(survey_questions[14L]),
-                 sliderInput("survey14", label = .surv_lab,
-                             min = 1L, max = 9L, value = 5L),
+                 sliderInput("survey14", label = .surv_lab2,
+                             min = 1L, max = 9L, value = 5L, step = 1),
 )
 col_p3 <- column(4L,
                  h3(this_factor_nm_ord[5L]),
                  hr(),
                  h4(survey_questions[15L]),
-                 sliderInput("survey15", label = .surv_lab,
-                             min = 1L, max = 9L, value = 5L),
+                 sliderInput("survey15", label = .surv_lab2,
+                             min = 1L, max = 9L, value = 5L, step = 1),
                  h4(survey_questions[16L]),
-                 sliderInput("survey16", label = .surv_lab,
-                             min = 1L, max = 9L, value = 5L),
+                 sliderInput("survey16", label = .surv_lab2,
+                             min = 1L, max = 9L, value = 5L, step = 1),
                  h4(survey_questions[17L]),
-                 sliderInput("survey17", label = .surv_lab,
-                             min = 1L, max = 9L, value = 5L),
+                 sliderInput("survey17", label = .surv_lab2,
+                             min = 1L, max = 9L, value = 5L, step = 1),
                  h4(survey_questions[18L]),
-                 sliderInput("survey18", label = .surv_lab,
-                             min = 1L, max = 9L, value = 5L)
+                 sliderInput("survey18", label = .surv_lab2,
+                             min = 1L, max = 9L, value = 5L, step = 1)
 )
 
 ### survey_page -----
@@ -353,10 +356,10 @@ suvery_page <- conditionalPanel(
     h3("How much do you agree with the following statements?"),
     h4(survey_questions[5L]),
     sliderInput("survey5", label = .surv_lab,
-                min = 1L, max = 9L, value = 5L),
+                min = 1L, max = 9L, value = 5L, step = 1),
     h4(survey_questions[6L]),
     sliderInput("survey6",label = .surv_lab,
-                min = 1L, max = 9L, value = 5L),
+                min = 1L, max = 9L, value = 5L, step = 1),
     fluidRow(col_p1, col_p2, col_p3),
     hr(),
     actionButton("save_survey", "Save survey responses")
@@ -380,7 +383,10 @@ suvery_page <- conditionalPanel(
 ### header_page -----
 header_page <- fluidPage(
   titlePanel("User study"),
-  actionButton("next_pg_button", "Next page")
+  conditionalPanel(
+    condition = "(output.pg != 15)",
+    actionButton("next_pg_button", "Next page")
+  )
 )
 
 ##### sidebar_panel ----
@@ -402,6 +408,7 @@ p2_intermission <- conditionalPanel("output$p2_intermission == true",
   
   
 ##### main_page -----
+pca_choices <- paste0("PC", 1L:PC_cap)
 main_page <- mainPanel(
   width = 9L,
   intro_page1,
@@ -426,10 +433,10 @@ main_page <- mainPanel(
   conditionalPanel(
     condition = "output.factor == 'pca'",
     fluidRow(radioButtons(inputId = "x_axis", label = "x axis",
-                          choices = paste0("PC", 1L:PC_cap),
+                          choices = pca_choices,
                           selected = "PC1", inline = TRUE),
              radioButtons(inputId = "y_axis", label = "y axis",
-                          choices = paste0("PC", 1L:PC_cap),
+                          choices = pca_choices,
                           selected = "PC2", inline = TRUE)
     )
   ),

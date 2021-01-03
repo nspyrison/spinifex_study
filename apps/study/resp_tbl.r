@@ -158,7 +158,8 @@ make_survey_tbl <- function(participant_num = sample(1L:1000L, 1L)){
                         rep(this_factor_nm_ord[3L], 4L),
                         rep(this_factor_nm_ord[5L], 4L) ),
     question        = NA_character_,
-    response        = NA_character_,
+    response        = c(rep("decline to answer <default, no change>", 4),
+                        rep("5 <default, no change>", 15)),
     seconds_on_page = NA_integer_,
     write_dt        = NA_character_,
   )
