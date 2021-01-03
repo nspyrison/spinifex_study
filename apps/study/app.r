@@ -35,7 +35,7 @@ server <- function(input, output, session){
   
   ##### Reactive value initialization -----
   rv             <- reactiveValues()
-  rv$pg          <- 15L ## SET STARTING PAGE HERE <<<
+  rv$pg          <- 1L ## SET STARTING PAGE HERE <<<
   rv$sec_on_pg   <- 0L
   ## Below are not needed, but to be explicit,
   rv$input_inter <- 0L
@@ -138,26 +138,32 @@ server <- function(input, output, session){
   })
   output$var_resp <- renderPrint(var_resp())
   v1_resp <- reactive({
+    if(substr(section_nm(), 1L, 6L) != "period") return(NA)
     req(var_resp())
     return(1L %in% var_resp())
   })
   v2_resp <- reactive({
+    if(substr(section_nm(), 1L, 6L) != "period") return(NA)
     req(var_resp())
     return(2L %in% var_resp())
   })
   v3_resp <- reactive({
+    if(substr(section_nm(), 1L, 6L) != "period") return(NA)
     req(var_resp())
     return(3L %in% var_resp())
   })
   v4_resp <- reactive({
+    if(substr(section_nm(), 1L, 6L) != "period") return(NA)
     req(var_resp())
     return(4L %in% var_resp())
   })
   v5_resp <- reactive({
+    if(substr(section_nm(), 1L, 6L) != "period") return(NA)
     req(var_resp())
     return(5L %in% var_resp())
   })
   v6_resp <- reactive({
+    if(substr(section_nm(), 1L, 6L) != "period") return(NA)
     req(var_resp())
     return(6L %in% var_resp())
   })
@@ -198,31 +204,38 @@ server <- function(input, output, session){
       round(var_marks(), 2L)
   })
   v1_marks <- reactive({
+    if(substr(section_nm(), 1L, 6L) != "period") return(NA)
     req(var_marks())
     return(v1_resp() * var_weight()[1L])
   })
   v2_marks <- reactive({
+    if(substr(section_nm(), 1L, 6L) != "period") return(NA)
     req(var_marks())
     return(v2_resp() * var_weight()[2L])
   })
   v3_marks <- reactive({
+    if(substr(section_nm(), 1L, 6L) != "period") return(NA)
     req(var_marks())
     return(v3_resp() * var_weight()[3L])
   })
   v4_marks <- reactive({
+    if(substr(section_nm(), 1L, 6L) != "period") return(NA)
     req(var_marks())
     return(v4_resp() * var_weight()[4L])
   })
   v5_marks <- reactive({
+    if(substr(section_nm(), 1L, 6L) != "period") return(NA)
     req(var_marks())
     return(v5_resp() * var_weight()[5L])
   })
   v6_marks <- reactive({
+    if(substr(section_nm(), 1L, 6L) != "period") return(NA)
     req(var_marks())
     return(v6_resp() * var_weight()[6L])
   })
   
   marks <- reactive({
+    if(substr(section_nm(), 1L, 6L) != "period") return(NA)
     req(is.logical(plot_active()))
     req(var_marks())
     if(plot_active() == TRUE)
@@ -312,27 +325,25 @@ server <- function(input, output, session){
     }
   )
   output_row <- reactive({
-    if(is.na(factor()) == FALSE){
-      this_row <- resp_row()
-      this_row$input_inter <- rv$input_inter
-      this_row$resp_inter  <- rv$resp_inter
-      this_row$ttr         <- rv$ttr
-      this_row$marks       <- marks()
-      this_row$write_dt    <- as.character(Sys.time())
-      this_row$v1_resp     <- v1_resp()
-      this_row$v2_resp     <- v2_resp()
-      this_row$v3_resp     <- v3_resp()
-      this_row$v4_resp     <- v4_resp()
-      this_row$v5_resp     <- v5_resp()
-      this_row$v6_resp     <- v6_resp()
-      this_row$v1_marks    <- v1_marks()
-      this_row$v2_marks    <- v2_marks()
-      this_row$v3_marks    <- v3_marks()
-      this_row$v4_marks    <- v4_marks()
-      this_row$v5_marks    <- v5_marks()
-      this_row$v6_marks    <- v6_marks()
-      return(this_row)
-    }
+    this_row <- resp_row()
+    this_row$input_inter <- rv$input_inter
+    this_row$resp_inter  <- rv$resp_inter
+    this_row$ttr         <- rv$ttr
+    this_row$marks       <- marks()
+    this_row$write_dt    <- as.character(Sys.time())
+    this_row$v1_resp     <- v1_resp()
+    this_row$v2_resp     <- v2_resp()
+    this_row$v3_resp     <- v3_resp()
+    this_row$v4_resp     <- v4_resp()
+    this_row$v5_resp     <- v5_resp()
+    this_row$v6_resp     <- v6_resp()
+    this_row$v1_marks    <- v1_marks()
+    this_row$v2_marks    <- v2_marks()
+    this_row$v3_marks    <- v3_marks()
+    this_row$v4_marks    <- v4_marks()
+    this_row$v5_marks    <- v5_marks()
+    this_row$v6_marks    <- v6_marks()
+    return(this_row)
   })
   
   ### Captures responses and times to the survey:
@@ -435,14 +446,13 @@ server <- function(input, output, session){
       
       ##### __rv$resp_tbl -----
       ## Write responses and ttr to resp_tbl
-      if(is.na(factor()) == FALSE){
-        this_row <- output_row()
-        ## Update local table and write to google sheet.
-        rv$resp_tbl[rv$pg, ] <- this_row
-        googlesheets4::sheet_append(ss_id, this_row, 1L)
-        message("resp_tbl, data row apended for page: ", rv$pg, " -- ", 
-                substr(Sys.time(), 12L, 16L))
-      } ## End of writing to resp_tbl
+      this_row <- output_row()
+      ## Update local table and write to Google sheet.
+      rv$resp_tbl[rv$pg, ] <- this_row
+      googlesheets4::sheet_append(ss_id, this_row, 1L)
+      message("resp_tbl, data row apended for page: ", rv$pg, " -- ",
+              substr(Sys.time(), 12L, 16L))
+      ## End of writing to resp_tbl
       
       ### __New page ----
       ## Advance to the next page, reset other rv variables
@@ -474,7 +484,7 @@ server <- function(input, output, session){
   
   ### _Obs timer -----
   observe({
-    invalidateLater(1000L, session) ## Every 1000 ms; ie. every second
+    invalidateLater(1000L, session) ## Every 1000 ms
     isolate({
       rv$sec_on_pg <- rv$sec_on_pg + 1L
     })
@@ -519,9 +529,9 @@ server <- function(input, output, session){
   }
   )
   output$do_disp_prolific_code <- reactive({    ## Display of prolific pay code
-    if(is.na(input$prolific_id) == FALSE)
-      return(TRUE)
-    return(FALSE)
+    if(input$prolific_id == "")
+      return(FALSE)
+    return(TRUE)
   })
   output$dev_tools   <- reactive({              ## For JS eval of R boolean...
     return(do_disp_dev_tools)

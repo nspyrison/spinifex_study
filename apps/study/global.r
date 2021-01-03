@@ -74,9 +74,9 @@ location_nms <- c("0_1", "33_66", "50_50")
 vc_nms       <- c("EEE", "EEV", "banana")
 p_dim_nms <- this_p_dim_nm_ord <- c("p4", "p6")
 ## The permutation numbers
-r_fct <- nrow(factor_perms)   ##~6
-r_loc <- nrow(location_perms) ##~6
-r_vc  <- nrow(vc_perms)       ##~1
+r_fct <- nrow(factor_perms)     ##~6
+r_loc <- nrow(location_perms)   ##~6
+r_vc  <- nrow(vc_perms)         ##~1
 r_perms <- r_fct * r_loc * r_vc ##~36
 this_factor_perm   <- 1L + (full_perm_num - 1L) %% r_fct
 this_location_perm <- 1L #1 + floor((full_perm_num - 1) / r_fct) %% r_loc
@@ -334,7 +334,7 @@ suvery_page <- conditionalPanel(
                 choices = c("decline to answer",
                             "female",
                             "male",
-                            "intergender/other")
+                            "intersex/other")
     ),
     selectInput("survey2", label = survey_questions[2L],
                 choices = c("decline to answer",
@@ -367,13 +367,12 @@ suvery_page <- conditionalPanel(
   ## After save button:
   conditionalPanel(
     condition = "output.is_saved == true",
-    htmlOutput("save_msg"),
     conditionalPanel(
       condition = "output.is_saved == 1",
-      h3("Thank you for participating!"),
+      h3("Reponses saved. Thank you for participating!"),
       conditionalPanel("output.do_disp_prolific_code == true",
                        br(),
-                       h4("Enter the completion code '18B6C620' to redeem payment.")
+                       h3("Enter the completion code '18B6C620' to redeem payment.")
       )
     )
   )
