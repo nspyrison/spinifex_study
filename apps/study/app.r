@@ -10,7 +10,7 @@ server <- function(input, output, session){
   ## for setup see "./.secrets/save_token.r
   tryCatch({
     ## For the first time running the app in R to get the OAuth token:
-    #googlesheets4::gs4_auth(cache = ".secrets") 
+    #googlesheets4::gs4_auth(cache = ".secrets")
     ## Downstream runs use:
     googlesheets4::gs4_auth(
       cache = ".secrets", email = "nicholas.spyrison@monash.edu", use_oob = TRUE)
@@ -71,7 +71,6 @@ server <- function(input, output, session){
   
   image_fp <- reactive({
     if(plot_active()){
-      #dir_sim_nm <- paste0("../images/", sim_nm())
       fct_nm <- factor()
       if(fct_nm == "pca")
         fct_suffix <- paste0("pca_x", x_axis_num(), "y", y_axis_num(), ".png")
@@ -113,11 +112,12 @@ server <- function(input, output, session){
   header <- reactive({
     req(eval())
     if(eval() %in% 1L:6L)
-      return(paste0("Evaluation -- factor: ", factor()))
-    if(eval() == "training")
-      return(paste0("Training -- factor: ", factor()))
+      return(paste0("Evaluation -- ", factor()))
+    if(substr(eval(), 1, 1) == "t")
+      return(paste0("Training -- ", factor()))
     return("")
   })
+  output$header <- renderText(header())
   time_left <- reactive({
     time_alotted - rv$sec_on_pg
   })
@@ -362,7 +362,7 @@ server <- function(input, output, session){
     if(rv$sec_on_pg > 0){
       rv$survey_tbl$response[2L]        <- input$survey2
       rv$survey_tbl$seconds_on_page[2L] <- rv$sec_on_pg
-    )
+    }
   })
   observeEvent(input$survey3, {
     if(rv$sec_on_pg > 0){
@@ -467,8 +467,7 @@ server <- function(input, output, session){
     if((rv$sec_on_pg > 1L & do_disp_dev_tools == TRUE) | do_disp_dev_tools == FALSE){
       ##### __ eval training
       if(substr(eval(), 1L, 2L) == "t1" &
-         marks() <= 0L){ ## If first training and marks less than/eq to 0, fail early.
-        
+         marks() <= 0L){ ## If FIRST training and marks less than/eq to 0, fail early.
         txt <- paste0("You did not meet the required thershold for the training data set.
         Please enter the following code to <blah, blah>. On rv$pg ", rv$pg, ".")
         showNotification(txt, type = "error", duration = 30L)
@@ -507,7 +506,7 @@ server <- function(input, output, session){
     googlesheets4::sheet_append(ss_id, rv$survey_tbl, 2L)
     message("survey_tbl, full table apended for page: ", rv$pg, " -- ", substr(Sys.time(), 12L, 16L))
     
-    ## Message back
+    ## Save Message
     save_msg <- paste0("Reponses saved. Thank you for participating!")
     showNotification(save_msg, type = "message", duration = 10L)
     output$save_msg <- renderText(save_msg)
@@ -518,7 +517,7 @@ server <- function(input, output, session){
   
   ### _Obs timer -----
   observe({
-    invalidateLater(1000L, session) ## Every 1000 ms
+    invalidateLater(1000L, session) ## Every 1000 ms, increment a second
     isolate({
       rv$sec_on_pg <- rv$sec_on_pg + 1L
     })
@@ -555,8 +554,7 @@ server <- function(input, output, session){
   output$is_saved <- reactive({                 ## save button 
     if(input$save_survey == 1L) return(TRUE)
     return(FALSE)
-  }
-  )
+  })
   output$do_disp_prolific_code <- reactive({    ## prolific pay code
     if(input$prolific_id == "")
       return(FALSE)
@@ -566,20 +564,19 @@ server <- function(input, output, session){
     return(do_disp_dev_tools)
   }) 
   
-  outputOptions(output, "pg",                    suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
-  outputOptions(output, "factor",                suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "section_nm",            suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "section_pg",            suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "plot_active",           suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "eval",                  suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "do_disp_prolific_code", suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "do_disp_dev_tools",     suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "is_intermission",       suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "is_saved",              suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
+  ## Eager evaluation for correct ui conditionalPanel functionality
+  outputOptions(output, "pg",                    suspendWhenHidden = FALSE)
+  outputOptions(output, "factor",                suspendWhenHidden = FALSE)
+  outputOptions(output, "section_nm",            suspendWhenHidden = FALSE)
+  outputOptions(output, "section_pg",            suspendWhenHidden = FALSE)
+  outputOptions(output, "plot_active",           suspendWhenHidden = FALSE)
+  outputOptions(output, "eval",                  suspendWhenHidden = FALSE)
+  outputOptions(output, "do_disp_prolific_code", suspendWhenHidden = FALSE)
+  outputOptions(output, "do_disp_dev_tools",     suspendWhenHidden = FALSE)
+  outputOptions(output, "is_intermission",       suspendWhenHidden = FALSE)
+  outputOptions(output, "is_saved",              suspendWhenHidden = FALSE)
   
-  ### General task outputs
-  ## height: ggplot applies on renderPlot(), plotly applies to a plotly option.
-  output$header <- renderText(header())
+  
   
   ### dev_tools display -----
   output$dev_msg  <- renderPrint({

@@ -90,18 +90,16 @@ this_location_nm_ord <-
   location_nms[location_perms[this_location_perm, ]]
 
 
-
-init_resp_tbl   <- make_resp_tbl(participant_num)   ## func from ./resp_tbl.r
-init_survey_tbl <- make_survey_tbl(participant_num) ## func from ./resp_tbl.r
+## Functions from source('resp_tbl.r', local = TRUE)
+init_resp_tbl   <- make_resp_tbl(participant_num)
+init_survey_tbl <- make_survey_tbl(participant_num)
 
 
 ## Context, "onStart()" and onStop()
 context_line <- paste0("Spinifex STUDY, --- (spinifex v", packageVersion("spinifex"),
                        ") --- Started ", Sys.time())
 message("ran onStart() code.")
-## This won't work on shiny app.
-# this_Sys.info <- paste(Sys.info()[1:5], collapse = ", ")
-## dummy onStart(function(){})
+## quasi onStart():
 context_msg <- paste(sep = " \n",
                      context_line,
                      paste0("Participant number: ", participant_num, "."),
@@ -125,15 +123,13 @@ init_survey_tbl$question = survey_questions
 
 
 #### Load data and tour paths -----
-root <- ("./www/data/") ## Local 
-
+root <- ("./www/data/")
 this_sim_nms <- paste(rep(this_vc_nm_ord, 3L), rep(p_dim_nms, 3L), rep(this_location_nm_ord, 3L), sep = "_")
 this_sim_nms <- c(paste0("EEE_p4_0_1_t", 1L:3L), 
                   as.vector(outer(this_sim_nms, paste0("_rep", 1L:3L), FUN = "paste0")) ## cross product paste
 ) 
 
-
-# ## Load all sim names, for dev control
+# ## Alternatively, load all sim names
 # sim_nms <- c("EEE_p4_0_1",    "EEE_p4_33_66",    "EEE_p4_50_50",
 #              "EEV_p4_0_1",    "EEV_p4_33_66",    "EEV_p4_50_50",
 #              "banana_p4_0_1", "banana_p4_33_66", "banana_p4_50_50",
@@ -147,8 +143,6 @@ sapply(this_sim_nms, function(i){
   this_fq_fp_sim_nm <-paste0(root, i, ".rda")
   load(this_fq_fp_sim_nm, envir = globalenv())
   })
-
-
 
 
 ##### Global variable initialization -----
@@ -214,19 +208,19 @@ intro_page1 <- conditionalPanel( ## First page conditionalPanel
 ### intro_page2 -----
 intro_page2 <- conditionalPanel(
   condition = "output.pg == 2", 
-  h2("Video training"), tags$br(), tags$br(),
-  p("Watch the following video before proceeding:"), tags$br(), 
+  h2("Video training"), br(), br(),
+  p("Watch the following video before proceeding:"), br(), 
   # Adding the 'a' tag to the sidebar linking external file
   p("Minimize the study and watch the training video."),
   #tags$a(href='training.mp4', target='blank', 'training video (4:17)'), 
-  tags$br(), tags$br(), 
+  br(), br(), 
   p("If this link only contains audio let the invigilator know.")
 )  ## End of conditionalPanel, assigning intro_page2
 
 ### intro_page3 -----
 intermission_page <- conditionalPanel(
-  condition = "output$is_intermission == true", 
-  h2("Intermission"), tags$br(), tags$br(),
+  condition = "output.is_intermission == true", 
+  h2("Intermission"), br(), br(),
   p("Take a minute to strech, drink some water, or look out the window."),
   p("When you are refreshed and ready to continue proceed to the next page.")
 )
@@ -312,7 +306,7 @@ suvery_page <- conditionalPanel(
                 choices = c("decline to answer",
                             "English first language",
                             "English not first language")),
-    selectInput("survey4", label = survey_questions[4L], 
+    selectInput("survey4", label = survey_questions[4L],
                 choices = c("decline to answer",
                             "High school",
                             "Undergraduate",
@@ -341,7 +335,7 @@ suvery_page <- conditionalPanel(
       )
     )
   )
-) ## close condition panel, assigning survey_page
+) ## Close condition panel, assigning survey_page
 
 
 ### header_page -----
@@ -366,8 +360,7 @@ sidebar_panel <- conditionalPanel(
 ) ## Close fluidPage(), assigning sidebar_panel
 
 
-  
-  
+
 ##### main_page -----
 pca_choices <- paste0("PC", 1L:PC_cap)
 main_page <- mainPanel(
@@ -381,7 +374,7 @@ main_page <- mainPanel(
   ## Header, timer, and plot display
   conditionalPanel(
     condition = "output.plot_active == true",
-    h2(textOutput('header')),
+    h2(textOutput("header")),
     hr(),
     textOutput("timer_disp"),
     hr(),
