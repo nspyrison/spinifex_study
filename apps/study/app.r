@@ -548,7 +548,7 @@ server <- function(input, output, session){
   output$eval        <- reactive(eval())        ## Sidebar
   output$is_intermission <- reactive({          ## Intermission
     req(eval())
-    if(eval() == "intermission") return(TRUE)
+    if(substr(eval(), 1, 12) == "intermission") return(TRUE)
     return(FALSE)
   })
   output$is_saved <- reactive({                 ## save button 
