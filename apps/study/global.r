@@ -411,9 +411,9 @@ main_page <- mainPanel(
 ) ## Close mainPanel() End of main_page section.
 
 
-### _dev_tools
-dev_tools <- conditionalPanel(
-  "output.dev_tools == true",
+### _dev_disp
+dev_disp <- conditionalPanel(
+  "output.do_disp_dev_tools == true",
   p("===== Development display below ====="),
   actionButton("browser", "browser()"),
   verbatimTextOutput("image_fp"),
@@ -428,7 +428,7 @@ dev_tools <- conditionalPanel(
     p("Variable level marks: "), textOutput("var_marks"),
     p("Task marks: "), textOutput("marks")
   )
-) ## close conditionPanel, assigning dev_tools
+) ## close conditionPanel, assigning dev_disp
 
 ##### ui, combined *_page pieces -----
 ui <- fluidPage(useShinyjs(), ## Required in ui to use shinyjs.
@@ -437,7 +437,7 @@ ui <- fluidPage(useShinyjs(), ## Required in ui to use shinyjs.
                   sidebar_panel,
                   mainPanel(main_page)
                 ),
-                dev_tools
+                dev_disp
 )
 
 ## App text formatting function (js wrapper for bold, red text)

@@ -264,16 +264,17 @@ server <- function(input, output, session){
   }, {
     ## Initialize axis choices when data changes
     if(factor() == "pca"){
-      updateRadioButtons(session, "x_axis", choices = pca_choices, selected = "PC1", inline = TRUE)
-      updateRadioButtons(session, "y_axis", choices = pca_choices, selected = "PC2", inline = TRUE)
-    }
-    if(factor() == "radial"){
-      choices <- paste0("V", 1L:p())
-      updateRadioButtons(session, "manip_var_nm", choices = choices, selected = "PC1", inline = TRUE)
+      updateRadioButtons(session, "x_axis", choices = pca_choices,
+                         selected = "PC1", inline = TRUE)
+      updateRadioButtons(session, "y_axis", choices = pca_choices,
+                         selected = "PC2", inline = TRUE)
     }
     choices <- paste0("V", 1L:p())
-    updateCheckboxGroupInput(session, "var_resp",
-                             choices = choices, inline  = TRUE)
+    if(factor() == "radial")
+      updateRadioButtons(session, "manip_var_nm", choices = choices,
+                         selected = "PC1", inline = TRUE)
+    updateCheckboxGroupInput(session, "var_resp", choices = choices, 
+                             inline = TRUE)
   })
   ## When x_axis set, disable corresponding y_axis opt.
   observeEvent(input$x_axis, {
@@ -352,20 +353,28 @@ server <- function(input, output, session){
     rv$survey_tbl$prolific_id <- input$prolific_id
   })
   observeEvent(input$survey1, {
-    rv$survey_tbl$response[1L]        <- input$survey1
-    rv$survey_tbl$seconds_on_page[1L] <- rv$sec_on_pg
+    if(rv$sec_on_pg > 0){
+      rv$survey_tbl$response[1L]        <- input$survey1
+      rv$survey_tbl$seconds_on_page[1L] <- rv$sec_on_pg
+    }
   })
   observeEvent(input$survey2, {
-    rv$survey_tbl$response[2L]        <- input$survey2
-    rv$survey_tbl$seconds_on_page[2L] <- rv$sec_on_pg
+    if(rv$sec_on_pg > 0){
+      rv$survey_tbl$response[2L]        <- input$survey2
+      rv$survey_tbl$seconds_on_page[2L] <- rv$sec_on_pg
+    )
   })
   observeEvent(input$survey3, {
-    rv$survey_tbl$response[3L]        <- input$survey3
-    rv$survey_tbl$seconds_on_page[3L] <- rv$sec_on_pg
+    if(rv$sec_on_pg > 0){
+      rv$survey_tbl$response[3L]        <- input$survey3
+      rv$survey_tbl$seconds_on_page[3L] <- rv$sec_on_pg
+    }
   })
   observeEvent(input$survey4, {
-    rv$survey_tbl$response[4L]        <- input$survey4
-    rv$survey_tbl$seconds_on_page[4L] <- rv$sec_on_pg
+    if(rv$sec_on_pg > 0){
+      rv$survey_tbl$response[4L]        <- input$survey4
+      rv$survey_tbl$seconds_on_page[4L] <- rv$sec_on_pg
+    }
   })
   observeEvent(input$survey5, {
     if(rv$sec_on_pg > 0){
@@ -374,56 +383,82 @@ server <- function(input, output, session){
     }
   })
   observeEvent(input$survey6, {
-    rv$survey_tbl$response[6L]        <- input$survey6
-    rv$survey_tbl$seconds_on_page[6L] <- rv$sec_on_pg
+    if(rv$sec_on_pg > 0){
+      rv$survey_tbl$response[6L]        <- input$survey6
+      rv$survey_tbl$seconds_on_page[6L] <- rv$sec_on_pg
+    }
   })
   observeEvent(input$survey7, {
-    rv$survey_tbl$response[7L]        <- input$survey7
-    rv$survey_tbl$seconds_on_page[7L] <- rv$sec_on_pg
+    if(rv$sec_on_pg > 0){
+      rv$survey_tbl$response[7L]        <- input$survey7
+      rv$survey_tbl$seconds_on_page[7L] <- rv$sec_on_pg
+    }
   })
   observeEvent(input$survey8, {
-    rv$survey_tbl$response[8L]        <- input$survey8
-    rv$survey_tbl$seconds_on_page[8L] <- rv$sec_on_pg
+    if(rv$sec_on_pg > 0){
+      rv$survey_tbl$response[8L]        <- input$survey8
+      rv$survey_tbl$seconds_on_page[8L] <- rv$sec_on_pg
+    }
   })
   observeEvent(input$survey9, {
-    rv$survey_tbl$response[9L]        <- input$survey9
-    rv$survey_tbl$seconds_on_page[9L] <- rv$sec_on_pg
+    if(rv$sec_on_pg > 0){
+      rv$survey_tbl$response[9L]        <- input$survey9
+      rv$survey_tbl$seconds_on_page[9L] <- rv$sec_on_pg
+    }
   })
   observeEvent(input$survey10, {
-    rv$survey_tbl$response[10L]        <- input$survey10
-    rv$survey_tbl$seconds_on_page[10L] <- rv$sec_on_pg
+    if(rv$sec_on_pg > 0){
+      rv$survey_tbl$response[10L]        <- input$survey10
+      rv$survey_tbl$seconds_on_page[10L] <- rv$sec_on_pg
+    }
   })
   observeEvent(input$survey11, {
-    rv$survey_tbl$response[11L]        <- input$survey11
-    rv$survey_tbl$seconds_on_page[11L] <- rv$sec_on_pg
+    if(rv$sec_on_pg > 0){
+      rv$survey_tbl$response[11L]        <- input$survey11
+      rv$survey_tbl$seconds_on_page[11L] <- rv$sec_on_pg
+    }
   })
   observeEvent(input$survey12, {
-    rv$survey_tbl$response[12L]        <- input$survey12
-    rv$survey_tbl$seconds_on_page[12L] <- rv$sec_on_pg
+    if(rv$sec_on_pg > 0){
+      rv$survey_tbl$response[12L]        <- input$survey12
+      rv$survey_tbl$seconds_on_page[12L] <- rv$sec_on_pg
+    }
   })
   observeEvent(input$survey13, {
-    rv$survey_tbl$response[13L]        <- input$survey13
-    rv$survey_tbl$seconds_on_page[13L] <- rv$sec_on_pg
+    if(rv$sec_on_pg > 0){
+      rv$survey_tbl$response[13L]        <- input$survey13
+      rv$survey_tbl$seconds_on_page[13L] <- rv$sec_on_pg
+    }
   })
   observeEvent(input$survey14, {
-    rv$survey_tbl$response[14L]        <- input$survey14
-    rv$survey_tbl$seconds_on_page[14L] <- rv$sec_on_pg
+    if(rv$sec_on_pg > 0){
+      rv$survey_tbl$response[14L]        <- input$survey14
+      rv$survey_tbl$seconds_on_page[14L] <- rv$sec_on_pg
+    }
   })
   observeEvent(input$survey15, {
-    rv$survey_tbl$response[15L]        <- input$survey15
-    rv$survey_tbl$seconds_on_page[15L] <- rv$sec_on_pg
+    if(rv$sec_on_pg > 0){
+      rv$survey_tbl$response[15L]        <- input$survey15
+      rv$survey_tbl$seconds_on_page[15L] <- rv$sec_on_pg
+    }
   })
   observeEvent(input$survey16, {
-    rv$survey_tbl$response[16L]        <- input$survey16
-    rv$survey_tbl$seconds_on_page[16L] <- rv$sec_on_pg
+    if(rv$sec_on_pg > 0){
+      rv$survey_tbl$response[16L]        <- input$survey16
+      rv$survey_tbl$seconds_on_page[16L] <- rv$sec_on_pg
+    }
   })
   observeEvent(input$survey17, {
-    rv$survey_tbl$response[17L]        <- input$survey17
-    rv$survey_tbl$seconds_on_page[17L] <- rv$sec_on_pg
+    if(rv$sec_on_pg > 0){
+      rv$survey_tbl$response[17L]        <- input$survey17
+      rv$survey_tbl$seconds_on_page[17L] <- rv$sec_on_pg
+    }
   })
   observeEvent(input$survey18, {
-    rv$survey_tbl$response[18L]        <- input$survey18
-    rv$survey_tbl$seconds_on_page[18L] <- rv$sec_on_pg
+    if(rv$sec_on_pg > 0){
+      rv$survey_tbl$response[18L]        <- input$survey18
+      rv$survey_tbl$seconds_on_page[18L] <- rv$sec_on_pg
+    }
   })
   
   
@@ -508,26 +543,26 @@ server <- function(input, output, session){
   ### Condition handling for ui coditionalPanels
   output$pg          <- reactive(rv$pg)         ## Hiding ui next_task button
   output$factor      <- reactive(factor())      ## Sidebar inputs
-  output$section_nm  <- reactive(section_nm())  ## Controlling text display
-  output$section_pg  <- reactive(section_pg())  ## Controlling training display
-  output$plot_active <- reactive(plot_active()) ## Display of the task response.
-  output$eval        <- reactive(eval())        ## Sidebar display
-  output$is_intermission <- reactive({
+  output$section_nm  <- reactive(section_nm())  ## Text
+  output$section_pg  <- reactive(section_pg())  ## Training
+  output$plot_active <- reactive(plot_active()) ## Task response
+  output$eval        <- reactive(eval())        ## Sidebar
+  output$is_intermission <- reactive({          ## Intermission
     req(eval())
     if(eval() == "intermission") return(TRUE)
     return(FALSE)
   })
-  output$is_saved <- reactive({
+  output$is_saved <- reactive({                 ## save button 
     if(input$save_survey == 1L) return(TRUE)
     return(FALSE)
   }
   )
-  output$do_disp_prolific_code <- reactive({    ## Display of prolific pay code
+  output$do_disp_prolific_code <- reactive({    ## prolific pay code
     if(input$prolific_id == "")
       return(FALSE)
     return(TRUE)
   })
-  output$dev_tools   <- reactive({              ## For JS eval of R boolean...
+  output$do_disp_dev_tools <- reactive({        ## JS eval of R boolean...
     return(do_disp_dev_tools)
   }) 
   
@@ -538,7 +573,7 @@ server <- function(input, output, session){
   outputOptions(output, "plot_active",           suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "eval",                  suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "do_disp_prolific_code", suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "dev_tools",             suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "do_disp_dev_tools",     suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "is_intermission",       suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "is_saved",              suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
   
