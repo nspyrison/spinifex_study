@@ -450,8 +450,7 @@ server <- function(input, output, session){
       ## Update local table and write to Google sheet.
       rv$resp_tbl[rv$pg, ] <- this_row
       googlesheets4::sheet_append(ss_id, this_row, 1L)
-      message("resp_tbl, data row apended for page: ", rv$pg, " -- ",
-              substr(Sys.time(), 12L, 16L))
+      message("resp_tbl, data row apended for page: ", rv$pg, " -- ", Sys.time())
       ## End of writing to resp_tbl
       
       ### __New page ----
@@ -513,16 +512,11 @@ server <- function(input, output, session){
   output$section_pg  <- reactive(section_pg())  ## Controlling training display
   output$plot_active <- reactive(plot_active()) ## Display of the task response.
   output$eval        <- reactive(eval())        ## Sidebar display
-  output$p1_intermission <- reactive({
-    req(period(), eval())
-    if(period() == 1L & eval() == "intermission") return(TRUE)
+  output$is_intermission <- reactive({
+    req(eval())
+    if(eval() == "intermission") return(TRUE)
     return(FALSE)
-  })        ## Sidebar display
-  output$p2_intermission <- reactive({
-    req(period(), eval())
-    if(period() == 2L & eval() == "intermission") return(TRUE)
-    return(FALSE)
-  })        ## Sidebar display
+  })
   output$is_saved <- reactive({
     if(input$save_survey == 1L) return(TRUE)
     return(FALSE)
@@ -545,8 +539,7 @@ server <- function(input, output, session){
   outputOptions(output, "eval",                  suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "do_disp_prolific_code", suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "dev_tools",             suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "p1_intermission",       suspendWhenHidden = FALSE) ##  "
-  outputOptions(output, "p2_intermission",       suspendWhenHidden = FALSE) ##  "
+  outputOptions(output, "is_intermission",       suspendWhenHidden = FALSE) ##  "
   outputOptions(output, "is_saved",              suspendWhenHidden = FALSE) ## Eager evaluation for ui conditionalPanel
   
   ### General task outputs

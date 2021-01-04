@@ -224,40 +224,12 @@ intro_page2 <- conditionalPanel(
 )  ## End of conditionalPanel, assigning intro_page2
 
 ### intro_page3 -----
-intro_page3 <- conditionalPanel(
-  condition = "output.pg == 3", 
-  h2("<Intro Intermission>"), tags$br(), tags$br()
-)  ## End of conditionalPanel, assigning intro_page3
-
-## training_page -----
-training_page <- conditionalPanel(
-  condition = "output.section_nm == 'training'",
-  conditionalPanel(condition = "output.section_pg == 1", 
-                   h2("Training -- interface")),
-  conditionalPanel(condition = "output.section_pg == 2",
-                   h2("Training -- task 1")),
-  conditionalPanel(condition = "output.section_pg == 3",
-                   h2("Training -- task 1, set 2")),
-  conditionalPanel(condition = "output.section_pg == 4",
-                   h2("Training -- task 2")),
-  conditionalPanel(condition = "output.section_pg == 5",
-                   h2("Training -- task 2, set 2")),
-  conditionalPanel( ##TODO: double check, splash page spacing. ## splash page 
-    condition = "output.section_pg == 6",
-    h1(), h1(), h1(),
-    h1("Training complete, Great job!"),
-    h4("Take a break and strech if you feel like it."),
-    HTML("<h3><span style='color:red'>
-          Keep in mind that we are evaluating the factors, not your performance. 
-          Don't worry if you don't fully understand the theory or find a task difficult.
-           </span></h3>"),
-    h4("Ask any final clarification questions. Then continue on to the 
-        evaluation section. Task 1 is limited to 1 minute, and task 2 is limited
-        to 3 minutes (time displayed on top).")
-  ),
-  textOutput('stopwatch_disp'),
-  hr()
-) ## Close conditionalPanel, assigning training_page
+intermission_page <- conditionalPanel(
+  condition = "output$is_intermission == true", 
+  h2("Intermission"), tags$br(), tags$br(),
+  p("Take a minute to strech, drink some water, or look out the window."),
+  p("When you are refreshed and ready to continue proceed to the next page.")
+)
 
 ### Initialize for survey -----
 .surv_lab <-  div(style = 'width:300px;',
@@ -266,13 +238,6 @@ training_page <- conditionalPanel(
 .surv_lab2 <-  div(style = 'width:220px;',
                   div(style = 'float:left;', '|<- disagree'),
                   div(style = 'float:right;', 'agree ->|'))
-# .surv_lab <- p(style = "float: left;",  "strongly disagree",
-#                span(style = "float: right;", "strongly agree"))
-# .surv_lab <- HTML("<div>
-#        <p style='text-align: right'>Text on the left.</p>
-#        <p style='text-align: left'>Text on the right.</p>
-#        </div>
-#        <div style='clear: both;'></div>")
 col_p1 <- column(4L,
                  h3(this_factor_nm_ord[1L]),
                  hr(),
@@ -400,22 +365,20 @@ sidebar_panel <- conditionalPanel(
   )
 ) ## Close fluidPage(), assigning sidebar_panel
 
-p1_intermission <- conditionalPanel("output$p2_intermission == true",
-                                    h2("<Intermission 1 text>"))
-p2_intermission <- conditionalPanel("output$p2_intermission == true",
-                                    h2("<Intermission 2 text>"))
+
   
   
 ##### main_page -----
 pca_choices <- paste0("PC", 1L:PC_cap)
 main_page <- mainPanel(
   width = 9L,
+  ### Text pages
   intro_page1,
   intro_page2,
-  intro_page3,
-  training_page,
+  intermission_page,
   suvery_page,
-  ### Header, timer, and plot display
+  ### Plot_active pages:
+  ## Header, timer, and plot display
   conditionalPanel(
     condition = "output.plot_active == true",
     h2(textOutput('header')),
@@ -423,7 +386,6 @@ main_page <- mainPanel(
     textOutput("timer_disp"),
     hr(),
     ## Image text and image.
-    verbatimTextOutput("image_fp"),
     imageOutput("image_plot"),
   ), ## close task section conditional panel title text
   
@@ -449,14 +411,12 @@ main_page <- mainPanel(
 ) ## Close mainPanel() End of main_page section.
 
 
-
-
-
 ### _dev_tools
 dev_tools <- conditionalPanel(
   "output.dev_tools == true",
   p("===== Development display below ====="),
   actionButton("browser", "browser()"),
+  verbatimTextOutput("image_fp"),
   textOutput("dev_msg"),
   tableOutput("resp_row"),
   tableOutput("resp_tbl"),
