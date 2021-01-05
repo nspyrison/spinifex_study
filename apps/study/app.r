@@ -317,7 +317,7 @@ server <- function(input, output, session){
     this_row$ttr          <- rv$ttr
     this_row$write_dt     <- as.character(Sys.time())
     if(plot_active()){
-      this_row$task_marks <- marks()
+      this_row$task_marks <- task_marks()
       this_row$v1_resp    <- v1_resp()
       this_row$v2_resp    <- v2_resp()
       this_row$v3_resp    <- v3_resp()
@@ -527,8 +527,8 @@ server <- function(input, output, session){
   })
   
   output$pg_next_pg <-
-    renderPrint(paste("rv$pg: ", rv$pg,
-                      ". next_pg_button: ", input$next_pg_button))
+    renderPrint(paste0("rv$pg: ", rv$pg,
+                      ". next_pg_button: ", input$next_pg_button, "."))
   ### Condition handling for ui coditionalPanels
   output$pg          <- reactive(rv$pg)         ## Hiding ui next_task button
   output$factor      <- reactive(factor())      ## Sidebar inputs
@@ -541,11 +541,11 @@ server <- function(input, output, session){
     if(substr(eval(), 1L, 12L) == "intermission") return(TRUE)
     return(FALSE)
   })
-  output$is_saved <- reactive({                 ## save button 
+  output$is_saved <- reactive({                 ## Save button was pressed?
     if(input$save_survey == 1L) return(TRUE)
     return(FALSE)
   })
-  output$do_disp_prolific_code <- reactive({    ## prolific pay code
+  output$do_disp_prolific_code <- reactive({    ## Prolific pay code, do dislplay?
     if(input$prolific_id == "")
       return(FALSE)
     return(TRUE)
