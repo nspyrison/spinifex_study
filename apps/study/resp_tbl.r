@@ -8,7 +8,7 @@ require("dplyr")
 #' ## needs participant#, permutation#, and experimental design.
 #' ## Initialize participant and perm number.
 #' participant_num <- 1
-#' log_file <- "initalize"
+#' log_file <- "initialize"
 #' if(do_log == TRUE){
 #'   full_perm_num <- 1 + participant_num %% 56
 #'   log_file <- paste0("log_participant_", participant_num, ".json")
@@ -118,7 +118,7 @@ make_resp_tbl <- function(participant_num = sample(1L:1000L, 1L)){
     input_inter = NA_integer_,
     resp_inter  = NA_integer_,
     ttr         = NA_integer_,
-    marks       = NA_real_,
+    task_marks  = NA_real_,
     write_dt    = NA_character_,
     v1_resp     = NA_integer_,
     v2_resp     = NA_integer_,

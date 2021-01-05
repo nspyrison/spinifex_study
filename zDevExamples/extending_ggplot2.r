@@ -1,3 +1,8 @@
+#### MAIN DEV MOVED OVER TO 
+if(F)
+  browseURL("https://github.com/Sayani07/q2gs")
+
+
 ### Example of extending ggplot2
 ## Following along with
 if(F){
@@ -16,10 +21,10 @@ require("ggplot2")
 ## may also need some sorts of %*% opperators.
 
 
-z<-ggplot2::ggproto()
+z <- ggplot2::ggproto()
 str(z)
 
-#### Example 1, stat_cdwhull ----
+#### Example 1, stat_chull ----
 
 ### _1) StatChull
 ## Bare bones, 
@@ -83,7 +88,7 @@ spring$x <- spring$x + seq(0, 1.5, length.out = 100)
 spring$type <- "spring"
 ggplot(rbind(circle, spring)) + 
   geom_path(
-    aes(x = x, y = y, group = type, alpha = index), 
+    aes(x = x, y = y, group = type, alpha = index),
     show.legend = FALSE
   ) + 
   facet_wrap(~ type, scales = "free_x")
@@ -291,12 +296,12 @@ StatProj <- ggproto(
 
 #### _3) stat_proj
 stat_proj <- function(mapping = NULL, data = NULL, geom = "point",
-                      position = "identity", ..., basis = NULL, 
+                      position = "identity", ..., basis = NULL,
                       na.rm = FALSE, show.legend = NA, inherit.aes = TRUE){
   browser()
-  layer(data = data, 
-        mapping = mapping, 
-        stat = StatProj, 
+  layer(data = data,
+        mapping = mapping,
+        stat = StatProj,
         geom = geom, 
         position = position, 
         show.legend = show.legend,
@@ -346,21 +351,43 @@ ggplot(dat) +
 ## __B) With group
 
 
-#### You turn, geom_myquantile -----
+#### You turn, geom_quantile_ribbon -----
 
-## ribon example
+#### name: geom_quantile_ribbon 
+## symetric & asymetric coloring (handles even number of q)
+## if odd number; middle line. if even, none
+## eventually want to do internal aggregation 
+
+#### name: geom_quantile_ci (nice to have)
+## accepts alpha, uses MKmisc::quantileCI, or similar to calc the CI
+## -http://finzi.psych.upenn.edu/R/library/MKmisc/html/quantileCI.html
+## symetric & asymetric coloring (handles even number of q)
+## Quantiles as lines, color matching to the CI geom_errorbars
+
+#### Mitch did one for geom_hdr, but that is a complex example.
+## Alternatively, he did a simpler one a while ago, ggquiver
+## https://cran.r-project.org/web//packages/ggquiver/index.html
+
+#### Example data
+toy <- tsibbledata::vic_elec
+#skimr::skim(toy) ## plotting demand across time.
+
+
+
+
+## geom ribbon example
 library(tidyverse)
-huron <- data.frame(year = 1875:1972, 
+huron <- data.frame(year = 1875:1972,
                     value = LakeHuron,
                     std = runif(length(LakeHuron),0,1))
 
 huron %>% 
   ggplot(aes(year, value)) + 
   geom_ribbon(aes(ymin = value - std,
-                  ymax = value + std),    # shadowing cnf intervals
+                  ymax = value + std), ## shadowing cnf intervals
               fill = "steelblue2") + 
   geom_line(color = "firebrick",
-            size = 1)                     # point estimate
+            size = 1)                  ## point estimate
 
 z <- data.frame(
   x = rep(letters[1:3], each = 5),
@@ -373,7 +400,7 @@ data <- z; probs <- seq(.3, .7, .1); type = 1
 
 #### _1) data transform
 ## Computes quantiles for y, for each level of x, facet, and group
-create_myquantile <- function(data, prob, type = 1){
+create_quantile_ribbon <- function(data, prob, type = 1){
   if(length(probs) %% 2 == 0)
     rlang::abort("Expects an odd number of `probs`")
   
@@ -387,7 +414,7 @@ create_myquantile <- function(data, prob, type = 1){
 
 
 #### _2) StatProj
-StatMyquantile <- ggproto(
+StatQuan <- ggproto(
   "StatMyquantile", Stat, 
   ## stat operates on multiple rows; use compute_group() over compute_panel()
   setup_data = function(data, params){
@@ -432,7 +459,7 @@ stat_myquantile <- function(mapping = NULL, data = NULL, geom = "ribbon",
 
 #### _4) geom_proj
 
-geom_myquantile <- function(mapping = NULL,
+geom_quantile_ribbon <- function(mapping = NULL,
                       data = NULL,
                       stat = "myquantile",
                       position = "identity",
@@ -467,7 +494,7 @@ z <- data.frame(
 )
 
 ggplot(z) + 
-  geom_myquantile(aes(x_fct, measure))
+  geom_quantile_ribbon(aes(x_fct, measure))
 
 ## __B) With group
 

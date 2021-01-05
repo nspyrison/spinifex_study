@@ -30,16 +30,14 @@ bas_p4 <- matrix(c(.5,  .5,
                    -.5, .5,
                    -.5, -.5,
                    .5,  -.5),
-                 ncol = 2, nrow = 4, byrow = TRUE)
+                 ncol = 2L, nrow = 4L, byrow = TRUE)
 bas_p6 <- matrix(c(.2887,  .5,
                    -.2887, .5,
                    -.5774, 0,
                    -.2887, -.5,
                    .2887,  -.5,
                    .5774,  0),
-                 ncol = 2, nrow = 6, byrow = TRUE)
-
-
+                 ncol = 2L, nrow = 6L, byrow = TRUE)
 
 #### participant and perm_number -----
 ## Initialize
@@ -96,8 +94,8 @@ init_survey_tbl <- make_survey_tbl(participant_num)
 
 
 ## Context, "onStart()" and onStop()
-context_line <- paste0("Spinifex STUDY, --- (spinifex v", packageVersion("spinifex"),
-                       ") --- Started ", Sys.time())
+context_line <- paste0("Spinifex STUDY, --- (spinifex v",
+                       packageVersion("spinifex"), ") --- Started ", Sys.time())
 message("ran onStart() code.")
 ## quasi onStart():
 context_msg <- paste(sep = " \n",
@@ -124,9 +122,14 @@ init_survey_tbl$question = survey_questions
 
 #### Load data and tour paths -----
 root <- ("./www/data/")
-this_sim_nms <- paste(rep(this_vc_nm_ord, 3L), rep(p_dim_nms, 3L), rep(this_location_nm_ord, 3L), sep = "_")
+this_sim_nms <- paste(rep(this_vc_nm_ord, 3L), 
+                      rep(p_dim_nms, 3L), 
+                      rep(this_location_nm_ord, 3L), sep = "_")
 this_sim_nms <- c(paste0("EEE_p4_0_1_t", 1L:3L), 
-                  as.vector(outer(this_sim_nms, paste0("_rep", 1L:3L), FUN = "paste0")) ## cross product paste
+                  as.vector(outer(this_sim_nms, 
+                                  paste0("_rep", 1L:3L), 
+                                  FUN = "paste0")
+                  ) ## cross product paste
 ) 
 
 # ## Alternatively, load all sim names
@@ -180,26 +183,25 @@ intro_page1 <- conditionalPanel( ## First page conditionalPanel
   ),
   p("Period 1"),
   tags$ul(
-    tags$li("Practice task"),
-    tags$li("Task, 2x (60 sec each)")
+    tags$li("Training round"),
+    tags$li("Evaluation, 2x 60 sec")
   ),
   p("Period 2"),
   tags$ul(
-    tags$li("Practice task"),
-    tags$li("Task, 2x (60 sec each)")
+    tags$li("Training round"),
+    tags$li("Evaluation, 2x 60 sec")
   ),
   p("Period 3"),
   tags$ul(
-    tags$li("Practice task"),
-    tags$li("Task, 2x (60 sec each)")
+    tags$li("Training round"),
+    tags$li("Evaluation, 2x 60 sec")
   ),
   p("Wrap up"),
   tags$ul(
-    tags$li("Survey"),
-    tags$li("Save and exit")
+    tags$li("Survey & save")
   ),
   p("Before we get started, Prolific.co participants must enter their Prolific ID below"),
-  textInput(inputId = "prolific_id", 
+  textInput(inputId = "prolific_id",
             label = "If you are a Prolific.co participants, enter your Prolific ID (otherwise blank)",
             placeholder = "<Prolific ID or blank>"),
   p("We really appreciate your participation in this study.")
@@ -207,25 +209,25 @@ intro_page1 <- conditionalPanel( ## First page conditionalPanel
 
 ### intro_page2 -----
 intro_page2 <- conditionalPanel(
-  condition = "output.pg == 2", 
+  condition = "output.pg == 2",
   h2("Video training"), br(), br(),
-  p("Watch the following video before proceeding:"), br(), 
+  p("Watch the following video before proceeding:"), br(),
   # Adding the 'a' tag to the sidebar linking external file
   p("Minimize the study and watch the training video."),
-  #tags$a(href='training.mp4', target='blank', 'training video (4:17)'), 
-  br(), br(), 
+  #tags$a(href='training.mp4', target='blank', 'training video (4:17)'),
+  br(), br(),
   p("If this link only contains audio let the invigilator know.")
-)  ## End of conditionalPanel, assigning intro_page2
+) ## End of conditionalPanel, assigning intro_page2
 
-### intro_page3 -----
+### intermission_page -----
 intermission_page <- conditionalPanel(
-  condition = "output.is_intermission == true", 
+  condition = "output.is_intermission == true",
   h2("Intermission"), br(), br(),
   p("Take a minute to strech, drink some water, or look out the window."),
   p("When you are refreshed and ready to continue proceed to the next page.")
 )
 
-### Initialize for survey -----
+#### Survey, initalization -----
 .surv_lab <-  div(style = 'width:300px;',
                   div(style = 'float:left;', '|<- disagree'),
                   div(style = 'float:right;', 'agree ->|'))
@@ -237,50 +239,49 @@ col_p1 <- column(4L,
                  hr(),
                  h4(survey_questions[7L]),
                  sliderInput("survey7", label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1),
+                             min = 1L, max = 9L, value = 5L, step = 1L),
                  h4(survey_questions[8L]),
                  sliderInput("survey8", label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1),
+                             min = 1L, max = 9L, value = 5L, step = 1L),
                  h4(survey_questions[9L]),
                  sliderInput("survey9", label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1),
+                             min = 1L, max = 9L, value = 5L, step = 1L),
                  h4(survey_questions[10L]),
                  sliderInput("survey10",
                              label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1)
+                             min = 1L, max = 9L, value = 5L, step = 1L)
 )
-
 col_p2 <- column(4L,
                  h3(this_factor_nm_ord[3L]),
                  hr(),
                  h4(survey_questions[11L]),
                  sliderInput("survey11", label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1),
+                             min = 1L, max = 9L, value = 5L, step = 1L),
                  h4(survey_questions[12L]),
                  sliderInput("survey12", label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1),
+                             min = 1L, max = 9L, value = 5L, step = 1L),
                  h4(survey_questions[13L]),
                  sliderInput("survey13", label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1),
+                             min = 1L, max = 9L, value = 5L, step = 1L),
                  h4(survey_questions[14L]),
                  sliderInput("survey14", label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1),
+                             min = 1L, max = 9L, value = 5L, step = 1L),
 )
 col_p3 <- column(4L,
                  h3(this_factor_nm_ord[5L]),
                  hr(),
                  h4(survey_questions[15L]),
                  sliderInput("survey15", label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1),
+                             min = 1L, max = 9L, value = 5L, step = 1L),
                  h4(survey_questions[16L]),
                  sliderInput("survey16", label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1),
+                             min = 1L, max = 9L, value = 5L, step = 1L),
                  h4(survey_questions[17L]),
                  sliderInput("survey17", label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1),
+                             min = 1L, max = 9L, value = 5L, step = 1L),
                  h4(survey_questions[18L]),
                  sliderInput("survey18", label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1)
+                             min = 1L, max = 9L, value = 5L, step = 1L)
 )
 
 ### survey_page -----
@@ -315,10 +316,10 @@ suvery_page <- conditionalPanel(
     h3("How much do you agree with the following statements?"),
     h4(survey_questions[5L]),
     sliderInput("survey5", label = .surv_lab,
-                min = 1L, max = 9L, value = 5L, step = 1),
+                min = 1L, max = 9L, value = 5L, step = 1L),
     h4(survey_questions[6L]),
     sliderInput("survey6",label = .surv_lab,
-                min = 1L, max = 9L, value = 5L, step = 1),
+                min = 1L, max = 9L, value = 5L, step = 1L),
     fluidRow(col_p1, col_p2, col_p3),
     hr(),
     actionButton("save_survey", "Save survey responses")
@@ -399,16 +400,17 @@ main_page <- mainPanel(
     condition = "output.factor == 'radial'",
     radioButtons(inputId = "manip_var_nm", label = "Manip variable:",
                  choices =  "V1", selected = "V1")
-  ), ## Close conditionalPanel(), plot interactions
+  ), ## Close conditionalPanel(), done listing factor inputs
   ## No input for grand tour.
 ) ## Close mainPanel() End of main_page section.
 
 
-### _dev_disp
+### dev_disp -----
 dev_disp <- conditionalPanel(
   "output.do_disp_dev_tools == true",
   p("===== Development display below ====="),
   actionButton("browser", "browser()"),
+  verbatimTextOutput("pg_next_pg"),
   verbatimTextOutput("image_fp"),
   textOutput("dev_msg"),
   tableOutput("resp_row"),
@@ -419,13 +421,12 @@ dev_disp <- conditionalPanel(
     p("Variable level diff from avg: "), textOutput("diff"),
     p("Variable level response: "), textOutput("var_resp"),
     p("Variable level marks: "), textOutput("var_marks"),
-    p("Task marks: "), textOutput("marks")
+    p("task_marks: "), textOutput("task_marks")
   )
 ) ## close conditionPanel, assigning dev_disp
 
 ##### ui, combined *_page pieces -----
-ui <- fluidPage(useShinyjs(), ## Required in ui to use shinyjs.
-                header_page,
+ui <- fluidPage(header_page,
                 sidebarLayout(
                   sidebar_panel,
                   mainPanel(main_page)
