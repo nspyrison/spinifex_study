@@ -29,10 +29,12 @@ axes_position <- "left"
 pt_size <- 3L
 ###
 
-#load_all_data <- function(){ #CAUSES ERR IN FUCNTION
+#### Load all data script
+## load_all_data <- function(){
 {
   ## Load all sim names, for dev control
-  root <- "./apps/data" # here("apps/data/") ## Filepaths cannot be too long....
+  root <- "./apps/study/www/data"
+  ## Can't use here::here(); Filepaths cannot be too long...
   print(normalizePath(root))
   sim_nms <- c("EEE_p4_0_1",    "EEE_p4_33_66",    "EEE_p4_50_50",
                "EEV_p4_0_1",    "EEV_p4_33_66",    "EEV_p4_50_50",
@@ -78,7 +80,7 @@ save_pca <- function(sim_nm = "EEE_p4_0_1_rep1"){
       fn <- paste0(this_sim_nm, "__pca_x", x_num, "y", y_num, ".png")
       
       pca     <- prcomp(this_sim)
-      pca_x   <- as.data.frame(pca$x)
+      pca_x   <- as.data.frame(pca$x[ , c(x_num, y_num)])
       pca_rot <- data.frame(pca$rotation[ , c(x_num, y_num)])
       pca_rot <- scale_axes(pca_rot, axes_position, pca_x)
       
@@ -215,15 +217,15 @@ save_radial <- function(sim_nm = "EEE_p4_0_1_rep1"){
 save_all_static <- function(){
   invisible(lapply(1:length(sim_nms), function(i){
     require(tictoc)
-    # tic("pca")
-    # save_pca(sim_nms[i])
-    # toc()
+    tic("pca")
+    save_pca(sim_nms[i])
+    toc()
     # tic("grand")
     # save_grand(sim_nms[i])
     # toc()
-    tic("radial")
-    save_radial(sim_nms[i])
-    toc()
+    # tic("radial")
+    # save_radial(sim_nms[i])
+    # toc()
   }))
 }
 
