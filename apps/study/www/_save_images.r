@@ -9,18 +9,19 @@ set.seed(20200927) ## If tourr starts using seeds
 height_in <- 5 ## fixed to 8" x 5" for small screens
 height_px <- height_in * 72  ## "screen" is 72 dpi/ppi
 pal <- RColorBrewer::brewer.pal(8, "Dark2")[c(1, 2, 3, 6, 8)]
-bas_p4 <- matrix(c(.5,  .5,
-                   -.5, .5,
-                   -.5, -.5,
-                   .5,  -.5),
-                 ncol = 2, nrow = 4, byrow = TRUE)
-bas_p6 <- matrix(c(.2887,  .5,
-                   -.2887, .5,
-                   -.5774, 0,
-                   -.2887, -.5,
-                   .2887,  -.5,
-                   .5774,  0),
-                 ncol = 2, nrow = 6, byrow = TRUE)
+## bas_p4
+.ang <- seq(0, pi, length.out = 5)[-5] ## p + 1
+.u_circ_p4 <- as.matrix(data.frame(x = sin(.ang), y = cos(.ang)))
+bas_p4 <- tourr::orthonormalise(.u_circ_p4)
+# tourr::is_orthonormal(bas_p4)
+# spinifex::view_frame(bas_p4)
+
+## bas_p6
+.ang <- seq(0, pi, length.out = 7)[-7] ## p + 1
+.u_circ_p6 <- as.matrix(data.frame(x = sin(.ang), y = cos(.ang)))
+bas_p6 <- tourr::orthonormalise(.u_circ_p6)
+# tourr::is_orthonormal(bas_p6)
+# spinifex::view_frame(bas_p6)
 ### Aesthetic options
 angle <- .1
 fps   <- 5L ## .gif format only handles factors of 100!?
