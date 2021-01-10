@@ -13,14 +13,14 @@ do_disp_dev_tools <- TRUE ## Expects: TRUE / FALSE
 options(shiny.autoreload = TRUE)
 #options(error = browser) ## occasionally helpful for troubleshooting
 #set.seed(20200927)   ## If tourr starts using seeds
-time_alotted <- 180L ## Seconds for the task
+time_alotted <- 60L ## Seconds for the task
 height_px <- 500L
 pal <- RColorBrewer::brewer.pal(8L, "Dark2")[c(1L, 2L, 3L, 6L, 8L)] ## Even more color safe
 ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" ## the 'id' or name of the google sheet
-## auth code from 23/12/2020, nitro lapop: 4/1AY0e-g5NhEF12mV_4U_d1MzO0GrnNZUlaCCNvq-lLTPJ0Ry8iubLXQJ9uCI
+## auth code from 23/12/2020, nitro laptop: 4/1AY0e-g5NhEF12mV_4U_d1MzO0GrnNZUlaCCNvq-lLTPJ0Ry8iubLXQJ9uCI
 ## Prolific.co to see the study draft page go to:
-if(F)
-  browseURL("https://app.prolific.co/studies/5fd808e32ce90812aeb9cd90")
+# if(F)
+#   browseURL("https://app.prolific.co/studies/5fd808e32ce90812aeb9cd90")
 
 ## name                       id
 ## <chr>                      <chr>
@@ -110,8 +110,8 @@ survey_questions <- c("Which sex are you?",
                       "Which age group do you belong to?",
                       "What is your English proficiency?",
                       "What is your highest completed education?",
-                      "You are experienced with data visualization.",
-                      "You are experienced with cleaning data.",
+                      "I am experienced with data visualization.",
+                      "I am experienced with cleaning data.",
                       rep(c("I was already familiar with this visualization.",
                             "I found this visualization easy to use.",
                             "I felt confident in my answers with this visualization.",
@@ -145,7 +145,7 @@ this_sim_nms <- c(paste0("EEE_p4_0_1_t", 1L:3L),
 sapply(this_sim_nms, function(i){
   this_fq_fp_sim_nm <-paste0(root, i, ".rda")
   load(this_fq_fp_sim_nm, envir = globalenv())
-  })
+})
 
 
 ##### Global variable initialization -----
@@ -184,17 +184,17 @@ intro_page1 <- conditionalPanel( ## First page conditionalPanel
   p("Period 1"),
   tags$ul(
     tags$li("Training round"),
-    tags$li("Evaluation, 2x 60 sec")
+    tags$li("Evaluation, 2x 60 seconds")
   ),
   p("Period 2"),
   tags$ul(
     tags$li("Training round"),
-    tags$li("Evaluation, 2x 60 sec")
+    tags$li("Evaluation, 2x 60 seconds")
   ),
   p("Period 3"),
   tags$ul(
     tags$li("Training round"),
-    tags$li("Evaluation, 2x 60 sec")
+    tags$li("Evaluation, 2x 60 seconds")
   ),
   p("Wrap up"),
   tags$ul(
@@ -228,12 +228,12 @@ intermission_page <- conditionalPanel(
 )
 
 #### Survey, initalization -----
-.surv_lab <-  div(style = 'width:300px;',
-                  div(style = 'float:left;', '|<- disagree'),
-                  div(style = 'float:right;', 'agree ->|'))
+.surv_lab  <-  div(style = 'width:300px;',
+                   div(style = 'float:left;', '|<- disagree'),
+                   div(style = 'float:right;', 'agree ->|'))
 .surv_lab2 <-  div(style = 'width:220px;',
-                  div(style = 'float:left;', '|<- disagree'),
-                  div(style = 'float:right;', 'agree ->|'))
+                   div(style = 'float:left;', '|<- disagree'),
+                   div(style = 'float:right;', 'agree ->|'))
 col_p1 <- column(4L,
                  h3(this_factor_nm_ord[1L]),
                  hr(),
