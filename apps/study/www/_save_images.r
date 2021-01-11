@@ -22,6 +22,7 @@ bas_p4 <- tourr::orthonormalise(.u_circ_p4)
 bas_p6 <- tourr::orthonormalise(.u_circ_p6)
 # tourr::is_orthonormal(bas_p6)
 # spinifex::view_frame(bas_p6)
+
 ### Aesthetic options
 angle <- .1
 fps   <- 5L ## .gif format only handles factors of 100!?
@@ -216,18 +217,21 @@ save_radial <- function(sim_nm = "EEE_p4_0_1_rep1"){
 }
 
 save_all_static <- function(){
+  require(tictoc); require(beepr)
+  tic("outside loop")
   invisible(lapply(1:length(sim_nms), function(i){
-    require(tictoc)
-    tic("pca")
-    save_pca(sim_nms[i])
-    toc()
+    # tic("pca")
+    # save_pca(sim_nms[i])
+    # toc()
     # tic("grand")
     # save_grand(sim_nms[i])
     # toc()
-    # tic("radial")
-    # save_radial(sim_nms[i])
-    # toc()
+    tic("radial")
+    save_radial(sim_nms[i])
+    toc()
   }))
+  toc("outside loop")
+  beepr::beep(4)
 }
 
 
