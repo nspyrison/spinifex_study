@@ -26,19 +26,7 @@ ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" ## the 'id' or name of t
 ## <chr>                      <chr>
 ## spinifex_study resp_tbl    1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU
 
-#### participant and perm_number -----
-## Initialize
-participant_num <- 1L
-## TODO: need to read the unique perm numbers in load file, and find the perm_numbers in the min count table. 
-if(F){ ## Read response sheet and set participant number
-  prev_saves <- read_sheet(ss_id)
-  participant_num <- length(unique(prev_saves$participant_num)) + 1
-}else{ ## ELSE assign random participant and perm numbers.
-  participant_num <- sample(1L:999L, 1L)
-}
-full_perm_num <- 1 + participant_num %% 56L
-
-#### Select factor and block permutations
+#### Setup factor and block permutations
 ## Possible permutations
 factor_perms   <- rbind(c(1L, 1L,  2L, 2L,  3L, 3L),
                         c(1L, 1L,  3L, 3L,  2L, 2L),
@@ -64,8 +52,21 @@ r_loc <- nrow(location_perms)   ##~6
 r_vc  <- nrow(vc_perms)         ##~1
 r_perms <- r_fct * r_loc * r_vc ##~36
 this_factor_perm   <- 1L + (full_perm_num - 1L) %% r_fct
-this_location_perm <- 1L #1 + floor((full_perm_num - 1) / r_fct) %% r_loc
-this_vc_perm       <- 1L #1 + floor((full_perm_num - 1) / (r_fct * r_Loc)) %% r_vc
+this_location_perm <- 1 + floor((full_perm_num - 1) / r_fct) %% (r_fct * r_loc)
+this_vc_perm       <- 1L # Fixed parameter #1 + floor((full_perm_num - 1) / (r_fct * r_loc)) %% r_perms
+
+#### participant and perm_number -----
+## Initialize
+participant_num <- 1L
+## TODO: need to read the unique perm numbers in load file, and find the perm_numbers in the min count table. 
+if(F){ ## Read response sheet and set participant number
+  prev_saves <- read_sheet(ss_id)
+  participant_num <- length(unique(prev_saves$participant_num)) + 1
+}else{ ## ELSE assign random participant and perm numbers.
+  participant_num <- sample(1L:999L, 1L)
+}
+full_perm_num <- 1 + participant_num %% r_perms
+
 ## The decoded names
 this_factor_nm_ord <-
   factor_nms[factor_perms[this_factor_perm, ]]
@@ -114,7 +115,7 @@ this_sim_nms <- paste(rep(this_vc_nm_ord, 3L),
                       rep(this_location_nm_ord, 3L), sep = "_")
 this_sim_nms <- c(paste0("EEE_p4_0_1_t", 1L:3L), 
                   as.vector(outer(this_sim_nms, 
-                                  paste0("_rep", 1L:3L), 
+                                  paste0("_rep", 1L:3L),
                                   FUN = "paste0")
                   ) ## cross product paste
 ) 
@@ -293,12 +294,14 @@ suvery_page <- conditionalPanel(
     selectInput("survey3", label = survey_questions[3L],
                 choices = c("decline to answer",
                             "English first language",
+                            "Multilingual including English from a young age",
                             "English not first language")),
     selectInput("survey4", label = survey_questions[4L],
                 choices = c("decline to answer",
                             "High school",
                             "Undergraduate",
-                            "Honors, masters, mba", 
+                            "Trade/career specific certification",
+                            "Honors, masters, MBA", 
                             "Doctorate")),
     h3("How much do you agree with the following statements?"),
     h4(survey_questions[5L]),

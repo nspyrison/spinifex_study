@@ -1,9 +1,7 @@
 library(tidyverse)
 
-# df1 <- read.csv2("./apps/study/responses_3_v2pilot_NICK1.csv", sep = ",")
-# df2 <- read.csv2("./apps/study/responses_2_v2pilot_NICK2.csv", sep = ",")
-df1 <- read.csv2("./apps/study/responses_1_v3pilot_Judy.csv", sep = ",", stringsAsFactors = F)
-df2 <- read.csv2("./apps/study/responses_1_v3pilot_Sabrina.csv", sep = ",", stringsAsFactors = F)
+df1 <- read.csv2("./apps/study/v1_pilot_studies/responses_1_v3pilot_Judy.csv", sep = ",", stringsAsFactors = F)
+df2 <- read.csv2("./apps/study/v1_pilot_studies/responses_1_v3pilot_Sabrina.csv", sep = ",", stringsAsFactors = F)
 df <- rbind(df1, df2)
 
 
@@ -80,6 +78,4 @@ factor_survey <- survey[which(survey$survey_factor == ""),]
     scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2"))
 
 
-
-OUT_FIG2 <- 
 
