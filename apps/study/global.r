@@ -26,8 +26,8 @@ ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" ## the 'id' or name of t
 ## <chr>                      <chr>
 ## spinifex_study resp_tbl    1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU
 
-#### Setup factor and block permutations
-## Possible permutations
+#### Initialize factor and block permutations
+## Possible permutations (by Evaluation number, not period number)
 factor_perms   <- rbind(c(1L, 1L,  2L, 2L,  3L, 3L),
                         c(1L, 1L,  3L, 3L,  2L, 2L),
                         c(2L, 2L,  3L, 3L,  1L, 1L),
@@ -42,39 +42,46 @@ location_perms <- rbind(c(1L, 1L,  2L, 2L,  3L, 3L),
                         c(3L, 3L,  2L, 2L,  1L, 1L))
 vc_perms       <- rbind(c(1L, 1L,  2L, 2L,  3L, 3L))
 ## set factor and block names
-factor_nms   <- c("pca", "grand", "radial")
-location_nms <- c("0_1", "33_66", "50_50")
-vc_nms       <- c("EEE", "EEV", "banana")
-p_dim_nms <- this_p_dim_nm_ord <- c("p4", "p6")
-## The permutation numbers
+factor_nms      <- c("pca", "grand", "radial")
+factor_descrip_1 <- c("not animated", "animated", "animated" )
+factor_descrip_2 <- c("select 2 axes", "random path, no selection", "select variable to rotate")
+factor_examp_fp <- paste0("images/", 
+                          c("EEE_P4_0_1_t1__pca_x1y2.png", "EEE_P4_0_1_t1__grand.gif", "EEE_P4_0_1_t1__radial_mv2.gif"))
+location_nms    <- c("0_1", "33_66", "50_50")
+vc_nms          <- c("EEE", "EEV", "banana")
+p_dim_nms       <- this_p_dim_nm_ord <- c("p4", "p6")
+## The permutation counts
 r_fct <- nrow(factor_perms)     ##~6
 r_loc <- nrow(location_perms)   ##~6
 r_vc  <- nrow(vc_perms)         ##~1
 r_perms <- r_fct * r_loc * r_vc ##~36
+
+
+#### Assign participant_num and perm_num -----
+## Read response sheet and set participant number to first not use integer
+##TODO unlock reads reads, running into API quota issues
+if(F){
+prev_saves <- googlesheets4::read_sheet(ss_id, sheet = 1L)
+used_nums <- unique(prev_saves$participant_num)
+opts <- 1L:(max(used_nums) + 1L)
+open_nums <- opts[!opts %in% used_nums] ## All not used numbers
+participant_num <- min(open_nums)
+}else{participant_num <- sample(1L:999L, 1L)}
+full_perm_num <- 1L + participant_num %% r_perms
+
+
+## Select permutation orders
 this_factor_perm   <- 1L + (full_perm_num - 1L) %% r_fct
-this_location_perm <- 1 + floor((full_perm_num - 1) / r_fct) %% (r_fct * r_loc)
-this_vc_perm       <- 1L # Fixed parameter #1 + floor((full_perm_num - 1) / (r_fct * r_loc)) %% r_perms
-
-#### participant and perm_number -----
-## Initialize
-participant_num <- 1L
-## TODO: need to read the unique perm numbers in load file, and find the perm_numbers in the min count table. 
-if(F){ ## Read response sheet and set participant number
-  prev_saves <- read_sheet(ss_id)
-  participant_num <- length(unique(prev_saves$participant_num)) + 1
-}else{ ## ELSE assign random participant and perm numbers.
-  participant_num <- sample(1L:999L, 1L)
-}
-full_perm_num <- 1 + participant_num %% r_perms
-
+this_location_perm <- 1L + floor((full_perm_num - 1L) / r_fct) %% (r_fct * r_loc)
+this_vc_perm       <- 1L # Fixed parameter #1L + floor((full_perm_num - 1L) / (r_fct * r_loc)) %% r_perms
 ## The decoded names
-this_factor_nm_ord <-
-  factor_nms[factor_perms[this_factor_perm, ]]
-this_vc_nm_ord <-
-  vc_nms[vc_perms[this_vc_perm, ]]
-this_location_nm_ord <-
-  location_nms[location_perms[this_location_perm, ]]
-
+this_factor_nm_ord   <- factor_nms[factor_perms[this_factor_perm, ]]
+this_vc_nm_ord       <- vc_nms[vc_perms[this_vc_perm, ]]
+this_location_nm_ord <- location_nms[location_perms[this_location_perm, ]]
+## Factor descriptions & filepaths
+this_factor_descrip_1 <- factor_descrip_1[factor_perms[this_factor_perm, ]]
+this_factor_descrip_2 <- factor_descrip_2[factor_perms[this_factor_perm, ]]
+this_factor_examp_fp  <- factor_examp_fp[factor_perms[this_factor_perm, ]]
 
 ## Functions from source('resp_tbl.r', local = TRUE)
 init_resp_tbl   <- make_resp_tbl(participant_num)
@@ -103,37 +110,9 @@ survey_questions <- c("Which sex are you?",
                       rep(c("I was already familiar with this visualization.",
                             "I found this visualization easy to use.",
                             "I felt confident in my answers with this visualization.",
-                            "I liked using this visualization."), 3)
+                            "I liked using this visualization."), 3L)
 )
 init_survey_tbl$question = survey_questions
-
-
-#### Load data and tour paths -----
-root <- ("./www/data/")
-this_sim_nms <- paste(rep(this_vc_nm_ord, 3L), 
-                      rep(p_dim_nms, 3L), 
-                      rep(this_location_nm_ord, 3L), sep = "_")
-this_sim_nms <- c(paste0("EEE_p4_0_1_t", 1L:3L), 
-                  as.vector(outer(this_sim_nms, 
-                                  paste0("_rep", 1L:3L),
-                                  FUN = "paste0")
-                  ) ## cross product paste
-) 
-
-# ## Alternatively, load all sim names
-# sim_nms <- c("EEE_p4_0_1",    "EEE_p4_33_66",    "EEE_p4_50_50",
-#              "EEV_p4_0_1",    "EEV_p4_33_66",    "EEV_p4_50_50",
-#              "banana_p4_0_1", "banana_p4_33_66", "banana_p4_50_50",
-#              "EEE_p6_0_1",    "EEE_p6_33_66",    "EEE_p6_50_50",
-#              "EEV_p6_0_1",    "EEV_p6_33_66",    "EEV_p6_50_50",
-#              "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
-# sim_nms <- c(paste0("EEE_p4_0_1_t", 1:3), ## 3 training sets
-#              as.vector(outer(sim_nms, paste0("_rep", 1:3), FUN = "paste0"))) ## cross product paste
-
-sapply(this_sim_nms, function(i){
-  this_fq_fp_sim_nm <-paste0(root, i, ".rda")
-  load(this_fq_fp_sim_nm, envir = globalenv())
-})
 
 
 ##### Global variable initialization -----
@@ -212,10 +191,10 @@ intermission_page <- conditionalPanel(
   condition = "output.is_intermission == true",
   h2("Intermission"), br(), br(),
   p("Take a minute to strech, drink some water, or look out the window."),
-  p("When you are refreshed and ready to continue proceed to the next page.")
+  p("When you are ready to continue with the next visulization proceed to the next page.")
 )
 
-#### Survey, initalization -----
+#### Survey, initialization -----
 .surv_lab  <-  div(style = 'width:300px;',
                    div(style = 'float:left;', '|<- disagree'),
                    div(style = 'float:right;', 'agree ->|'))
@@ -223,8 +202,13 @@ intermission_page <- conditionalPanel(
                    div(style = 'float:left;', '|<- disagree'),
                    div(style = 'float:right;', 'agree ->|'))
 col_p1 <- column(4L,
-                 h3(this_factor_nm_ord[1L]),
+                 h3(paste0("First -- ", this_factor_nm_ord[1L])),
                  hr(),
+                 tags$ul(
+                   tags$li(this_factor_descrip_1[1]),
+                   tags$li(this_factor_descrip_2[1])
+                 ),
+                 img(src = this_factor_examp_fp[1], height="75%", width="75%", align = "center"),
                  h4(survey_questions[7L]),
                  sliderInput("survey7", label = .surv_lab2,
                              min = 1L, max = 9L, value = 5L, step = 1L),
@@ -240,8 +224,13 @@ col_p1 <- column(4L,
                              min = 1L, max = 9L, value = 5L, step = 1L)
 )
 col_p2 <- column(4L,
-                 h3(this_factor_nm_ord[3L]),
+                 h3(paste0("Second -- ", this_factor_nm_ord[3L])),
                  hr(),
+                 tags$ul(
+                   tags$li(this_factor_descrip_1[3]),
+                   tags$li(this_factor_descrip_2[3])
+                 ),
+                 img(src = this_factor_examp_fp[3], height="75%", width="75%", align = "center"),
                  h4(survey_questions[11L]),
                  sliderInput("survey11", label = .surv_lab2,
                              min = 1L, max = 9L, value = 5L, step = 1L),
@@ -256,8 +245,13 @@ col_p2 <- column(4L,
                              min = 1L, max = 9L, value = 5L, step = 1L),
 )
 col_p3 <- column(4L,
-                 h3(this_factor_nm_ord[5L]),
+                 h3(paste0("Third -- ", this_factor_nm_ord[5L])),
                  hr(),
+                 tags$ul(
+                   tags$li(this_factor_descrip_1[5]),
+                   tags$li(this_factor_descrip_2[5])
+                 ),
+                 img(src = this_factor_examp_fp[5], height="75%", width="75%", align = "center"),
                  h4(survey_questions[15L]),
                  sliderInput("survey15", label = .surv_lab2,
                              min = 1L, max = 9L, value = 5L, step = 1L),
@@ -418,6 +412,8 @@ dev_disp <- conditionalPanel(
 ##### ui, combined *_page pieces -----
 ui <- fluidPage(header_page,
                 sidebarLayout(
+                  # p("sidebar"),
+                  # mainPanel(p("main panel"))
                   sidebar_panel,
                   mainPanel(main_page)
                 ),

@@ -29,13 +29,13 @@ server <- function(input, output, session){
     message("Ran session$onSessionEnded(f()). Coerecing app off with stopApp().")
     stopApp()
     ### CANNOT USE REACTIVE OR EVEN READ rv$pg, within the onStop().
-    ##### May be able to read from sheet and find last, also may not be worth it.\
+    ##### May be able to read from sheet and find last, also may not be worth it.
     ##### Will have to clean in analysis.
   })
   
   ##### Reactive value initialization -----
   rv             <- reactiveValues()
-  rv$pg          <- 3L ## SET STARTING PAGE HERE <<<
+  rv$pg          <- 15L ## SET STARTING PAGE HERE <<<
   rv$sec_on_pg   <- 0L
   ## Below are not needed, but to be explicit,
   rv$input_inter <- 0L

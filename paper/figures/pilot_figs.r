@@ -9,8 +9,8 @@ df <- rbind(df1, df2)
 task1 <- filter(df, task == 1, factor %in% c("pca", "grand", "manual"), 
                 response != "none (default)" & !is.null(response) )
 task1 <- mutate(task1, ttr = as.integer(ttr), 
-                pos_score = max(abs(score)) - abs(score),
-                factor = factor(factor, levels = c("pca", "grand", "manual")))
+                pos_score = max(abs(score)) - abs(score
+                factor = factor(factor, levels = c("pca", ),"grand", "manual")))
 str(task1)
 
 (g1_t1 <- ggplot(task1) + geom_jitter(aes(x = factor, y = pos_score),
