@@ -61,7 +61,18 @@ r_perms <- r_fct * r_loc * r_vc ##~36
 ## Read response sheet and set participant number to first not use integer
 ##TODO unlock reads reads, running into API quota issues
 if(F){
-prev_saves <- googlesheets4::read_sheet(ss_id, sheet = 1L)
+  ## tryCatch for api quota limit
+  prev_saves <- NULL
+  tryCatch({
+    prev_saves <- googlesheets4::read_sheet(ss_id, sheet = 1L)
+  }, error = function(e){
+    txt <- "Google API quota reached, Please try again in 2 minutes. Closing app in 15 seconds."
+    showNotification(txt, type = "error", duration = 15L)
+    warning(txt)
+    Sys.sleep(15L)
+    stopApp()
+    return(NULL)
+  })
 used_nums <- unique(prev_saves$participant_num)
 opts <- 1L:(max(used_nums) + 1L)
 open_nums <- opts[!opts %in% used_nums] ## All not used numbers

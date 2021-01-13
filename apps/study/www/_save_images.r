@@ -160,15 +160,16 @@ save_grand <- function(sim_nm = "EEE_p4_0_1_rep1"){
     tour_df <- array2df(array = tour_path, data = this_sim)
     
     gg <- render_(frames = tour_df,
-              axes = axes_position,
-              aes_args = list(color = this_clas, shape = this_clas),
-              identity_args = list(size = pt_size),
-              ggproto = list(theme_spinifex(),
-                             theme(legend.position = "none"),
-                             scale_colour_manual(values = pal))
+                  axes = axes_position,
+                  line_size = 1L,
+                  aes_args = list(color = this_clas, shape = this_clas),
+                  identity_args = list(size = pt_size),
+                  ggproto = list(theme_spinifex(),
+                                 theme(legend.position = "none"),
+                                 scale_colour_manual(values = pal))
     )
     gga <- gg + gganimate::transition_states(frame, transition_length = 0L)
-    anim <- gganimate::animate(gga, fps = 5, height = height_px, renderer = gifski_renderer())
+    anim <- gganimate::animate(gga, fps = 5L, height = height_px, renderer = gifski_renderer())
     ## Save.
     gganimate::anim_save(filename = fn,
                          animation = anim,
@@ -182,7 +183,6 @@ save_grand <- function(sim_nm = "EEE_p4_0_1_rep1"){
 
 ### save_radial(), for 1 sim
 save_radial <- function(sim_nm = "EEE_p4_0_1_rep1"){
-  
   ## Loop over sim_nm,
   invisible(lapply(sim_nm, function(this_sim_nm){
     this_sim <- get(this_sim_nm)
@@ -205,7 +205,7 @@ save_radial <- function(sim_nm = "EEE_p4_0_1_rep1"){
                                    scale_colour_manual(values = pal))
       )
       gga <- gg + gganimate::transition_states(frame, transition_length = 0L)
-      anim <- gganimate::animate(gga, fps = 5, height = height_px, renderer = gifski_renderer())
+      anim <- gganimate::animate(gga, fps = 5L, height = height_px, renderer = gifski_renderer())
       ## Save.
       gganimate::anim_save(filename = fn,
                            animation = anim,
@@ -215,6 +215,9 @@ save_radial <- function(sim_nm = "EEE_p4_0_1_rep1"){
     message("Saved all ", p, " radial tours for each mv of ", this_sim_nm, ".")
   }))
 }
+#' @examples 
+#' save_radial("EEE_p4_0_1_t1")
+
 
 save_all_static <- function(){
   require(tictoc); require(beepr)
@@ -223,18 +226,16 @@ save_all_static <- function(){
     # tic("pca")
     # save_pca(sim_nms[i])
     # toc()
-    # tic("grand")
-    # save_grand(sim_nms[i])
-    # toc()
-    tic("radial")
-    save_radial(sim_nms[i])
+    tic("grand")
+    save_grand(sim_nms[i])
     toc()
+    # tic("radial")
+    # save_radial(sim_nms[i])
+    # toc()
   }))
   toc("outside loop")
-  beepr::beep(4)
+  beepr::beep(4); message("DONE. =========== end of save_all_static")
 }
-
-
 #' @examples 
 #' save_all_static()
 #' 

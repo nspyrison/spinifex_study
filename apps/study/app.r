@@ -5,7 +5,6 @@ source('global.r', local = TRUE)
 
 ####### Server function, for shiny app
 server <- function(input, output, session){
-  
   ## Google sheets authentication
   ## for setup see "./.secrets/save_token.r
   tryCatch({
@@ -35,7 +34,7 @@ server <- function(input, output, session){
   
   ##### Reactive value initialization -----
   rv             <- reactiveValues()
-  rv$pg          <- 15L ## SET STARTING PAGE HERE <<<
+  rv$pg          <- 1L ## SET STARTING PAGE HERE <<<
   rv$sec_on_pg   <- 0L
   ## Below are not needed, but to be explicit,
   rv$input_inter <- 0L
