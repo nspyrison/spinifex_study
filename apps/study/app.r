@@ -112,7 +112,7 @@ server <- function(input, output, session){
     req(eval())
     if(eval() %in% 1L:6L)
       return(paste0("Evaluation -- ", factor()))
-    if(substr(eval(), 1, 1) == "t")
+    if(substr(eval(), 1L, 1L) == "t")
       return(paste0("Training -- ", factor()))
     return("")
   })
@@ -264,17 +264,19 @@ server <- function(input, output, session){
   ## When x_axis changes, bump y_axis if needed
   observeEvent(input$x_axis, {
     if(input$x_axis == input$y_axis){
-      shiny::showNotification("Do not select the same PC axes.", type = "message")
-      .remainder <- pca_choices[!(input$y_axis %in% pca_choices)]
-      updateRadioButtons(session, "y_axis", choices = .remainder, selected = .remainder[1L], inline = TRUE)
-    }
+      selec <- pca_choices[!(pca_choices %in% input$x_axis)][1] ## First option not eq to x_axis
+      updateRadioButtons(session, "y_axis", choices = pca_choices,
+                         selected = selec, inline = TRUE)
+      showNotification("Do not select the same PC axes.", type = "message")
+        }
   })
   ## When y_axis changes, bump x_axis if needed
   observeEvent(input$y_axis, {
     if(input$y_axis == input$x_axis){
-      shiny::showNotification("Do not select the same PC axes.", type = "message")
-      .remainder <- pca_choices[!(input$x_axis %in% pca_choices)]
-      updateRadioButtons(session, "x_axis", choices = .remainder, selected = .remainder[1L], inline = TRUE)
+      selec <- pca_choices[!(pca_choices %in% input$y_axis)][1] ## First option not eq to y_axis
+      updateRadioButtons(session, "x_axis", choices = pca_choices,
+                         selected = selec, inline = TRUE)
+      showNotification("Do not select the same PC axes.", type = "message")
     }
   })
   
