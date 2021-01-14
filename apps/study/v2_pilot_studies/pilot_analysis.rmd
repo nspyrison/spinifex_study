@@ -1,0 +1,60 @@
+---
+title: "Pilot study analysis"
+author: "Nick Spyrison"
+date: "1/15/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+knitr::opts_chunk$set(echo = TRUE)
+# ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" ## hash or name of the google sheet
+# raw <- googlesheets4::read_sheet(ss_id, sheet = 1L)
+# saveRDS(raw, here::here("raw_nick_pilot.rds"))
+#readRDS("./apps/study/v2_pilot_studies/raw_nick_pilot.rds")
+raw <- readRDS("./raw_nick_pilot.rds")
+df_active <- raw[raw$plot_active == TRUE,]
+
+# str(df_active)
+```
+
+## Speed and marks
+
+```{r}
+(marks <- ggplot(df_active, aes(x = factor, y = task_marks)) + 
+    geom_boxplot() +
+    geom_jitter(width = .2, height = .05) + 
+    labs(title = "Marks by factor") + theme_minimal() + 
+    scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2"))
+print("I think the relatively low marks in radial comes from overconfidence do to the stark difference in bases. Discuss the 'half clock' layout.")
+
+print("Radial basis 'Half clock':")
+knitr::include_graphics("./half_clock.png", dpi = 70)
+
+
+(speed <- ggplot(df_active, aes(x = factor, y = ttr)) +
+    geom_boxplot() +
+    geom_jitter(width = .2, height = .05) +
+    labs(title = "seconds on page of last response by factor") + theme_minimal() +
+    scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2"))
+print("Numbers these high don't make sense, Timer is being asked to be reset with every page. Looking at the sheet, ttr is monotonically increasing, this is most accuately time from opening app.")
+```
+
+## Input and Response interactions
+
+```{r}
+(input_interactions <- ggplot(df_active, aes(x = factor, y = input_inter)) + 
+    geom_boxplot() +
+    geom_jitter(width = .2, height = .05) + 
+    labs(title = "Number of input interaction by factor (throughness)") + theme_minimal() + 
+    scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2"))
+
+(response_interactions <- ggplot(df_active, aes(x = factor, y = resp_inter)) + 
+    geom_boxplot() +
+    geom_jitter(width = .2, height = .05) + 
+    labs(title = "Number of input interaction by factor (1/confidence)") + theme_minimal() + 
+    scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2"))
+print("I'm going to circle back to this to see if it's capturing correctly.")
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

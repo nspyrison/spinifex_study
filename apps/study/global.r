@@ -9,12 +9,12 @@ library("googlesheets4") ## Google sheets (with api v4) for read/write responses
 library("shinyjs")   ## Help with handling conditionalPanels
 library("lubridate") ## For timer
 do_disp_dev_tools <- TRUE ## Expects: TRUE / FALSE
-options(shiny.autoreload = TRUE) ## Allow for faster dev; should reduce caching errors
+options(shiny.autoreload = TRUE) ## May reduce caching errors
 #options(error = browser) ## occasionally helpful for troubleshooting
 time_alotted <- 60L ## Seconds for the task
 height_px <- 500L
 pal <- RColorBrewer::brewer.pal(8L, "Dark2")[c(1L, 2L, 3L, 6L, 8L)] ## Even more color safe
-ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" ## the 'id' or name of the google sheet
+ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" ## Hash or name of the google sheet
 ## auth code from 23/12/2020, nitro laptop: 4/1AY0e-g5NhEF12mV_4U_d1MzO0GrnNZUlaCCNvq-lLTPJ0Ry8iubLXQJ9uCI
 ## Prolific.co to see the study draft page go to:
 # if(F)
@@ -57,9 +57,10 @@ r_perms <- r_fct * r_loc * r_vc ##~36
 
 #### Assign participant_num and perm_num -----
 ## Read response sheet and set participant number to first not use integer
-##TODO unlock reads reads, running into API quota issues
+
 participant_num <- 1L ## Initialize
-if(F){
+##TODO API reads UNLOCKED. keep in mind API quota issue.
+if(T){
   ## tryCatch for api quota limit
   prev_saves <- NULL
   tryCatch({

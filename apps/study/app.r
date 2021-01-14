@@ -342,10 +342,6 @@ server <- function(input, output, session){
   })
   
   ### Captures responses and times to the survey:
-  observeEvent(input$prolific_id, {
-    rv$resp_tbl$prolific_id   <- input$prolific_id
-    rv$survey_tbl$prolific_id <- input$prolific_id
-  })
   observeEvent(input$survey1, {
     if(rv$sec_on_pg > 0L){
       rv$survey_tbl$response[1L]        <- input$survey1
@@ -471,14 +467,18 @@ server <- function(input, output, session){
         # stopApp()
         # return(NULL)
       }
-      
+      if(rv$pg == 1){
+        rv$resp_tbl$prolific_id   <- input$prolific_id
+        rv$survey_tbl$prolific_id <- input$prolific_id
+      }
       ##### __rv$resp_tbl -----
       ## Write responses and ttr to resp_tbl
       this_row <- output_row()
       ## Update local table and write to Google sheet.
       rv$resp_tbl[rv$pg, ] <- this_row
+      ## saving on save or close
       googlesheets4::sheet_append(ss_id, this_row, 1L)
-      message("resp_tbl, data row apended for page: ", rv$pg, " -- ", Sys.time())
+      message("rv$resp_tbl, data row stored, not writen to gsheets: ", rv$pg, " -- ", Sys.time())
       ## End of writing to resp_tbl
       
       ### __New page ----
@@ -494,7 +494,9 @@ server <- function(input, output, session){
   ### _Obs save_survey button -----
   ## resp_tbl writes every line with the next page, this is for SURVEY ONLY.
   observeEvent(input$save_survey, {
-    ## Write to google sheet, second sheet (survey responds).
+    ## write response tbl to sheet 1
+    googlesheets4::sheet_append(ss_id, rv$resp_tbl, 1L) 
+    ## write survey tbl to sheet 2
     googlesheets4::sheet_append(ss_id, rv$survey_tbl, 2L)
     message("survey_tbl, full table apended for page: ", rv$pg, " -- ",
             substr(Sys.time(), 12L, 16L))
