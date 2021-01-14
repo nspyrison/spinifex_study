@@ -261,15 +261,21 @@ server <- function(input, output, session){
     updateCheckboxGroupInput(session, "var_resp", choices = choices,
                              inline = TRUE)
   })
-  ## When x_axis set, disable corresponding y_axis opt.
+  ## When x_axis changes, bump y_axis if needed
   observeEvent(input$x_axis, {
-    .remainder <- pca_choices[!(input$x_axis %in% pca_choices)]
-    updateRadioButtons(session, "y_axis", choices = .remainder, selected = .remainder[1L], inline = TRUE)
+    if(input$x_axis == input$y_axis){
+      shiny::showNotification("Do not select the same PC axes.", type = "message")
+      .remainder <- pca_choices[!(input$y_axis %in% pca_choices)]
+      updateRadioButtons(session, "y_axis", choices = .remainder, selected = .remainder[1L], inline = TRUE)
+    }
   })
-  ## When y_axis set, disable corresponding x_axis opt.
+  ## When y_axis changes, bump x_axis if needed
   observeEvent(input$y_axis, {
-    .remainder <- pca_choices[!(input$y_axis %in% pca_choices)]
-    updateRadioButtons(session, "x_axis", choices = .remainder, selected = .remainder[1L], inline = TRUE)
+    if(input$y_axis == input$x_axis){
+      shiny::showNotification("Do not select the same PC axes.", type = "message")
+      .remainder <- pca_choices[!(input$x_axis %in% pca_choices)]
+      updateRadioButtons(session, "x_axis", choices = .remainder, selected = .remainder[1L], inline = TRUE)
+    }
   })
   
   ### _Obs radial update manip_var_nm choices -----

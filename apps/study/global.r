@@ -3,16 +3,14 @@
 ##### global.r, spinifex_study -----
 
 ### Setup -----
-source('resp_tbl.r', local = TRUE) ## Needs initialization from global.r.
+source("resp_tbl.r", local = TRUE) ## Needs initialization from global.r.
 library("shiny")
 library("googlesheets4") ## Google sheets (with api v4) for read/write responses.
 library("shinyjs")   ## Help with handling conditionalPanels
 library("lubridate") ## For timer
-library("here")      ## Fixing base dir
 do_disp_dev_tools <- TRUE ## Expects: TRUE / FALSE
-options(shiny.autoreload = TRUE)
+options(shiny.autoreload = TRUE) ## Allow for faster dev; should reduce caching errors
 #options(error = browser) ## occasionally helpful for troubleshooting
-#set.seed(20200927)   ## If tourr starts using seeds
 time_alotted <- 60L ## Seconds for the task
 height_px <- 500L
 pal <- RColorBrewer::brewer.pal(8L, "Dark2")[c(1L, 2L, 3L, 6L, 8L)] ## Even more color safe
@@ -60,6 +58,7 @@ r_perms <- r_fct * r_loc * r_vc ##~36
 #### Assign participant_num and perm_num -----
 ## Read response sheet and set participant number to first not use integer
 ##TODO unlock reads reads, running into API quota issues
+participant_num <- 1L ## Initialize
 if(F){
   ## tryCatch for api quota limit
   prev_saves <- NULL
@@ -77,7 +76,7 @@ used_nums <- unique(prev_saves$participant_num)
 opts <- 1L:(max(used_nums) + 1L)
 open_nums <- opts[!opts %in% used_nums] ## All not used numbers
 participant_num <- min(open_nums)
-}else{participant_num <- sample(1L:999L, 1L)}
+}else{participant_num <- 1L}#sample(1L:999L, 1L)}
 full_perm_num <- 1L + participant_num %% r_perms
 
 
@@ -124,6 +123,23 @@ survey_questions <- c("Which sex are you?",
                             "I liked using this visualization."), 3L)
 )
 init_survey_tbl$question = survey_questions
+
+#### Load data -----
+### Still needed for evaluation, sizeable app ontentent uses dat()
+root <- ("./www/data/")
+these_sim_nms <- paste(rep(this_vc_nm_ord, 3L), 
+                       rep(p_dim_nms, 3L), 
+                       rep(this_location_nm_ord, 3L), sep = "_")
+these_sim_nms <- c(paste0("EEE_p4_0_1_t", 1L:3L), 
+                   as.vector(outer(these_sim_nms, 
+                                   paste0("_rep", 1L:3L),
+                                   FUN = "paste0")
+                  ) ## cross product paste
+) 
+sapply(these_sim_nms, function(i){
+  this_sim_nm <-paste0(root, i, ".rda")
+  load(this_sim_nm, envir = globalenv())
+})
 
 
 ##### Global variable initialization -----
