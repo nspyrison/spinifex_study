@@ -112,21 +112,21 @@ context_msg <- paste(sep = " \n",
 cat(context_msg)
 
 ## Survey questions; n = 21 = 9 + 12
-survey_questions <- c("Which sex are you?",
+survey_questions <- c("What are your prefered pronouns?",
                       "Which age group do you belong to?",
-                      "What is your English proficiency?",
                       "What is your highest completed education?",
-                      "I am experienced with data visualization.",
-                      "I am experienced with cleaning data.",
-                      rep(c("I was already familiar with this visualization.",
+                      "What is your English proficiency?",
+                      "I am experienced with data visulization.",
+                      "I am experienced with data analysis.",
+                      rep(c("I was already familiar with this method.",
                             "I found this visualization easy to use.",
-                            "I felt confident in my answers with this visualization.",
-                            "I liked using this visualization."), 3L)
+                            "I felt confident in my answers with this method.",
+                            "I liked using this method."), 3L)
 )
 init_survey_tbl$question = survey_questions
 
 #### Load data -----
-### Still needed for evaluation, sizeable app ontentent uses dat()
+### Still needed for evaluation, sizable app content uses dat()
 root <- ("./www/data/")
 these_sim_nms <- paste(rep(this_vc_nm_ord, 3L), 
                        rep(p_dim_nms, 3L), 
@@ -239,17 +239,17 @@ col_p1 <- column(4L,
                  img(src = this_factor_examp_fp[1], height="75%", width="75%", align = "center"),
                  h4(survey_questions[7L]),
                  sliderInput("survey7", label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1L),
+                             min = 1L, max = 5L, value = 3L, step = 1L),
                  h4(survey_questions[8L]),
                  sliderInput("survey8", label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1L),
+                             min = 1L, max = 5L, value = 3L, step = 1L),
                  h4(survey_questions[9L]),
                  sliderInput("survey9", label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1L),
+                             min = 1L, max = 5L, value = 3L, step = 1L),
                  h4(survey_questions[10L]),
                  sliderInput("survey10",
                              label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1L)
+                             min = 1L, max = 5L, value = 3L, step = 1L)
 )
 col_p2 <- column(4L,
                  h3(paste0("Second -- ", this_factor_nm_ord[3L])),
@@ -261,16 +261,16 @@ col_p2 <- column(4L,
                  img(src = this_factor_examp_fp[3], height="75%", width="75%", align = "center"),
                  h4(survey_questions[11L]),
                  sliderInput("survey11", label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1L),
+                             min = 1L, max = 5L, value = 3L, step = 1L),
                  h4(survey_questions[12L]),
                  sliderInput("survey12", label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1L),
+                             min = 1L, max = 5L, value = 3L, step = 1L),
                  h4(survey_questions[13L]),
                  sliderInput("survey13", label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1L),
+                             min = 1L, max = 5L, value = 3L, step = 1L),
                  h4(survey_questions[14L]),
                  sliderInput("survey14", label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1L),
+                             min = 1L, max = 5L, value = 3L, step = 1L),
 )
 col_p3 <- column(4L,
                  h3(paste0("Third -- ", this_factor_nm_ord[5L])),
@@ -282,16 +282,16 @@ col_p3 <- column(4L,
                  img(src = this_factor_examp_fp[5], height="75%", width="75%", align = "center"),
                  h4(survey_questions[15L]),
                  sliderInput("survey15", label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1L),
+                             min = 1L, max = 5L, value = 3L, step = 1L),
                  h4(survey_questions[16L]),
                  sliderInput("survey16", label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1L),
+                             min = 1L, max = 5L, value = 3L, step = 1L),
                  h4(survey_questions[17L]),
                  sliderInput("survey17", label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1L),
+                             min = 1L, max = 5L, value = 3L, step = 1L),
                  h4(survey_questions[18L]),
                  sliderInput("survey18", label = .surv_lab2,
-                             min = 1L, max = 9L, value = 5L, step = 1L)
+                             min = 1L, max = 5L, value = 3L, step = 1L)
 )
 
 ### survey_page -----
@@ -302,36 +302,37 @@ suvery_page <- conditionalPanel(
     condition = "output.is_saved == false",
     selectInput("survey1", label = survey_questions[1L],
                 choices = c("decline to answer",
-                            "female",
-                            "male",
-                            "intersex/other")
+                            "he/him",
+                            "she/her",
+                            "thy/them or other")
     ),
     selectInput("survey2", label = survey_questions[2L],
                 choices = c("decline to answer",
-                            "19 or younger",
-                            "20 to 29",
-                            "30 to 39",
-                            "40 or older")
+                            "18 to 24",
+                            "25 to 35",
+                            "36 to 45",
+                            "45 to 60",
+                            "60 and up")
     ),
+
     selectInput("survey3", label = survey_questions[3L],
+                choices = c("decline to answer",
+                            "Undergraduate degree (BA/BSc/other)",
+                            "Graduate degree (MA/MSc/MPhil/other)",
+                            "Doctorate degree (PhD/other)")),
+    selectInput("survey4", label = survey_questions[4L],
                 choices = c("decline to answer",
                             "English first language",
                             "Multilingual including English from a young age",
                             "English not first language")),
-    selectInput("survey4", label = survey_questions[4L],
-                choices = c("decline to answer",
-                            "High school",
-                            "Undergraduate",
-                            "Trade/career specific certification",
-                            "Honors, masters, MBA", 
-                            "Doctorate")),
     h3("How much do you agree with the following statements?"),
+    
     h4(survey_questions[5L]),
     sliderInput("survey5", label = .surv_lab,
-                min = 1L, max = 9L, value = 5L, step = 1L),
+                min = 1L, max = 5L, value = 3L, step = 1L),
     h4(survey_questions[6L]),
     sliderInput("survey6",label = .surv_lab,
-                min = 1L, max = 9L, value = 5L, step = 1L),
+                min = 1L, max = 5L, value = 3L, step = 1L),
     fluidRow(col_p1, col_p2, col_p3),
     hr(),
     actionButton("save_survey", "Save survey responses")
