@@ -69,7 +69,7 @@ server <- function(input, output, session){
     resp_row()$section_pg})
   
   image_fp <- reactive({
-    if(plot_active()){
+    if(plot_active() & time_left() > 0){
       fct_nm <- factor()
       if(fct_nm == "pca")
         fct_suffix <- paste0("pca_x", x_axis_num(), "y", y_axis_num(), ".png")
@@ -520,7 +520,7 @@ server <- function(input, output, session){
   
   ##### Outputs -----
   output$timer_disp <- renderText({
-    if(section_nm() == "task"){ ## Timer display counting down if on a task.
+    if(eval() %in% as.character(1L:6L)){ ## Timer display counting down if on a task.
       if(time_left() < 1L){
         return("Time has expired, please enter your best guess and proceed.")
       }else{
@@ -530,8 +530,8 @@ server <- function(input, output, session){
         )
       }
     }
-    if(eval() == "training"){ ## Disp timer counting up if in training.
-      return(paste0("Time elapsed this page: ", lubridate::seconds_to_period(rv$sec_on_pg)))
+    if(section_nm %in% paste0("t", 1L:3L)){ ## Disp timer counting up if in training.
+      return(paste0("Time on this page: ", lubridate::seconds_to_period(rv$sec_on_pg)))
     }
   })
   
@@ -550,16 +550,16 @@ server <- function(input, output, session){
     if(substr(eval(), 1L, 12L) == "intermission") return(TRUE)
     return(FALSE)
   })
-  output$is_saved <- reactive({                 ## Save button was pressed?
+  output$is_saved <- reactive({              ## Save button was pressed?
     if(input$save_survey == 1L) return(TRUE)
     return(FALSE)
   })
-  output$do_disp_prolific_code <- reactive({    ## Prolific pay code, do dislplay?
+  output$do_disp_prolific_code <- reactive({ ## Prolific pay code, do dislplay?
     if(input$prolific_id == "")
       return(FALSE)
     return(TRUE)
   })
-  output$do_disp_dev_tools <- reactive({        ## JS eval of R boolean...
+  output$do_disp_dev_tools <- reactive({     ## JS eval of R boolean...
     return(do_disp_dev_tools)
   }) 
   
