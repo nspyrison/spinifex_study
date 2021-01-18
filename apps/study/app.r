@@ -5,19 +5,20 @@ source('global.r', local = TRUE)
 
 ####### Server function, for shiny app
 server <- function(input, output, session){
-  ## Google sheets authentication, with google api4
-  ## see notes in global.r for more detailed instruction
-  tryCatch({
-  googlesheets4::gs4_auth(
-    cache = ".secrets", email = "nicholas.spyrison@monash.edu")
-  }, error = function(e){
-    txt <- "App could not authenticate to Google sheet. Please try again in 5 minutes. Closing app in 15 seconds."
+  ## Check if auth was successful
+  if(was_auth_issue == TRUE){
+    txt <- "Could not authenticate to Google sheets. Please try again in 5 minutes. Closing app in 15 seconds."
     showNotification(txt, type = "error", duration = 15L)
-    warning(txt)
     Sys.sleep(15L)
     stopApp()
-    return(NULL)
-  })
+  }
+  ## Check if within api quota
+  if(was_quota_issue == TRUE){
+    txt <- "Could not authenticate to Google sheets. Please try again in 5 minutes. Closing app in 15 seconds."
+    showNotification(txt, type = "error", duration = 15L)
+    Sys.sleep(15L)
+    stopApp()
+  }
   
   ## onStop() This code will be run after the client has disconnected
   session$onSessionEnded(function() {

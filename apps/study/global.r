@@ -14,21 +14,9 @@ height_px <- 500L ## Default height [pixels] for plot
 ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" ## Hash or name of the google sheet
 ## Google sheets id number:
 ## spinifex_study resp_tbl    1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU
-
-#### Google sheets authentication
-## https://gargle.r-lib.org/articles/non-interactive-auth.html#project-level-oauth-cache
-## step 1) manually store token 
 #' @example 
-#' googlesheets4::gs4_auth(cache = "apps/study/.secrets") 
-#' ## keep in mind it must get pushed with shiny deploy
-## step 2) for down stream auth, use
-#### step 2) option a):
-# options(gargle_oauth_cache = ".secrets",
-#         gargle_oauth_email = "nicholas.spyrison@monash.edu")
-#### step 2) option b):
-#### Note that you may need oob = TRUE 
-# googlesheets4::gs4_auth(
-#   cache = ".secrets", email = "nicholas.spyrison@monash.edu")
+#' browseURL("https://docs.google.com/spreadsheets/d/1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU/edit#gid=2008893390")
+
 
 #### Prolific.co 
 ##to see the study draft page go to:
@@ -65,23 +53,53 @@ r_loc <- nrow(location_perms)   ##~6
 r_vc  <- nrow(vc_perms)         ##~1
 r_perms <- r_fct * r_loc * r_vc ##~36
 
+#### Google authentication -----
+#### Setup:
+## https://gargle.r-lib.org/articles/non-interactive-auth.html#project-level-oauth-cache
+## step 1) manually store token 
+#' @example 
+#' googlesheets4::gs4_auth(cache = "apps/study/.secrets") 
+#' ## keep in mind it must get pushed with shiny deploy
+## step 2) for down stream auth, use
+#### step 2) option a):
+# options(gargle_oauth_cache = ".secrets",
+#         gargle_oauth_email = "nicholas.spyrison@monash.edu")
+#### step 2) option b):
+# googlesheets4::gs4_auth(
+#   cache = ".secrets", email = "nicholas.spyrison@monash.edu")
+
+## tryCatch for google api4 auth
+was_auth_issue <- FALSE
+tryCatch({
+  googlesheets4::gs4_auth(
+    cache = ".secrets", email = "nicholas.spyrison@monash.edu")
+}, error = function(e){
+  was_auth_issue <- TRUE
+  txt <- "Could not authenticate to Google sheets. Please try again in 5 minutes. Closing app in 15 seconds."
+  warning(txt)
+  return(e)
+})
+
+
+
 #### Assign participant_num and perm_num -----
 ## Read response sheet and set participant number to first not use integer
 
 participant_num <- 1L ## Initialize
+
+
 ## API reads UNLOCKED. keep in mind API quota issue.
 if(T){
   ## tryCatch for api quota limit
   prev_saves <- NULL
+  was_quota_issue <- FALSE
   tryCatch({
     prev_saves <- googlesheets4::read_sheet(ss_id, sheet = 1L)
   }, error = function(e){
+    was_quota_issue <- TRUE
     txt <- "Google API quota reached, Please try again in 2 minutes. Closing app in 15 seconds."
-    showNotification(txt, type = "error", duration = 15L)
     warning(txt)
-    Sys.sleep(15L)
-    stopApp()
-    return(NULL)
+    return(e)
   })
 used_nums <- unique(prev_saves$participant_num)
 opts <- 1L:(max(used_nums) + 1L)
@@ -165,7 +183,17 @@ survey_pg   <- 15L     ## Survey
 
 
 ##### UI START -----
-
+css_notification <- tags$head(
+  tags$style(
+    HTML(".shiny-notification {
+             position:fixed;
+             top: calc(40%);
+             left: calc(40%);
+             }
+             "
+    )
+  )
+)
 ### intro_page1 -----
 intro_page1 <- conditionalPanel( ## First page conditionalPanel
   condition = "output.pg == 1",
@@ -435,7 +463,7 @@ dev_disp <- conditionalPanel(
 ) ## close conditionPanel, assigning dev_disp
 
 #### ui, combined HTML -----
-ui <- fluidPage(
+ui <- fluidPage(css_notification,
                 titlePanel("Multivariate vis user study"),
                 sidebarLayout(
                   sidebar_panel,
