@@ -112,7 +112,7 @@ init_survey_tbl <- make_survey_tbl(participant_num)
 ## quasi onStart():
 message(paste(sep = " \n",
               "Ran onStart() code.",
-              paste0("Spinifex STUDY, --- (spinife, --- Started ", Sys.time()),
+              paste0("Spinifex user study, --- Started@ ", Sys.time()),
               paste0("Participant number: ", participant_num, "."),
               paste0("Perm number: ", full_perm_num, ".")
 ))

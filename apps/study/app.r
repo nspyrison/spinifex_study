@@ -5,12 +5,9 @@ source('global.r', local = TRUE)
 
 ####### Server function, for shiny app
 server <- function(input, output, session){
-  ## Google sheets authentication
-  ## for setup see "./.secrets/save_token.r
+  ## Google sheets authentication, with google api4
+  ## see notes in global.r for more detailed instruction
   tryCatch({
-    ## For the first time running the app in R to get the OAuth token:
-    #googlesheets4::gs4_auth(cache = ".secrets")
-    ## Downstream runs use:
   googlesheets4::gs4_auth(
     cache = ".secrets", email = "nicholas.spyrison@monash.edu")
   }, error = function(e){
@@ -24,9 +21,9 @@ server <- function(input, output, session){
   
   ## onStop() This code will be run after the client has disconnected
   session$onSessionEnded(function() {
-    cat(context_msg)
-    message("Ran session$onSessionEnded(f()). Coerecing app off with stopApp().")
-    stopApp()
+    message(paste0("Spinifex user study, --- Started@ ", Sys.time()))
+    message("Ran session$onSessionEnded(f()). Running stopApp().")
+    stopApp() ## Attempt to release resources on hung session.
     ## CANNOT USE REACTIVE FUNCTIONS OR VALUES, within the onStop() call.
   })
   
