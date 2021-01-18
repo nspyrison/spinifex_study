@@ -495,14 +495,13 @@ server <- function(input, output, session){
   ### _Obs save_survey button -----
   ## resp_tbl writes every line with the next page, this is for SURVEY ONLY.
   observeEvent(input$save_survey, {
-    ## write response tbl to sheet 1
-    googlesheets4::sheet_append(ss_id, rv$resp_tbl, 1L) 
-    ## write survey tbl to sheet 2
+    ## Write response tbl to sheet 1
+    googlesheets4::sheet_append(ss_id, rv$resp_tbl, 1L)
+    ## Write survey tbl to sheet 2
     googlesheets4::sheet_append(ss_id, rv$survey_tbl, 2L)
-    message("survey_tbl, full table apended for page: ", rv$pg, " -- ",
+    message("survey_tbl, all questions apended to gsheet -- ",
             substr(Sys.time(), 12L, 16L))
-    
-    ## Save Message
+    ## Save message
     save_msg <- paste0("Reponses saved. Thank you for participating!")
     showNotification(save_msg, type = "message", duration = 10L)
     output$save_msg <- renderText(save_msg)
@@ -510,7 +509,6 @@ server <- function(input, output, session){
   
   ### _Obs browser -----
   observeEvent(input$browser, browser())
-  
   ### _Obs timer -----
   observe({
     invalidateLater(1000L, session) ## Every 1000 ms, increment a second
@@ -526,8 +524,8 @@ server <- function(input, output, session){
         return("Time has expired, please enter your best guess and proceed.")
       }else{
         return(
-          paste0("Time remaining: ", lubridate::seconds_to_period(time_left()),
-                 " of ", lubridate::seconds_to_period(time_alotted))
+          paste0("Seconds remaining: ", time_left(),
+                 " of ", time_alotted, " seconds total.")
         )
       }
     }

@@ -382,9 +382,7 @@ main_page <- mainPanel(
   conditionalPanel(
     condition = "output.plot_active == true",
     h2(textOutput("header")),
-    hr(),
     textOutput("timer_disp"),
-    hr(),
     ## Image text and image.
     imageOutput("image_plot"),
   ), ## close task section conditional panel title text
