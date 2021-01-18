@@ -1,3 +1,6 @@
+warning("Changed dir from inside ./www/ to ./app_supplementary/.
+        May need to fix filepaths.")
+
 library("spinifex")
 library("ggplot2")
 library("gganimate")
