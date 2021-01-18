@@ -14,9 +14,16 @@ height_px <- 500L ## Default height [pixels] for plot
 ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" ## Hash or name of the google sheet
 ## Google sheets id number:
 ## spinifex_study resp_tbl    1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU
-## Google sheets auth code
-## 23/12/2020, nitro acer laptop: 4/1AY0e-g5NhEF12mV_4U_d1MzO0GrnNZUlaCCNvq-lLTPJ0Ry8iubLXQJ9uCI
 
+#### Google sheets auth
+## https://gargle.r-lib.org/articles/non-interactive-auth.html#project-level-oauth-cache
+## step 1) manually store token 
+#' @example 
+#' googlesheets4::gs4_auth(cache = "apps/study/www/.secrets")
+## step 1) manually store token 
+options(gargle_oauth_cache = ".secrets",
+        gargle_oauth_email = TRUE)
+googlesheets4::gs4_auth(token = my_oauth_token)
 ## Prolific.co to see the study draft page go to:
 # if(F)
 #   browseURL("https://app.prolific.co/studies/5fd808e32ce90812aeb9cd90")

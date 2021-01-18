@@ -7,20 +7,20 @@ source('global.r', local = TRUE)
 server <- function(input, output, session){
   ## Google sheets authentication
   ## for setup see "./.secrets/save_token.r
-  tryCatch({
-    ## For the first time running the app in R to get the OAuth token:
-    #googlesheets4::gs4_auth(cache = ".secrets")
-    ## Downstream runs use:
-    googlesheets4::gs4_auth(
-      cache = ".secrets", email = "nicholas.spyrison@monash.edu", use_oob = TRUE)
-  }, error = function(e){
-    txt <- "App could not authenticate to Google sheet. Please try again in 5 minutes. Closing app in 15 seconds."
-    showNotification(txt, type = "error", duration = 15L)
-    warning(txt)
-    Sys.sleep(15L)
-    stopApp()
-    return(NULL)
-  })
+  # tryCatch({
+  #   ## For the first time running the app in R to get the OAuth token:
+  #   #googlesheets4::gs4_auth(cache = ".secrets")
+  #   ## Downstream runs use:
+  #   # googlesheets4::gs4_auth(
+  #   #   cache = ".secrets", email = "nicholas.spyrison@monash.edu", use_oob = TRUE)
+  # }, error = function(e){
+  #   txt <- "App could not authenticate to Google sheet. Please try again in 5 minutes. Closing app in 15 seconds."
+  #   showNotification(txt, type = "error", duration = 15L)
+  #   warning(txt)
+  #   Sys.sleep(15L)
+  #   stopApp()
+  #   return(NULL)
+  # })
   
   ## onStop() This code will be run after the client has disconnected
   session$onSessionEnded(function() {
