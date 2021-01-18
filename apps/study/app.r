@@ -7,29 +7,27 @@ source('global.r', local = TRUE)
 server <- function(input, output, session){
   ## Google sheets authentication
   ## for setup see "./.secrets/save_token.r
-  # tryCatch({
-  #   ## For the first time running the app in R to get the OAuth token:
-  #   #googlesheets4::gs4_auth(cache = ".secrets")
-  #   ## Downstream runs use:
-  #   # googlesheets4::gs4_auth(
-  #   #   cache = ".secrets", email = "nicholas.spyrison@monash.edu", use_oob = TRUE)
-  # }, error = function(e){
-  #   txt <- "App could not authenticate to Google sheet. Please try again in 5 minutes. Closing app in 15 seconds."
-  #   showNotification(txt, type = "error", duration = 15L)
-  #   warning(txt)
-  #   Sys.sleep(15L)
-  #   stopApp()
-  #   return(NULL)
-  # })
+  tryCatch({
+    ## For the first time running the app in R to get the OAuth token:
+    #googlesheets4::gs4_auth(cache = ".secrets")
+    ## Downstream runs use:
+  googlesheets4::gs4_auth(
+    cache = ".secrets", email = "nicholas.spyrison@monash.edu")
+  }, error = function(e){
+    txt <- "App could not authenticate to Google sheet. Please try again in 5 minutes. Closing app in 15 seconds."
+    showNotification(txt, type = "error", duration = 15L)
+    warning(txt)
+    Sys.sleep(15L)
+    stopApp()
+    return(NULL)
+  })
   
   ## onStop() This code will be run after the client has disconnected
   session$onSessionEnded(function() {
     cat(context_msg)
     message("Ran session$onSessionEnded(f()). Coerecing app off with stopApp().")
     stopApp()
-    ### CANNOT USE REACTIVE OR EVEN READ rv$pg, within the onStop().
-    ##### May be able to read from sheet and find last, also may not be worth it.
-    ##### Will have to clean in analysis.
+    ## CANNOT USE REACTIVE FUNCTIONS OR VALUES, within the onStop() call.
   })
   
   ##### Reactive value initialization -----
@@ -69,7 +67,7 @@ server <- function(input, output, session){
     resp_row()$section_pg})
   
   image_fp <- reactive({
-    if(plot_active() & time_left() > 0){
+    if(plot_active() & time_left() > 0L){
       fct_nm <- factor()
       if(fct_nm == "pca")
         fct_suffix <- paste0("pca_x", x_axis_num(), "y", y_axis_num(), ".png")
@@ -264,7 +262,7 @@ server <- function(input, output, session){
   ## When x_axis changes, bump y_axis if needed
   observeEvent(input$x_axis, {
     if(input$x_axis == input$y_axis){
-      selec <- pca_choices[!(pca_choices %in% input$x_axis)][1] ## First option not eq to x_axis
+      selec <- pca_choices[!(pca_choices %in% input$x_axis)][1L] ## First option not eq to x_axis
       updateRadioButtons(session, "y_axis", choices = pca_choices,
                          selected = selec, inline = TRUE)
       showNotification("Do not select the same PC axes.", type = "message")
@@ -273,7 +271,7 @@ server <- function(input, output, session){
   ## When y_axis changes, bump x_axis if needed
   observeEvent(input$y_axis, {
     if(input$y_axis == input$x_axis){
-      selec <- pca_choices[!(pca_choices %in% input$y_axis)][1] ## First option not eq to y_axis
+      selec <- pca_choices[!(pca_choices %in% input$y_axis)][1L] ## First option not eq to y_axis
       updateRadioButtons(session, "x_axis", choices = pca_choices,
                          selected = selec, inline = TRUE)
       showNotification("Do not select the same PC axes.", type = "message")
@@ -457,7 +455,7 @@ server <- function(input, output, session){
     if((rv$sec_on_pg > 1L & do_disp_dev_tools == FALSE) |
        do_disp_dev_tools == TRUE){
       ##### __ eval training
-      ## Quality proofing; super low ball?
+      ##TODO: Quality proofing; super low ball?
       # if(eval() == "t1" &
       #    task_marks() <= 0L){ ## If FIRST training and marks less than/eq to 0, fail early.
       #   txt <- paste0("You did not meet the required threshold for the training data set.
@@ -576,13 +574,11 @@ server <- function(input, output, session){
   
   ### dev_tools display -----
   output$dev_msg  <- renderPrint({
-    if(do_disp_dev_tools == TRUE){
-      cat("dev msg -- \n",
-          ", header(): ", header(),
-          ", timer_info(): ", timer_info(),
-          ", key(): ", key()
-      )
-    }
+    cat("dev msg -- \n",
+        ", header(): ", header(),
+        ", timer_info(): ", timer_info(),
+        ", key(): ", key()
+    )
   })
 } ## End server function
 

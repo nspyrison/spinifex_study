@@ -15,18 +15,25 @@ ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" ## Hash or name of the g
 ## Google sheets id number:
 ## spinifex_study resp_tbl    1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU
 
-#### Google sheets auth
+#### Google sheets authentication
 ## https://gargle.r-lib.org/articles/non-interactive-auth.html#project-level-oauth-cache
 ## step 1) manually store token 
 #' @example 
-#' googlesheets4::gs4_auth(cache = "apps/study/www/.secrets")
-## step 1) manually store token 
-options(gargle_oauth_cache = ".secrets",
-        gargle_oauth_email = TRUE)
-googlesheets4::gs4_auth(token = my_oauth_token)
-## Prolific.co to see the study draft page go to:
-# if(F)
-#   browseURL("https://app.prolific.co/studies/5fd808e32ce90812aeb9cd90")
+#' googlesheets4::gs4_auth(cache = "apps/study/.secrets") 
+#' ## keep in mind it must get pushed with shiny deploy
+## step 2) for down stream auth, use
+#### step 2) option a):
+# options(gargle_oauth_cache = ".secrets",
+#         gargle_oauth_email = "nicholas.spyrison@monash.edu")
+#### step 2) option b):
+#### Note that you may need oob = TRUE 
+# googlesheets4::gs4_auth(
+#   cache = ".secrets", email = "nicholas.spyrison@monash.edu")
+
+#### Prolific.co 
+##to see the study draft page go to:
+#' @example 
+#' browseURL("https://app.prolific.co/studies/5fd808e32ce90812aeb9cd90")
 
 #### Initialize factor and block permutations
 ## Possible permutations (by Evaluation number, not period number)
@@ -102,16 +109,14 @@ init_survey_tbl <- make_survey_tbl(participant_num)
 
 
 ## Context, "onStart()" and onStop()
-context_line <- paste0("Spinifex STUDY, --- (spinifex v",
-                       packageVersion("spinifex"), ") --- Started ", Sys.time())
-message("ran onStart() code.")
 ## quasi onStart():
-context_msg <- paste(sep = " \n",
-                     context_line,
-                     paste0("Participant number: ", participant_num, "."),
-                     paste0("Perm number: ", full_perm_num, ".")
-)
-cat(context_msg)
+message(paste(sep = " \n",
+              "Ran onStart() code.",
+              paste0("Spinifex STUDY, --- (spinife, --- Started ", Sys.time()),
+              paste0("Participant number: ", participant_num, "."),
+              paste0("Perm number: ", full_perm_num, ".")
+))
+
 
 ## Survey questions; n = 21 = 9 + 12
 survey_questions <- c("What are your prefered pronouns?",
@@ -128,7 +133,7 @@ survey_questions <- c("What are your prefered pronouns?",
 init_survey_tbl$question = survey_questions
 
 #### Load data -----
-### Still needed for evaluation, sizable app content uses dat()
+## Still needed for evaluation, sizable app content uses dat()
 root <- ("./www/data/")
 these_sim_nms <- paste(rep(this_vc_nm_ord, 3L), 
                        rep(p_dim_nms, 3L), 
@@ -151,7 +156,7 @@ n_p_dim            <- length(p_dim_nms)        ## ~2
 n_survey_questions <- length(survey_questions) ## ~18 = 6 + 3 * 4
 PC_cap             <- 4L ## Number of principal components to choose from.
 
-#### Define section start pages,
+## Define section start pages,
 intro_pgs   <- 1L:3L   ## Structure, video, splash screen
 period1_pgs <- 4L:7L   ## Training, rep 1, rep 2, and intermission
 period2_pgs <- 8L:11L  ## Training, rep 1, rep 2, and intermission
@@ -383,7 +388,7 @@ main_panel <- mainPanel(
     imageOutput("image_plot"),
   ), ## close task section conditional panel title text
   
-  ### _Plot mainPanel ----
+  #### _Plot mainPanel ----
   ## PCA axis selection
   conditionalPanel(
     condition = "output.factor == 'pca'",
@@ -409,7 +414,7 @@ main_panel <- mainPanel(
 ) ## Close mainPanel() End of main_page section.
 
 
-### dev_disp -----
+#### dev_disp -----
 dev_disp <- conditionalPanel(
   "output.do_disp_dev_tools == true",
   p("===== Development display below ====="),
@@ -429,7 +434,7 @@ dev_disp <- conditionalPanel(
   )
 ) ## close conditionPanel, assigning dev_disp
 
-##### ui, combined *_page pieces -----
+#### ui, combined HTML -----
 ui <- fluidPage(
                 titlePanel("Multivariate vis user study"),
                 sidebarLayout(
