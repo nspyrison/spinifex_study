@@ -6,7 +6,7 @@
 source("resp_tbl.r", local = TRUE) ## Needs initialization from global.r.
 library("shiny")
 library("googlesheets4") ## Google sheets (with api v4) for read/write responses.
-library("shinyjs")   ## Help with handling conditionalPanels
+
 library("lubridate") ## For timer
 do_disp_dev_tools <- TRUE ## Expects: TRUE / FALSE
 options(shiny.autoreload = TRUE) ## May reduce caching errors
@@ -232,10 +232,11 @@ col_p1 <- column(4L,
                  h3(paste0("First -- ", this_factor_nm_ord[1L])),
                  hr(),
                  tags$ul(
-                   tags$li(this_factor_descrip_1[1]),
-                   tags$li(this_factor_descrip_2[1])
+                   tags$li(this_factor_descrip_1[1L]),
+                   tags$li(this_factor_descrip_2[1L])
                  ),
-                 img(src = this_factor_examp_fp[1], height="75%", width="75%", align = "center"),
+                 img(src = this_factor_examp_fp[1L],
+                     height="75%", width="75%", align = "center"),
                  h4(survey_questions[7L]),
                  sliderInput("survey7", label = .surv_lab2,
                              min = 1L, max = 5L, value = 3L, step = 1L),
@@ -254,10 +255,11 @@ col_p2 <- column(4L,
                  h3(paste0("Second -- ", this_factor_nm_ord[3L])),
                  hr(),
                  tags$ul(
-                   tags$li(this_factor_descrip_1[3]),
-                   tags$li(this_factor_descrip_2[3])
+                   tags$li(this_factor_descrip_1[3L]),
+                   tags$li(this_factor_descrip_2[3L])
                  ),
-                 img(src = this_factor_examp_fp[3], height="75%", width="75%", align = "center"),
+                 img(src = this_factor_examp_fp[3L],
+                     height="75%", width="75%", align = "center"),
                  h4(survey_questions[11L]),
                  sliderInput("survey11", label = .surv_lab2,
                              min = 1L, max = 5L, value = 3L, step = 1L),
@@ -275,10 +277,11 @@ col_p3 <- column(4L,
                  h3(paste0("Third -- ", this_factor_nm_ord[5L])),
                  hr(),
                  tags$ul(
-                   tags$li(this_factor_descrip_1[5]),
-                   tags$li(this_factor_descrip_2[5])
+                   tags$li(this_factor_descrip_1[5L]),
+                   tags$li(this_factor_descrip_2[5L])
                  ),
-                 img(src = this_factor_examp_fp[5], height="75%", width="75%", align = "center"),
+                 img(src = this_factor_examp_fp[5L],
+                     height="75%", width="75%", align = "center"),
                  h4(survey_questions[15L]),
                  sliderInput("survey15", label = .surv_lab2,
                              min = 1L, max = 5L, value = 3L, step = 1L),
@@ -336,9 +339,10 @@ suvery_page <- conditionalPanel(
     conditionalPanel(
       condition = "output.is_saved == 1",
       h3("Reponses saved. Thank you for participating!"),
-      conditionalPanel("output.do_disp_prolific_code == true",
-                       br(),
-                       h3("Enter the completion code '18B6C620' to redeem payment.")
+      conditionalPanel(
+        "output.do_disp_prolific_code == true",
+        br(),
+        h3("Enter the completion code '18B6C620' to redeem payment.")
       )
     )
   )
