@@ -530,7 +530,7 @@ server <- function(input, output, session){
       }
     }
     if(section_nm() %in% paste0("t", 1L:3L)){ ## Disp timer counting up if in training.
-      return(paste0("Time on this page: ", lubridate::seconds_to_period(rv$sec_on_pg)))
+      return(paste0("Seconds on this page: ", rv$sec_on_pg))
     }
   })
   

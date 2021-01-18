@@ -6,23 +6,20 @@
 source("resp_tbl.r", local = TRUE) ## Needs initialization from global.r.
 library("shiny")
 library("googlesheets4") ## Google sheets (with api v4) for read/write responses.
-
-library("lubridate") ## For timer
 do_disp_dev_tools <- TRUE ## Expects: TRUE / FALSE
 options(shiny.autoreload = TRUE) ## May reduce caching errors
 #options(error = browser) ## occasionally helpful for troubleshooting
 time_alotted <- 60L ## Seconds for the task
-height_px <- 500L
-pal <- RColorBrewer::brewer.pal(8L, "Dark2")[c(1L, 2L, 3L, 6L, 8L)] ## Even more color safe
+height_px <- 500L ## Default height [pixels] for plot
 ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" ## Hash or name of the google sheet
-## auth code from 23/12/2020, nitro laptop: 4/1AY0e-g5NhEF12mV_4U_d1MzO0GrnNZUlaCCNvq-lLTPJ0Ry8iubLXQJ9uCI
+## Google sheets id number:
+## spinifex_study resp_tbl    1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU
+## Google sheets auth code
+## 23/12/2020, nitro acer laptop: 4/1AY0e-g5NhEF12mV_4U_d1MzO0GrnNZUlaCCNvq-lLTPJ0Ry8iubLXQJ9uCI
+
 ## Prolific.co to see the study draft page go to:
 # if(F)
 #   browseURL("https://app.prolific.co/studies/5fd808e32ce90812aeb9cd90")
-
-## name                       id
-## <chr>                      <chr>
-## spinifex_study resp_tbl    1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU
 
 #### Initialize factor and block permutations
 ## Possible permutations (by Evaluation number, not period number)
@@ -54,12 +51,11 @@ r_loc <- nrow(location_perms)   ##~6
 r_vc  <- nrow(vc_perms)         ##~1
 r_perms <- r_fct * r_loc * r_vc ##~36
 
-
 #### Assign participant_num and perm_num -----
 ## Read response sheet and set participant number to first not use integer
 
 participant_num <- 1L ## Initialize
-##TODO API reads UNLOCKED. keep in mind API quota issue.
+## API reads UNLOCKED. keep in mind API quota issue.
 if(T){
   ## tryCatch for api quota limit
   prev_saves <- NULL
@@ -206,11 +202,10 @@ intro_page2 <- conditionalPanel(
   condition = "output.pg == 2",
   h2("Video training"), br(), br(),
   p("Watch the following video before proceeding:"), br(),
-  # Adding the 'a' tag to the sidebar linking external file
   p("Minimize the study and watch the training video."),
+  ##TODO UPDATE AND review with new video; youtube needed?
+  ## Adding the 'a' tag to the sidebar to link to external file
   #tags$a(href='training.mp4', target='blank', 'training video (4:17)'),
-  br(), br(),
-  p("If this link only contains audio let the invigilator know.")
 ) ## End of conditionalPanel, assigning intro_page2
 
 ### intermission_page -----
@@ -230,7 +225,7 @@ intermission_page <- conditionalPanel(
                    div(style = 'float:right;', 'agree ->|'))
 col_p1 <- column(4L,
                  h3(paste0("First -- ", this_factor_nm_ord[1L])),
-                 hr(),
+                 br(),
                  tags$ul(
                    tags$li(this_factor_descrip_1[1L]),
                    tags$li(this_factor_descrip_2[1L])
@@ -348,16 +343,6 @@ suvery_page <- conditionalPanel(
   )
 ) ## Close condition panel, assigning survey_page
 
-
-### header_page -----
-header_page <- fluidPage(
-  titlePanel("User study"),
-  conditionalPanel(
-    condition = "(output.pg != 15)",
-    actionButton("next_pg_button", "Next page")
-  )
-)
-
 ##### sidebar_panel ----
 sidebar_panel <- conditionalPanel(
   condition = "(output.plot_active == true)",
@@ -372,9 +357,9 @@ sidebar_panel <- conditionalPanel(
 
 
 
-##### main_page -----
+##### main_panel -----
 pca_choices <- paste0("PC", 1L:PC_cap)
-main_page <- mainPanel(
+main_panel <- mainPanel(
   width = 9L,
   ### Text pages
   intro_page1,
@@ -410,6 +395,10 @@ main_page <- mainPanel(
                  choices =  "V1", selected = "V1")
   ), ## Close conditionalPanel(), done listing factor inputs
   ## No input for grand tour.
+  
+  conditionalPanel(condition = "(output.pg != 15)",
+                   actionButton("next_pg_button", "Next page")
+  )
 ) ## Close mainPanel() End of main_page section.
 
 
@@ -434,12 +423,11 @@ dev_disp <- conditionalPanel(
 ) ## close conditionPanel, assigning dev_disp
 
 ##### ui, combined *_page pieces -----
-ui <- fluidPage(header_page,
+ui <- fluidPage(
+                titlePanel("Multivariate vis user study"),
                 sidebarLayout(
-                  # p("sidebar"),
-                  # mainPanel(p("main panel"))
                   sidebar_panel,
-                  mainPanel(main_page)
+                  main_panel
                 ),
                 dev_disp
 )
