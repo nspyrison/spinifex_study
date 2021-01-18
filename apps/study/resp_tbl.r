@@ -117,8 +117,9 @@ make_resp_tbl <- function(participant_num = sample(1L:1000L, 1L)){
     ),
     input_inter = NA_integer_,
     resp_inter  = NA_integer_,
-    ttr         = NA_integer_,
+    sec_to_resp = NA_integer_,
     task_marks  = NA_real_,
+    sec_on_pg   = NA_integer_,
     write_dt    = NA_character_,
     v1_resp     = NA_integer_,
     v2_resp     = NA_integer_,
@@ -161,7 +162,7 @@ make_survey_tbl <- function(participant_num = sample(1L:1000L, 1L)){
     question        = NA_character_,
     response        = c(rep("decline to answer <default, no change>", 4),
                         rep("5 <default, no change>", 14)),
-    seconds_on_page = NA_integer_,
+    sec_to_resp     = NA_integer_,
     write_dt        = NA_character_,
   )
   return(survey_tbl)

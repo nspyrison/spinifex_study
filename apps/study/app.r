@@ -39,7 +39,7 @@ server <- function(input, output, session){
   ## Below are not needed, but to be explicit,
   rv$input_inter <- 0L
   rv$resp_inter  <- 0L
-  rv$ttr         <- 0L
+  rv$sec_to_resp <- 0L
   rv$resp_tbl    <- init_resp_tbl
   rv$survey_tbl  <- init_survey_tbl
   
@@ -50,8 +50,8 @@ server <- function(input, output, session){
   output$resp_row <- renderTable(resp_row())
   survey_tbl        <- reactive(rv$survey_tbl)
   output$survey_tbl <- renderTable(survey_tbl())
-  sacve_survey       <- reactive(input$save_survey)
-  output$save_survey <- renderText(sacve_survey())
+  save_survey       <- reactive(input$save_survey)
+  output$save_survey <- renderText(save_survey())
   key <- reactive({req(resp_row)
     resp_row()$key
   })
@@ -293,10 +293,10 @@ server <- function(input, output, session){
   })
   
   ##### _Obs responses and counts -----
-  ### task responses & ttr
+  ### task responses & sec_to_resp
   observeEvent(input$var_resp, {
     if(rv$sec_on_pg > 1L){
-      rv$ttr[1L] <- rv$sec_on_pg
+      rv$sec_to_resp[1L] <- rv$sec_on_pg
       rv$var_resp[1L] <- paste(input$var_resp, collapse = ", ")
     }
   })
@@ -321,7 +321,8 @@ server <- function(input, output, session){
     this_row <- resp_row()
     this_row$input_inter  <- rv$input_inter
     this_row$resp_inter   <- rv$resp_inter
-    this_row$ttr          <- rv$ttr
+    this_row$sec_to_resp  <- rv$sec_to_resp
+    this_row$sec_on_pg    <- rv$sec_on_pg
     this_row$write_dt     <- as.character(Sys.time())
     if(plot_active()){
       this_row$task_marks <- task_marks()
@@ -344,110 +345,110 @@ server <- function(input, output, session){
   ### Captures responses and times to the survey:
   observeEvent(input$survey1, {
     if(rv$sec_on_pg > 0L){
-      rv$survey_tbl$response[1L]        <- input$survey1
-      rv$survey_tbl$seconds_on_page[1L] <- rv$sec_on_pg
+      rv$survey_tbl$response[1L]    <- input$survey1
+      rv$survey_tbl$sec_to_resp[1L] <- rv$sec_on_pg
     }
   })
   observeEvent(input$survey2, {
     if(rv$sec_on_pg > 0L){
-      rv$survey_tbl$response[2L]        <- input$survey2
-      rv$survey_tbl$seconds_on_page[2L] <- rv$sec_on_pg
+      rv$survey_tbl$response[2L]    <- input$survey2
+      rv$survey_tbl$sec_to_resp[2L] <- rv$sec_on_pg
     }
   })
   observeEvent(input$survey3, {
     if(rv$sec_on_pg > 0L){
-      rv$survey_tbl$response[3L]        <- input$survey3
-      rv$survey_tbl$seconds_on_page[3L] <- rv$sec_on_pg
+      rv$survey_tbl$response[3L]    <- input$survey3
+      rv$survey_tbl$sec_to_resp[3L] <- rv$sec_on_pg
     }
   })
   observeEvent(input$survey4, {
     if(rv$sec_on_pg > 0L){
-      rv$survey_tbl$response[4L]        <- input$survey4
-      rv$survey_tbl$seconds_on_page[4L] <- rv$sec_on_pg
+      rv$survey_tbl$response[4L]    <- input$survey4
+      rv$survey_tbl$sec_to_resp[4L] <- rv$sec_on_pg
     }
   })
   observeEvent(input$survey5, {
     if(rv$sec_on_pg > 0L){
-      rv$survey_tbl$response[5L]        <- input$survey5
-      rv$survey_tbl$seconds_on_page[5L] <- rv$sec_on_pg
+      rv$survey_tbl$response[5L]    <- input$survey5
+      rv$survey_tbl$sec_to_resp[5L] <- rv$sec_on_pg
     }
   })
   observeEvent(input$survey6, {
     if(rv$sec_on_pg > 0L){
-      rv$survey_tbl$response[6L]        <- input$survey6
-      rv$survey_tbl$seconds_on_page[6L] <- rv$sec_on_pg
+      rv$survey_tbl$response[6L]    <- input$survey6
+      rv$survey_tbl$sec_to_resp[6L] <- rv$sec_on_pg
     }
   })
   observeEvent(input$survey7, {
     if(rv$sec_on_pg > 0L){
-      rv$survey_tbl$response[7L]        <- input$survey7
-      rv$survey_tbl$seconds_on_page[7L] <- rv$sec_on_pg
+      rv$survey_tbl$response[7L]    <- input$survey7
+      rv$survey_tbl$sec_to_resp[7L] <- rv$sec_on_pg
     }
   })
   observeEvent(input$survey8, {
     if(rv$sec_on_pg > 0L){
-      rv$survey_tbl$response[8L]        <- input$survey8
-      rv$survey_tbl$seconds_on_page[8L] <- rv$sec_on_pg
+      rv$survey_tbl$response[8L]    <- input$survey8
+      rv$survey_tbl$sec_to_resp[8L] <- rv$sec_on_pg
     }
   })
   observeEvent(input$survey9, {
     if(rv$sec_on_pg > 0L){
-      rv$survey_tbl$response[9L]        <- input$survey9
-      rv$survey_tbl$seconds_on_page[9L] <- rv$sec_on_pg
+      rv$survey_tbl$response[9L]    <- input$survey9
+      rv$survey_tbl$sec_to_resp[9L] <- rv$sec_on_pg
     }
   })
   observeEvent(input$survey10, {
     if(rv$sec_on_pg > 0L){
-      rv$survey_tbl$response[10L]        <- input$survey10
-      rv$survey_tbl$seconds_on_page[10L] <- rv$sec_on_pg
+      rv$survey_tbl$response[10L]    <- input$survey10
+      rv$survey_tbl$sec_to_resp[10L] <- rv$sec_on_pg
     }
   })
   observeEvent(input$survey11, {
     if(rv$sec_on_pg > 0L){
-      rv$survey_tbl$response[11L]        <- input$survey11
-      rv$survey_tbl$seconds_on_page[11L] <- rv$sec_on_pg
+      rv$survey_tbl$response[11L]    <- input$survey11
+      rv$survey_tbl$sec_to_resp[11L] <- rv$sec_on_pg
     }
   })
   observeEvent(input$survey12, {
     if(rv$sec_on_pg > 0L){
-      rv$survey_tbl$response[12L]        <- input$survey12
-      rv$survey_tbl$seconds_on_page[12L] <- rv$sec_on_pg
+      rv$survey_tbl$response[12L]    <- input$survey12
+      rv$survey_tbl$sec_to_resp[12L] <- rv$sec_on_pg
     }
   })
   observeEvent(input$survey13, {
     if(rv$sec_on_pg > 0L){
-      rv$survey_tbl$response[13L]        <- input$survey13
-      rv$survey_tbl$seconds_on_page[13L] <- rv$sec_on_pg
+      rv$survey_tbl$response[13L]    <- input$survey13
+      rv$survey_tbl$sec_to_resp[13L] <- rv$sec_on_pg
     }
   })
   observeEvent(input$survey14, {
     if(rv$sec_on_pg > 0L){
-      rv$survey_tbl$response[14L]        <- input$survey14
-      rv$survey_tbl$seconds_on_page[14L] <- rv$sec_on_pg
+      rv$survey_tbl$response[14L]    <- input$survey14
+      rv$survey_tbl$sec_to_resp[14L] <- rv$sec_on_pg
     }
   })
   observeEvent(input$survey15, {
     if(rv$sec_on_pg > 0L){
-      rv$survey_tbl$response[15L]        <- input$survey15
-      rv$survey_tbl$seconds_on_page[15L] <- rv$sec_on_pg
+      rv$survey_tbl$response[15L]    <- input$survey15
+      rv$survey_tbl$sec_to_resp[15L] <- rv$sec_on_pg
     }
   })
   observeEvent(input$survey16, {
     if(rv$sec_on_pg > 0L){
-      rv$survey_tbl$response[16L]        <- input$survey16
-      rv$survey_tbl$seconds_on_page[16L] <- rv$sec_on_pg
+      rv$survey_tbl$response[16L]    <- input$survey16
+      rv$survey_tbl$sec_to_resp[16L] <- rv$sec_on_pg
     }
   })
   observeEvent(input$survey17, {
     if(rv$sec_on_pg > 0L){
-      rv$survey_tbl$response[17L]        <- input$survey17
-      rv$survey_tbl$seconds_on_page[17L] <- rv$sec_on_pg
+      rv$survey_tbl$response[17L]    <- input$survey17
+      rv$survey_tbl$sec_to_resp[17L] <- rv$sec_on_pg
     }
   })
   observeEvent(input$survey18, {
     if(rv$sec_on_pg > 0L){
-      rv$survey_tbl$response[18L]        <- input$survey18
-      rv$survey_tbl$seconds_on_page[18L] <- rv$sec_on_pg
+      rv$survey_tbl$response[18L]    <- input$survey18
+      rv$survey_tbl$sec_to_resp[18L] <- rv$sec_on_pg
     }
   })
   
@@ -456,29 +457,29 @@ server <- function(input, output, session){
     if((rv$sec_on_pg > 1L & do_disp_dev_tools == FALSE) |
        do_disp_dev_tools == TRUE){
       ##### __ eval training
-      if(substr(eval(), 1L, 2L) == "t1" &
-         task_marks() <= 0L){ ## If FIRST training and marks less than/eq to 0, fail early.
-        txt <- paste0("You did not meet the required thershold for the training data set.
-        Please enter the following code to <blah, blah>. On rv$pg ", rv$pg, ".")
-        showNotification(txt, type = "error", duration = 30L)
-        warning(txt)
-        # browser()
-        # Sys.sleep(30L)
-        # stopApp()
-        # return(NULL)
-      }
+      ## Quality proofing; super low ball?
+      # if(eval() == "t1" &
+      #    task_marks() <= 0L){ ## If FIRST training and marks less than/eq to 0, fail early.
+      #   txt <- paste0("You did not meet the required threshold for the training data set.
+      #   Please enter the following code to <blah, blah>. On rv$pg ", rv$pg, ".")
+      #   showNotification(txt, type = "error", duration = 30L)
+      #   warning(txt)
+      #   # browser()
+      #   # Sys.sleep(30L)
+      #   # stopApp()
+      #   # return(NULL)
+      # }
       if(rv$pg == 1){
         rv$resp_tbl$prolific_id   <- input$prolific_id
         rv$survey_tbl$prolific_id <- input$prolific_id
       }
       ##### __rv$resp_tbl -----
-      ## Write responses and ttr to resp_tbl
+      ## Write responses and sec_to_resp to resp_tbl
       this_row <- output_row()
       ## Update local table and write to Google sheet.
       rv$resp_tbl[rv$pg, ] <- this_row
-      ## saving on save or close
       googlesheets4::sheet_append(ss_id, this_row, 1L)
-      message("rv$resp_tbl, data row stored, not writen to gsheets: ", rv$pg, " -- ", Sys.time())
+      message("rv$resp_tbl, data row writen locally and to gsheets. pg:", rv$pg, " -- ", Sys.time())
       ## End of writing to resp_tbl
       
       ### __New page ----
@@ -487,7 +488,7 @@ server <- function(input, output, session){
       output$plot_msg <- renderText("")
       rv$input_inter  <- 0L
       rv$resp_inter   <- 0L
-      rv$ttr          <- 0L
+      rv$sec_on_pg    <- 0L
     }
   })
   
@@ -530,7 +531,7 @@ server <- function(input, output, session){
         )
       }
     }
-    if(section_nm %in% paste0("t", 1L:3L)){ ## Disp timer counting up if in training.
+    if(section_nm() %in% paste0("t", 1L:3L)){ ## Disp timer counting up if in training.
       return(paste0("Time on this page: ", lubridate::seconds_to_period(rv$sec_on_pg)))
     }
   })

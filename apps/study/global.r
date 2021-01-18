@@ -77,9 +77,8 @@ used_nums <- unique(prev_saves$participant_num)
 opts <- 1L:(max(used_nums) + 1L)
 open_nums <- opts[!opts %in% used_nums] ## All not used numbers
 participant_num <- min(open_nums)
-}else{participant_num <- 1L}#sample(1L:999L, 1L)}
+}else{participant_num <- sample(1L:999L, 1L)}
 full_perm_num <- 1L + participant_num %% r_perms
-
 
 ## Select permutation orders
 this_factor_perm   <- 1L + (full_perm_num - 1L) %% r_fct
@@ -115,7 +114,7 @@ cat(context_msg)
 survey_questions <- c("What are your prefered pronouns?",
                       "Which age group do you belong to?",
                       "What is your highest completed education?",
-                      "What is your English proficiency?",
+                      "I understand the how to perform the task.",
                       "I am experienced with data visulization.",
                       "I am experienced with data analysis.",
                       rep(c("I was already familiar with this method.",
@@ -197,7 +196,7 @@ intro_page1 <- conditionalPanel( ## First page conditionalPanel
   ),
   p("Before we get started, Prolific.co participants must enter their Prolific ID below"),
   textInput(inputId = "prolific_id",
-            label = "If you are a Prolific.co participants, enter your Prolific ID (otherwise blank)",
+            label = "If you are a Prolific.co participant, enter your Prolific ID (otherwise blank)",
             placeholder = "<Prolific ID or blank>"),
   p("We really appreciate your participation in this study.")
 ) ## End of first page conditionalPanel, assigning intro_page1
@@ -304,29 +303,23 @@ suvery_page <- conditionalPanel(
                 choices = c("decline to answer",
                             "he/him",
                             "she/her",
-                            "thy/them or other")
-    ),
+                            "thy/them or other")),
     selectInput("survey2", label = survey_questions[2L],
                 choices = c("decline to answer",
                             "18 to 24",
                             "25 to 35",
                             "36 to 45",
                             "45 to 60",
-                            "60 and up")
-    ),
-
+                            "60 and up")),
     selectInput("survey3", label = survey_questions[3L],
                 choices = c("decline to answer",
                             "Undergraduate degree (BA/BSc/other)",
                             "Graduate degree (MA/MSc/MPhil/other)",
                             "Doctorate degree (PhD/other)")),
-    selectInput("survey4", label = survey_questions[4L],
-                choices = c("decline to answer",
-                            "English first language",
-                            "Multilingual including English from a young age",
-                            "English not first language")),
     h3("How much do you agree with the following statements?"),
-    
+    h4(survey_questions[4L]),
+    sliderInput("survey4", label = .surv_lab,
+                min = 1L, max = 5L, value = 3L, step = 1L),
     h4(survey_questions[5L]),
     sliderInput("survey5", label = .surv_lab,
                 min = 1L, max = 5L, value = 3L, step = 1L),
