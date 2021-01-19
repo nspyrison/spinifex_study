@@ -1,7 +1,7 @@
-source(here::here("R/sim_tidyverse.r")) ## For banana_tform() and rotate()
+# OLD source(here::here("R/sim_tidyverse.r")) ## For banana_tform() and rotate()
 
 ## NOTE:  rotate_mtvnorm() & banana_tform_mtvnorm()
-#### have been disolved into sim_mvtnorm_cl.
+#### have been dissolved into sim_mvtnorm_cl(), below.
 
 #' Creates a data frame of multivariate data with clusters via mvnorm::rmvnorm().
 #'
@@ -60,8 +60,6 @@ sim_mvtnorm_cl <- function(means,  ## Required
   }
   df_sim <- apply(df_sim, 2, function(c)(c - mean(c)) / sd(c)) ## Standardize by column mean, sd.
   
-  
-  
   ## Bananatize cluster b if needed, before rotation and shuffling
   if(do_bananatize == TRUE){
     b_df <- df_sim[cluster == "cl b", ]
@@ -94,7 +92,6 @@ sim_mvtnorm_cl <- function(means,  ## Required
                             V1 = c * V1 + -s * V4,
                             V4 = s * V1 +  c * V4)
   }
-  
   
   ## Reorder rows and columns if needed
   if(do_shuffle == TRUE){
@@ -159,7 +156,7 @@ sim_user_study <- function(cl_obs = 140,
                "EEV_p6_0_1", "EEV_p6_33_66", "EEV_p6_50_50",
                "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
   cov_nms <- paste0("covs_", in_nms)
-  root <- paste0(here::here("apps/data/"), "/")
+  root <- paste0(here::here("apps_supplementary/data"), "/")
 
   ## MEANS ------
   mns_p4 <- ##___2 signal dim  | 2 noise dim
@@ -431,7 +428,7 @@ sim_user_study <- function(cl_obs = 140,
 tpath_user_study <- function(do_save = FALSE){
   ## Initialize
   require("tourr")
-  root    <- paste0(here::here("apps/data"), "/")
+  root    <- paste0(here::here("apps_supplementary/data"), "/")
   in_nms  <- c("EEE_p4_0_1_t1", "EEE_p4_0_1_rep1", "EEE_p6_0_1_rep1")
   in_fps  <- paste0(root, in_nms, ".rda")
   out_nms <- paste0("tpath_", c("p4_t", "p4", "p6"))

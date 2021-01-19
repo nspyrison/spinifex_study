@@ -10,22 +10,22 @@ require("dplyr")
 #' participant_num <- 1
 #' log_file <- "initialize"
 #' if(do_log == TRUE){
-#'   full_perm_num <- 1 + participant_num %% 56
+#'   full_perm_num <- 1 + participant_num %% 36
 #'   log_file <- paste0("log_participant_", participant_num, ".json")
 #'   ## TODO: Need to get participant_num, from google docs.
 #'   while (file.exists(log_file)){ ## Find an unused log number
 #'     participant_num <- participant_num + 1
-#'     full_perm_num <- 1 + participant_num %% 56
+#'     full_perm_num <- 1 + participant_num %% 36
 #'     log_file <- paste0("log_participant_", participant_num, ".json")
 #'   }
 #'   set_logfile(log_file)
 #' }else{ ## When do_log == F
 #'   participant_num <- sample(1:999, 1)
-#'   full_perm_num <- 1 + participant_num %% 56
+#'   full_perm_num <- 1 + participant_num %% 36
 #'   log_file <- paste0("log_participant_", participant_num,
 #'                      "Logging is off! Log and responses not being recorded.")
 #' }
-#' full_perm_num <- 1 + participant_num %% 56
+#' full_perm_num <- 1 + participant_num %% 36
 #' cat("do_log, log_file: ", do_log, log_file, " /n")
 #' 
 #' #### Select factor and block permutations
@@ -61,11 +61,12 @@ require("dplyr")
 #'   location_nms[location_perms[this_location_perm, ]]
 
 
-make_resp_tbl <- function(participant_num = sample(1L:1000L, 1L)){
-  full_perm_num <- 1 + participant_num %% 56L
-  
-  message(paste0("Participant_num: ", participant_num,
-                 ", full_perm_num: ", full_perm_num))
+make_resp_tbl <- function(participant_num = sample(1L:n_perms, 1L),
+                          n_perms = 36L){
+  full_perm_num <- 1L + (participant_num - 1L) %% n_perms
+  message(paste0("Making resp_tbl for \n",
+                 "participant_num: ", participant_num, ". \n", 
+                 "full_perm_num: ", full_perm_num, "."))
   
   resp_tbl <- tibble::tibble(
     key = paste(sep = "_", participant_num, full_perm_num, 1L:15L),
@@ -127,6 +128,12 @@ make_resp_tbl <- function(participant_num = sample(1L:1000L, 1L)){
     v4_resp     = NA_integer_,
     v5_resp     = NA_integer_,
     v6_resp     = NA_integer_,
+    v1_ans      = NA_real_,
+    v2_ans      = NA_real_,
+    v3_ans      = NA_real_,
+    v4_ans      = NA_real_,
+    v5_ans      = NA_real_,
+    v6_ans      = NA_real_,
     v1_marks    = NA_real_,
     v2_marks    = NA_real_,
     v3_marks    = NA_real_,
@@ -141,13 +148,12 @@ make_resp_tbl <- function(participant_num = sample(1L:1000L, 1L)){
 #' View(resp_tbl)
 
 
-
-
-make_survey_tbl <- function(participant_num = sample(1L:1000L, 1L)){
-  full_perm_num <- 1L + participant_num %% 56L
-  
-  message(paste0("Participant_num: ", participant_num,
-                 ", full_perm_num: ", full_perm_num))
+make_survey_tbl <- function(participant_num = sample(1L:n_perms, 1L),
+                            n_perms = 36L){
+  full_perm_num <- 1L + (participant_num - 1L) %% n_perms
+  message(paste0("Making survey_tbl for \n",
+                 "participant_num: ", participant_num, ". \n",
+                 "full_perm_num: ", full_perm_num, "."))
   
   survey_tbl <- tibble::tibble(
     key = paste(sep = "_", participant_num, full_perm_num, 1L:18L),
@@ -159,9 +165,9 @@ make_survey_tbl <- function(participant_num = sample(1L:1000L, 1L)){
                         rep(this_factor_nm_ord[1L], 4L),
                         rep(this_factor_nm_ord[3L], 4L),
                         rep(this_factor_nm_ord[5L], 4L) ),
-    question        = NA_character_,
-    response        = c(rep("decline to answer <default, no change>", 4),
-                        rep("5 <default, no change>", 14)),
+    question        = survey_questions,
+    response        = c(rep("decline to answer <default, no change>", 3L),
+                        rep("3 <default, no change>", 15L)),
     sec_to_resp     = NA_integer_,
     write_dt        = NA_character_,
   )
@@ -171,3 +177,81 @@ make_survey_tbl <- function(participant_num = sample(1L:1000L, 1L)){
 #' @examples
 #' (survey_tbl <- make_survey_tbl(participant_num))
 #' View(survey_tbl)
+
+#### Creates the ans_tbl relatyive to the project dir, run outside of app. 
+## NOTE:  MANUALLY RUN ONCE, NOT IN APP. Apply with load_join_ans_tbl() inside app.
+make_save_ans_tbl <- function(){
+  tictoc::tic("make_save_ans_tbl()")
+  ## Vector of sim_nms
+  sim_nms <- c("EEE_p4_0_1",    "EEE_p4_33_66",    "EEE_p4_50_50",
+               "EEV_p4_0_1",    "EEV_p4_33_66",    "EEV_p4_50_50",
+               "banana_p4_0_1", "banana_p4_33_66", "banana_p4_50_50",
+               "EEE_p6_0_1",    "EEE_p6_33_66",    "EEE_p6_50_50",
+               "EEV_p6_0_1",    "EEV_p6_33_66",    "EEV_p6_50_50",
+               "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
+  sim_nms <- c(paste0("EEE_p4_0_1_t", 1L:3L), ## 3 training sets
+               as.vector(outer(sim_nms, paste0("_rep", 1L:3L), FUN = "paste0"))) ## Cross product paste
+  root <- "./apps/study/www/data" ## Can't use here::here(); Filepaths cannot be too long...
+  sim_fps <- paste0(root, "/", sim_nms, ".rda")
+  normalizePath(sim_fps)
+  ## Initialize before looping
+  n_sims <- length(sim_nms)
+  var_signal_mat <- var_diff_mat <- var_weight_mat <-
+    matrix(NA, nrow = n_sims, ncol = 6)
+  bar_vect <- rep(NA, n_sims)
+  ## Load and extracting measures, loop
+  for(i in 1L:n_sims){
+    load(sim_fps[i])
+    sim_signal <- attr(get(sim_fps[i]), "var_mean_diff_ab")
+    var_ind <- 1L:length(sim_signal) ## For sims of 4 dim
+    
+    ## var_signal, vector, the difference of the means of clusters A & B in given dim.
+    var_signal_mat[i, var_ind] <- sim_signal
+    ## bar, scalar, the average size of the signal per dim.
+    bar_vect[i] <- 
+      sum(var_signal_mat[i, var_ind]) / length(sim_signal)
+    ## var_diff, vector, magnitude above bar of the signal in each dim
+    var_diff_mat[i, var_ind] <- var_signal_mat[i, var_ind] - bar_vect[i]
+    ## var_weight, vector, the weight assigned to each var if selected in response
+    var_weight_mat[i, var_ind] <-
+      sign(var_diff_mat[i, var_ind]) * sqrt(abs(var_diff_mat[i, var_ind]))
+  }
+  ans_tbl <- ans_tbl <- tibble::tibble(
+    sim_nms,
+    bar_vect,
+    var_signal_mat,
+    var_diff_mat,
+    var_weight_mat
+  )
+  colnames(ans_tbl) <- c("sim_nm", "bar",
+                         paste0("v", 1:6, "_signal"),
+                         paste0("v", 1:6, "_diff"),
+                         paste0("v", 1:6, "_weight")
+  )
+  
+  ## Save
+  path <- "./apps/study/www/ans_tbl.rds"
+  saveRDS(object = ans_tbl, file = path)
+  message(paste0("Successfully saved ans_tbl to ", path))
+  tictoc::toc()
+  return(NULL)
+}
+#' @example 
+#' make_save_ans_tbl()
+
+
+#### Read ans_tbl obj made in make_save_ans_tbl()
+## This is called within app.
+read_join_ans_tbl <- function(resp_tbl){
+  if(missing(resp_tbl)) stop("resp_tbl not passed to read_join_ans_tbl.")
+
+  ## Read
+  readRDS(file = "./www/ans_tbl.rds") ## Note runs in app, fp relative to "apps/study".
+  
+  
+  
+  ## Join
+  
+  
+  return(reps_tbl)
+}

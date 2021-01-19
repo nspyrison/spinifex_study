@@ -1,10 +1,7 @@
-warning("Changed dir from inside ./www/ to ./app_supplementary/.
-        May need to fix filepaths.")
-
-library("spinifex")
-library("ggplot2")
-library("gganimate")
-library("gifski")
+require("spinifex")
+require("ggplot2")
+require("gganimate")
+require("gifski")
 
 set.seed(20200927) ## If tourr starts using seeds
 
@@ -37,10 +34,7 @@ pt_size <- 3L
 #### Load all data script
 ## load_all_data <- function(){
 {
-  ## Load all sim names, for dev control
-  root <- "./apps/study/www/data"
-  ## Can't use here::here(); Filepaths cannot be too long...
-  print(normalizePath(root))
+  ## Vector of sim_nms
   sim_nms <- c("EEE_p4_0_1",    "EEE_p4_33_66",    "EEE_p4_50_50",
                "EEV_p4_0_1",    "EEV_p4_33_66",    "EEV_p4_50_50",
                "banana_p4_0_1", "banana_p4_33_66", "banana_p4_50_50",
@@ -49,10 +43,13 @@ pt_size <- 3L
                "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
   sim_nms <- c(paste0("EEE_p4_0_1_t", 1:3), ## 3 training sets
                as.vector(outer(sim_nms, paste0("_rep", 1:3), FUN = "paste0"))) ## Cross product paste
+  root <- "./apps_supplementary/data"   ## Can't use here::here(); Filepaths cannot be too long...
   sim_fps <- paste0(root, "/", sim_nms, ".rda")
+  ## Load all simulations
   for(i in 1:length(sim_nms)){
     load(sim_fps[i], envir = globalenv())
   }
+  
   ## Load the few tpaths.
   tpath_nms <- paste0("tpath_", c("p4_t", "p4", "p6"))
   tpath_fps <- paste0(root, "/", tpath_nms, ".rda")
@@ -130,7 +127,7 @@ save_pca <- function(sim_nm = "EEE_p4_0_1_rep1"){
       
       
       suppressMessages(
-        ggsave(fn, gg, device = "png", path = "./apps/study/www/images",
+        ggsave(fn, gg, device = "png", path = "./apps/spinifex_study/www/images",
                height = height_in, units = "in", dpi = "screen")
       )
     }))
@@ -176,7 +173,7 @@ save_grand <- function(sim_nm = "EEE_p4_0_1_rep1"){
     ## Save.
     gganimate::anim_save(filename = fn,
                          animation = anim,
-                         path = "./apps/study/www/images")
+                         path = "./apps/spinifex_study/www/images")
     
     message("Saved a grand tour gif of ", this_sim_nm, ".")
   })
@@ -212,7 +209,7 @@ save_radial <- function(sim_nm = "EEE_p4_0_1_rep1"){
       ## Save.
       gganimate::anim_save(filename = fn,
                            animation = anim,
-                           path = "./apps/study/www/images")
+                           path = "./apps/spinifex_study/www/images")
     }))
     
     message("Saved all ", p, " radial tours for each mv of ", this_sim_nm, ".")
@@ -223,7 +220,7 @@ save_radial <- function(sim_nm = "EEE_p4_0_1_rep1"){
 
 
 save_all_static <- function(){
-  require(tictoc); require(beepr)
+  require(tictoc)
   tic("outside loop")
   invisible(lapply(1:length(sim_nms), function(i){
     # tic("pca")
@@ -237,7 +234,6 @@ save_all_static <- function(){
     toc()
   }))
   toc("outside loop")
-  beepr::beep(4); message("DONE. =========== end of save_all_static")
 }
 #' @examples 
 #' save_all_static()

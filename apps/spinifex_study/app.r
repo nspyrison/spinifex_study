@@ -40,13 +40,13 @@ server <- function(input, output, session){
   rv$survey_tbl  <- init_survey_tbl
   
   ##### Reactive functions -----
-  resp_tbl        <- reactive(rv$resp_tbl)
-  output$resp_tbl <- renderTable(resp_tbl())
-  resp_row        <- reactive(rv$resp_tbl[rv$pg, ])
-  output$resp_row <- renderTable(resp_row())
-  survey_tbl        <- reactive(rv$survey_tbl)
-  output$survey_tbl <- renderTable(survey_tbl())
-  save_survey       <- reactive(input$save_survey)
+  resp_tbl           <- reactive(rv$resp_tbl)
+  output$resp_tbl    <- renderTable(resp_tbl())
+  resp_row           <- reactive(rv$resp_tbl[rv$pg, ])
+  output$resp_row    <- renderTable(resp_row())
+  survey_tbl         <- reactive(rv$survey_tbl)
+  output$survey_tbl  <- renderTable(survey_tbl())
+  save_survey        <- reactive(input$save_survey)
   output$save_survey <- renderText(save_survey())
   key <- reactive({req(resp_row)
     resp_row()$key
@@ -78,10 +78,9 @@ server <- function(input, output, session){
     }
     return("./www/white_placeholder.png") ## Thin white strip .png as a silent placeholder
   })
-  output$image_fp <- renderText({image_fp()})
+  output$image_fp   <- renderText({image_fp()})
   output$image_plot <- renderImage({
-    list(src = normalizePath(image_fp()),
-         alt = "image text!")
+    list(src = normalizePath(image_fp()))
   }, deleteFile = FALSE)
   dat <- reactive({ ## Simulation data (in df) with attributes
     req(plot_active())

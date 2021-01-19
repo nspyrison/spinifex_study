@@ -48,10 +48,10 @@ location_nms    <- c("0_1", "33_66", "50_50")
 vc_nms          <- c("EEE", "EEV", "banana")
 p_dim_nms       <- this_p_dim_nm_ord <- c("p4", "p6")
 ## The permutation counts
-r_fct <- nrow(factor_perms)     ##~6
-r_loc <- nrow(location_perms)   ##~6
-r_vc  <- nrow(vc_perms)         ##~1
-r_perms <- r_fct * r_loc * r_vc ##~36
+n_fct <- nrow(factor_perms)     ##~6
+n_loc <- nrow(location_perms)   ##~6
+n_vc  <- nrow(vc_perms)         ##~1
+n_perms <- n_fct * n_loc * n_vc ##~36
 
 #### Google authentication -----
 #### Setup:
@@ -80,14 +80,9 @@ tryCatch({
   return(e)
 })
 
-
-
 #### Assign participant_num and perm_num -----
 ## Read response sheet and set participant number to first not use integer
-
 participant_num <- 1L ## Initialize
-
-
 ## API reads UNLOCKED. keep in mind API quota issue.
 if(T){
   ## tryCatch for api quota limit
@@ -101,17 +96,17 @@ if(T){
     warning(txt)
     return(e)
   })
-used_nums <- unique(prev_saves$participant_num)
-opts <- 1L:(max(used_nums) + 1L)
-open_nums <- opts[!opts %in% used_nums] ## All not used numbers
-participant_num <- min(open_nums)
+  used_nums <- unique(prev_saves$participant_num)
+  opts <- 1L:(max(used_nums) + 1L)
+  open_nums <- opts[!opts %in% used_nums] ## All not used numbers
+  participant_num <- min(open_nums)
 }else{participant_num <- sample(1L:999L, 1L)}
-full_perm_num <- 1L + participant_num %% r_perms
+full_perm_num <- 1L + (participant_num - 1L) %% n_perms ## n_perms ~36L
 
 ## Select permutation orders
-this_factor_perm   <- 1L + (full_perm_num - 1L) %% r_fct
-this_location_perm <- 1L + floor((full_perm_num - 1L) / r_fct) %% (r_fct * r_loc)
-this_vc_perm       <- 1L # Fixed parameter #1L + floor((full_perm_num - 1L) / (r_fct * r_loc)) %% r_perms
+this_factor_perm   <- 1L + (full_perm_num - 1L) %% n_fct
+this_location_perm <- 1L + floor((full_perm_num - 1L) / n_fct) %% (n_fct * n_loc)
+this_vc_perm       <- 1L # Fixed parameter #1L + floor((full_perm_num - 1L) / (n_fct * n_loc)) %% n_perms
 ## The decoded names
 this_factor_nm_ord   <- factor_nms[factor_perms[this_factor_perm, ]]
 this_vc_nm_ord       <- vc_nms[vc_perms[this_vc_perm, ]]
@@ -120,21 +115,6 @@ this_location_nm_ord <- location_nms[location_perms[this_location_perm, ]]
 this_factor_descrip_1 <- factor_descrip_1[factor_perms[this_factor_perm, ]]
 this_factor_descrip_2 <- factor_descrip_2[factor_perms[this_factor_perm, ]]
 this_factor_examp_fp  <- factor_examp_fp[factor_perms[this_factor_perm, ]]
-
-## Functions from source('resp_tbl.r', local = TRUE)
-init_resp_tbl   <- make_resp_tbl(participant_num)
-init_survey_tbl <- make_survey_tbl(participant_num)
-
-
-## Context, "onStart()" and onStop()
-## quasi onStart():
-message(paste(sep = " \n",
-              "Ran onStart() code.",
-              paste0("Spinifex user study, --- Started@ ", Sys.time()),
-              paste0("Participant number: ", participant_num, "."),
-              paste0("Perm number: ", full_perm_num, ".")
-))
-
 
 ## Survey questions; n = 21 = 9 + 12
 survey_questions <- c("What are your prefered pronouns?",
@@ -148,7 +128,21 @@ survey_questions <- c("What are your prefered pronouns?",
                             "I felt confident in my answers with this method.",
                             "I liked using this method."), 3L)
 )
-init_survey_tbl$question = survey_questions
+
+## Functions from source('resp_tbl.r', local = TRUE)
+init_resp_tbl   <- make_resp_tbl(participant_num, n_perms)
+init_survey_tbl <- make_survey_tbl(participant_num, n_perms)
+init_resp_tbl   <- read_join_ans_tbl(init_resp_tbl)
+
+
+## Context, "onStart()" and onStop()
+## quasi onStart():
+message(paste(sep = " \n",
+              "Ran onStart() code.",
+              paste0("Spinifex user study, --- Started@ ", Sys.time()),
+              paste0("Participant number: ", participant_num, "."),
+              paste0("Perm number: ", full_perm_num, ".")
+))
 
 #### Load data -----
 ## Still needed for evaluation, sizable app content uses dat()
@@ -160,7 +154,7 @@ these_sim_nms <- c(paste0("EEE_p4_0_1_t", 1L:3L),
                    as.vector(outer(these_sim_nms, 
                                    paste0("_rep", 1L:3L),
                                    FUN = "paste0")
-                  ) ## cross product paste
+                   ) ## Cross product paste
 ) 
 sapply(these_sim_nms, function(i){
   this_sim_nm <-paste0(root, i, ".rda")
