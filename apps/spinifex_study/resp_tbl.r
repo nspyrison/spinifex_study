@@ -59,6 +59,7 @@ require("dplyr")
 #'   vc_nms[vc_perms[this_vc_perm, ]]
 #' this_location_nm_ord <-
 #'   location_nms[location_perms[this_location_perm, ]]
+#' (resp_tbl <- make_resp_tbl(participant_num))
 
 
 make_resp_tbl <- function(participant_num = sample(1L:n_perms, 1L),
@@ -122,18 +123,12 @@ make_resp_tbl <- function(participant_num = sample(1L:n_perms, 1L),
     task_marks  = NA_real_,
     sec_on_pg   = NA_integer_,
     write_dt    = NA_character_,
-    v1_resp     = NA_integer_,
+    v1_resp     = NA_integer_, ## input as logical, stored as integer.
     v2_resp     = NA_integer_,
     v3_resp     = NA_integer_,
     v4_resp     = NA_integer_,
     v5_resp     = NA_integer_,
     v6_resp     = NA_integer_,
-    v1_ans      = NA_real_,
-    v2_ans      = NA_real_,
-    v3_ans      = NA_real_,
-    v4_ans      = NA_real_,
-    v5_ans      = NA_real_,
-    v6_ans      = NA_real_,
     v1_marks    = NA_real_,
     v2_marks    = NA_real_,
     v3_marks    = NA_real_,
@@ -191,9 +186,9 @@ make_save_ans_tbl <- function(){
                "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
   sim_nms <- c(paste0("EEE_p4_0_1_t", 1L:3L), ## 3 training sets
                as.vector(outer(sim_nms, paste0("_rep", 1L:3L), FUN = "paste0"))) ## Cross product paste
-  root <- "./apps/study/www/data" ## Can't use here::here(); Filepaths cannot be too long...
+  root <- "./apps_supplementary/data" ## Can't use here::here(); Filepaths cannot be too long...
   sim_fps <- paste0(root, "/", sim_nms, ".rda")
-  normalizePath(sim_fps)
+  
   ## Initialize before looping
   n_sims <- length(sim_nms)
   var_signal_mat <- var_diff_mat <- var_weight_mat <-
@@ -201,8 +196,8 @@ make_save_ans_tbl <- function(){
   bar_vect <- rep(NA, n_sims)
   ## Load and extracting measures, loop
   for(i in 1L:n_sims){
-    load(sim_fps[i])
-    sim_signal <- attr(get(sim_fps[i]), "var_mean_diff_ab")
+    load(sim_fps[i]) ## private, not in global env
+    sim_signal <- attr(get(sim_nms[i]), "var_mean_diff_ab")
     var_ind <- 1L:length(sim_signal) ## For sims of 4 dim
     
     ## var_signal, vector, the difference of the means of clusters A & B in given dim.
@@ -216,12 +211,14 @@ make_save_ans_tbl <- function(){
     var_weight_mat[i, var_ind] <-
       sign(var_diff_mat[i, var_ind]) * sqrt(abs(var_diff_mat[i, var_ind]))
   }
-  ans_tbl <- ans_tbl <- tibble::tibble(
-    sim_nms,
-    bar_vect,
-    var_signal_mat,
-    var_diff_mat,
-    var_weight_mat
+  ans_tbl <- tibble::tibble(
+    data.frame(
+      sim_nms,
+      bar_vect,
+      var_signal_mat,
+      var_diff_mat,
+      var_weight_mat
+    )
   )
   colnames(ans_tbl) <- c("sim_nm", "bar",
                          paste0("v", 1:6, "_signal"),
@@ -230,7 +227,7 @@ make_save_ans_tbl <- function(){
   )
   
   ## Save
-  path <- "./apps/study/www/ans_tbl.rds"
+  path <- "./apps/spinifex_study/www/ans_tbl.rds"
   saveRDS(object = ans_tbl, file = path)
   message(paste0("Successfully saved ans_tbl to ", path))
   tictoc::toc()
@@ -246,12 +243,14 @@ read_join_ans_tbl <- function(resp_tbl){
   if(missing(resp_tbl)) stop("resp_tbl not passed to read_join_ans_tbl.")
 
   ## Read
-  readRDS(file = "./www/ans_tbl.rds") ## Note runs in app, fp relative to "apps/study".
-  
-  
+  ans_tbl <- readRDS(file = "./www/ans_tbl.rds") ## Note runs in app, fp relative to "apps/study".
+  ## If run from project, outside app, wants:
+  #' @example 
+  #' ans_tbl <- readRDS(file = "./apps/spinifex_study/www/ans_tbl.rds")
   
   ## Join
-  
-  
-  return(reps_tbl)
+  # Left outer: merge(x = df1, y = df2, by = "CustomerId", all.x = TRUE)
+  resp_ans_tbl <- merge(x = resp_tbl, y = ans_tbl, by = "sim_nm", all.x = TRUE)
+
+  return(resp_ans_tbl)
 }

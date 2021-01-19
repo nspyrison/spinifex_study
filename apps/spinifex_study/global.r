@@ -132,7 +132,7 @@ survey_questions <- c("What are your prefered pronouns?",
 ## Functions from source('resp_tbl.r', local = TRUE)
 init_resp_tbl   <- make_resp_tbl(participant_num, n_perms)
 init_survey_tbl <- make_survey_tbl(participant_num, n_perms)
-init_resp_tbl   <- read_join_ans_tbl(init_resp_tbl)
+init_resp_tbl   <- read_join_ans_tbl(init_resp_tbl) ## Adds responses.
 
 
 ## Context, "onStart()" and onStop()
