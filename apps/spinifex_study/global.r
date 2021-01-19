@@ -144,24 +144,6 @@ message(paste(sep = " \n",
               paste0("Perm number: ", full_perm_num, ".")
 ))
 
-#### Load data -----
-## Still needed for evaluation, sizable app content uses dat()
-root <- ("./www/data/")
-these_sim_nms <- paste(rep(this_vc_nm_ord, 3L), 
-                       rep(p_dim_nms, 3L), 
-                       rep(this_location_nm_ord, 3L), sep = "_")
-these_sim_nms <- c(paste0("EEE_p4_0_1_t", 1L:3L), 
-                   as.vector(outer(these_sim_nms, 
-                                   paste0("_rep", 1L:3L),
-                                   FUN = "paste0")
-                   ) ## Cross product paste
-) 
-sapply(these_sim_nms, function(i){
-  this_sim_nm <-paste0(root, i, ".rda")
-  load(this_sim_nm, envir = globalenv())
-})
-
-
 ##### Global variable initialization -----
 n_factors          <- length(factor_nms)       ## ~3
 n_p_dim            <- length(p_dim_nms)        ## ~2
@@ -426,7 +408,8 @@ main_panel <- mainPanel(
   conditionalPanel(
     condition = "output.factor == 'radial'",
     radioButtons(inputId = "manip_var_nm", label = "Manip variable:",
-                 choices =  "V1", selected = "V1")
+                 choices =  "V1", 
+                 selected = "V1")
   ), ## Close conditionalPanel(), done listing factor inputs
   ## No input for grand tour.
   

@@ -22,7 +22,7 @@ server <- function(input, output, session){
   
   ## onStop() This code will be run after the client has disconnected
   session$onSessionEnded(function() {
-    message(paste0("Spinifex user study, --- Started@ ", Sys.time()))
+    message(paste0("Spinifex user study, --- Ended@ ", Sys.time()))
     message("Ran session$onSessionEnded(f()). Running stopApp().")
     stopApp() ## Attempt to release resources on hung session.
     ## CANNOT USE REACTIVE FUNCTIONS OR VALUES, within the onStop() call.
@@ -82,14 +82,6 @@ server <- function(input, output, session){
   output$image_plot <- renderImage({
     list(src = normalizePath(image_fp()))
   }, deleteFile = FALSE)
-  dat <- reactive({ ## Simulation data (in df) with attributes
-    req(plot_active())
-    if(plot_active() == TRUE){
-      req(sim_nm())
-      return(get(sim_nm()))
-    }
-    return("NA")
-  })
   p <- reactive({ ## Scalar number of variables
     req(plot_active())
     if(plot_active() == TRUE){
@@ -100,7 +92,8 @@ server <- function(input, output, session){
   x_axis_num <- reactive(as.integer(substr(input$x_axis, 3L, 3L)))
   y_axis_num <- reactive(as.integer(substr(input$y_axis, 3L, 3L)))
   manip_var  <- reactive({
-    mv <- which(colnames(dat()) == input$manip_var_nm)
+    colnames <- paste0("V", 1L:p())
+    mv <- which(colnames == input$manip_var_nm)
     return(max(mv, 1L))
   })
   header <- reactive({
@@ -112,9 +105,7 @@ server <- function(input, output, session){
     return("")
   })
   output$header <- renderText(header())
-  time_left <- reactive({
-    time_alotted - rv$sec_on_pg
-  })
+  time_left <- reactive(time_alotted - rv$sec_on_pg)
   timer_info <- reactive({
     paste0("rv$sec_on_pg of time_alotted: ", rv$sec_on_pg, " of ", time_alotted)
   })
@@ -156,24 +147,15 @@ server <- function(input, output, session){
     return(6L %in% var_resp())
   })
   ### Task scoring
-  var_diff <- reactive({
-    if(plot_active()){
-      var_signal <- attr(dat(), "var_mean_diff_ab")
-      bar <- sum(var_signal) / p()
-      return(var_signal - bar)
-    }
-    return("NA")
-  })
-  output$var_diff <- renderPrint({
-    if(plot_active() == TRUE)
-      round(var_diff(), 2L)
-  })
   var_weight <- reactive({
     if(plot_active()){
-      req(var_resp())
-      var_diff <- var_diff()
-      ans <- which(var_diff >= 0L)
-      var_weight <- sign(var_diff) * sqrt(abs(var_diff))
+      resp_row <- resp_row()
+      var_weight <- c(resp_row$v1_weight,
+                      resp_row$v2_weight,
+                      resp_row$v3_weight,
+                      resp_row$v1_weight,
+                      resp_row$v1_weight,
+                      resp_row$v1_weight)
       return(var_weight)
     }
     return("NA")
@@ -231,16 +213,16 @@ server <- function(input, output, session){
   
   ##### Observers -----
   observeEvent({
-    dat()
+    sim_nm()
   }, {
     choices <- paste0("V", 1L:p())
-    updateCheckboxGroupInput(session, "var_resp",
-                             choices = choices, selected = "", inline = TRUE)
+    updateCheckboxGroupInput(session, "var_resp", choices = choices, 
+                             selected = "", inline = TRUE)
   })
   
   ### _Obs update axis/task choices -----
   observeEvent({
-    dat()
+    sim_nm()
   }, {
     ## Initialize axis choices when data changes
     if(factor() == "pca"){
@@ -277,13 +259,13 @@ server <- function(input, output, session){
   
   ### _Obs radial update manip_var_nm choices -----
   observeEvent({
-    dat()
+    sim_nm()
   }, {
     ## Init manip_var_nm choices on data change.
     if(factor() == "radial"){
-      these_colnames <- colnames(dat())
-      updateRadioButtons(session, "manip_var_nm", choices = these_colnames,
-                         selected = these_colnames[1L], inline = TRUE)
+      opts <- paste0("V", 1L:p())
+      updateRadioButtons(session, "manip_var_nm", choices = opts,
+                         selected = opts[1L], inline = TRUE)
     }
   })
   

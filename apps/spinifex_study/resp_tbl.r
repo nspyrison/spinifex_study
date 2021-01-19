@@ -65,9 +65,6 @@ require("dplyr")
 make_resp_tbl <- function(participant_num = sample(1L:n_perms, 1L),
                           n_perms = 36L){
   full_perm_num <- 1L + (participant_num - 1L) %% n_perms
-  message(paste0("Making resp_tbl for \n",
-                 "participant_num: ", participant_num, ". \n", 
-                 "full_perm_num: ", full_perm_num, "."))
   
   resp_tbl <- tibble::tibble(
     key = paste(sep = "_", participant_num, full_perm_num, 1L:15L),
@@ -136,6 +133,7 @@ make_resp_tbl <- function(participant_num = sample(1L:n_perms, 1L),
     v5_marks    = NA_real_,
     v6_marks    = NA_real_,
   )
+  message(paste0("Made resp_tbl."))
   return(resp_tbl)
 }
 #' @examples
@@ -146,9 +144,6 @@ make_resp_tbl <- function(participant_num = sample(1L:n_perms, 1L),
 make_survey_tbl <- function(participant_num = sample(1L:n_perms, 1L),
                             n_perms = 36L){
   full_perm_num <- 1L + (participant_num - 1L) %% n_perms
-  message(paste0("Making survey_tbl for \n",
-                 "participant_num: ", participant_num, ". \n",
-                 "full_perm_num: ", full_perm_num, "."))
   
   survey_tbl <- tibble::tibble(
     key = paste(sep = "_", participant_num, full_perm_num, 1L:18L),
@@ -166,9 +161,9 @@ make_survey_tbl <- function(participant_num = sample(1L:n_perms, 1L),
     sec_to_resp     = NA_integer_,
     write_dt        = NA_character_,
   )
+  message(paste0("Made survey_tbl."))
   return(survey_tbl)
 }
-
 #' @examples
 #' (survey_tbl <- make_survey_tbl(participant_num))
 #' View(survey_tbl)
@@ -248,9 +243,8 @@ read_join_ans_tbl <- function(resp_tbl){
   #' @example 
   #' ans_tbl <- readRDS(file = "./apps/spinifex_study/www/ans_tbl.rds")
   
-  ## Join
-  # Left outer: merge(x = df1, y = df2, by = "CustomerId", all.x = TRUE)
+  ## Left join
   resp_ans_tbl <- merge(x = resp_tbl, y = ans_tbl, by = "sim_nm", all.x = TRUE)
-
+  message(paste0("Joined ans_tbl to resp_tbl."))
   return(resp_ans_tbl)
 }
