@@ -249,13 +249,13 @@ col_p1 <- column(4L,
                  ),
                  img(src = this_factor_examp_fp[1L],
                      height="75%", width="75%", align = "center"),
-                 # lapply(7L:10L, function(i){
-                 #   list(
-                 #     h4(survey_questions[i]),
-                 #     sliderInput(paste0("survey", i), label = .surv_lab_col,
-                 #                 min = 1L, max = 5L, value = 3L, step = 1L)
-                 #   )
-                 # }),
+                 lapply(7L:10L, function(i){
+                   list(
+                     h4(survey_questions[i]),
+                     sliderInput(paste0("survey", i), label = .surv_lab_col,
+                                 min = 1L, max = 5L, value = 3L, step = 1L)
+                   )
+                 }),
                  h4(survey_questions[7L]),
                  sliderInput("survey7", label = .surv_lab_col,
                              min = 1L, max = 5L, value = 3L, step = 1L),
@@ -452,10 +452,6 @@ ui <- fluidPage(css_notification,
                 sidebarLayout(
                   sidebar_panel,
                   main_panel
-                ),
-                conditionalPanel(
-                  condition = "output.section_nm == 'survey'",
-                  p("DISP SURVEY FLAG!!!")
                 ),
                 dev_disp
 )

@@ -30,7 +30,7 @@ server <- function(input, output, session){
   
   ##### Reactive value initialization -----
   rv             <- reactiveValues()
-  rv$pg          <- 14L ## SET STARTING PAGE HERE <<<
+  rv$pg          <- 1L ## SET STARTING PAGE HERE <<<
   rv$sec_on_pg   <- 0L
   ## Below are not needed, but to be explicit,
   rv$input_inter <- 0L
@@ -529,7 +529,6 @@ server <- function(input, output, session){
     return(FALSE)
   })
   output$is_saved <- reactive({              ## Save button was pressed?
-    req(input$save_survey)
     if(input$save_survey == 1L) return(TRUE)
     return(FALSE)
   })
