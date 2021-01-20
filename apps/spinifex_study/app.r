@@ -30,7 +30,7 @@ server <- function(input, output, session){
   
   ##### Reactive value initialization -----
   rv             <- reactiveValues()
-  rv$pg          <- 1L ## SET STARTING PAGE HERE <<<
+  rv$pg          <- 14L ## SET STARTING PAGE HERE <<<
   rv$sec_on_pg   <- 0L
   ## Below are not needed, but to be explicit,
   rv$input_inter <- 0L
@@ -225,6 +225,7 @@ server <- function(input, output, session){
     sim_nm()
   }, {
     ## Initialize axis choices when data changes
+    req(factor())
     if(factor() == "pca"){
       updateRadioButtons(session, "x_axis", choices = pca_choices,
                          selected = "PC1", inline = TRUE)
@@ -262,6 +263,7 @@ server <- function(input, output, session){
     sim_nm()
   }, {
     ## Init manip_var_nm choices on data change.
+    req(factor())
     if(factor() == "radial"){
       opts <- paste0("V", 1L:p())
       updateRadioButtons(session, "manip_var_nm", choices = opts,
@@ -527,10 +529,12 @@ server <- function(input, output, session){
     return(FALSE)
   })
   output$is_saved <- reactive({              ## Save button was pressed?
+    req(input$save_survey)
     if(input$save_survey == 1L) return(TRUE)
     return(FALSE)
   })
   output$do_disp_prolific_code <- reactive({ ## Prolific pay code, do dislplay?
+    req(input$prolific_id)
     if(input$prolific_id == "")
       return(FALSE)
     return(TRUE)

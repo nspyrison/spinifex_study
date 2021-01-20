@@ -243,8 +243,9 @@ read_join_ans_tbl <- function(resp_tbl){
   #' @example 
   #' ans_tbl <- readRDS(file = "./apps/spinifex_study/www/ans_tbl.rds")
   
-  ## Left join
-  resp_ans_tbl <- merge(x = resp_tbl, y = ans_tbl, by = "sim_nm", all.x = TRUE)
+  ## Left join, base merge() changes rows, col order, and coerces to data.frame.
+  resp_ans_tbl <- dplyr::left_join(x = resp_tbl, y =  ans_tbl, by = "sim_nm")
+  
   message(paste0("Joined ans_tbl to resp_tbl."))
   return(resp_ans_tbl)
 }

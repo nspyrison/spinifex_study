@@ -17,7 +17,6 @@ ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" ## Hash or name of the g
 #' @example 
 #' browseURL("https://docs.google.com/spreadsheets/d/1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU/edit#gid=2008893390")
 
-
 #### Prolific.co 
 ##to see the study draft page go to:
 #' @example 
@@ -88,9 +87,11 @@ if(T){
   ## tryCatch for api quota limit
   prev_saves <- NULL
   was_quota_issue <- FALSE
+
   tryCatch({
     prev_saves <- googlesheets4::read_sheet(ss_id, sheet = 1L)
   }, error = function(e){
+    participant_num <- sample(1L:999L, 1L)
     was_quota_issue <- TRUE
     txt <- "Google API quota reached, Please try again in 2 minutes. Closing app in 15 seconds."
     warning(txt)
@@ -236,7 +237,7 @@ intermission_page <- conditionalPanel(
 .surv_lab  <-  div(style = 'width:300px;',
                    div(style = 'float:left;', '|<- disagree'),
                    div(style = 'float:right;', 'agree ->|'))
-.surv_lab2 <-  div(style = 'width:220px;',
+.surv_lab_col <-  div(style = 'width:220px;',
                    div(style = 'float:left;', '|<- disagree'),
                    div(style = 'float:right;', 'agree ->|'))
 col_p1 <- column(4L,
@@ -248,18 +249,25 @@ col_p1 <- column(4L,
                  ),
                  img(src = this_factor_examp_fp[1L],
                      height="75%", width="75%", align = "center"),
+                 # lapply(7L:10L, function(i){
+                 #   list(
+                 #     h4(survey_questions[i]),
+                 #     sliderInput(paste0("survey", i), label = .surv_lab_col,
+                 #                 min = 1L, max = 5L, value = 3L, step = 1L)
+                 #   )
+                 # }),
                  h4(survey_questions[7L]),
-                 sliderInput("survey7", label = .surv_lab2,
+                 sliderInput("survey7", label = .surv_lab_col,
                              min = 1L, max = 5L, value = 3L, step = 1L),
                  h4(survey_questions[8L]),
-                 sliderInput("survey8", label = .surv_lab2,
+                 sliderInput("survey8", label = .surv_lab_col,
                              min = 1L, max = 5L, value = 3L, step = 1L),
                  h4(survey_questions[9L]),
-                 sliderInput("survey9", label = .surv_lab2,
+                 sliderInput("survey9", label = .surv_lab_col,
                              min = 1L, max = 5L, value = 3L, step = 1L),
                  h4(survey_questions[10L]),
                  sliderInput("survey10",
-                             label = .surv_lab2,
+                             label = .surv_lab_col,
                              min = 1L, max = 5L, value = 3L, step = 1L)
 )
 col_p2 <- column(4L,
@@ -272,16 +280,16 @@ col_p2 <- column(4L,
                  img(src = this_factor_examp_fp[3L],
                      height="75%", width="75%", align = "center"),
                  h4(survey_questions[11L]),
-                 sliderInput("survey11", label = .surv_lab2,
+                 sliderInput("survey11", label = .surv_lab_col,
                              min = 1L, max = 5L, value = 3L, step = 1L),
                  h4(survey_questions[12L]),
-                 sliderInput("survey12", label = .surv_lab2,
+                 sliderInput("survey12", label = .surv_lab_col,
                              min = 1L, max = 5L, value = 3L, step = 1L),
                  h4(survey_questions[13L]),
-                 sliderInput("survey13", label = .surv_lab2,
+                 sliderInput("survey13", label = .surv_lab_col,
                              min = 1L, max = 5L, value = 3L, step = 1L),
                  h4(survey_questions[14L]),
-                 sliderInput("survey14", label = .surv_lab2,
+                 sliderInput("survey14", label = .surv_lab_col,
                              min = 1L, max = 5L, value = 3L, step = 1L),
 )
 col_p3 <- column(4L,
@@ -294,16 +302,16 @@ col_p3 <- column(4L,
                  img(src = this_factor_examp_fp[5L],
                      height="75%", width="75%", align = "center"),
                  h4(survey_questions[15L]),
-                 sliderInput("survey15", label = .surv_lab2,
+                 sliderInput("survey15", label = .surv_lab_col,
                              min = 1L, max = 5L, value = 3L, step = 1L),
                  h4(survey_questions[16L]),
-                 sliderInput("survey16", label = .surv_lab2,
+                 sliderInput("survey16", label = .surv_lab_col,
                              min = 1L, max = 5L, value = 3L, step = 1L),
                  h4(survey_questions[17L]),
-                 sliderInput("survey17", label = .surv_lab2,
+                 sliderInput("survey17", label = .surv_lab_col,
                              min = 1L, max = 5L, value = 3L, step = 1L),
                  h4(survey_questions[18L]),
-                 sliderInput("survey18", label = .surv_lab2,
+                 sliderInput("survey18", label = .surv_lab_col,
                              min = 1L, max = 5L, value = 3L, step = 1L)
 )
 
@@ -391,7 +399,7 @@ main_panel <- mainPanel(
     ## Image text and image.
     imageOutput("image_plot"),
   ), ## close task section conditional panel title text
-  
+
   #### _Plot mainPanel ----
   ## PCA axis selection
   conditionalPanel(
@@ -408,11 +416,10 @@ main_panel <- mainPanel(
   conditionalPanel(
     condition = "output.factor == 'radial'",
     radioButtons(inputId = "manip_var_nm", label = "Manip variable:",
-                 choices =  "V1", 
+                 choices =  "V1",
                  selected = "V1")
   ), ## Close conditionalPanel(), done listing factor inputs
   ## No input for grand tour.
-  
   conditionalPanel(condition = "(output.pg != 15)",
                    actionButton("next_pg_button", "Next page")
   )
@@ -445,6 +452,10 @@ ui <- fluidPage(css_notification,
                 sidebarLayout(
                   sidebar_panel,
                   main_panel
+                ),
+                conditionalPanel(
+                  condition = "output.section_nm == 'survey'",
+                  p("DISP SURVEY FLAG!!!")
                 ),
                 dev_disp
 )
