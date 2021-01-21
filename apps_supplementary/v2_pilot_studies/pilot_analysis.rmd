@@ -12,71 +12,76 @@ knitr::opts_chunk$set(echo = TRUE)
 # raw <- googlesheets4::read_sheet(ss_id, sheet = 1L)
 # saveRDS(raw, here::here("raw_nick_pilot.rds"))
 # readRDS("./apps/study/v2_pilot_studies/raw_nick_pilot.rds")
+## Raw data
 raw       <- readRDS("./raw_nick_pilot.rds")
+## Filter to only task data
+df_active <- raw[raw$plot_active == TRUE, ]
+## Read and join ans_tbl, clean up 0 to NA on v5/v6.
 ans_tbl   <- readRDS(file = "../../apps/spinifex_study/www/ans_tbl.rds")
-resp_ans  <- dplyr::left_join(x = raw, y =  ans_tbl, by = "sim_nm") %>%
+resp_ans  <- dplyr::left_join(x = df_active, y =  ans_tbl, by = "sim_nm") %>%
     mutate(v5_resp = ifelse(p_dim == "p4", NA_integer_, v5_resp),
            v6_resp = ifelse(p_dim == "p4", NA_integer_, v6_resp))
-df_active <- resp_ans[resp_ans$plot_active == TRUE,]
+
+## Pivot variables longer and join (cbind)
+resp_longer <- resp_ans %>%
+    select(c(key, sim_nm, bar, v1_resp:v6_resp)) %>%
+    pivot_longer(cols = v1_resp:v6_resp,
+                 names_to = "var_num",
+                 names_prefix  = "var_num",
+                 values_to = "resp",
+                 values_drop_na = TRUE) %>%
+    mutate(var_num = as.factor(substr(var_num, 2, 2)))
+marks_longer <- resp_ans %>% 
+    select(c(key:v6_marks)) %>%
+    pivot_longer(cols = v1_marks:v6_marks,
+                 names_to = "var_num",
+                 names_prefix  = "var_num",
+                 values_to = "marks",
+                 values_drop_na = TRUE) %>%
+    mutate(var_num = as.factor(substr(var_num, 2, 2)))
+signal_longer <- resp_ans %>% 
+    select(c(key, sim_nm, v1_signal:v6_signal)) %>%
+    pivot_longer(cols = v1_signal:v6_signal,
+                 names_to = "var_num",
+                 names_prefix  = "var_num",
+                 values_to = "signal",
+                 values_drop_na = TRUE) %>%
+    mutate(var_num = as.factor(substr(var_num, 2, 2)))
+diff_longer <- resp_ans %>% 
+    select(c(key, sim_nm, v1_diff:v6_diff)) %>%
+    pivot_longer(cols = v1_diff:v6_diff,
+                 names_to = "var_num",
+                 names_prefix  = "var_num",
+                 values_to = "diff",
+                 values_drop_na = TRUE) %>%
+    mutate(var_num = as.factor(substr(var_num, 2, 2)))
+weight_longer <- resp_ans %>% 
+    select(c(key, sim_nm, v1_weight:v6_weight)) %>%
+    pivot_longer(cols = v1_weight:v6_weight,
+                 names_to = "var_num",
+                 names_prefix  = "var_num",
+                 values_to = "weight",
+                 values_drop_na = TRUE) %>%
+    mutate(var_num = as.factor(substr(var_num, 2, 2)))
+## cbind(), left_join not working.
+dat <- NA
+if(all.equal(
+    nrow(resp_longer), nrow(marks_longer),
+    nrow(signal_longer), nrow(diff_longer), nrow(weight_longer)
+)){
+    dat <- cbind(
+        resp_longer, marks_longer[, 4], signal_longer[, 4],
+        diff_longer[, 4], weight_longer[, 4])
+}else{warning("!!!all nrow() not equal!!!")}
+
+dat %>% group_by(sim_nm, var_num) %>%
+    mutate(task_signal = sum(signal)) %>%
+    ungroup()
+
 #' @example
 #' str(df_active)
 
 
-
-#### example from earlier code looking to explain the answer ------
-
-if(F){
-    file.edit("./R/MMP_clSep.r") ## See this fiel for the original.
-    ## List of ggproto objects
-    lab_fill <- "Variable MMP"
-    lab_col  <- "Cummulative MMP"
-    ret <- list(
-        geom_bar(aes(x = var, y = MMP_clSep, fill = lab_fill),
-                 df_MMP, position = "dodge", stat = "identity"),
-        ## Cumsum clSep
-        geom_line(aes(x = as.integer(var), y = cumsum_MMP_clSep,
-                      color = lab_col, group = 1),
-                  df_MMP, lwd = 1.2),
-        geom_point(aes(x = as.integer(var), y = cumsum_MMP_clSep,
-                       color = lab_col),
-                   df_MMP, shape = 18, size = 4),
-        ## Titles and colors
-        labs(x = "Variable", y = "Cluster seperation"),
-        theme(axis.text.x = element_text(angle = 30),
-              legend.position = "bottom",
-              legend.direction = "vertical"),
-        scale_fill_manual(values = palette()[1],
-                          name = "", labels = lab_fill),
-        scale_colour_manual(values = palette()[2],
-                            name = "", labels = lab_col)
-    )
-    
-    ## Add answer overlay if requested
-    if (do_overlay_answer == TRUE){
-        p <- ncol(data)
-        bar_unif <- 1 / p
-        
-        df_MMP$exampleResponse <- sample(c(0,1), size = p, replace = TRUE)
-        df_MMP_eval <- df_MMP %>% 
-            dplyr::mutate(.keep = "all",
-                          diff   = MMP_clSep - bar_unif,
-                          weight = sign(diff) * sqrt(abs(diff)),
-                          marks  = weight * exampleResponse) %>% 
-            dplyr::arrange(desc(MMP_clSep))
-        
-        col <- dplyr::if_else(sign(df_MMP_eval$diff) == 1, "green", "red")
-        ggproto_overlay <- 
-            list(
-                geom_hline(yintercept = bar_unif, size = 1), 
-                geom_text(aes(x = 7, y = bar_unif + .03, 
-                              label = paste0("Uniform Wt, 1/p = ", bar_unif)),
-                          size = 4, hjust = 1), 
-                geom_segment(data = df_MMP_eval, colour = col, size = 2,
-                             aes(x = 1:p, y = bar_unif, 
-                                 xend = 1:p, yend = weight + bar_unif))
-            )
-    }
-}
 ```
 
 ## Speed and marks
@@ -106,17 +111,21 @@ print("This has been fixed.")
 ## Input and Response interactions
 
 ```{r}
-(input_interactions <- ggplot(df_active, aes(x = factor, y = input_inter)) + 
+(input_interactions <- ggplot(df_active, aes(x = factor, y = input_inter)) +
      geom_boxplot() +
-     geom_jitter(width = .2, height = .05) + 
-     labs(title = "Number of input interaction by factor (throughness)") + theme_minimal() + 
-     scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2"))
+     geom_jitter(width = .2, height = .05) +
+     labs(title = "Number of input interaction by factor (throughness)") +
+     theme_minimal() + 
+     scale_color_brewer(palette = "Dark2") +
+     scale_fill_brewer(palette = "Dark2"))
 
-(response_interactions <- ggplot(df_active, aes(x = factor, y = resp_inter)) + 
+(response_interactions <- ggplot(df_active, aes(x = factor, y = resp_inter)) +
         geom_boxplot() +
-        geom_jitter(width = .2, height = .05) + 
-        labs(title = "Number of input interaction by factor (1/confidence)") + theme_minimal() + 
-        scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2"))
+        geom_jitter(width = .2, height = .05) +
+        labs(title = "Number of input interaction by factor (1/confidence)") +
+        theme_minimal() + 
+        scale_color_brewer(palette = "Dark2") +
+        scale_fill_brewer(palette = "Dark2"))
 print("I'm going to circle back to this to see if it's capturing correctly.")
 ```
 
@@ -125,57 +134,7 @@ print("I'm going to circle back to this to see if it's capturing correctly.")
 ## Filter to rows outside of the expected +/- 1
 issue_sub <- df_active %>%
     filter(abs(task_marks) > 1)
-## Many pivot longer and join
-resp_longer <- issue_sub %>%
-    select(c(key, sim_nm, bar, v1_resp:v6_resp)) %>%
-    pivot_longer(cols = v1_resp:v6_resp,
-                 names_to = "var_num",
-                 names_prefix  = "var_num",
-                 values_to = "resp",
-                 values_drop_na = TRUE) %>%
-    mutate(var_num = as.factor(substr(var_num, 2, 2)))
-marks_longer <- issue_sub %>% 
-    select(c(key, sim_nm, v1_marks:v6_marks)) %>%
-    pivot_longer(cols = v1_marks:v6_marks,
-                 names_to = "var_num",
-                 names_prefix  = "var_num",
-                 values_to = "marks",
-                 values_drop_na = TRUE) %>%
-    mutate(var_num = as.factor(substr(var_num, 2, 2)))
-signal_longer <- issue_sub %>% 
-    select(c(key, sim_nm, v1_signal:v6_signal)) %>%
-    pivot_longer(cols = v1_signal:v6_signal,
-                 names_to = "var_num",
-                 names_prefix  = "var_num",
-                 values_to = "signal",
-                 values_drop_na = TRUE) %>%
-    mutate(var_num = as.factor(substr(var_num, 2, 2)))
-diff_longer <- issue_sub %>% 
-    select(c(key, sim_nm, v1_diff:v6_diff)) %>%
-    pivot_longer(cols = v1_diff:v6_diff,
-                 names_to = "var_num",
-                 names_prefix  = "var_num",
-                 values_to = "diff",
-                 values_drop_na = TRUE) %>%
-    mutate(var_num = as.factor(substr(var_num, 2, 2)))
-weight_longer <- issue_sub %>% 
-    select(c(key, sim_nm, v1_weight:v6_weight)) %>%
-    pivot_longer(cols = v1_weight:v6_weight,
-                 names_to = "var_num",
-                 names_prefix  = "var_num",
-                 values_to = "weight",
-                 values_drop_na = TRUE) %>%
-    mutate(var_num = as.factor(substr(var_num, 2, 2)))
-## cbind(), left_join not working.
-issue_sub_longer <- NA
-if(all.equal(
-    dim(resp_longer), dim(marks_longer),
-    dim(signal_longer), dim(diff_longer), dim(weight_longer)
-)){
-    issue_sub_longer <- cbind(
-        resp_longer, marks_longer[, 4], signal_longer[, 4],
-        diff_longer[, 4], weight_longer[, 4])
-}else{warning("all dim not equal!!!")}
+
 
 ggplot(issue_sub_longer, aes(var_num, resp)) + 
     geom_bar(position = "dodge", stat = "identity", fill = "lightblue") + 
@@ -185,10 +144,8 @@ ggplot(issue_sub_longer, aes(var_num, resp)) +
 
 
 ```{r TEMP-SKRATCHPAD}
-str(issue_sub_longer) 
-#' @args
-#' resp_ans_longer resp_tbl and ans_tbl joined, filtered for plot_active, 
-require(ggplot2)
+#' @example
+#' str(dat) 
 palette(RColorBrewer::brewer.pal(12, "Dark2"))
 ggproto_ans_plot <- function(resp_ans_longer){
     ## List of ggproto objects
@@ -216,28 +173,26 @@ ggproto_ans_plot <- function(resp_ans_longer){
     
     ## Add in the bar and weight
     p <- 6#<- length(unique(resp_ans_longer$var_num))
-    bar_unif <- resp_ans_longer$bar
     mark_col <- dplyr::if_else(sign(resp_ans_longer$diff) == 1, "green", "red")
-    segment_x <- rep_len(1:p, length.out = nrow(resp_ans_longer))
     ret <- c(ret, 
              list(
                  ## Uniform bar, and text
-                 geom_hline(yintercept = bar_unif, size = 1), 
-                 geom_text(aes(x = p, y = bar_unif + .04, 
-                               label = paste0("Uniform signal, 1/p = ", round(bar_unif, 2))),
+                 geom_hline(aes(yintercept = bar), resp_ans_longer, size = 1), 
+                 geom_text(aes(x = p + 1, y = bar + .1, 
+                               label = paste0("1/p = ", round(bar, 2))),
                            size = 4, hjust = 1),
                  ## Marks segment
-                 geom_segment(data = resp_ans_longer, colour = mark_col, size = 2,
-                              aes(x = segment_x, xend = segment_x,
-                                  y = bar_unif, yend = weight + bar_unif))
+                 geom_segment(aes(x = var_num, xend = var_num,
+                                  y = bar, yend = weight + bar),
+                              resp_ans_longer, colour = mark_col, size = 2)
              )
     )
     
     return(ret)
 }
 
-ggplot(issue_sub_longer) +
-    ggproto_ans_plot(issue_sub_longer) +
-    facet_wrap(vars(sim_nm))
+ggplot(dat) +
+    ggproto_ans_plot(dat) +
+    facet_wrap(vars(sim_nm)) + theme_minimal()
 ```
 
