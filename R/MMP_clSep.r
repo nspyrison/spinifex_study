@@ -1,8 +1,10 @@
 ## CAREFUL WITH SOURCING HERE BEACAUSE RELATIVE PATHS FOR KNITTING .RMD
 source(here::here("R/permutation_feature_importance.r"))
 
-#' Produces a data frame of the mean, mean permuted cluster seperation. 
-#' Doesn't calculate Cummulative or order by MMP clSep
+#' Row-permutes the data, holding a single variable steady. The Mean, Mean 
+#' Permuted (MMP) cluster Separation (ClSep) between the 2 specified levels of 
+#' class. the results are ordered into a data.frame to be, to be
+#' used in plotting a screeplot.  
 #' 
 #' @examples
 #' dat <- tourr::flea[, 1:6]
@@ -148,7 +150,7 @@ ggproto_origxMMP_clSep <- function(data,
 
 
 #' Produces a ggproto object; barchart of the mean, mean permuted (MMP) clSep 
-#' and cummulative MMP.
+#' and cumulative MMP.
 #' 
 #' @examples
 #' dat <- tourr::flea[, 1:6]
