@@ -181,7 +181,7 @@ make_save_ans_tbl <- function(){
                "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
   sim_nms <- c(paste0("EEE_p4_0_1_t", 1L:3L), ## 3 training sets
                as.vector(outer(sim_nms, paste0("_rep", 1L:3L), FUN = "paste0"))) ## Cross product paste
-  root <- "./apps_supplementary/data" ## Can't use here::here(); Filepaths cannot be too long...
+  root <- "./apps_supplementary/data" ## Can't use here::here(); File paths cannot be too long...
   sim_fps <- paste0(root, "/", sim_nms, ".rda")
   
   ## Initialize before looping
@@ -191,8 +191,11 @@ make_save_ans_tbl <- function(){
   bar_vect <- rep(NA, n_sims)
   ## Load and extracting measures, loop
   for(i in 1L:n_sims){
+    ## Load sims, with attached attributes, including signal
     load(sim_fps[i]) ## private, not in global env
     sim_signal <- attr(get(sim_nms[i]), "var_mean_diff_ab")
+    ## Normalize to fraction of total signal.
+    sim_signal <- sim_signal / sum(sim_signal)
     var_ind <- 1L:length(sim_signal) ## For sims of 4 dim
     
     ## var_signal, vector, the difference of the means of clusters A & B in given dim.
@@ -206,6 +209,7 @@ make_save_ans_tbl <- function(){
     var_weight_mat[i, var_ind] <-
       sign(var_diff_mat[i, var_ind]) * sqrt(abs(var_diff_mat[i, var_ind]))
   }
+  ## Make ans_tbl
   ans_tbl <- tibble::tibble(
     data.frame(
       sim_nms,
@@ -215,13 +219,14 @@ make_save_ans_tbl <- function(){
       var_weight_mat
     )
   )
+  ## Rename columns
   colnames(ans_tbl) <- c("sim_nm", "bar",
                          paste0("v", 1:6, "_signal"),
                          paste0("v", 1:6, "_diff"),
                          paste0("v", 1:6, "_weight")
   )
   
-  ## Save
+  ## Save ans_tbl and wrap up
   path <- "./apps/spinifex_study/www/ans_tbl.rds"
   saveRDS(object = ans_tbl, file = path)
   message(paste0("Successfully saved ans_tbl to ", path))
