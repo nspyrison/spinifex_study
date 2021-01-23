@@ -1,3 +1,9 @@
+#### NS: Di's example mock up. See sim_mvnorm.r for latest simulation functions.
+#### This is an old variant. See _sim_user_study.r for the latest simulations.
+#' @example
+#' file.edit("./apps_supplementary/data_simulation/_sim_user_study.r")
+####
+
 ## PACKAGES
 require(tidyverse)
 require(mvtnorm)

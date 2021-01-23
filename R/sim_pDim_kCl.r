@@ -1,3 +1,8 @@
+#### This is an old variant. See _sim_user_study.r for the latest simulations.
+#' @example
+#' file.edit("./apps_supplementary/data_simulation/_sim_user_study.r")
+####
+
 #' Creates a data frame containing clusters of multivariate data 
 #'
 #' @param means List, each element is a p-length vectors, the variable means 
@@ -12,7 +17,7 @@
 #' @param do_shuffle Boolean specifying if order resampling should be applied 
 #' to the rows and columns, Such that cluster rows are not all together and 
 #' signal columns are not in the same order.
-#' @examples 
+#' @examples
 #' mns <- list(c(8, 2, rep(0, 3)), rep(0, 5))
 #' covs <- list(diag(5), diag(5))
 #' sim_pDim_kCl(means = mns, sigmas = covs)

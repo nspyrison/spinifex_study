@@ -477,6 +477,7 @@ server <- function(input, output, session){
     ## Write response tbl to sheet 1
     googlesheets4::sheet_append(ss_id, rv$resp_tbl, 1L)
     ## Write survey tbl to sheet 2
+    rv$survey_tbl$write_dt     <- as.character(Sys.time())
     googlesheets4::sheet_append(ss_id, rv$survey_tbl, 2L)
     message("survey_tbl, all questions apended to gsheet -- ",
             substr(Sys.time(), 12L, 16L))

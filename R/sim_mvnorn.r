@@ -1,11 +1,16 @@
+#### This is an old variant. See _sim_user_study.r for the latest simulations.
+#' @example
+#' file.edit("./apps_supplementary/data_simulation/_sim_user_study.r")
+####
+
 ## Setup
 source(here::here("R/sim_pDim_kCl.r"))
 DO_SAVE = FALSE 
 
 ##
 ## SIMULATION FUNCTION ----
-#' Uses mvtnorm::rmvnorm to make, and lqmm, to check the 
-#' positive.semi.deninateness of, the models as described in the mclust5 paper
+#' Uses mvtnorm::rmvnorm to make, and lqmm, to check the
+#' positive.semi.definiteness of, the models as described in the mclust5 paper
 #' Creates and assigns models c("VII", "EEE", "EVV", "VVV") to the global envir.
 #'
 #' @examples 
@@ -20,11 +25,11 @@ sims_mvnorm_mclust <- function(
   var_sz = 1,
   cor_sz = .5,
   cor_var_sz = 3,
-  DO_SAVE = FALSE 
+  DO_SAVE = FALSE
 ){
   ## HARD CODE SEED!!!
   set.seed(123)
-  ## Initializae
+  ## Initialize
   models <- c("EII", "VII", "EEE", "EVV", "VVV")
   suffix <- paste0(as.character(c(k_cl, sigMns, p)), collapse = "") ##!! sigCors, or sigMns?
   cl_lvls <- paste0("cl ", letters[1:k_cl])
@@ -210,5 +215,4 @@ if(F){ ## DUMMY DON'T RUN AFTER -----
   ggpcapairs(EEE_3310, class = clas, top_n = 3)
   ggpcapairs(EVV_3310, class = clas, top_n = 3)
   ggpcapairs(VVV_3310, class = clas, top_n = 3)
-
 }

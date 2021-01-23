@@ -8,7 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 library(tidyverse)
 knitr::opts_chunk$set(echo = TRUE)
-# ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" ## hash or name of the google sheet
+# ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" ## hash id of the google sheet
 # raw <- googlesheets4::read_sheet(ss_id, sheet = 1L)
 # saveRDS(raw, here::here("raw_nick_pilot.rds"))
 # readRDS("./apps/study/v2_pilot_studies/raw_nick_pilot.rds")
@@ -129,19 +129,7 @@ print("This has been fixed.")
 print("I'm going to circle back to this to see if it's capturing correctly.")
 ```
 
-## Reviewing marks outside of +/- 1
-```{r}
-## Filter to rows outside of the expected +/- 1
-issue_sub <- df_active %>%
-    filter(abs(task_marks) > 1)
-
-
-ggplot(issue_sub_longer, aes(var_num, resp)) + 
-    geom_bar(position = "dodge", stat = "identity", fill = "lightblue") + 
-    facet_wrap(vars(sim_nm)) + 
-    theme_minimal()
-```
-
+## Explaining scoring
 
 ```{r TEMP-SKRATCHPAD}
 #' @example
@@ -151,9 +139,15 @@ ggproto_ans_plot <- function(resp_ans_longer){
     ## List of ggproto objects
     lab_fill <- "Varaiable cluster seperation"
     ret <- list(
+        # ## Boxplot, resp -- selected or not
+        # geom_bar(aes(x = var_num, y = 1L, fill = as.factor(resp)),
+        #          resp_ans_longer, position = "dodge", stat = "identity", 
+        #          alpha = .3, width = .9),
         ## Boxplot, signal
         geom_bar(aes(x = var_num, y = signal, fill = lab_fill),
-                 resp_ans_longer, position = "dodge", stat = "identity"),
+                 resp_ans_longer, position = "dodge", stat = "identity",
+                 width = .5),
+
         # ## Line and point, cumulative
         # geom_line(aes(x = as.integer(var), y = cumsum_MMP_clSep,
         #                                 color = lab_col, group = 1),
@@ -165,9 +159,10 @@ ggproto_ans_plot <- function(resp_ans_longer){
         labs(x = "Variable number", y = "Value"),
         theme(legend.position = "bottom",
               legend.direction = "vertical"),
-        scale_fill_manual(values = palette()[1],
-                          name = "", labels = lab_fill),
-        scale_colour_manual(values = c("lightgreen", "lightred"),
+        scale_fill_manual(
+            values = c(palette()[1], "grey80", "lightblue"), name = "",
+            labels = c("Varaiable cluster seperation", "selected", "not selected")),
+        scale_colour_manual(values = c("green", "red"),
                             name = "", labels = c("marks (+)", "marks (-)"))
     )
     
