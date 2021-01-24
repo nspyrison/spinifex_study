@@ -12,9 +12,9 @@ server <- function(input, output, session){
     Sys.sleep(15L)
     stopApp()
   }
-  ## Check if within api quota
-  if(was_quota_issue == TRUE){
-    txt <- "Could not authenticate to Google sheets. Please try again in 5 minutes. Closing app in 15 seconds."
+  ## Check if within api quota, 
+  if(was_quota_issue == TRUE){ ## 100 requests per 100 seconds, only reading col B now.
+    txt <- "Google sheets API quota limit reached. Please try again in 2 minutes. Closing app in 15 seconds."
     showNotification(txt, type = "error", duration = 15L)
     Sys.sleep(15L)
     stopApp()
@@ -35,7 +35,8 @@ server <- function(input, output, session){
   ## Below are not needed, but to be explicit,
   rv$input_inter <- 0L
   rv$resp_inter  <- 0L
-  rv$sec_to_resp <- 0L
+  rv$sec_to_resp <- NA_integer_
+  rv$var_resP    <- NA_integer_
   rv$resp_tbl    <- init_resp_tbl
   rv$survey_tbl  <- init_survey_tbl
   
@@ -139,11 +140,13 @@ server <- function(input, output, session){
     return(4L %in% var_resp())
   })
   v5_resp <- reactive({
-    req(var_resp())
+    req(var_resp(), p())
+    if(p() == 4) return(NA)
     return(5L %in% var_resp())
   })
   v6_resp <- reactive({
     req(var_resp())
+    if(p() == 4) return(NA)
     return(6L %in% var_resp())
   })
   ### Task scoring
@@ -153,9 +156,9 @@ server <- function(input, output, session){
       var_weight <- c(resp_row$v1_weight,
                       resp_row$v2_weight,
                       resp_row$v3_weight,
-                      resp_row$v1_weight,
-                      resp_row$v1_weight,
-                      resp_row$v1_weight)
+                      resp_row$v4_weight,
+                      resp_row$v5_weight,
+                      resp_row$v6_weight)
       return(var_weight)
     }
     return("NA")

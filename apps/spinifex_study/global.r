@@ -89,7 +89,7 @@ if(T){
   was_quota_issue <- FALSE
 
   tryCatch({
-    prev_saves <- googlesheets4::read_sheet(ss_id, sheet = 1L)
+    prev_saves <- googlesheets4::read_sheet(ss_id, sheet = 1L, range = "B:B")
   }, error = function(e){
     participant_num <- sample(1L:999L, 1L)
     was_quota_issue <- TRUE
