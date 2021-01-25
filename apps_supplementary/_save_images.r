@@ -1,16 +1,17 @@
+##### Initialize and setup -----
 require("spinifex")
 require("ggplot2")
 require("gganimate")
 require("gifski")
 
-set.seed(20200927) ## If tourr starts using seeds
+set.seed(20200927L) ## If tourr starts using seeds
 
 ### Global parameters
-height_in <- 5 ## fixed to 8" x 5" for small screens
-height_px <- height_in * 72  ## "screen" is 72 dpi/ppi
-pal <- RColorBrewer::brewer.pal(8, "Dark2")[c(1, 2, 3, 6, 8)]
+height_in <- 5L ## fixed to 8" x 5" for small screens
+height_px <- height_in * 72L  ## "screen" is 72 dpi/ppi by default
+pal <- RColorBrewer::brewer.pal(8L, "Dark2")[c(1L, 2L, 3L, 6L, 8L)]
 ## bas_p4
-.ang <- seq(0, pi, length.out = 5)[-5] ## p + 1
+.ang <- seq(0L, pi, length.out = 5L)[-5L] ## p + 1
 .u_circ_p4 <- as.matrix(data.frame(x = sin(.ang), y = cos(.ang)))
 bas_p4 <- tourr::orthonormalise(.u_circ_p4)
 # tourr::is_orthonormal(bas_p4)
@@ -25,13 +26,14 @@ bas_p6 <- tourr::orthonormalise(.u_circ_p6)
 
 ### Aesthetic options
 angle <- .1
-fps   <- 5L ## .gif format only handles factors of 100!?
-max_frames <- 90L
+fps   <- 5L     ## fps of .gif. ##.gif format only handles factors of 100!?
+duration <- 15L ## seconds duration of the gif
+max_frames <- fps * duration ## ~75, the frame of the grand tour to cut down to.
 axes_position <- "left"
 pt_size <- 3L
 ###
 
-#### Load all data script
+#### Load all data script ----
 ## load_all_data <- function(){
 {
   ## Vector of sim_nms
@@ -41,28 +43,28 @@ pt_size <- 3L
                "EEE_p6_0_1",    "EEE_p6_33_66",    "EEE_p6_50_50",
                "EEV_p6_0_1",    "EEV_p6_33_66",    "EEV_p6_50_50",
                "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
-  sim_nms <- c(paste0("EEE_p4_0_1_t", 1:3), ## 3 training sets
-               as.vector(outer(sim_nms, paste0("_rep", 1:3), FUN = "paste0"))) ## Cross product paste
+  sim_nms <- c(paste0("EEE_p4_0_1_t", 1L:3L), ## 3 training sets
+               as.vector(outer(sim_nms, paste0("_rep", 1L:3L), FUN = "paste0"))) ## Cross product paste
   root <- "./apps_supplementary/data"   ## Can't use here::here(); Filepaths cannot be too long...
   sim_fps <- paste0(root, "/", sim_nms, ".rda")
   ## Load all simulations
-  for(i in 1:length(sim_nms)){
+  for(i in 1L:length(sim_nms)){
     load(sim_fps[i], envir = globalenv())
   }
   
   ## Load the few tpaths.
   tpath_nms <- paste0("tpath_", c("p4_t", "p4", "p6"))
   tpath_fps <- paste0(root, "/", tpath_nms, ".rda")
-  for(i in 1:length(tpath_nms)){
+  for(i in 1L:length(tpath_nms)){
     load(tpath_fps[i], envir = globalenv())
   }
 }
 
-### save_pca(), for 1 sim
+### save_pca(), for 1 simulation
 save_pca <- function(sim_nm = "EEE_p4_0_1_rep1"){
-  x <- data.frame(x = 1:4)
-  y <- data.frame(y = 1:4)
-  pc_opts <- merge(x, y, all = TRUE)[-c(1, 6, 11, 16), ] ## Less trivial combinations
+  x <- data.frame(x = 1L:4L)
+  y <- data.frame(y = 1L:4L)
+  pc_opts <- merge(x, y, all = TRUE)[-c(1L, 6L, 11L, 16L), ] ## Remove trivial combinations like PC1 by PC1/
   
   ## Loop over sim_nm
   invisible(lapply(sim_nm, function(this_sim_nm){
@@ -71,15 +73,14 @@ save_pca <- function(sim_nm = "EEE_p4_0_1_rep1"){
     pca_rot <- prcomp(this_sim)$rotations
     
     ## Loop over pc_opts
-    invisible(lapply(1:nrow(pc_opts), function(row_i){
+    invisible(lapply(1L:nrow(pc_opts), function(row_i){
+      fn <- paste0(this_sim_nm, "__pca_x", x_num, "y", y_num, ".png")
       this_bas  <- get(paste0("bas_p", p))
       this_clas <- attr(this_sim, "cluster")
-      x_num <- pc_opts[row_i, 1]
-      y_num <- pc_opts[row_i, 2]
+      x_num <- pc_opts[row_i, 1L]
+      y_num <- pc_opts[row_i, 2L]
       x_pc  <- paste0("PC", x_num)
       y_pc  <- paste0("PC", y_num)
-      ## Save grand tour
-      fn <- paste0(this_sim_nm, "__pca_x", x_num, "y", y_num, ".png")
       
       pca     <- prcomp(this_sim)
       pca_x   <- as.data.frame(pca$x[ , c(x_num, y_num)])
@@ -94,7 +95,7 @@ save_pca <- function(sim_nm = "EEE_p4_0_1_rep1"){
       x_range <- max(pca_x[, 1L], circ[, 1L]) - min(pca_x[, 1L], circ[, 1L])
       y_range <- max(pca_x[, 2L], circ[, 2L]) - min(pca_x[, 2L], circ[, 2L])
       
-      ### ggplot2
+      ### Visualize
       gg <- ggplot() +
         ## Themes and aesthetics
         theme_void() +
@@ -123,42 +124,35 @@ save_pca <- function(sim_nm = "EEE_p4_0_1_rep1"){
                   vjust = "outward", hjust = "outward") +
         ## Circle path
         geom_path(circ, mapping = aes(x = x, y = y),
-                  color = "grey80", size = 1L, inherit.aes = F)
+                  color = "grey80", size = 1L, inherit.aes = FALSE)
       
-      
+      ## Save
       suppressMessages(
         ggsave(fn, gg, device = "png", path = "./apps/spinifex_study/www/images",
                height = height_in, units = "in", dpi = "screen")
       )
     }))
-    
     message("Saved the 12x png images for PC permutations of ", this_sim_nm, ".")
   }))
 }
 
 
-### save_grand(), for 1 sim
-## !ERR from tourr::interpolate(), within play_tour_path();
-## !ERR, Error in dim(x) <- length(x) : attempt to set an attribute on NULL
-#### did we see this before? i think the examples still work.
+### save_grand(), for 1 simulation
 save_grand <- function(sim_nm = "EEE_p4_0_1_rep1"){
   ## Loop over sim_nm,
   lapply(sim_nm, function(this_sim_nm){
+    fn <- paste0(this_sim_nm, "__grand.gif")
     this_sim <- get(this_sim_nm)
     p <- ncol(this_sim)
     this_bas <- get(paste0("bas_p", p))
     this_clas <- attr(this_sim, "cluster")
-    ## Grand specific
-    this_tpath <- get(paste0("tpath_p", p)) ##TODO: this needs to cover training sets as well.
-    
-    ## Save grand tour
-    fn <- paste0(this_sim_nm, "__grand.gif")
-    
-    ## manually wade through play_tour_path, odd behavior occuring
-    tour_path <- tourr::interpolate(basis_set = this_tpath, angle = angle)
+    ## Grand specific, tour paths 
+    this_tpath <- get(paste0("tpath_p", p))
+    tour_path <- tourr::interpolate(basis_set = this_tpath, 
+                                    angle = angle)[, , 1L:max_frames]
     attr(tour_path, "class") <- "array"
     tour_df <- array2df(array = tour_path, data = this_sim)
-    
+    ## Visualize
     gg <- render_(frames = tour_df,
                   axes = axes_position,
                   line_size = 1L,
@@ -168,13 +162,14 @@ save_grand <- function(sim_nm = "EEE_p4_0_1_rep1"){
                                  theme(legend.position = "none"),
                                  scale_colour_manual(values = pal))
     )
+    ## Animate
     gga <- gg + gganimate::transition_states(frame, transition_length = 0L)
-    anim <- gganimate::animate(gga, fps = 5L, height = height_px, renderer = gifski_renderer())
-    ## Save.
+    anim <- gganimate::animate(gga, fps = fps, height = height_px, 
+                               renderer = gifski_renderer())
+    ## Save
     gganimate::anim_save(filename = fn,
                          animation = anim,
                          path = "./apps/spinifex_study/www/images")
-    
     message("Saved a grand tour gif of ", this_sim_nm, ".")
   })
 }
@@ -185,17 +180,18 @@ save_grand <- function(sim_nm = "EEE_p4_0_1_rep1"){
 save_radial <- function(sim_nm = "EEE_p4_0_1_rep1"){
   ## Loop over sim_nm,
   invisible(lapply(sim_nm, function(this_sim_nm){
+    
     this_sim <- get(this_sim_nm)
     p <- ncol(this_sim)
     this_bas <- get(paste0("bas_p", p))
     this_clas <- attr(this_sim, "cluster")
     
     ## Loop over number of columns, setting mv, and save a radial.
-    invisible(lapply(1:p, function(this_mv){
+    invisible(lapply(1L:p, function(this_mv){
       fn <- paste0(this_sim_nm, "__radial_mv", this_mv, ".gif")
-      
       tour_hist <- manual_tour(basis = this_bas, manip_var = this_mv)
       tour_df <- array2df(array = tour_hist, data = this_sim)
+      ## Visualize
       gg <- render_(frames = tour_df,
                     axes = axes_position,
                     aes_args = list(color = this_clas, shape = this_clas),
@@ -204,9 +200,10 @@ save_radial <- function(sim_nm = "EEE_p4_0_1_rep1"){
                                    theme(legend.position = "none"),
                                    scale_colour_manual(values = pal))
       )
+      ## Animate
       gga <- gg + gganimate::transition_states(frame, transition_length = 0L)
-      anim <- gganimate::animate(gga, fps = 5L, height = height_px, renderer = gifski_renderer())
-      ## Save.
+      anim <- gganimate::animate(gga, fps = fps, height = height_px, renderer = gifski_renderer())
+      ## Save
       gganimate::anim_save(filename = fn,
                            animation = anim,
                            path = "./apps/spinifex_study/www/images")
@@ -219,15 +216,19 @@ save_radial <- function(sim_nm = "EEE_p4_0_1_rep1"){
 #' save_radial("EEE_p4_0_1_t1")
 
 
+## save all/subset of factors looping over all simulations in `sim_nms`
+#' @example
+#' sim_nms <- paste0("EEE_p4_0_1_t", 1L:3L) ## FOR TEST SUBSET
+#' save_all_static()
 save_all_static <- function(){
   require(tictoc)
   tic("outside loop")
-  invisible(lapply(1:length(sim_nms), function(i){
+  invisible(lapply(1L:length(sim_nms), function(i){
     # tic("pca")
     # save_pca(sim_nms[i])
     # toc()
     # tic("grand")
-    # save_grand(sim_nms[i])
+    # save_grand(sim_nms[i]) ## Give error (external code) at end, but all .gifs are saved.
     # toc()
     tic("radial")
     save_radial(sim_nms[i])
