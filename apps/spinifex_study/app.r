@@ -62,8 +62,7 @@ server <- function(input, output, session){
     resp_row()$sim_nm})
   section_nm <- reactive({req(resp_row)
     resp_row()$section_nm})
-  section_pg <- reactive({req(resp_row)
-    resp_row()$section_pg})
+
   
   image_fp <- reactive({
     if(plot_active() & time_left() > 0L){
@@ -456,12 +455,18 @@ server <- function(input, output, session){
         rv$survey_tbl$prolific_id <- input$prolific_id
       }
       ##### __rv$resp_tbl -----
-      ## Write responses and sec_to_resp to resp_tbl
-      this_row <- output_row()
-      ## Update local table and write to Google sheet.
-      rv$resp_tbl[rv$pg, ] <- this_row
-      googlesheets4::sheet_append(ss_id, this_row, 1L)
-      message("rv$resp_tbl, data row writen locally and to gsheets. pg:", rv$pg, " -- ", Sys.time())
+      ## Write single row to local rv$resp_tbl
+      rv$resp_tbl[rv$pg, ] <- output_row()
+      ## Write entire period too google sheets, hoping this will alieviate API quota issue
+      if(rv$pg %in% c(6L, 10L, 14L)){
+        .rows <- NULL
+        if(rv$pg == 6L)  .rows <- 1L:6L
+        if(rv$pg == 10L) .rows <- 7L:10L
+        if(rv$pg == 14L) .rows <- 11L:14L
+        these_rows <- rv$resp_tbl[.rows, ]
+        googlesheets4::sheet_append(ss_id, these_rows, 1L)
+        message(paste0("This period's data writen to gsheet. pg: ", rv$pg, " -- ", Sys.time()))
+      }
       ## End of writing to resp_tbl
       
       ### __New page ----
@@ -524,7 +529,6 @@ server <- function(input, output, session){
   output$pg          <- reactive(rv$pg)         ## Hiding ui next_task button
   output$factor      <- reactive(factor())      ## Sidebar inputs
   output$section_nm  <- reactive(section_nm())  ## Text
-  output$section_pg  <- reactive(section_pg())  ## Training
   output$plot_active <- reactive(plot_active()) ## Task response
   output$eval        <- reactive(eval())        ## Sidebar
   output$is_intermission <- reactive({          ## Intermission
@@ -550,7 +554,6 @@ server <- function(input, output, session){
   outputOptions(output, "pg",                    suspendWhenHidden = FALSE)
   outputOptions(output, "factor",                suspendWhenHidden = FALSE)
   outputOptions(output, "section_nm",            suspendWhenHidden = FALSE)
-  outputOptions(output, "section_pg",            suspendWhenHidden = FALSE)
   outputOptions(output, "plot_active",           suspendWhenHidden = FALSE)
   outputOptions(output, "eval",                  suspendWhenHidden = FALSE)
   outputOptions(output, "do_disp_prolific_code", suspendWhenHidden = FALSE)
