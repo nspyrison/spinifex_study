@@ -234,12 +234,7 @@ intermission_page <- conditionalPanel(
 )
 
 #### Survey, initialization -----
-.surv_lab  <-  div(style = 'width:300px;',
-                   div(style = 'float:left;', '|<- disagree'),
-                   div(style = 'float:right;', 'agree ->|'))
-.surv_lab_col <-  div(style = 'width:220px;',
-                   div(style = 'float:left;', '|<- disagree'),
-                   div(style = 'float:right;', 'agree ->|'))
+.likert_label <- div("|<- most disagree,  most agree ->|")
 col_p1 <- column(4L,
                  h3(paste0("First -- ", this_factor_nm_ord[1L])),
                  br(),
@@ -252,23 +247,10 @@ col_p1 <- column(4L,
                  lapply(7L:10L, function(i){
                    list(
                      h4(survey_questions[i]),
-                     sliderInput(paste0("survey", i), label = .surv_lab_col,
+                     sliderInput(paste0("survey", i), label = .likert_label,
                                  min = 1L, max = 5L, value = 3L, step = 1L)
                    )
-                 }),
-                 h4(survey_questions[7L]),
-                 sliderInput("survey7", label = .surv_lab_col,
-                             min = 1L, max = 5L, value = 3L, step = 1L),
-                 h4(survey_questions[8L]),
-                 sliderInput("survey8", label = .surv_lab_col,
-                             min = 1L, max = 5L, value = 3L, step = 1L),
-                 h4(survey_questions[9L]),
-                 sliderInput("survey9", label = .surv_lab_col,
-                             min = 1L, max = 5L, value = 3L, step = 1L),
-                 h4(survey_questions[10L]),
-                 sliderInput("survey10",
-                             label = .surv_lab_col,
-                             min = 1L, max = 5L, value = 3L, step = 1L)
+                 })
 )
 col_p2 <- column(4L,
                  h3(paste0("Second -- ", this_factor_nm_ord[3L])),
@@ -279,18 +261,13 @@ col_p2 <- column(4L,
                  ),
                  img(src = this_factor_examp_fp[3L],
                      height="75%", width="75%", align = "center"),
-                 h4(survey_questions[11L]),
-                 sliderInput("survey11", label = .surv_lab_col,
-                             min = 1L, max = 5L, value = 3L, step = 1L),
-                 h4(survey_questions[12L]),
-                 sliderInput("survey12", label = .surv_lab_col,
-                             min = 1L, max = 5L, value = 3L, step = 1L),
-                 h4(survey_questions[13L]),
-                 sliderInput("survey13", label = .surv_lab_col,
-                             min = 1L, max = 5L, value = 3L, step = 1L),
-                 h4(survey_questions[14L]),
-                 sliderInput("survey14", label = .surv_lab_col,
-                             min = 1L, max = 5L, value = 3L, step = 1L),
+                 lapply(11L:14L, function(i){
+                   list(
+                     h4(survey_questions[i]),
+                     sliderInput(paste0("survey", i), label = .likert_label,
+                                 min = 1L, max = 5L, value = 3L, step = 1L)
+                   )
+                 })
 )
 col_p3 <- column(4L,
                  h3(paste0("Third -- ", this_factor_nm_ord[5L])),
@@ -301,18 +278,13 @@ col_p3 <- column(4L,
                  ),
                  img(src = this_factor_examp_fp[5L],
                      height="75%", width="75%", align = "center"),
-                 h4(survey_questions[15L]),
-                 sliderInput("survey15", label = .surv_lab_col,
-                             min = 1L, max = 5L, value = 3L, step = 1L),
-                 h4(survey_questions[16L]),
-                 sliderInput("survey16", label = .surv_lab_col,
-                             min = 1L, max = 5L, value = 3L, step = 1L),
-                 h4(survey_questions[17L]),
-                 sliderInput("survey17", label = .surv_lab_col,
-                             min = 1L, max = 5L, value = 3L, step = 1L),
-                 h4(survey_questions[18L]),
-                 sliderInput("survey18", label = .surv_lab_col,
-                             min = 1L, max = 5L, value = 3L, step = 1L)
+                 lapply(15L:18L, function(i){
+                   list(
+                     h4(survey_questions[i]),
+                     sliderInput(paste0("survey", i), label = .likert_label,
+                                 min = 1L, max = 5L, value = 3L, step = 1L)
+                   )
+                 })
 )
 
 ### survey_page -----
@@ -339,15 +311,13 @@ suvery_page <- conditionalPanel(
                             "Graduate degree (MA/MSc/MPhil/other)",
                             "Doctorate degree (PhD/other)")),
     h3("How much do you agree with the following statements?"),
-    h4(survey_questions[4L]),
-    sliderInput("survey4", label = .surv_lab,
-                min = 1L, max = 5L, value = 3L, step = 1L),
-    h4(survey_questions[5L]),
-    sliderInput("survey5", label = .surv_lab,
-                min = 1L, max = 5L, value = 3L, step = 1L),
-    h4(survey_questions[6L]),
-    sliderInput("survey6",label = .surv_lab,
-                min = 1L, max = 5L, value = 3L, step = 1L),
+    lapply(4L:6L, function(i){
+      list(
+        h4(survey_questions[i]),
+        sliderInput(paste0("survey", i), label = .likert_label,
+                    min = 1L, max = 5L, value = 3L, step = 1L)
+      )
+    }),
     fluidRow(col_p1, col_p2, col_p3),
     hr(),
     actionButton("save_survey", "Save survey responses")
