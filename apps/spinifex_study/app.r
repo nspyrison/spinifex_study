@@ -36,7 +36,7 @@ server <- function(input, output, session){
   rv$input_inter <- 0L
   rv$resp_inter  <- 0L
   rv$sec_to_resp <- NA_integer_
-  rv$var_resP    <- NA_integer_
+  rv$var_resp    <- NA_integer_
   rv$resp_tbl    <- init_resp_tbl
   rv$survey_tbl  <- init_survey_tbl
   
@@ -453,6 +453,10 @@ server <- function(input, output, session){
       if(rv$pg == 1){
         rv$resp_tbl$prolific_id   <- input$prolific_id
         rv$survey_tbl$prolific_id <- input$prolific_id
+      }
+      if(plot_active() == TRUE & is.na(var_resp()) == TRUE){
+        showNotification("Please select at least one response.")
+        return()
       }
       ##### __rv$resp_tbl -----
       ## Write single row to local rv$resp_tbl

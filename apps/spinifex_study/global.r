@@ -91,7 +91,6 @@ if(T){
   tryCatch({
     prev_saves <- googlesheets4::read_sheet(ss_id, sheet = 1L, range = "B:B")
   }, error = function(e){
-    participant_num <- sample(1L:999L, 1L)
     was_quota_issue <- TRUE
     txt <- "Google API quota reached, Please try again in 2 minutes. Closing app in 15 seconds."
     warning(txt)
@@ -161,15 +160,15 @@ survey_pg   <- 15L     ## Survey
 
 ##### UI START -----
 css_notification <- tags$head(
-  tags$style(
-    HTML(".shiny-notification {
-             position:fixed;
-             top: calc(40%);
-             left: calc(40%);
-             }
-             "
-    )
-  )
+  # tags$style( ## CSS to change the position of shiny::showNotification().
+  #   HTML(".shiny-notification {
+  #            position:fixed;
+  #            top: calc(70%);
+  #            left: calc(70%);
+  #            }
+  #            "
+  #   )
+  # )
 )
 ### intro_page1 -----
 intro_page1 <- conditionalPanel( ## First page conditionalPanel
