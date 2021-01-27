@@ -218,9 +218,8 @@ save_radial <- function(sim_nm = "EEE_p4_0_1_rep1"){
 
 ## save all/subset of factors looping over all simulations in `sim_nms`
 #' @example
-#' sim_nms <- paste0("EEE_p4_0_1_t", 1L:3L) ## FOR TEST SUBSET
-#' save_all_static()
-save_all_static <- function(){
+#' save_all_static(paste0("EEE_p4_0_1_t", 1L:3L))
+save_all_static <- function(sim_nms = sim_nms){
   require(tictoc)
   tic("outside loop")
   invisible(lapply(1L:length(sim_nms), function(i){

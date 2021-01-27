@@ -62,7 +62,6 @@ server <- function(input, output, session){
     resp_row()$sim_nm})
   section_nm <- reactive({req(resp_row)
     resp_row()$section_nm})
-
   
   image_fp <- reactive({
     if(plot_active() & time_left() > 0L){
