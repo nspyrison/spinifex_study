@@ -30,7 +30,7 @@ server <- function(input, output, session){
   
   ##### Reactive value initialization -----
   rv             <- reactiveValues()
-  rv$pg          <- 1L ## SET STARTING PAGE HERE <<<
+  rv$pg          <- 4L ## SET STARTING PAGE HERE <<<
   rv$sec_on_pg   <- 0L
   ## Below are not needed, but to be explicit,
   rv$input_inter <- 0L
@@ -79,7 +79,8 @@ server <- function(input, output, session){
   })
   output$image_fp   <- renderText({image_fp()})
   output$image_plot <- renderImage({
-    list(src = normalizePath(image_fp()))
+    list(src = #normalizePath("./www/images/EEE_P4_0_1_t1__grand.gif"))
+          normalizePath(image_fp()))
   }, deleteFile = FALSE)
   p <- reactive({ ## Scalar number of variables
     req(plot_active())
@@ -139,12 +140,12 @@ server <- function(input, output, session){
   })
   v5_resp <- reactive({
     req(var_resp(), p())
-    if(p() == 4) return(NA)
+    if(p() == 4L) return(NA)
     return(5L %in% var_resp())
   })
   v6_resp <- reactive({
     req(var_resp())
-    if(p() == 4) return(NA)
+    if(p() == 4L) return(NA)
     return(6L %in% var_resp())
   })
   ### Task scoring
