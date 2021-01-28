@@ -4,7 +4,7 @@ require("dplyr")
 
 ### Stand alone example, typically initialized in global.r:
 #' @examples
-#' #### IF RUN OUTSIDE OF APP ####
+#' #### IF RUN OUTSIDE OF APP, NEED THIS INITIALIZATION ####
 #' ## needs participant#, permutation#, and experimental design.
 #' ## Initialize participant and perm number.
 #' participant_num <- 1
@@ -59,13 +59,20 @@ require("dplyr")
 #'   vc_nms[vc_perms[this_vc_perm, ]]
 #' this_location_nm_ord <-
 #'   location_nms[location_perms[this_location_perm, ]]
-#' (resp_tbl <- make_resp_tbl(participant_num))
-
-
+#' survey_questions <- c("What are your prefered pronouns?",
+#'   "Which age group do you belong to?",
+#'   "What is your highest completed education?",
+#'   "I understand the how to perform the task.",
+#'   "I am experienced with data visulization.",
+#'   "I am experienced with data analysis.",
+#'   rep(c("I was already familiar with this method.",
+#'         "I found this visualization easy to use.",
+#'         "I felt confident in my answers with this method.",
+#'         "I liked using this method."), 3L)
+#' )
 make_resp_tbl <- function(participant_num = sample(1L:n_perms, 1L),
                           n_perms = 36L){
   full_perm_num <- 1L + (participant_num - 1L) %% n_perms
-  
   resp_tbl <- tibble::tibble(
     key = paste(sep = "_", participant_num, full_perm_num, 1L:15L),
     participant_num = as.integer(participant_num),
@@ -85,12 +92,12 @@ make_resp_tbl <- function(participant_num = sample(1L:n_perms, 1L),
     plot_active = c(rep(FALSE, 3L),
                     rep(TRUE,  3L), FALSE,
                     rep(TRUE,  3L), FALSE,
-                    rep(TRUE,  3L), 
+                    rep(TRUE,  3L),
                     FALSE),
     eval   = c("study structure", "video",
                "intermission1", "t1", 1L, 2L,
                "intermission2", "t2", 3L, 4L,
-               "intermission3", "t3", 5L, 6L, 
+               "intermission3", "t3", 5L, 6L,
                "study questions"),
     factor = c(rep(NA, 3L),
                rep(this_factor_nm_ord[1L], 3L), NA,
@@ -154,7 +161,7 @@ make_survey_tbl <- function(participant_num = sample(1L:n_perms, 1L),
                         rep(this_factor_nm_ord[1L], 4L),
                         rep(this_factor_nm_ord[3L], 4L),
                         rep(this_factor_nm_ord[5L], 4L)),
-    question        = survey_questions,
+    question        = paste0(scope, ": ", survey_questions),
     response        = c(rep("decline to answer <default, blank, no change>", 3L),
                         rep("3 <default, no change>", 15L)),
     sec_to_resp     = NA_integer_,
@@ -186,7 +193,7 @@ make_save_ans_tbl <- function(){
   ## Initialize before looping
   n_sims <- length(sim_nms)
   var_signal_mat <- var_diff_mat <- var_weight_mat <-
-    matrix(NA, nrow = n_sims, ncol = 6)
+    matrix(NA, nrow = n_sims, ncol = 6L)
   bar_vect <- rep(NA, n_sims)
   ## Load and extracting measures, loop
   for(i in 1L:n_sims){
@@ -220,9 +227,9 @@ make_save_ans_tbl <- function(){
   )
   ## Rename columns
   colnames(ans_tbl) <- c("sim_nm", "bar",
-                         paste0("v", 1:6, "_signal"),
-                         paste0("v", 1:6, "_diff"),
-                         paste0("v", 1:6, "_weight")
+                         paste0("v", 1L:6L, "_signal"),
+                         paste0("v", 1L:6L, "_diff"),
+                         paste0("v", 1L:6L, "_weight")
   )
   
   ## Save ans_tbl and wrap up

@@ -6,7 +6,7 @@
 source("resp_tbl.r", local = TRUE) ## Needs initialization from global.r.
 library("shiny")
 library("googlesheets4") ## Google sheets (with api v4) for read/write responses.
-do_disp_dev_tools <- TRUE ## Expects: TRUE / FALSE
+do_disp_dev_tools <- FALSE ## Expects: TRUE / FALSE
 options(shiny.autoreload = TRUE) ## May reduce caching errors
 #options(error = browser) ## occasionally helpful for troubleshooting
 time_alotted <- 60L ## Seconds for the task
@@ -83,11 +83,10 @@ tryCatch({
 ## Read response sheet and set participant number to first not use integer
 participant_num <- 1L ## Initialize
 ## API reads UNLOCKED. keep in mind API quota issue.
+prev_saves <- NULL
+was_quota_issue <- FALSE
 if(T){
   ## tryCatch for api quota limit
-  prev_saves <- NULL
-  was_quota_issue <- FALSE
-
   tryCatch({
     prev_saves <- googlesheets4::read_sheet(ss_id, sheet = 1L, range = "B:B")
   }, error = function(e){
@@ -97,10 +96,12 @@ if(T){
     return(e)
   })
   used_nums <- unique(prev_saves$participant_num)
-  opts <- 1L:(max(used_nums) + 1L)
-  open_nums <- opts[!opts %in% used_nums] ## All not used numbers
-  participant_num <- min(open_nums)
-}else{participant_num <- sample(1L:999L, 1L)}
+  if(length(used_nums) > 0L){
+    opts <- 1L:(max(used_nums) + 1L)
+    open_nums <- opts[!opts %in% used_nums] ## All not used numbers
+    participant_num <- min(open_nums)
+  } ## If gsheet empty, participant_num stays the initialized 1.
+}else{participant_num <- sample(1L:952L, 1L)} ## If turned API read turned off, assign random number. 
 full_perm_num <- 1L + (participant_num - 1L) %% n_perms ## n_perms ~36L
 
 ## Select permutation orders
@@ -157,19 +158,10 @@ period2_pgs <- 8L:11L  ## Training, rep 1, rep 2, and intermission
 period3_pgs <- 12L:14L ## Training, rep 1, rep 2
 survey_pg   <- 15L     ## Survey
 
+##### UI start -----
+## Above is all inialization and selecting parameters.
+## Below is mostly ui objects themselves.
 
-##### UI START -----
-css_notification <- tags$head(
-  # tags$style( ## CSS to change the position of shiny::showNotification().
-  #   HTML(".shiny-notification {
-  #            position:fixed;
-  #            top: calc(70%);
-  #            left: calc(70%);
-  #            }
-  #            "
-  #   )
-  # )
-)
 ### intro_page1 -----
 intro_page1 <- conditionalPanel( ## First page conditionalPanel
   condition = "output.pg == 1",
@@ -185,7 +177,7 @@ intro_page1 <- conditionalPanel( ## First page conditionalPanel
   p("Introduction"),
   tags$ul(
     tags$li("This study overview"),
-    tags$li("Explanatory video (n min)")
+    tags$li("Explanatory video (4 min)")
   ),
   p("Period 1"),
   tags$ul(
@@ -216,12 +208,10 @@ intro_page1 <- conditionalPanel( ## First page conditionalPanel
 ### intro_page2 -----
 intro_page2 <- conditionalPanel(
   condition = "output.pg == 2",
-  h2("Video training"), br(), br(),
-  p("Watch the following video before proceeding:"), br(),
-  p("Minimize the study and watch the training video."),
-  ##TODO UPDATE AND review with new video; youtube needed?
-  ## Adding the 'a' tag to the sidebar to link to external file
-  #tags$a(href='training.mp4', target='blank', 'training video (4:17)'),
+  h2("Video intro"), br(), br(),
+  p("Watch the following video explaining the task and methods before proceeding."), br(),
+  tags$video(id = "video", type = "video/mp4", src = "spinifex_study.mp4", 
+             hieght = 600, width = 1067, controls = NA),
 ) ## End of conditionalPanel, assigning intro_page2
 
 ### intermission_page -----
@@ -330,7 +320,7 @@ suvery_page <- conditionalPanel(
       conditionalPanel(
         "output.do_disp_prolific_code == true",
         br(),
-        h3("Enter the completion code '18B6C620' to redeem payment.")
+        h3("Enter the prolifico.co completion code '18B6C620' to redeem payment.")
       )
     )
   )
@@ -419,9 +409,23 @@ dev_disp <- conditionalPanel(
   )
 ) ## close conditionPanel, assigning dev_disp
 
+## customize showNotification placment.
+# css_notification <- tags$head(
+#   tags$style( ## CSS to change the position of shiny::showNotification().
+#     HTML(".shiny-notification {
+#              position:fixed;
+#              top: calc(70%);
+#              left: calc(70%);
+#              }
+#              "
+#     )
+#   )
+# )
+
 #### ui, combined HTML -----
-ui <- fluidPage(css_notification,
-                titlePanel("Multivariate vis user study"),
+ui <- fluidPage(titlePanel("Multivariate vis user study"),
+  #css_notification,
+                
                 sidebarLayout(
                   sidebar_panel,
                   main_panel

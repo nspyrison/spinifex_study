@@ -222,7 +222,7 @@ server <- function(input, output, session){
     sim_nm()
   }, {
     choices <- paste0("V", 1L:p())
-    updateCheckboxGroupInput(session, "var_resp", choices = choices, 
+    updateCheckboxGroupInput(session, "var_resp", choices = choices,
                              selected = "", inline = TRUE)
   })
   
@@ -452,7 +452,7 @@ server <- function(input, output, session){
          rv$is_training_evaled == FALSE){
         var_weight <- var_weight()
         var_num    <- which(var_weight > 0) ## Will always be one for training (@p4_0_1)
-        msg <- paste0("v", var_num, " was the only variable that explians the difference more than random chance. Feel free to explore the data for a bit, then press the 'Next page' button to continue.")
+        msg <- paste0("v", var_num, " was the only variable that explians the difference more than random chance. Feel free to explore this data for a bit, then press the 'Next page' button to continue.")
         
         rv$is_training_evaled <- TRUE
         output$training_msg   <- renderText(msg)
@@ -557,7 +557,11 @@ server <- function(input, output, session){
   output$do_disp_dev_tools <- reactive({     ## JS eval of R boolean...
     return(do_disp_dev_tools)
   }) 
-  output$is_time_remaining <- reactive(time_left() > 0L)
+  output$is_time_remaining <- reactive({
+    if(eval() %in% paste0("t", 1L:3L)){
+      return(TRUE)
+    } else return(time_left() > 0L)
+  })
   
   ## Eager evaluation for correct ui conditionalPanel functionality
   outputOptions(output, "pg",                    suspendWhenHidden = FALSE)
