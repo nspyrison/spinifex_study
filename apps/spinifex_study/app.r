@@ -30,8 +30,9 @@ server <- function(input, output, session){
   
   ##### Reactive value initialization -----
   rv             <- reactiveValues()
-  rv$pg          <- 4L ## SET STARTING PAGE HERE <<<
+  rv$pg          <- 1L ## SET STARTING PAGE HERE <<<
   rv$sec_on_pg   <- 0L
+  rv$is_training_evaled <- FALSE
   ## Below are not needed, but to be explicit,
   rv$input_inter <- 0L
   rv$resp_inter  <- 0L
@@ -39,6 +40,8 @@ server <- function(input, output, session){
   rv$var_resp    <- NA_integer_
   rv$resp_tbl    <- init_resp_tbl
   rv$survey_tbl  <- init_survey_tbl
+  
+  rv$image_plot_cnt <- 0L
   
   ##### Reactive functions -----
   resp_tbl           <- reactive(rv$resp_tbl)
@@ -62,9 +65,8 @@ server <- function(input, output, session){
     resp_row()$sim_nm})
   section_nm <- reactive({req(resp_row)
     resp_row()$section_nm})
-  
   image_fp <- reactive({
-    if(plot_active() & time_left() > 0L){
+    if(plot_active()){
       fct_nm <- factor()
       if(fct_nm == "pca")
         fct_suffix <- paste0("pca_x", x_axis_num(), "y", y_axis_num(), ".png")
@@ -77,7 +79,9 @@ server <- function(input, output, session){
     }
     return("./www/white_placeholder.png") ## Thin white strip .png as a silent placeholder
   })
-  output$image_fp   <- renderText({image_fp()})
+  observeEvent(image_fp(), {rv$image_plot_cnt <- rv$image_plot_cnt + 1L})
+  output$image_fp <- renderText({image_fp()})
+  output$image_plot_cnt <- renderText(paste0("image_plot_cnt: ", rv$image_plot_cnt))
   output$image_plot <- renderImage({
     list(src = #normalizePath("./www/images/EEE_P4_0_1_t1__grand.gif"))
           normalizePath(image_fp()))
@@ -437,27 +441,28 @@ server <- function(input, output, session){
   observeEvent(input$next_pg_button, {
     if((rv$sec_on_pg > 1L & do_disp_dev_tools == FALSE) |
        do_disp_dev_tools == TRUE){
-      ##### __ eval training
-      ##TODO: Quality proofing; super low ball?
-      # if(eval() == "t1" &
-      #    task_marks() <= 0L){ ## If FIRST training and marks less than/eq to 0, fail early.
-      #   txt <- paste0("You did not meet the required threshold for the training data set.
-      #   Please enter the following code to <blah, blah>. On rv$pg ", rv$pg, ".")
-      #   showNotification(txt, type = "error", duration = 30L)
-      #   warning(txt)
-      #   # browser()
-      #   # Sys.sleep(30L)
-      #   # stopApp()
-      #   # return(NULL)
-      # }
-      if(rv$pg == 1){
-        rv$resp_tbl$prolific_id   <- input$prolific_id
-        rv$survey_tbl$prolific_id <- input$prolific_id
-      }
+      
+      ## Early condition handling
       if(plot_active() == TRUE & is.na(var_resp()) == TRUE){
         showNotification("Please select at least one response.")
         return()
       }
+      ##### __eval training
+      if(eval() %in% paste0("t", 1L:3L) &
+         rv$is_training_evaled == FALSE){
+        var_weight <- var_weight()
+        var_num    <- which(var_weight > 0) ## Will always be one for training (@p4_0_1)
+        msg <- paste0("v", var_num, " was the only variable that explians the difference more than random chance. Feel free to explore the data for a bit, then press the 'Next page' button to continue.")
+        
+        rv$is_training_evaled <- TRUE
+        output$training_msg   <- renderText(msg)
+        return() ## Exit early
+      }
+      if(rv$pg == 1){
+        rv$resp_tbl$prolific_id   <- input$prolific_id
+        rv$survey_tbl$prolific_id <- input$prolific_id
+      }
+      
       ##### __rv$resp_tbl -----
       ## Write single row to local rv$resp_tbl
       rv$resp_tbl[rv$pg, ] <- output_row()
@@ -476,10 +481,11 @@ server <- function(input, output, session){
       ### __New page ----
       ## Advance to the next page, reset other rv variables
       rv$pg           <- rv$pg + 1L
-      output$plot_msg <- renderText("")
       rv$input_inter  <- 0L
       rv$resp_inter   <- 0L
       rv$sec_on_pg    <- 0L
+      rv$is_training_evaled <- FALSE
+      output$training_msg   <- renderText("")
     }
   })
   
@@ -496,7 +502,6 @@ server <- function(input, output, session){
     ## Save message
     save_msg <- paste0("Reponses saved. Thank you for participating!")
     showNotification(save_msg, type = "message", duration = 10L)
-    output$save_msg <- renderText(save_msg)
   })
   
   ### _Obs browser -----
@@ -516,8 +521,7 @@ server <- function(input, output, session){
         return("Time has expired, please enter your best guess and proceed.")
       }else{
         return(
-          paste0("Seconds remaining: ", time_left(),
-                 " of ", time_alotted, " seconds total.")
+          paste0(time_left(), "/", time_alotted, " seconds remaining.")
         )
       }
     }
@@ -553,6 +557,7 @@ server <- function(input, output, session){
   output$do_disp_dev_tools <- reactive({     ## JS eval of R boolean...
     return(do_disp_dev_tools)
   }) 
+  output$is_time_remaining <- reactive(time_left() > 0L)
   
   ## Eager evaluation for correct ui conditionalPanel functionality
   outputOptions(output, "pg",                    suspendWhenHidden = FALSE)
@@ -564,6 +569,7 @@ server <- function(input, output, session){
   outputOptions(output, "do_disp_dev_tools",     suspendWhenHidden = FALSE)
   outputOptions(output, "is_intermission",       suspendWhenHidden = FALSE)
   outputOptions(output, "is_saved",              suspendWhenHidden = FALSE)
+  outputOptions(output, "is_time_remaining",     suspendWhenHidden = FALSE)
   
   ### dev_tools display -----
   output$dev_msg  <- renderPrint({

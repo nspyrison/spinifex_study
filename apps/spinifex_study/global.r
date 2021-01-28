@@ -366,7 +366,9 @@ main_panel <- mainPanel(
     h2(textOutput("header")),
     textOutput("timer_disp"),
     ## Image text and image.
-    imageOutput("image_plot"),
+    conditionalPanel("output.is_time_remaining == true",
+                     imageOutput("image_plot")
+                     )
   ), ## close task section conditional panel title text
 
   #### _Plot mainPanel ----
@@ -389,6 +391,7 @@ main_panel <- mainPanel(
                  selected = "V1")
   ), ## Close conditionalPanel(), done listing factor inputs
   ## No input for grand tour.
+  h3(textOutput("training_msg")),
   conditionalPanel(condition = "(output.pg != 15)",
                    actionButton("next_pg_button", "Next page")
   )
@@ -400,6 +403,7 @@ dev_disp <- conditionalPanel(
   "output.do_disp_dev_tools == true",
   p("===== Development display below ====="),
   actionButton("browser", "browser()"),
+  verbatimTextOutput("image_plot_cnt"),
   verbatimTextOutput("pg_next_pg"),
   verbatimTextOutput("image_fp"),
   textOutput("dev_msg"),
