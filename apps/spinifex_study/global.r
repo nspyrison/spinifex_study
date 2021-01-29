@@ -210,8 +210,8 @@ intro_page2 <- conditionalPanel(
   condition = "output.pg == 2",
   h2("Video intro"), br(), br(),
   p("Watch the following video explaining the task and methods before proceeding."), br(),
-  tags$video(id = "video", type = "video/mp4", src = "spinifex_study.mp4", 
-             hieght = 600, width = 1067, controls = NA),
+  tags$video(id = "video", type = "video/mp4", src = "spinifex_study_648p.mp4", 
+             width = 1152, hieght = 648, controls = NA),
 ) ## End of conditionalPanel, assigning intro_page2
 
 ### intermission_page -----
@@ -382,7 +382,7 @@ main_panel <- mainPanel(
   ), ## Close conditionalPanel(), done listing factor inputs
   ## No input for grand tour.
   h3(textOutput("training_msg")),
-  conditionalPanel(condition = "(output.pg != 15)",
+  conditionalPanel(condition = "output.pg != 15 && output.is_app_loaded == true",
                    actionButton("next_pg_button", "Next page")
   )
 ) ## Close mainPanel() End of main_page section.
@@ -424,8 +424,10 @@ dev_disp <- conditionalPanel(
 
 #### ui, combined HTML -----
 ui <- fluidPage(titlePanel("Multivariate vis user study"),
-  #css_notification,
-                
+                conditionalPanel("output.is_app_loaded == false",
+                                 h3("Please wait whiel the app loads. If it's not ready in 20 seconds please ttrry refreshing")
+                ),
+                #css_notification,
                 sidebarLayout(
                   sidebar_panel,
                   main_panel

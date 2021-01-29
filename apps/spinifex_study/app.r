@@ -33,6 +33,7 @@ server <- function(input, output, session){
   rv$pg          <- 1L ## SET STARTING PAGE HERE <<<
   rv$sec_on_pg   <- 0L
   rv$is_training_evaled <- FALSE
+  rv$is_app_loaded <- FALSE
   ## Below are not needed, but to be explicit,
   rv$input_inter <- 0L
   rv$resp_inter  <- 0L
@@ -548,7 +549,7 @@ server <- function(input, output, session){
     if(input$save_survey == 1L) return(TRUE)
     return(FALSE)
   })
-  output$do_disp_prolific_code <- reactive({ ## Prolific pay code, do dislplay?
+  output$do_disp_prolific_code <- reactive({ ## Prolific pay code, do display?
     req(input$prolific_id)
     if(input$prolific_id == "")
       return(FALSE)
@@ -562,6 +563,10 @@ server <- function(input, output, session){
       return(TRUE)
     } else return(time_left() > 0L)
   })
+  observeEvent(key(), {rv$is_app_loaded <- TRUE})
+  output$is_app_loaded <- reactive({
+    return(rv$is_app_loaded == TRUE)
+  })
   
   ## Eager evaluation for correct ui conditionalPanel functionality
   outputOptions(output, "pg",                    suspendWhenHidden = FALSE)
@@ -574,6 +579,7 @@ server <- function(input, output, session){
   outputOptions(output, "is_intermission",       suspendWhenHidden = FALSE)
   outputOptions(output, "is_saved",              suspendWhenHidden = FALSE)
   outputOptions(output, "is_time_remaining",     suspendWhenHidden = FALSE)
+  outputOptions(output, "is_app_loaded",       suspendWhenHidden = FALSE)
   
   ### dev_tools display -----
   output$dev_msg  <- renderPrint({
