@@ -9,7 +9,7 @@ library("googlesheets4") ## Google sheets (with api v4) for read/write responses
 do_disp_dev_tools <- FALSE ## Expects: TRUE / FALSE
 options(shiny.autoreload = TRUE) ## May reduce caching errors
 #options(error = browser) ## occasionally helpful for troubleshooting
-time_alotted <- 60L ## Seconds for the task
+time_allotted <- 60L ## Seconds for the task
 height_px <- 500L ## Default height [pixels] for plot
 ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" ## Hash or name of the google sheet
 ## Google sheets id number:
@@ -118,11 +118,11 @@ this_factor_descrip_2 <- factor_descrip_2[factor_perms[this_factor_perm, ]]
 this_factor_examp_fp  <- factor_examp_fp[factor_perms[this_factor_perm, ]]
 
 ## Survey questions; n = 21 = 9 + 12
-survey_questions <- c("What are your prefered pronouns?",
+survey_questions <- c("What are your preferred pronouns?",
                       "Which age group do you belong to?",
                       "What is your highest completed education?",
                       "I understand the how to perform the task.",
-                      "I am experienced with data visulization.",
+                      "I am experienced with data visualization.",
                       "I am experienced with data analysis.",
                       rep(c("I was already familiar with this method.",
                             "I found this visualization easy to use.",
@@ -159,7 +159,7 @@ period3_pgs <- 12L:14L ## Training, rep 1, rep 2
 survey_pg   <- 15L     ## Survey
 
 ##### UI start -----
-## Above is all inialization and selecting parameters.
+## Above is all initialization and selecting parameters.
 ## Below is mostly ui objects themselves.
 
 ### intro_page1 -----
@@ -208,18 +208,18 @@ intro_page1 <- conditionalPanel( ## First page conditionalPanel
 ### intro_page2 -----
 intro_page2 <- conditionalPanel(
   condition = "output.pg == 2",
-  h2("Video intro"), br(), br(),
+  h3("Explainatory video"), br(), br(),
   p("Watch the following video explaining the task and methods before proceeding."), br(),
   tags$video(id = "video", type = "video/mp4", src = "spinifex_study_648p.mp4", 
-             width = 1152, hieght = 648, controls = NA),
+             width = 1152L, height = 648L, controls = NA),
 ) ## End of conditionalPanel, assigning intro_page2
 
 ### intermission_page -----
 intermission_page <- conditionalPanel(
   condition = "output.is_intermission == true",
-  h2("Intermission"), br(), br(),
-  p("Take a minute to strech, drink some water, or look out the window."),
-  p("When you are ready to continue with the next visulization proceed to the next page.")
+  h3("Intermission"), br(), br(),
+  p("Take a minute to stretch, drink some water, or look out the window."),
+  p("When you are ready to continue with the next visualization proceed to the next page.")
 )
 
 #### Survey, initialization -----
@@ -277,7 +277,7 @@ col_p3 <- column(4L,
 )
 
 ### survey_page -----
-suvery_page <- conditionalPanel(
+survey_page <- conditionalPanel(
   condition = "output.section_nm == 'survey'",
   ## Before save button:
   conditionalPanel( 
@@ -316,7 +316,7 @@ suvery_page <- conditionalPanel(
     condition = "output.is_saved == true",
     conditionalPanel(
       condition = "output.is_saved == 1",
-      h3("Reponses saved. Thank you for participating!"),
+      h3("Responses saved. Thank you for participating!"),
       conditionalPanel(
         "output.do_disp_prolific_code == true",
         br(),
@@ -329,10 +329,10 @@ suvery_page <- conditionalPanel(
 ##### sidebar_panel ----
 sidebar_panel <- conditionalPanel(
   condition = "(output.plot_active == true)",
-  sidebarPanel(
+  sidebarPanel(width = 3L, 
     checkboxGroupInput(
       inputId = "var_resp",
-      label   = "Check any/all variables that contribute more than average to the cluster seperation green circles and orange triangles.",
+      label   = "Check any/all variables that contribute more than average to the cluster separation green circles and orange triangles.",
       choices = "V1",
       inline  = TRUE)
   )
@@ -348,12 +348,12 @@ main_panel <- mainPanel(
   intro_page1,
   intro_page2,
   intermission_page,
-  suvery_page,
+  survey_page,
   ### Plot_active pages:
   ## Header, timer, and plot display
   conditionalPanel(
     condition = "output.plot_active == true",
-    h2(textOutput("header")),
+    h3(textOutput("header")),
     textOutput("timer_disp"),
     ## Image text and image.
     conditionalPanel("output.is_time_remaining == true",
@@ -381,7 +381,7 @@ main_panel <- mainPanel(
                  selected = "V1")
   ), ## Close conditionalPanel(), done listing factor inputs
   ## No input for grand tour.
-  h3(textOutput("training_msg")),
+  h4(textOutput("training_msg")),
   conditionalPanel(condition = "output.pg != 15 && output.is_app_loaded == true",
                    actionButton("next_pg_button", "Next page")
   )
@@ -393,13 +393,11 @@ dev_disp <- conditionalPanel(
   "output.do_disp_dev_tools == true",
   p("===== Development display below ====="),
   actionButton("browser", "browser()"),
-  verbatimTextOutput("image_plot_cnt"),
   verbatimTextOutput("pg_next_pg"),
   verbatimTextOutput("image_fp"),
-  textOutput("dev_msg"),
+  p("resp_row() & rv$resp_tbl"),
   tableOutput("resp_row"),
   tableOutput("resp_tbl"),
-  verbatimTextOutput("save_survey"),
   conditionalPanel(
     "output.plot_active == true",
     p("Variable level diff from avg: "), textOutput("diff"),
@@ -407,9 +405,9 @@ dev_disp <- conditionalPanel(
     p("Variable level marks: "), textOutput("var_marks"),
     p("task_marks: "), textOutput("task_marks")
   )
-) ## close conditionPanel, assigning dev_disp
+) ## close conditionalPanel, assigning dev_disp
 
-## customize showNotification placment.
+## customize showNotification placement.
 # css_notification <- tags$head(
 #   tags$style( ## CSS to change the position of shiny::showNotification().
 #     HTML(".shiny-notification {
@@ -423,9 +421,9 @@ dev_disp <- conditionalPanel(
 # )
 
 #### ui, combined HTML -----
-ui <- fluidPage(titlePanel("Multivariate vis user study"),
+ui <- fluidPage(titlePanel("Multivariate visualization user study"),
                 conditionalPanel("output.is_app_loaded == false",
-                                 h3("Please wait whiel the app loads. If it's not ready in 20 seconds please ttrry refreshing")
+                                 h3("Please wait while the app loads. If it's not ready in 20 seconds please try refreshing")
                 ),
                 #css_notification,
                 sidebarLayout(

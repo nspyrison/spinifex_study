@@ -42,8 +42,6 @@ server <- function(input, output, session){
   rv$resp_tbl    <- init_resp_tbl
   rv$survey_tbl  <- init_survey_tbl
   
-  rv$image_plot_cnt <- 0L
-  
   ##### Reactive functions -----
   resp_tbl           <- reactive(rv$resp_tbl)
   output$resp_tbl    <- renderTable(resp_tbl())
@@ -80,9 +78,7 @@ server <- function(input, output, session){
     }
     return("./www/white_placeholder.png") ## Thin white strip .png as a silent placeholder
   })
-  observeEvent(image_fp(), {rv$image_plot_cnt <- rv$image_plot_cnt + 1L})
   output$image_fp <- renderText({image_fp()})
-  output$image_plot_cnt <- renderText(paste0("image_plot_cnt: ", rv$image_plot_cnt))
   output$image_plot <- renderImage({
     list(src = #normalizePath("./www/images/EEE_P4_0_1_t1__grand.gif"))
           normalizePath(image_fp()))
@@ -110,10 +106,7 @@ server <- function(input, output, session){
     return("")
   })
   output$header <- renderText(header())
-  time_left <- reactive(time_alotted - rv$sec_on_pg)
-  timer_info <- reactive({
-    paste0("rv$sec_on_pg of time_alotted: ", rv$sec_on_pg, " of ", time_alotted)
-  })
+  time_left <- reactive(time_allotted - rv$sec_on_pg)
   
   #### _Task evaluation -----
   ### Task Response
@@ -453,7 +446,7 @@ server <- function(input, output, session){
          rv$is_training_evaled == FALSE){
         var_weight <- var_weight()
         var_num    <- which(var_weight > 0) ## Will always be one for training (@p4_0_1)
-        msg <- paste0("v", var_num, " was the only variable that explians the difference more than random chance. Feel free to explore this data for a bit, then press the 'Next page' button to continue.")
+        msg <- paste0("v", var_num, " was the only variable that explains the difference more than random chance. Feel free to explore this data for a bit, then press the 'Next page' button to continue.")
         
         rv$is_training_evaled <- TRUE
         output$training_msg   <- renderText(msg)
@@ -467,7 +460,7 @@ server <- function(input, output, session){
       ##### __rv$resp_tbl -----
       ## Write single row to local rv$resp_tbl
       rv$resp_tbl[rv$pg, ] <- output_row()
-      ## Write entire period too google sheets, hoping this will alieviate API quota issue
+      ## Write entire period too google sheets, hoping this will alleviate API quota issue
       if(rv$pg %in% c(6L, 10L, 14L)){
         .rows <- NULL
         if(rv$pg == 6L)  .rows <- 1L:6L
@@ -475,7 +468,7 @@ server <- function(input, output, session){
         if(rv$pg == 14L) .rows <- 11L:14L
         these_rows <- rv$resp_tbl[.rows, ]
         googlesheets4::sheet_append(ss_id, these_rows, 1L)
-        message(paste0("This period's data writen to gsheet. pg: ", rv$pg, " -- ", Sys.time()))
+        message(paste0("This period's data written to gsheet. pg: ", rv$pg, " -- ", Sys.time()))
       }
       ## End of writing to resp_tbl
       
@@ -498,10 +491,10 @@ server <- function(input, output, session){
     ## Write survey tbl to sheet 2
     rv$survey_tbl$write_dt     <- as.character(Sys.time())
     googlesheets4::sheet_append(ss_id, rv$survey_tbl, 2L)
-    message("survey_tbl, all questions apended to gsheet -- ",
+    message("survey_tbl, all questions appended to gsheet -- ",
             substr(Sys.time(), 12L, 16L))
     ## Save message
-    save_msg <- paste0("Reponses saved. Thank you for participating!")
+    save_msg <- paste0("Responses saved. Thank you for participating!")
     showNotification(save_msg, type = "message", duration = 10L)
   })
   
@@ -522,7 +515,7 @@ server <- function(input, output, session){
         return("Time has expired, please enter your best guess and proceed.")
       }else{
         return(
-          paste0(time_left(), "/", time_alotted, " seconds remaining.")
+          paste0(time_left(), "/", time_allotted, " seconds remaining.")
         )
       }
     }
@@ -580,15 +573,6 @@ server <- function(input, output, session){
   outputOptions(output, "is_saved",              suspendWhenHidden = FALSE)
   outputOptions(output, "is_time_remaining",     suspendWhenHidden = FALSE)
   outputOptions(output, "is_app_loaded",       suspendWhenHidden = FALSE)
-  
-  ### dev_tools display -----
-  output$dev_msg  <- renderPrint({
-    cat("dev msg -- \n",
-        ", header(): ", header(),
-        ", timer_info(): ", timer_info(),
-        ", key(): ", key()
-    )
-  })
 } ## End server function
 
 ### Combine as shiny app.

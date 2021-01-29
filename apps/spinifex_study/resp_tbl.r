@@ -59,11 +59,11 @@ require("dplyr")
 #'   vc_nms[vc_perms[this_vc_perm, ]]
 #' this_location_nm_ord <-
 #'   location_nms[location_perms[this_location_perm, ]]
-#' survey_questions <- c("What are your prefered pronouns?",
+#' survey_questions <- c("What are your preferred pronouns?",
 #'   "Which age group do you belong to?",
 #'   "What is your highest completed education?",
 #'   "I understand the how to perform the task.",
-#'   "I am experienced with data visulization.",
+#'   "I am experienced with data visualization",
 #'   "I am experienced with data analysis.",
 #'   rep(c("I was already familiar with this method.",
 #'         "I found this visualization easy to use.",
@@ -174,7 +174,7 @@ make_survey_tbl <- function(participant_num = sample(1L:n_perms, 1L),
 #' (survey_tbl <- make_survey_tbl(participant_num))
 #' View(survey_tbl)
 
-#### Creates the ans_tbl relatyive to the project dir, run outside of app. 
+#### Creates the ans_tbl relative to the project dir, run outside of app. 
 ## NOTE:  MANUALLY RUN ONCE, NOT IN APP. Apply with load_join_ans_tbl() inside app.
 make_save_ans_tbl <- function(){
   tictoc::tic("make_save_ans_tbl()")
