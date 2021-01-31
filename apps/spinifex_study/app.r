@@ -80,6 +80,7 @@ server <- function(input, output, session){
   })
   output$image_fp <- renderText({image_fp()})
   output$image_plot <- renderImage({
+    req(image_fp())
     list(src = #normalizePath("./www/images/EEE_P4_0_1_t1__grand.gif"))
           normalizePath(image_fp()))
   }, deleteFile = FALSE)
@@ -515,6 +516,7 @@ server <- function(input, output, session){
   observeEvent(input$browser, browser())
   ### _Obs timer -----
   observe({
+    req(image_fp(), plot_active())
     invalidateLater(1000L, session) ## Every 1000 ms, increment a second
     isolate({
       rv$sec_on_pg <- rv$sec_on_pg + 1L
