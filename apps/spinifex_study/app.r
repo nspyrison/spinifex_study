@@ -467,7 +467,15 @@ server <- function(input, output, session){
         if(rv$pg == 10L) .rows <- 7L:10L
         if(rv$pg == 14L) .rows <- 11L:14L
         these_rows <- rv$resp_tbl[.rows, ]
-        googlesheets4::sheet_append(ss_id, these_rows, 1L)
+        tryCatch({
+          googlesheets4::sheet_append(ss_id, these_rows, 1L)
+        }, error = function(e){
+          was_auth_issue <- TRUE
+          txt <- paste0("!!! Could not append rows for pages ", paste(.rows, collapse = ", "), ". key(): ", key())
+          warning(txt)
+          return(e)
+        })
+
         message(paste0("This period's data written to gsheet. pg: ", rv$pg, " -- ", Sys.time()))
       }
       ## End of writing to resp_tbl
@@ -486,11 +494,16 @@ server <- function(input, output, session){
   ### _Obs save_survey button -----
   ## resp_tbl writes every line with the next page, this is for SURVEY ONLY.
   observeEvent(input$save_survey, {
-    ## Write response tbl to sheet 1
-    googlesheets4::sheet_append(ss_id, rv$resp_tbl, 1L)
     ## Write survey tbl to sheet 2
     rv$survey_tbl$write_dt     <- as.character(Sys.time())
-    googlesheets4::sheet_append(ss_id, rv$survey_tbl, 2L)
+    tryCatch({
+      googlesheets4::sheet_append(ss_id, rv$survey_tbl, 2L)
+    }, error = function(e){
+      was_auth_issue <- TRUE
+      txt <- paste0("!!! Could not append rows for pages ", paste(.rows, collapse = ", "), ". key(): ", key())
+      warning(txt)
+      return(e)
+    })
     message("survey_tbl, all questions appended to gsheet -- ",
             substr(Sys.time(), 12L, 16L))
     ## Save message

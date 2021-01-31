@@ -169,34 +169,34 @@ intro_page1 <- conditionalPanel( ## First page conditionalPanel
   br(),
   p("This a completely voluntary study that will take approximately 15-20
     minutes to complete. You may quit the study an any time by closing the 
-    browser. All data stored (including) partial is not identified."),
+    browser. No identifiable information is collected."),
   br(),
-  p("You will be helping to compare and contrast between 3 different forms of 
-    viewing multivariate data. The structure of the study is:"),
+  p("You will be helping to compare and contrast between 3 forms of 
+    visuals for multivariate data. The structure of the study is:"),
   p(),
   p("Introduction"),
   tags$ul(
-    tags$li("This study overview"),
-    tags$li("Explanatory video (4 min)")
+    tags$li("Study overview"),
+    tags$li("Explanatory video (4m, 45s)")
   ),
-  p("Period 1"),
+  p("First method"),
   tags$ul(
     tags$li("Training round"),
     tags$li("Evaluation, 2x 60 seconds")
   ),
-  p("Period 2"),
+  p("Second method"),
   tags$ul(
     tags$li("Training round"),
     tags$li("Evaluation, 2x 60 seconds")
   ),
-  p("Period 3"),
+  p("Third method"),
   tags$ul(
     tags$li("Training round"),
     tags$li("Evaluation, 2x 60 seconds")
   ),
   p("Wrap up"),
   tags$ul(
-    tags$li("Survey & save")
+    tags$li("Survey")
   ),
   p("Before we get started, Prolific.co participants must enter their Prolific ID below"),
   textInput(inputId = "prolific_id",
@@ -210,8 +210,8 @@ intro_page2 <- conditionalPanel(
   condition = "output.pg == 2",
   h3("Explainatory video"), br(), br(),
   p("Watch the following video explaining the task and methods before proceeding."), br(),
-  tags$video(id = "video", type = "video/mp4", src = "spinifex_study_648p.mp4", 
-             width = 1152L, height = 648L, controls = NA),
+  tags$video(id = "video", type = "video/mp4", src = "video2_576p.mp4", 
+             width = 1024L, height = 576L, controls = NA),
 ) ## End of conditionalPanel, assigning intro_page2
 
 ### intermission_page -----

@@ -1,4 +1,4 @@
-# OLD source(here::here("R/sim_tidyverse.r")) ## For banana_tform() and rotate()
+# OLD source("./R/sim_tidyverse.r")) ## For banana_tform() and rotate()
 
 ## NOTE:  rotate_mtvnorm() & banana_tform_mtvnorm()
 #### have been dissolved into sim_mvtnorm_cl(), below.
@@ -156,7 +156,7 @@ sim_user_study <- function(cl_obs = 140,
                "EEV_p6_0_1", "EEV_p6_33_66", "EEV_p6_50_50",
                "banana_p6_0_1", "banana_p6_33_66", "banana_p6_50_50")
   cov_nms <- paste0("covs_", in_nms)
-  root <- paste0(here::here("apps_supplementary/data"), "/")
+  root <- paste0("./apps_supplementary/data/")
 
   ## MEANS ------
   mns_p4 <- ##___2 signal dim  | 2 noise dim
@@ -244,7 +244,7 @@ sim_user_study <- function(cl_obs = 140,
   ### all simulations must be different; cannot use EEE_p4 <-, each EEE_p4 needs to be different
 
   for(i in 1:3){
-    ## Training
+    ## Training t1:3, for study
     assign(paste0("EEE_p4_0_1_t", i),
            sim_mvtnorm_cl(means = mns_p4, sigmas = covs_EEE_p4,
                           cl_obs = cl_obs, do_shuffle = TRUE,
@@ -344,6 +344,19 @@ sim_user_study <- function(cl_obs = 140,
                           ang = pi / 4, do_bananatize = TRUE),
            envir = globalenv())
   }
+  ## Training t4:5, for video
+  .nms <- c("EEE_p4_0_1_t4", "EEE_p6_50_50_t5")
+  .num <- 4:5
+  .mns <- list(mns_p4, mns_p6)
+  .sig <- list(covs_EEE_p4, covs_EEE_p6)
+  .ang <- c(0, pi / 4)
+  for(i in 1:length(.num)){
+    assign(.nms[i],
+           sim_mvtnorm_cl(means = .mns[[i]], sigmas = .sig[[i]],
+                          cl_obs = cl_obs, do_shuffle = TRUE,
+                          ang = .ang[[i]]),
+           envir = globalenv())
+  }
   ##
   message("Assigned all simulations as a global variables, as '<model_dim_location>'. \n")
   
@@ -355,6 +368,9 @@ sim_user_study <- function(cl_obs = 140,
     save(EEE_p4_0_1_t1, file = paste0(root, quote(EEE_p4_0_1_t1), ".rda"))
     save(EEE_p4_0_1_t2, file = paste0(root, quote(EEE_p4_0_1_t2), ".rda"))
     save(EEE_p4_0_1_t3, file = paste0(root, quote(EEE_p4_0_1_t3), ".rda"))
+    save(EEE_p4_0_1_t4, file = paste0(root, quote(EEE_p4_0_1_t4), ".rda")) ## For video p=4
+    save(EEE_p6_50_50_t5, file = paste0(root, quote(EEE_p6_50_50_t5), ".rda")) ## For video p=6
+    
     #### rep 1
     ## p = 4
     save(EEE_p4_0_1_rep1     , file = paste0(root, quote(EEE_p4_0_1_rep1     ), ".rda"))
@@ -428,7 +444,7 @@ sim_user_study <- function(cl_obs = 140,
 tpath_user_study <- function(do_save = FALSE){
   ## Initialize
   require("tourr")
-  root    <- paste0(here::here("apps_supplementary/data"), "/")
+  root    <- paste0("./apps_supplementary/data/")
   in_nms  <- c("EEE_p4_0_1_t1", "EEE_p4_0_1_rep1", "EEE_p6_0_1_rep1")
   in_fps  <- paste0(root, in_nms, ".rda")
   out_nms <- paste0("tpath_", c("p4_t", "p4", "p6"))

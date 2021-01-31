@@ -74,11 +74,10 @@ save_pca <- function(sim_nm = "EEE_p4_0_1_rep1"){
     
     ## Loop over pc_opts
     invisible(lapply(1L:nrow(pc_opts), function(row_i){
-      fn <- paste0(this_sim_nm, "__pca_x", x_num, "y", y_num, ".png")
-      this_bas  <- get(paste0("bas_p", p))
-      this_clas <- attr(this_sim, "cluster")
       x_num <- pc_opts[row_i, 1L]
       y_num <- pc_opts[row_i, 2L]
+      this_bas  <- get(paste0("bas_p", p))
+      this_clas <- attr(this_sim, "cluster")
       x_pc  <- paste0("PC", x_num)
       y_pc  <- paste0("PC", y_num)
       
@@ -127,6 +126,7 @@ save_pca <- function(sim_nm = "EEE_p4_0_1_rep1"){
                   color = "grey80", size = 1L, inherit.aes = FALSE)
       
       ## Save
+      fn <- paste0(this_sim_nm, "__pca_x", x_num, "y", y_num, ".png")
       suppressMessages(
         ggsave(fn, gg, device = "png", path = "./apps/spinifex_study/www/images",
                height = height_in, units = "in", dpi = "screen")
@@ -219,21 +219,22 @@ save_radial <- function(sim_nm = "EEE_p4_0_1_rep1"){
 ## save all/subset of factors looping over all simulations in `sim_nms`
 #' @example
 #' save_all_static(paste0("EEE_p4_0_1_t", 1L:3L))
+#' save_all_static(c("EEE_p4_0_1_t4", "EEE_p6_50_50_t5"))
 save_all_static <- function(sim_nms = sim_nms){
   require(tictoc)
-  tic("outside loop")
+  tic("outside loop, save_all_static()")
   invisible(lapply(1L:length(sim_nms), function(i){
-    # tic("pca")
-    # save_pca(sim_nms[i])
-    # toc()
-    # tic("grand")
+    tic(paste0("pca -- ", sim_nms[i]))
+    save_pca(sim_nms[i])
+    toc()
+    # tic(paste0("grand", sim_nms[i]))
     # save_grand(sim_nms[i]) ## Give error (external code) at end, but all .gifs are saved.
     # toc()
-    tic("radial")
-    save_radial(sim_nms[i])
-    toc()
+    # tic(paste0("radial", sim_nms[i]))
+    # save_radial(sim_nms[i])
+    # toc()
   }))
-  toc("outside loop")
+  toc("outside loop, save_all_static()")
 }
 #' @examples 
 #' save_all_static()
