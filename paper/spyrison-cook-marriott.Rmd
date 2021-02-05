@@ -5,8 +5,8 @@ title: >
 author:
   Nicholas Spyrison, Dianne Cook, Kimbal Marriott
 abstract: >
-  Principal component analysis is the classical standard for viewing projections of multivariate spaces. However, the full story of the data is rarely portrayed accurately in a few projections. More recently, grand tours offer an animation of random walks offering many angles to view embedded spaces. A manual tour provides a means of controlling the contribution of individual variables to a projected subspace. We run a within-participants user study to compare and contrast the efficacy of these 3 visualizations. Additionally, we have developed an application to facilitate the exploration of multivariate data through the use of various tour methods. Crowdsourced participants (n=XXX, via prolific.co) were asked to identify which variable(s) attribute the difference between 2 clusters of data. The scope of the synthetic data varied across location, variance-covariance shape, number of dimensions, and number of clusters contained in the data. Accuracy, speed, subjective evaluation, and demographic data are collected. User feedback suggests that...
-keywords: exploratory data analysis, projection pursuit, high dimensional data, data visualization, cluster analysis, dimension reduction,  statistical graphics, data science, user study, between users,
+  Viewing data in its original variable space is foundamental to the exploratory data analysis. For multivariate data this is an complex task. We perform a between-participant user study to evaluate 3 types of linear embeddings, namely, biplots of principal componts, grand tours, and radial tours. Crowdsourced participants (n=XXX, via prolific.co) were asked to identify which variable(s) explain the difference between 2 clusters of data. We find that...
+keywords: multivariate data, exploratory data analysis, high dimensional data, data visualization, cluster analysis, dimension reduction, data science, user study, between users, linear projections, linear embeddings
 bibliography: spyrison-cook-marriott.bib
 ---
 \bibliography{spyrison-cook-marriott}
@@ -67,25 +67,68 @@ library(dplyr)
 # https://www.researchgate.net/profile/Brian_Fisher2/publication/220506453_IPCA_An_interactive_system_for_PCA-based_visual_analytics/links/59e395fa458515393d5b8f29/IPCA-An-interactive-system-for-PCA-based-visual-analytics.pdf 
 # 
 # a bit removed, for larger dimensions (100's):
-# 
 # J Yang 2007  
 # https://www.researchgate.net/profile/Matthew_Ward3/publication/6451414_Value_and_Relation_Display_Interactive_Visual_Exploration_of_Large_Data_Sets_with_Hundreds_of_Dimensions/links/00b495320b8f337d3a000000.pdf 
 #
 # Ben's Data Visceralization
 # https://arxiv.org/pdf/2009.00059.pdf
+
+#### inspiration; Other papers from kt, and kadek:
+## It's a Wrap: 
+## K. Chen et al.
+## https://www.researchgate.net/profile/Kun_Ting_Chen2/publication/348620236_It's_a_Wrap_Toroidal_Wrapping_of_Network_Visualisations_Supports_Cluster_Understanding_Tasks/links/6007d5d5a6fdccdcb868b2ef/Its-a-Wrap-Toroidal-Wrapping-of-Network-Visualisations-Supports-Cluster-Understanding-Tasks.pdf
+##
+## Quantitative Data Visualisation on Virtual Globes,
+## K. Satriadi et al. Chi2021
+## https://www.researchgate.net/profile/Kadek_Satriadi/publication/348706131_Quantitative_Data_Visualisation_on_Virtual_Globes/links/600c1275a6fdccdcb873728a/Quantitative-Data-Visualisation-on-Virtual-Globes.pdf
 ```
 
 
 # Introduction
 
-<!-- Multivariate spaces and EDA  -->
-Multivariate data is ubiquitous. Yet exploratory data [@tukey_exploratory_1977] analysis of such spaces becomes difficult, increasingly so as dimension increases. Numeric statistic summarization of data often doesn't explain the full complexity of the data or worse, can be downright deceptive [@anscombe_graphs_1973; @matejka_same_2017]. For these reasons, it is important to use visualizations of data spaces and extend the diversity of its application. However, visualizing data containing more than a handful of variables is not trivial. 
+<!-- Multivariate spaces and EDA -->
+Multivariate data is ubiquitous. Yet exploratory data analysis (EDA) [@tukey_exploratory_1977] of such spaces becomes difficult, increasingly so as dimension increases. Numeric statistic summarization of data often doesn't explain the full complexity of the data or worse, can lead to missing obvious visual patterns [@anscombe_graphs_1973; @matejka_same_2017; @goodman_dirty_2008; @coleman_geometric_1986]. Data should be visually inspected in it's original variable-space before applying models or summarizations. This allows users to validate assumptions, identify outliers, and facilitates the identification of visual peculiarities.
 
-<!-- PCA  -->
-For over a century principal component analysis (PCA) [@pearson_liii._1901] has been used to explore such spaces. PCA redefines the axes basis as linear combinations of the original variables into principal components ordered by decreasing variation explained. This suggests several _discrete_ pairs of components to view. This is sufficient for macro summarization of variance, however, it does not reveal finer structural features or classes-specific structure. 
+<!-- Wickham [@wickham_visualizing_2015] introduces the terminologies of data-space. -->
+
+<!-- Not Scatterplot matrices, PCP, want mapped to position -->
+For these reasons, it is important to use visualizations of data spaces and extend the diversity of its application. However, visualizing data containing more than a handful of variables is not trivial. Scatterplot matricies or small multiples [@chambers_graphical_1983] looks at all permutation pairs of variables, but quickly becomes to vast a number of images to consider. On the other extreme, parallel coordinates plot [@ocagne_coordonnees_1885] and its radial variants, plot observations as lines varying across scaled variables as displayed in a line or circle. This scales well with dimensionality, while suffering from couple issues. The larger issue, being the loss of mapping multiple variables to graphic position, which is perhaps the most important visual cue for human perception [@munzner_visualization_2014]. The lesser being that they suffer from asymmetry, as their interpretation is dependent on variable ordering.
+
+<!-- linear combinations of dimensions -->
+Using a linear combinations of variables will allow us to keep position in 2 display axes while peering into information not contained in any one dimension. The idea of using a combination of variables may appear daunting at first, however we do it almost exclusively in the spatial dimensions. That is to say we are rarely completely aligned with rectangular objects at any one point in time. Consider a book or a filing cabinet any orientation that isn't fully a 2D rectangle, you are seeing as a linear combination of its variables, height, width, and depth. Generalizing this to arbitrary data dimensions we can project or embed a 2D profile of $p$-dimensional data. Its worth noting that the number of these embedded profiles, and thus the time it takes to explore them, increase exponentially with the dimensionality of the data.
+
+<!-- Exclude non-linear embeddings -->
+Non-lienear emeddings, the compliment of the linear embedding, have also been well received recently especially with the emergence of t-Distributed stochastic neighbor embedding [@maaten_visualizing_2008]. Such techniques distort the fully dimensionality on to a low, typically 2D plane. The issue with doing so is that unit of distance is not consistent with location in the embedded space, which severely hinders the interoperabilty of these embeddings. Additionally they often have hyperparameters that need tuning. Doing so results in completely different or contradicting embeddings. Suffice it to say we exclude their consideration for such broad application for multivariate EDA.
+
+<!-- Exclude class supervised examples -->
+Additionally there are many methods suitable for data with known classes. Linear discriminant analysis [@fisher_use_1936] for instance also produces linear combinations of varaiables, based not in order of variation of the data, but rather on the separation of known classes. In this work we want to be fully agnostic of any such class supervision and preclude them from our comparison as well.
+
+
+_TODO: XXX CONTINUE HERE, link _
+In this paper we explore the 
+
+<!-- Research gap -->
+Exploring and understanding the finer structural details is an under-serviced aspect of multivariate data analysis. This work contained below performs a within-participant exploratory study to shed light on techniques that may be most suited for such a task.
+
+
+<!-- structure of the paper -->
+Section \ref{sec:hypothesis} formalizes the hypothesis statement. Section \ref{sec:design} explains the experimental deign, with sections \ref{sec:factors} and \ref{sec:tasks} explaining the design factors and tasks. The results of the study are found in section \ref{sec:results}. An accompanying tool is discussed in section \ref{sec:spinifex}. Discussion is covered in section \ref{sec:discussion}.
+
+
+# Background {#sec:background}
+
+Considering that we want to explore multivariate data space, while maintaining position mapping of points. Linear combinations of variables becomes an ideal candidate. Principal component analysis (PCA) [@pearson_liii._1901] creates new components that are linear combinations of the original variables. The creation of these variables is ordered by decreasing variation which is orthogonally constrained to all previous components. while the full dimensionality is in tact the benefit comes from the ordered nature of the components. For instance if nearly all of the variation in a data-space can be explained in the first half of its components than the complexity of viewing such a space is exponentially simplified. 
+
+# Visual methods {#sec:visualmethods}
 
 <!-- SPLOM, LDA, PDA -->
-Alternatively, many techniques identify one or more _discrete_ projection bases. For instance, scatterplot matrices [@chambers_graphical_1983] quickly view the supports of all variables. Linear discriminant analysis [@fisher_use_1936] and penalized discriminant analysis [@hastie_penalized_1995] both suggest projection bases that can be used for unsupervised classification. 
+<!-- Alternatively, many techniques identify one or more _discrete_ projection bases. For instance, scatterplot matrices [@chambers_graphical_1983] quickly view the supports of all variables. Linear discriminant analysis [@fisher_use_1936] and penalized discriminant analysis [@hastie_penalized_1995] both suggest projection bases that can be used for unsupervised classification.  -->
+
+## Principal component analysis
+
+
+
+## Grand tour
 
 <!-- tours intro -->
 Later, Asimov [@asimov_grand_1985], coined _tour_, an animation of many projections across _continuous_ changes in the basis. Exploring multivariate spaces this way offers a number of desirable features including more depth visual cues and extensible phase space exploration.
@@ -93,17 +136,27 @@ Later, Asimov [@asimov_grand_1985], coined _tour_, an animation of many projecti
 <!-- Grand tour -->
 The various types of tours are distinguished by the method defining the path the basis animates. The original, and widest know, is the _grand_ tour [@asimov_grand_1985]. In a grand tour, several target bases are identified by a constrained random walk. These target bases are then interpolated into many interim frames to be viewed as a more continuous animation.
 
+## Radial tour
+
 <!-- Manual tour -->
 The _manual_ tour [@cook_manual_1997; ] defines its basis path by manipulating the basis contribution of a selected variable. Many such manipulations may be predefined and animated. Alternatively, these parameterized steps can allow human-in-the-loop [@karwowski_international_2006] interactive use.
 
-<!-- Research gap -->
-Exploring and understanding the finer structural details is an under-serviced aspect of multivariate data analysis. This work contained below performs a within-participant exploratory study to shed light on techniques that may be most suited for such a task.
 
-<!-- structure of the paper -->
-Section \ref{sec:hypothesis} formalizes the hypothesis statement. Section \ref{sec:design} explains the experimental deign, with sections \ref{sec:factors} and \ref{sec:tasks} explaining the design factors and tasks. The results of the study are found in section \ref{sec:results}. An accompanying tool is discussed in section \ref{sec:spinifex}. Disscussion is covered in section \ref{sec:discussion}.
+# User study {#sec:userstudy}
 
 
-# Hypothesis {#sec:hypothesis}
+
+## Hypothesis {#sec:hypothesis}
+
+## Task and evaluation
+
+## Simulating data
+
+## Data collection
+
+## Sampling population
+
+
 
 <!-- PCA as control -->
 Supporting and extending the applicability of data visualization is an important endeavor. There exist various linear projection techniques to explore multivariate data spaces. 

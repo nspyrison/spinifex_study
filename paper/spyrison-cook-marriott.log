@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020/W32TeX) (preloaded format=pdflatex 2020.12.20)  11 JAN 2021 18:12
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020/W32TeX) (preloaded format=pdflatex 2020.12.20)  5 FEB 2021 14:49
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -536,75 +536,76 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 138
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 No file spyrison-cook-marriott.bbl.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <10> on input line 187.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <7> on input line 187.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <5> on input line 187.
 [1
 
 {c:/Users/spyri/AppData/Roaming/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdfte
 x.map}]
 
-Package hyperref Warning: Suppressing empty link on input line 209.
+Package hyperref Warning: Suppressing empty link on input line 216.
 
 
-Package hyperref Warning: Suppressing empty link on input line 210.
+Package hyperref Warning: Suppressing empty link on input line 217.
 
 
-Package hyperref Warning: Suppressing empty link on input line 211.
+Package hyperref Warning: Suppressing empty link on input line 218.
 
 
-Package hyperref Warning: Suppressing empty link on input line 211.
+Package hyperref Warning: Suppressing empty link on input line 218.
 
 
-Package hyperref Warning: Suppressing empty link on input line 212.
+Package hyperref Warning: Suppressing empty link on input line 219.
 
 
-Package hyperref Warning: Suppressing empty link on input line 213.
+Package hyperref Warning: Suppressing empty link on input line 220.
 
 
-Package hyperref Warning: Suppressing empty link on input line 214.
+Package hyperref Warning: Suppressing empty link on input line 221.
 
-<./figures/experimental_design_personA.png, id=85, 803.4015pt x 455.90324pt>
+[2]
+<./figures/experimental_design_personA.png, id=137, 803.4015pt x 455.90324pt>
 File: ./figures/experimental_design_personA.png Graphic file (type png)
 <use ./figures/experimental_design_personA.png>
 Package pdftex.def Info: ./figures/experimental_design_personA.png  used on inp
-ut line 256.
+ut line 324.
 (pdftex.def)             Requested size: 469.7612pt x 266.57362pt.
-[2] [3 <./figures/experimental_design_personA.PNG>]
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 342.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 342.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 342.
+[3] [4 <./figures/experimental_design_personA.PNG>]
 
-LaTeX Warning: Reference `fig:design' on page 4 undefined on input line 356.
+LaTeX Warning: Reference `fig:design' on page 5 undefined on input line 424.
 
-[4]
-LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 3
-82.
+[5]
+LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 4
+50.
 (c:/Users/spyri/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/lm/ts1lmr.fd
 File: ts1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
-Overfull \hbox (2.54099pt too wide) in paragraph at lines 392--394
+Overfull \hbox (2.54099pt too wide) in paragraph at lines 460--462
 []\T1/lmr/m/n/10 What is your high-est com-pleted ed-u-ca-tion? [de-cline, high
  school, un-der-grad-u-ate, hon-ors/masters/MBA,
  []
 
-LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 4
-38.
+LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 5
+06.
 (c:/Users/spyri/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
-) [5] [6] [7] (./spyrison-cook-marriott.aux)
+) [6] [7] [8] (./spyrison-cook-marriott.aux)
 Package rerunfilecheck Info: File `spyrison-cook-marriott.out' has not changed.
 
-(rerunfilecheck)             Checksum: D47EA7B3E367B837717E2BB44079E364;2026.
+(rerunfilecheck)             Checksum: AE9BF948BBD77B2ED8BE97941BC04213;3363.
 
 LaTeX Warning: There were undefined references.
 
  ) 
 Here is how much of TeX's memory you used:
- 11075 strings out of 481330
- 160852 string characters out of 5915953
- 451325 words of memory out of 5000000
- 27681 multiletter control sequences out of 15000+600000
+ 11118 strings out of 481330
+ 161497 string characters out of 5915953
+ 451804 words of memory out of 5000000
+ 27701 multiletter control sequences out of 15000+600000
  471607 words of font info for 74 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  66i,6n,72p,679b,359s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -627,10 +628,10 @@ oaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr9.pfb><c:/Users/spyri/AppDat
 a/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmri10.pfb><c:/Users/spyri/A
 ppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy10.pfb><c:/Users/sp
 yri/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmtt10.pfb>
-Output written on spyrison-cook-marriott.pdf (7 pages, 352198 bytes).
+Output written on spyrison-cook-marriott.pdf (8 pages, 357916 bytes).
 PDF statistics:
- 237 PDF objects out of 1000 (max. 8388607)
- 210 compressed objects within 3 object streams
- 61 named destinations out of 1000 (max. 500000)
- 142 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 297 PDF objects out of 1000 (max. 8388607)
+ 269 compressed objects within 3 object streams
+ 84 named destinations out of 1000 (max. 500000)
+ 222 words of extra memory for PDF output out of 10000 (max. 10000000)
 
