@@ -42,7 +42,7 @@ factor_nms      <- c("pca", "grand", "radial")
 factor_descrip_1 <- c("not animated", "animated", "animated" )
 factor_descrip_2 <- c("select 2 axes", "random path, no selection", "select variable to rotate")
 factor_examp_fp <- paste0("images/", 
-                          c("EEE_P4_0_1_t1__pca_x1y2.png", "EEE_P4_0_1_t1__grand.gif", "EEE_P4_0_1_t1__radial_mv2.gif"))
+                          c("EEE_p4_0_1_t1__pca_x1y2.png", "EEE_p4_0_1_t1__grand.gif", "EEE_p4_0_1_t1__radial_mv2.gif"))
 location_nms    <- c("0_1", "33_66", "50_50")
 vc_nms          <- c("EEE", "EEV", "banana")
 p_dim_nms       <- this_p_dim_nm_ord <- c("p4", "p6")
