@@ -134,27 +134,21 @@ print("I'm going to circle back to this to see if it's capturing correctly.")
 ```{r TEMP-SKRATCHPAD}
 #' @example
 #' str(dat) 
-palette(RColorBrewer::brewer.pal(12, "Dark2"))
+#' palette(RColorBrewer::brewer.pal(12, "Dark2"))
+#'ggplot(dat) +
+#'    ggproto_ans_plot(dat) +
+#'    facet_wrap(vars(sim_nm)) + theme_minimal()
+
+## ggproto for the ans_plot
 ggproto_ans_plot <- function(resp_ans_longer){
     ## List of ggproto objects
     lab_fill <- "Varaiable cluster seperation"
     ret <- list(
-        # ## Boxplot, resp -- selected or not
-        # geom_bar(aes(x = var_num, y = 1L, fill = as.factor(resp)),
-        #          resp_ans_longer, position = "dodge", stat = "identity", 
-        #          alpha = .3, width = .9),
         ## Boxplot, signal
         geom_bar(aes(x = var_num, y = signal, fill = lab_fill),
                  resp_ans_longer, position = "dodge", stat = "identity",
                  width = .5),
 
-        # ## Line and point, cumulative
-        # geom_line(aes(x = as.integer(var), y = cumsum_MMP_clSep,
-        #                                 color = lab_col, group = 1),
-        #                    df_MMP, lwd = 1.2),
-        # geom_point(aes(x = as.integer(var), y = cumsum_MMP_clSep,
-        #                                  color = lab_col),
-        #                 df_MMP, shape = 18, size = 4),
         ## Titles and colors
         labs(x = "Variable number", y = "Value"),
         theme(legend.position = "bottom",
