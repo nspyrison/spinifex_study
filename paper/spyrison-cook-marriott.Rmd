@@ -49,10 +49,10 @@ editor_options:
 
 knitr::opts_chunk$set(
   fig.align = "center", 
-  echo = TRUE, 
+  echo = FALSE,
   collapse = TRUE,
-  message = FALSE, 
-  warning = FALSE, 
+  message = FALSE,
+  warning = FALSE,
   error = FALSE,
   cache = FALSE,
   cache.lazy = FALSE
@@ -62,7 +62,9 @@ require(ggplot2)
 require(gridExtra)
 require(dplyr)
 rel_path <- function(rel_path){
-  paste0(dirname(rstudioapi::getSourceEditorContext()$path), "/", rel_path)
+  dirname(rstudioapi::getSourceEditorContext()$path) %>% 
+    paste0("/", rel_path) %>% 
+    normalizePath()
 }
 
 # Hypothesis: 
@@ -174,7 +176,7 @@ _Does the animated removal of single variables via the radial tour improve the a
 
 PCA will be compared as a baseline as it is a popular stationary linear embedding. The grand tour will act as a secondary control that includes the object permanence of the data to near by frames, but with the ability to check individual variable or influence it's path. using these as comparisons we want to identify how much, if any, the radial tour helps an analyst to interpret the contributions of individual variables.
 
-_TODO: XXX CONTINUE HERE_
+
 ## Task and evaluation {#sec:task}
 
 The display was a 2D scatterplot with observations supervised with the shape and color of the data points mapped to their cluster. There were either 3 or 4 clusters with even number of observations. Participants were asked to 'check any/all variables that contribute more than average to the cluster separation green circles and orange triangles', which was further explained in the explanatory video as 'mark and and all variable that carry more than their fair share of the weight, or 1/4th in the case of 4 variables'.
@@ -213,27 +215,46 @@ Participant responses, $R$ are a vector of true/false values indicating if the p
 Where $I$ is the indicator function. Then the total marks for this task is the sum of the marks vector.
 
 ```{r}
+tgt_sim_nm <- "EEV_p6_33_66_rep2"
+tgt_fp <- paste0("../apps_supplementary/data/", tgt_sim_nm, ".rda") %>%
+  rel_path()
+## Make data plot
+load(tgt_fp, envir = globalenv())
+dat <- EEV_p6_33_66_rep2
+clas <- attr(dat, "cluster")
+source(rel_path("R/ggproto_pca_biplot.r"))
+gg1 <- ggplot() + theme_void() +
+  ggproto_pca_biplot(dat, aes_clas = clas, x_pc_num = 1L, y_pc_num = 4L) +
+  theme(axis.title = element_text(),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  labs(title = "PCA biplot", 
+       subtitle = "EEV_p6_33_66_rep2",
+       x = "PC1", y = "PC4")
 
-ans_tbl <- readRDS(file = "../apps/spinifex_study/www/ans_tbl.rds")
-sub <- ans_tbl %>% dplyr::filter(sim_nm == "EEV_p6_33_66_rep2")
-source(rel_path("/R/pivot_longer_resp_ans_tbl.r"))
-sub_longer <- pivot_longer_resp_ans_tbl(sub)
+## Make ans_plot
+ans_tbl <- readRDS(rel_path("../apps/spinifex_study/www/ans_tbl.rds"))
+sub <- ans_tbl %>% dplyr::filter(sim_nm == tgt_sim_nm)
+source(rel_path("R/pivot_longer_resp_ans_tbl.r"))
+sub_longer <- pivot_longer_resp_ans_tbl(dat = sub)
 
-source(rel_path("/R/ggproto_ans_plot.r"))
-palette(RColorBrewer::brewer.pal(12, "Dark2"))
-(gg2 <- ggplot(sub_longer) +
+source(rel_path("R/ggproto_ans_plot.r"))
+gg2 <- ggplot() + theme_minimal() + 
   ggproto_ans_plot(sub_longer) +
-  facet_wrap(vars(sim_nm)) + theme_minimal())
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  labs(title = "Variable cluster seperation & weights",
+       subtitle = "EEV_p6_33_66_rep2")
 
+require(patchwork)
+gg1 + gg2
 ```
-  
-TODO: XXX
-FIGURE OF DECIPTING EVALUATION NEXT TO PCA OF THE SEPERATION
 
-
+_TODO: XXX, NEED caption and title for figure_
 
 ## Experimental design {#sec:design}
 
+_TODO: XXX CONTINUE WRITING HERE_
 Below we discuss the n = 108 within-participant exploratory study across 3 factors,
 
 ## Factor application {#sec:factors}
@@ -309,7 +330,7 @@ __#TODO: XXX Need to run study and add results here.__
 
 # Accompanying tool: spinifex application {#sec:spinifex}
 
-To accompany this study we have produced a more general use tool to perform such exploratory analysis of high dimensional data. The R package, `spinifex`, {@spyrison_spinifex_2020} R package  contains a free, open-source `shiny` [@chang_shiny_2020] application. The application allows users to explore their data with either interactive or predefined manual tours without the need for any coding. Limited implementations of grand, little, and local tours are also made available. Data can be imported in .csv and .rda format, and projections or animations can be saved as .png, .gif, and .csv formats where applicable. Run the following R code for help getting started.
+To accompany this study we have produced a more general use tool to perform such exploratory analysis of high dimensional data. The R package, `spinifex`, [@spyrison_spinifex_2020] R package  contains a free, open-source `shiny` [@chang_shiny_2020] application. The application allows users to explore their data with either interactive or predefined manual tours without the need for any coding. Limited implementations of grand, little, and local tours are also made available. Data can be imported in .csv and .rda format, and projections or animations can be saved as .png, .gif, and .csv formats where applicable. Run the following R code for help getting started.
 ```{r getting_started, eval = F}
 install.packages("spinifex", dependencies = TRUE)
 spinifex::run_app("intro")
