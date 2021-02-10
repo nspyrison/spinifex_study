@@ -33,11 +33,11 @@ ggproto_ans_plot <- function(
   ret <- c(ret,
            list(
              ## 0 line
-             ggplot2::geom_hline(yintercept = 0L, size = 1L, linetype = 2L),
+             ggplot2::geom_hline(yintercept = 0L, size = 1L),
              ## Uniform bar, and text
              ggplot2::geom_hline(ggplot2::aes(yintercept = bar), 
                                  resp_ans_longer, 
-                                 size = 1L, linetype = 3L),
+                                 size = 1L, linetype = 2L),
              ggplot2::geom_text(ggplot2::aes(x = p + 1L, y = bar + .1,
                                              label = paste0("1/p = ", round(bar, 2))),
                                 resp_ans_longer,

@@ -179,12 +179,11 @@ PCA will be compared as a baseline as it is a popular stationary linear embeddin
 
 ## Task and evaluation {#sec:task}
 
-The display was a 2D scatterplot with observations supervised with the shape and color of the data points mapped to their cluster. There were either 3 or 4 clusters with even number of observations. Participants were asked to 'check any/all variables that contribute more than average to the cluster separation green circles and orange triangles', which was further explained in the explanatory video as 'mark and and all variable that carry more than their fair share of the weight, or 1/4th in the case of 4 variables'.
+The display was a 2D scatterplot with observations supervised with the shape and color of the data points mapped to their cluster. There were either 3 or 4 clusters with even number of observations. Participants were asked to 'check any/all variables that contribute more than average to the cluster separation green circles and orange triangles', which was further explained in the explanatory video as 'mark and and all variable that carry more than their fair share of the weight, or 1 quarter in the case of 4 variables'.
 
-The instructions iterated several times in the video was: 1) Use the input controls to find a frame that contains separation between the clusters of green circles and orange triangles, 2) look at the orientation of the variable contributions in the gray circle, a visual depiction of basis, and 3) select all variables that contribute more than average in the direction of the separation in the scatterplot.
+The instructions iterated several times in the video was: 1) Use the input controls to find a frame that contains separation between the clusters of green circles and orange triangles, 2) look at the orientation of the variable contributions in the gray circle, a visual depiction of basis, and 3) select all variables that contribute more than average in the direction of the separation in the scatterplot. Regardless of factor and block values participants were limited to 60 seconds for each evaluation of this task.  
 
 The evaluation measure of this task was designed to have a few of features: 1) the sum of squares of the individual variable marks should be 1. 2) The sum of the correct variable(s) is 1, incorrect variables sum to -1, a selection of all or none (disallowed in application) should sum to 0. With these in mind we define the following measure for evaluating the task:
-
 
 Given a specific dataset $\textbf{X}$ containing $k$ clusters, let $\textbf{S}_j$ be the set of observations in cluster $j$ and $\overline{S_j}$ be a vector of variable means for cluster $j$.
 
@@ -252,24 +251,39 @@ gg1 + gg2
 
 _TODO: XXX, NEED caption and title for figure_
 
-## Experimental design {#sec:design}
-
-_TODO: XXX CONTINUE WRITING HERE_
-Below we discuss the n = 108 within-participant exploratory study across 3 factors,
 
 ## Factor application {#sec:factors}
 
-<!-- factors: PCA, grand, manual -->
-We explored performance across three factors. The first factor is PCA. The second factor is an animated walk of interpolation frames between target bases, called a _grand_ tour. The third factor allows for the manual control of the individual variable's contribution to the projection, performing a _manual_ tour.
+<!-- Background for methodology, applicationn here -->
+Section \ref{sec:background} gives the sources and a description of the visual factors PCA, grand tours, and radial manual tours. Below we cover the differences in the application and parameterization applied in the user study. Due to physically distancing from COVID-19 what was originally intended to be run in person with study invigilator had to be simplified to be understood and usable in a crowdsourcing application. We opted for percomputed images and animations in order to simplify input interactions and improve user experience.
 
-<!-- Plot and axes -->
-All factors are shown as a scatterplot. The basis axes projection was also illustrated to the left of the plot. They are shown in a unit circle and show the magnitude and direction each variable contributes to the projection.
+<!-- aesthetic standardization -->
+The visualization methods were selected to standardized wherever possible. All aesthetic values (colors, shapes, sizes, absence of legend, and absence axis titles) were held consistent. Variable contributions where always shown left of the scatterplot embeddings with their aesthetic values consistent as well.
 
-<!-- interface differences -->
-The user interface was kept the same whenever possible, but the control inputs did change slightly to accommodate the differences between factors. PCA had 2 side-by-side radio button inputs that select principal components to display on the x- and y-axes. The manual tour had the same axes selection, with the addition of a drop-down bar and slider control. The drop-down selects the variable to manipulate the contribution of, while the slider controlled the magnitude [0-1] of the contribution of that variable on the projection. Performing this manipulation does require the contributions of the other variables to change if they are to keep their orthogonal relationship. The grand tour has no axis or variable inputs and comes precompiled as an animation of a 15 second showing 90 frames at 6 frames per second. The user can control the location or play/pause the animation at will. Each frame is a geodesic interpolation that is close to 0.1 radians away from the previous frame. These frames will typically include 6 or 7 bases identified randomly.
+<!-- PCA -->
+PCA inputs allowed for users to select between the top 4 principal components for both the x and y axis regardless of the data dimensionality (either 4 or 6). Display of the same component on both axes simultaneously was prohibited. This results in 12 combinations of valid inputs. Half of which are homomorphic, that is to say, mirrored on the x = y line and show no new information. 
+
+<!-- Grand tours -->
+The grand tour was restricted to 75 interpolated frames with step size of 0.1 radians between each interpolated frame. This were animated at 5 frames per second for a view time of 15 seconds to allow the animation to be viewed up to 4 times within the duration of the task evaluation. The starting basis was randomized and 4 new target frames were animated through within these conditions. The exact 'path' or morphing of the variables was held constant within simulations of the same dimensionality (while order of variables and magnitude of signal was randomized upon simulation).
+
+<!-- Radial tours -->
+Radial tours were also displayed at 5 frames per second with in interpolation step size of 0.1 radians. Users where able to swap between the 4 or 6 variables, upon which the display would change the the start of radially increasing the contribution of the selected variable till it was full, zeroed and then back to the initial. The complete animation of any 1 variable takes about 20 seconds, and is almost fully in the projection frame at around 6 second. The starting basis of each is initialized to a half-clock design, where the 4 or 6 variables were evenly distributed in half of the circle which is then orthonormalized. This is done to give no variable preference while minimizing variable interactions, as variables opposite of the manipulation variable must lose contribution as the other is rotated to full contribution (and vice versa).
+
+
+
+<!-- <!-- factors: PCA, grand, manual --> -->
+<!-- We explored performance across three factors. The first factor is PCA. The second factor is an animated walk of interpolation frames between target bases, called a _grand_ tour. The third factor allows for the manual control of the individual variable's contribution to the projection, performing a _manual_ tour. -->
+
+<!-- <!-- Plot and axes --> -->
+<!-- All factors are shown as a scatterplot. The basis axes projection was also illustrated to the left of the plot. They are shown in a unit circle and show the magnitude and direction each variable contributes to the projection. -->
+
+<!-- <!-- interface differences --> -->
+<!-- The user interface was kept the same whenever possible, but the control inputs did change slightly to accommodate the differences between factors. PCA had 2 side-by-side radio button inputs that select principal components to display on the x- and y-axes. The manual tour had the same axes selection, with the addition of a drop-down bar and slider control. The drop-down selects the variable to manipulate the contribution of, while the slider controlled the magnitude [0-1] of the contribution of that variable on the projection. Performing this manipulation does require the contributions of the other variables to change if they are to keep their orthogonal relationship. The grand tour has no axis or variable inputs and comes precompiled as an animation of a 15 second showing 90 frames at 6 frames per second. The user can control the location or play/pause the animation at will. Each frame is a geodesic interpolation that is close to 0.1 radians away from the previous frame. These frames will typically include 6 or 7 bases identified randomly. -->
 
 
 ## Blocks and grouping 
+
+_TODO: XXX CONTINUE WRITING HERE_
 
 ```{r designExample, echo = F, out.width = '100%',                             fig.cap = "Example case. Person 'A' is assigned to group 2, where they will use factor 2 (grand tour) for the first period. They perform 3 block difficulties of task 1 on simulations of increasing difficulty. Then 3 block difficulties of task 2 on unique simulations sampled from the same distributions of increasing difficulty. After this, they proceed to period 2, where they are use factor 3 (manual tour) to perform 3 block difficulties of each task. Lastly, in the third period, they use factor 1 (PCA) to perform the tasks."}
 knitr::include_graphics("./figures/experimental_design_personA.PNG")
@@ -283,6 +297,12 @@ The data used for the study were sampled from 3 multivariate normal distribution
 <!-- \ref{fig:design} -->
 From the 4 sets of parameterizations, 20 simulations were drawn. The 2 most simple simulations were used during the training section of the study. All participants were exposed to the same training data sets, shown in the same order to standardize training. The remaining 18 simulations were drawn such that the remaining 3 parameterizations were sampled 6 times each. These correspond to the 3 block difficulties of a given factor and task with increasing difficulty. Referring to the middle of figure \ref{fig:design}, a participant would perform each factor-task for 3 block difficulties with increasing difficultly before proceeding. The next factor-task has 3 new data sets but parameterized for the same order of increasing difficulty. All participants experience the same order of simulations while the order of the factor visualization was changed as controlled by a partition into 3 even groups (top of the same figure).
 
+## Experimental design {#sec:design}
+
+
+Below we discuss the n = 108 within-participant exploratory study across 3 factors,
+
+_figure idea; abstract map side by side with permutation nesting img not perticularly interesting or crutial to cretiquing the study_
 
 ## Post study survey
 
