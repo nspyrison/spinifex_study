@@ -40,107 +40,70 @@ if(F){
 }
 ## load aggregated data.
 dat_task_agg <- readRDS(rel_path("data/dat_task_agg_prolific_pilot.rds"))
-##TODO: XXX ___CONTINUE HERE____
+
 ```
 
-## Speed and marks
+## Marks by factor, marks by period
 
 ```{r}
-(marks <- ggplot(dat_task_agg, aes(x = factor, y = task_marks)) + 
-     geom_boxplot() +
+(marks_by_fct <- 
+     ggplot(dat_task_agg, aes(x = factor, y = task_marks, 
+                              color = is_training, fill = is_training)) + 
+     geom_boxplot(position = "dodge", alpha = .5) +
      geom_jitter(width = .2, height = .05) + 
      labs(title = "Marks by factor") + theme_minimal() + 
-     scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2"))
-print("I think the relatively low marks in radial comes from overconfidence do to the stark difference in bases. Discuss the 'half clock' layout.")
-print("also note that the respose table was made with the wrong perm offset number. idk if this would be a consistent error with what the app asks for or not.")
+     scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2") +
+     geom_hline(yintercept = 0))
 
-print("Radial basis 'Half clock':")
-knitr::include_graphics("./half_clock.png", dpi = 70)
+(marks_by_eval <-
+    ggplot(dat_task_agg, aes(x = eval, y = task_marks, color = is_training, fill = is_training)) + 
+    geom_boxplot(position = "dodge", alpha = .5) +
+    geom_jitter(width = .2, height = .05) + 
+    labs(title = "Marks by order of evaluatin") + theme_minimal() + 
+    scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2") +
+    geom_hline(yintercept = 0))
 
-
-(speed <- ggplot(df_active, aes(x = factor, y = ttr)) +
-        geom_boxplot() +
+(speed_by_factor <-
+        ggplot(dat_task_agg, aes(x = factor, y = max_sec_on_pg, 
+                                 color = is_training, fill = is_training)) + 
+        geom_boxplot(position = "dodge", alpha = .5) +
         geom_jitter(width = .2, height = .05) +
-        labs(title = "seconds on page of last response by factor") + theme_minimal() +
+        labs(title = "Seconds till last response by factor") + theme_minimal() +
         scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2"))
-print("Numbers these high don't make sense, Timer is being asked to be reset with every page. Looking at the sheet, ttr is monotonically increasing, this is most accuately time from opening app.")
-print("This has been fixed.")
+
+(speed_by_eval <-
+        ggplot(dat_task_agg, aes(x = factor, y = max_sec_on_pg,
+                                 color = is_training, fill = is_training)) + 
+        geom_boxplot(position = "dodge", alpha = .5) +
+        geom_jitter(width = .2, height = .05) +
+        labs(title = "Seconds till last response by evaluation order") + theme_minimal() +
+        scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2"))
+
+##TODO: XXX ___CONTINUE HERE____
+
 ```
 
 ## Input and Response interactions
 
 ```{r}
-(input_interactions <- ggplot(df_active, aes(x = factor, y = input_inter)) +
-     geom_boxplot() +
+(input_interactions <- 
+     ggplot(dat_task_agg, aes(x = factor, y = task_input_inter,
+                              color = is_training, fill = is_training)) + 
+     geom_boxplot(position = "dodge", alpha = .5) +
      geom_jitter(width = .2, height = .05) +
      labs(title = "Number of input interaction by factor (throughness)") +
      theme_minimal() + 
      scale_color_brewer(palette = "Dark2") +
      scale_fill_brewer(palette = "Dark2"))
 
-(response_interactions <- ggplot(df_active, aes(x = factor, y = resp_inter)) +
-        geom_boxplot() +
+(response_interactions <-
+        ggplot(dat_task_agg, aes(x = factor, y = task_resp_inter,
+                                 color = is_training, fill = is_training)) +
+        geom_boxplot(position = "dodge", alpha = .5) +
         geom_jitter(width = .2, height = .05) +
-        labs(title = "Number of input interaction by factor (1/confidence)") +
+        labs(title = "Number of response interaction by factor (~ inverse of confidence)") +
         theme_minimal() + 
         scale_color_brewer(palette = "Dark2") +
         scale_fill_brewer(palette = "Dark2"))
-print("I'm going to circle back to this to see if it's capturing correctly.")
-```
-
-## Explaining scoring
-
-```{r TEMP-SKRATCHPAD}
-#' @example
-#' str(dat) 
-#' palette(RColorBrewer::brewer.pal(12, "Dark2"))
-#'ggplot(dat) +
-#'    ggproto_ans_plot(dat) +
-#'    facet_wrap(vars(sim_nm)) + theme_minimal()
-
-## ggproto for the ans_plot
-ggproto_ans_plot <- function(resp_ans_longer){
-    ## List of ggproto objects
-    lab_fill <- "Varaiable cluster seperation"
-    ret <- list(
-        ## Boxplot, signal
-        geom_bar(aes(x = var_num, y = signal, fill = lab_fill),
-                 resp_ans_longer, position = "dodge", stat = "identity",
-                 width = .5),
-
-        ## Titles and colors
-        labs(x = "Variable number", y = "Value"),
-        theme(legend.position = "bottom",
-              legend.direction = "vertical"),
-        scale_fill_manual(
-            values = c(palette()[1], "grey80", "lightblue"), name = "",
-            labels = c("Varaiable cluster seperation", "selected", "not selected")),
-        scale_colour_manual(values = c("green", "red"),
-                            name = "", labels = c("marks (+)", "marks (-)"))
-    )
-    
-    ## Add in the bar and weight
-    p <- 6#<- length(unique(resp_ans_longer$var_num))
-    mark_col <- dplyr::if_else(sign(resp_ans_longer$diff) == 1, "green", "red")
-    ret <- c(ret, 
-             list(
-                 ## Uniform bar, and text
-                 geom_hline(aes(yintercept = bar), resp_ans_longer, size = 1), 
-                 geom_text(aes(x = p + 1, y = bar + .1, 
-                               label = paste0("1/p = ", round(bar, 2))),
-                           size = 4, hjust = 1),
-                 ## Marks segment
-                 geom_segment(aes(x = var_num, xend = var_num,
-                                  y = bar, yend = weight + bar),
-                              resp_ans_longer, colour = mark_col, size = 2)
-             )
-    )
-    
-    return(ret)
-}
-
-ggplot(dat) +
-    ggproto_ans_plot(dat) +
-    facet_wrap(vars(sim_nm)) + theme_minimal()
 ```
 

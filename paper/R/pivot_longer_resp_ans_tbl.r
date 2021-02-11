@@ -37,13 +37,11 @@ pivot_longer_resp_ans_tbl <- function(dat){
                                 v6_marks = 0L)
   }
   
-  
   ## Pivot each var longer and cbind  back together at end.
-
-
   resp_longer <- dat %>%
     dplyr::select(c(key, prolific_id, sim_nm,
-                    period, factor, vc, p_dim, location, input_inter, resp_inter,
+                    period, eval, factor, vc, p_dim, location,
+                    input_inter, resp_inter, sec_on_pg,
                     v1_resp:v6_resp)) %>%
     tidyr::pivot_longer(cols = v1_resp:v6_resp,
                         names_to = "var_num",
@@ -92,11 +90,15 @@ pivot_longer_resp_ans_tbl <- function(dat){
     dplyr::mutate(key = as.factor(key),
                   prolific_id = as.factor(prolific_id),
                   sim_nm = as.factor(sim_nm),
+                  factor = as.factor(factor),
                   period = as.factor(period),
-                  vc = as.factor(period),
-                  p_dim = as.factor(substr(p_dim, 2L, 2L)),
+                  eval = factor(eval, levels = c("t1", 1:2, "t2", 3:4, "t3", 5:6)),
+                  is_training = ifelse(substr(eval, 1, 1) == "t", TRUE, FALSE),
+                  vc = factor(vc, c("EEE", "EEV", "banana")),
+                  p_dim = factor(substr(p_dim, 2L, 2L), levels = c("4", "6")),
                   location = as.factor(location),
-                  var_num = as.factor(substr(var_num, 2L, 2L))
+                  var_num = as.factor(substr(var_num, 2L, 2L)),
+                  .keep = "unused"
     ) %>% tibble::as_tibble()
   return(ret)
 }
@@ -105,9 +107,10 @@ pivot_longer_resp_ans_tbl <- function(dat){
 ## Aggregate to the task grain.
 aggregate_task_vars <- function(df_long){
   df_long %>% 
-    dplyr::group_by(key, prolific_id, sim_nm, period, factor, vc, p_dim, location) %>%
+    dplyr::group_by(key, prolific_id, sim_nm, factor, period, eval, is_training, vc, p_dim, location) %>%
     dplyr::summarise(task_input_inter = mean(input_inter),
                      task_resp_inter = mean(resp_inter),
+                     max_sec_on_pg = max(sec_on_pg),
                      cnt_resp = sum(resp),
                      task_marks = sum(marks),
                      z_weight_check = sum(weight)
