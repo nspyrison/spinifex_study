@@ -62,9 +62,9 @@ require(ggplot2)
 require(gridExtra)
 require(dplyr)
 rel_path <- function(rel_path){
-  dirname(rstudioapi::getSourceEditorContext()$path) %>% 
-    paste0("/", rel_path) %>% 
-    normalizePath()
+  rel_dir  <- dirname(rstudioapi::getSourceEditorContext()$path)
+  rel_path <- paste0(rel_dir, "/", rel_path)
+  normalizePath(rel_path)
 }
 
 # Hypothesis: 

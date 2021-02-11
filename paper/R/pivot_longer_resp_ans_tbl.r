@@ -39,59 +39,78 @@ pivot_longer_resp_ans_tbl <- function(dat){
   
   
   ## Pivot each var longer and cbind  back together at end.
+
+
   resp_longer <- dat %>%
-    dplyr::select(c(key, sim_nm, bar, v1_resp:v6_resp)) %>%
+    dplyr::select(c(key, prolific_id, sim_nm,
+                    period, factor, vc, p_dim, location, input_inter, resp_inter,
+                    v1_resp:v6_resp)) %>%
     tidyr::pivot_longer(cols = v1_resp:v6_resp,
                         names_to = "var_num",
                         names_prefix  = "var_num",
                         values_to = "resp",
-                        values_drop_na = TRUE) %>%
-    dplyr::mutate(var_num = as.factor(substr(var_num, 2L, 2L)))
+                        values_drop_na = TRUE)
   marks_longer <- dat %>% 
-    dplyr::select(c(key:v6_marks)) %>%
+    dplyr::select(c(key, sim_nm, v1_marks:v6_marks)) %>%
     tidyr::pivot_longer(cols = v1_marks:v6_marks,
                         names_to = "var_num",
                         names_prefix  = "var_num",
                         values_to = "marks",
-                        values_drop_na = TRUE) %>%
-    dplyr::mutate(var_num = as.factor(substr(var_num, 2L, 2L)))
+                        values_drop_na = TRUE)
   signal_longer <- dat %>% 
     dplyr::select(c(key, sim_nm, v1_signal:v6_signal)) %>%
     tidyr::pivot_longer(cols = v1_signal:v6_signal,
                         names_to = "var_num",
                         names_prefix  = "var_num",
                         values_to = "signal",
-                        values_drop_na = TRUE) %>%
-    dplyr::mutate(var_num = as.factor(substr(var_num, 2L, 2L)))
+                        values_drop_na = TRUE)
   diff_longer <- dat %>% 
     dplyr::select(c(key, sim_nm, v1_diff:v6_diff)) %>%
     tidyr::pivot_longer(cols = v1_diff:v6_diff,
                         names_to = "var_num",
                         names_prefix  = "var_num",
                         values_to = "diff",
-                        values_drop_na = TRUE) %>%
-    dplyr::mutate(var_num = as.factor(substr(var_num, 2L, 2L)))
+                        values_drop_na = TRUE)
   weight_longer <- dat %>% 
     dplyr::select(c(key, sim_nm, v1_weight:v6_weight)) %>%
     tidyr::pivot_longer(cols = v1_weight:v6_weight,
                         names_to = "var_num",
                         names_prefix  = "var_num",
                         values_to = "weight",
-                        values_drop_na = TRUE) %>%
-    dplyr::mutate(var_num = as.factor(substr(var_num, 2L, 2L)))
-  dat <- NA
+                        values_drop_na = TRUE)
   if(all.equal(
     nrow(resp_longer), nrow(marks_longer),
     nrow(signal_longer), nrow(diff_longer), nrow(weight_longer)
   )){
     ## cbind(), left_join not working.
-    dat <- cbind(
+    ret <- cbind(
       resp_longer, marks_longer[, 4L], signal_longer[, 4L],
-      diff_longer[, 4L], weight_longer[, 4L])
+      diff_longer[, 4L], weight_longer[, 4L]
+    )
   }else{error("!!!all nrow() not equal!!!")}
-  
-  ret <- dat %>% dplyr::group_by(sim_nm, var_num) %>%
-    dplyr::mutate(task_signal = sum(signal)) %>%
-    dplyr::ungroup()
+  ret <- ret %>%
+    dplyr::mutate(key = as.factor(key),
+                  prolific_id = as.factor(prolific_id),
+                  sim_nm = as.factor(sim_nm),
+                  period = as.factor(period),
+                  vc = as.factor(period),
+                  p_dim = as.factor(substr(p_dim, 2L, 2L)),
+                  location = as.factor(location),
+                  var_num = as.factor(substr(var_num, 2L, 2L))
+    ) %>% tibble::as_tibble()
   return(ret)
+}
+
+
+## Aggregate to the task grain.
+aggregate_task_vars <- function(df_long){
+  df_long %>% 
+    dplyr::group_by(key, prolific_id, sim_nm, period, factor, vc, p_dim, location) %>%
+    dplyr::summarise(task_input_inter = mean(input_inter),
+                     task_resp_inter = mean(resp_inter),
+                     cnt_resp = sum(resp),
+                     task_marks = sum(marks),
+                     z_weight_check = sum(weight)
+    ) %>% dplyr::ungroup() %>% 
+    tibble::as_tibble()
 }
