@@ -1,14 +1,18 @@
 ---
 title: "prolifico pilot"
 author: "Nick Spyrison"
-date: "11/01/2021"
-output: html_document
+date: "12/02/2021"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 2
 editor_options: 
   chunk_output_type: console
 ---
 ```{r setup, include=FALSE}
 require(tidyverse)
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 rel_path <- function(rel_path){
   rel_dir  <- dirname(rstudioapi::getSourceEditorContext()$path)
   rel_path <- paste0(rel_dir, "/", rel_path)
@@ -43,67 +47,75 @@ dat_task_agg <- readRDS(rel_path("data/dat_task_agg_prolific_pilot.rds"))
 
 ```
 
-## Marks by factor, marks by period
+______
+
+## Marks by everything
 
 ```{r}
-(marks_by_fct <- 
-     ggplot(dat_task_agg, aes(x = factor, y = task_marks, 
-                              color = is_training, fill = is_training)) + 
-     geom_boxplot(position = "dodge", alpha = .5) +
-     geom_jitter(width = .2, height = .05) + 
-     labs(title = "Marks by factor") + theme_minimal() + 
-     scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2") +
-     geom_hline(yintercept = 0))
-
-(marks_by_eval <-
-    ggplot(dat_task_agg, aes(x = eval, y = task_marks, color = is_training, fill = is_training)) + 
-    geom_boxplot(position = "dodge", alpha = .5) +
-    geom_jitter(width = .2, height = .05) + 
-    labs(title = "Marks by order of evaluatin") + theme_minimal() + 
-    scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2") +
-    geom_hline(yintercept = 0))
-
-(speed_by_factor <-
-        ggplot(dat_task_agg, aes(x = factor, y = max_sec_on_pg, 
-                                 color = is_training, fill = is_training)) + 
+my_ggplot <- function(.aes = aes(x = factor, y = task_marks,
+                              color = is_training, fill = is_training),
+                      .title = "Default title"){
+    ggplot(dat_task_agg, .aes, position = "dodge", alpha = .5) +
+        labs(title = .title) + 
+        theme_minimal() +
+        scale_color_brewer(palette = "Dark2") +
+        scale_fill_brewer(palette = "Dark2") +
         geom_boxplot(position = "dodge", alpha = .5) +
-        geom_jitter(width = .2, height = .05) +
-        labs(title = "Seconds till last response by factor") + theme_minimal() +
-        scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2"))
+        geom_point(position = position_jitterdodge(jitter.width = .2, jitter.height = .05)) +
+        geom_hline(yintercept = 0)
+}
 
-(speed_by_eval <-
-        ggplot(dat_task_agg, aes(x = factor, y = max_sec_on_pg,
-                                 color = is_training, fill = is_training)) + 
-        geom_boxplot(position = "dodge", alpha = .5) +
-        geom_jitter(width = .2, height = .05) +
-        labs(title = "Seconds till last response by evaluation order") + theme_minimal() +
-        scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2"))
+(marks_by_fct <- my_ggplot(aes(x = factor, y = task_marks,
+                               color = is_training, fill = is_training),
+                           "Marks by factor"))
 
-##TODO: XXX ___CONTINUE HERE____
+(marks_by_eval <- my_ggplot(aes(x = eval, y = task_marks,
+                                color = is_training, fill = is_training),
+                            "Marks by order of evaluatin"))
+
+(marks_by_vc <- my_ggplot(aes(x = vc, y = task_marks,
+                              color = is_training, fill = is_training),
+                          "Marks by var-covariance"))
+
+(marks_by_dim <- my_ggplot(aes(x = p_dim, y = task_marks,
+                               color = is_training, fill = is_training),
+                           "Marks by order of dimension"))
+
+(marks_by_loation <- my_ggplot(aes(x = location, y = task_marks,
+                                   color = is_training, fill = is_training),
+                               "Marks by order of location"))
+
 
 ```
 
-## Input and Response interactions
+______
+
+## Speed by factor, order
 
 ```{r}
-(input_interactions <- 
-     ggplot(dat_task_agg, aes(x = factor, y = task_input_inter,
-                              color = is_training, fill = is_training)) + 
-     geom_boxplot(position = "dodge", alpha = .5) +
-     geom_jitter(width = .2, height = .05) +
-     labs(title = "Number of input interaction by factor (throughness)") +
-     theme_minimal() + 
-     scale_color_brewer(palette = "Dark2") +
-     scale_fill_brewer(palette = "Dark2"))
+(speed_by_factor <- my_ggplot(aes(x = factor, y = max_sec_on_pg, 
+                                  color = is_training, fill = is_training),
+                              "Seconds till last response by factor"))
 
-(response_interactions <-
-        ggplot(dat_task_agg, aes(x = factor, y = task_resp_inter,
-                                 color = is_training, fill = is_training)) +
-        geom_boxplot(position = "dodge", alpha = .5) +
-        geom_jitter(width = .2, height = .05) +
-        labs(title = "Number of response interaction by factor (~ inverse of confidence)") +
-        theme_minimal() + 
-        scale_color_brewer(palette = "Dark2") +
-        scale_fill_brewer(palette = "Dark2"))
+(speed_by_eval <- my_ggplot(aes(x = factor, y = max_sec_on_pg,
+                                color = is_training, fill = is_training),
+                            "Seconds till last response by evaluation order"))
+```
+
+______
+
+## Input and response interactions
+
+```{r}
+(input_inter <-
+     my_ggplot(aes(x = factor, y = task_input_inter,
+                   color = is_training, fill = is_training),
+               "Number of input interaction (throughness) by factor"))
+
+(response_inter <-
+        my_ggplot(aes(x = factor, y = task_resp_inter,
+                      color = is_training, fill = is_training),
+                  "Number of response interaction (inverse confidence) by factor "))
+
 ```
 
