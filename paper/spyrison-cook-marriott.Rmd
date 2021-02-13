@@ -93,6 +93,11 @@ rel_path <- function(rel_path){
 ## https://www.researchgate.net/profile/Kadek_Satriadi/publication/348706131_Quantitative_Data_Visualisation_on_Virtual_Globes/links/600c1275a6fdccdcb873728a/Quantitative-Data-Visualisation-on-Virtual-Globes.pdf
 ```
 
+<!-- Example figure -->
+```{r figExamp, echo = F, out.width = '100%',fig.cap = "Example case. Person 'A' is assigned to group 2, where they will use factor 2 (grand tour) for the first period. They perform 3 block difficulties of task 1 on simulations of increasing difficulty. Then 3 block difficulties of task 2 on unique simulations sampled from the same distributions of increasing difficulty. After this, they proceed to period 2, where they are use factor 3 (manual tour) to perform 3 block difficulties of each task. Lastly, in the third period, they use factor 1 (PCA) to perform the tasks.", eval = F}
+#knitr::include_graphics("./figures/experimental_design_personA.PNG")
+```
+
 
 # Introduction
 
@@ -270,24 +275,14 @@ The grand tour was restricted to 75 interpolated frames with step size of 0.1 ra
 Radial tours were also displayed at 5 frames per second with in interpolation step size of 0.1 radians. Users where able to swap between the 4 or 6 variables, upon which the display would change the the start of radially increasing the contribution of the selected variable till it was full, zeroed and then back to the initial. The complete animation of any 1 variable takes about 20 seconds, and is almost fully in the projection frame at around 6 second. The starting basis of each is initialized to a half-clock design, where the 4 or 6 variables were evenly distributed in half of the circle which is then orthonormalized. This is done to give no variable preference while minimizing variable interactions, as variables opposite of the manipulation variable must lose contribution as the other is rotated to full contribution (and vice versa).
 
 
-
-<!-- <!-- factors: PCA, grand, manual --> -->
-<!-- We explored performance across three factors. The first factor is PCA. The second factor is an animated walk of interpolation frames between target bases, called a _grand_ tour. The third factor allows for the manual control of the individual variable's contribution to the projection, performing a _manual_ tour. -->
-
-<!-- <!-- Plot and axes --> -->
-<!-- All factors are shown as a scatterplot. The basis axes projection was also illustrated to the left of the plot. They are shown in a unit circle and show the magnitude and direction each variable contributes to the projection. -->
-
-<!-- <!-- interface differences --> -->
-<!-- The user interface was kept the same whenever possible, but the control inputs did change slightly to accommodate the differences between factors. PCA had 2 side-by-side radio button inputs that select principal components to display on the x- and y-axes. The manual tour had the same axes selection, with the addition of a drop-down bar and slider control. The drop-down selects the variable to manipulate the contribution of, while the slider controlled the magnitude [0-1] of the contribution of that variable on the projection. Performing this manipulation does require the contributions of the other variables to change if they are to keep their orthogonal relationship. The grand tour has no axis or variable inputs and comes precompiled as an animation of a 15 second showing 90 frames at 6 frames per second. The user can control the location or play/pause the animation at will. Each frame is a geodesic interpolation that is close to 0.1 radians away from the previous frame. These frames will typically include 6 or 7 bases identified randomly. -->
-
-
 ## Blocks and grouping 
 
 _TODO: XXX CONTINUE WRITING HERE_
 
-```{r designExample, echo = F, out.width = '100%',                             fig.cap = "Example case. Person 'A' is assigned to group 2, where they will use factor 2 (grand tour) for the first period. They perform 3 block difficulties of task 1 on simulations of increasing difficulty. Then 3 block difficulties of task 2 on unique simulations sampled from the same distributions of increasing difficulty. After this, they proceed to period 2, where they are use factor 3 (manual tour) to perform 3 block difficulties of each task. Lastly, in the third period, they use factor 1 (PCA) to perform the tasks."}
-knitr::include_graphics("./figures/experimental_design_personA.PNG")
+```{r figPermuationExample, echo = F, out.width = '100%',fig.cap = "Example permuptaion selection. NEEDS CAPTION"}
+knitr::include_graphics("./figures/permutaion_example.PNG")
 ```
+
 
 ## Synthetic data and fixed parmeters
 
@@ -310,21 +305,22 @@ The plot display of the first task was limited to 1 minute and 3 minutes on the 
 
 After responses for each task were collected, participants were given a short survey containing questions gauging demographics, experience, and subjective evaluation of each factor on a 5-point Likert scale. The questions and possible responses are as follows:
 
-1) What are your preferred pronouns? [decline to answer, he/him, she/her, they/them or other]
-2) Which age group do you belong to? [decline to answer, 18 to 24, 25 to 35, 36 to 45, 45 to 60, 60 and up]
-3) What is your highest completed education? [decline to answer, Undergraduate degree (BA/BSc/other), Graduate degree (MA/MSc/MPhil/other), Doctorate degree (PhD/other); prolific.co participants were filtered to those stating they had an least an undergraduate degree]
+- What are your preferred pronouns? [decline to answer, he/him, she/her, they/them or other]
+- Which age group do you belong to? [decline to answer, 18 to 24, 25 to 35, 36 to 45, 45 to 60, 60 and up]
+- What is your highest completed education? [decline to answer, Undergraduate degree (BA/BSc/other), Graduate degree (MA/MSc/MPhil/other), Doctorate degree (PhD/other); prolific.co participants were filtered to those stating they had an least an undergraduate degree]
 
 __likert scale [1-5], least agreement to most agreement:__
-4) I understand the how to perform the task.
-5) I am experienced with data visualization.
-6) I am educated in multivariate statistical analysis.
+
+- I understand the how to perform the task.
+- I am experienced with data visualization.
+- I am educated in multivariate statistical analysis.
 
 __for each factor:__ 
 
-7-9) I was already familiar with visualization.
-10-12) I found this visualization easy to use.
-13-15) I felt confident in my answers with this visualization.
-15-18) I liked using this visualization.
+- I was already familiar with visualization.
+- I found this visualization easy to use.
+- I felt confident in my answers with this visualization.
+- I liked using this visualization.
 
 The code, response files, their analyses, and study application are made publicly available at on GitHub at [github.com/nspyrison/spinifex_study](https://github.com/nspyrison/spinifex_study).
 
@@ -343,7 +339,7 @@ The training was controlled for all participants as much as possible. All partic
 
 # Results {#sec:results}
 
-__#TODO: XXX Need to run study and add results here.__
+__TODO: XXX Need to run study and add results here.__
 
 
 # Discussion {#sec:discussion}

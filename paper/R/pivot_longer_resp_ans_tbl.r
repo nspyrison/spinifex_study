@@ -21,27 +21,39 @@ pivot_longer_resp_ans_tbl <- function(dat){
   ## Fix col if dat was only from ans_tbl needed
   if(all(c("key", "v1_resp", "v1_marks") %in% colnames(dat)) == FALSE){
     message("dat was only from ans_tbl, fixing columns")
-    dat <- dat %>%  dplyr::mutate(.keep = "all",
-                                key = sim_nm,
-                                v1_resp = 0L,
-                                v2_resp = 0L,
-                                v3_resp = 0L,
-                                v4_resp = 0L,
-                                v5_resp = 0L,
-                                v6_resp = 0L,
-                                v1_marks = 0L,
-                                v2_marks = 0L,
-                                v3_marks = 0L,
-                                v4_marks = 0L,
-                                v5_marks = 0L,
-                                v6_marks = 0L)
+    dat <- dat %>%
+      dplyr::mutate(.keep = "all",
+                    key = sim_nm,
+                    bar         = bar,
+                    factor      = NA,
+                    p_dim       = NA,
+                    prolific_id = NA,
+                    period      = NA,
+                    vc          = NA,
+                    location    = NA,
+                    eval        = NA,
+                    v1_resp     = 0L,
+                    v2_resp     = 0L,
+                    v3_resp     = 0L,
+                    v4_resp     = 0L,
+                    v5_resp     = 0L,
+                    v6_resp     = 0L,
+                    v1_marks    = 0L,
+                    v2_marks    = 0L,
+                    v3_marks    = 0L,
+                    v4_marks    = 0L,
+                    v5_marks    = 0L,
+                    v6_marks    = 0L,
+                    sec_on_pg   = NA,
+                    input_inter = NA,
+                    resp_inter  = NA)
   }
   
   ## Pivot each var longer and cbind  back together at end.
   resp_longer <- dat %>%
     dplyr::select(c(key, prolific_id, sim_nm,
                     period, eval, factor, vc, p_dim, location,
-                    input_inter, resp_inter, sec_on_pg,
+                    input_inter, resp_inter, sec_on_pg, bar,
                     v1_resp:v6_resp)) %>%
     tidyr::pivot_longer(cols = v1_resp:v6_resp,
                         names_to = "var_num",
@@ -92,13 +104,14 @@ pivot_longer_resp_ans_tbl <- function(dat){
                   sim_nm = as.factor(sim_nm),
                   factor = as.factor(factor),
                   period = as.factor(period),
-                  eval = factor(eval, levels = c("t1", 1:2, "t2", 3:4, "t3", 5:6)),
-                  is_training = ifelse(substr(eval, 1, 1) == "t", TRUE, FALSE),
+                  eval = factor(eval, levels = 
+                                  c("t1", 1L:2L, "t2", 3L:4L, "t3", 5L:6L)),
+                  is_training = ifelse(substr(eval, 1L, 1L) == "t", TRUE, FALSE),
                   vc = factor(vc, c("EEE", "EEV", "banana")),
-                  p_dim = factor(substr(p_dim, 2L, 2L), levels = c("4", "6")),
+                  p_dim = factor(as.integer(substr(p_dim, 2L, 2L)),
+                                 levels = c(4L, 6L)),
                   location = as.factor(location),
                   var_num = as.factor(substr(var_num, 2L, 2L)),
-                  .keep = "unused"
     ) %>% tibble::as_tibble()
   return(ret)
 }
