@@ -1,0 +1,172 @@
+---
+title: "prolifico 100"
+author: "Nick Spyrison"
+date: "18/02/2021"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 2
+editor_options: 
+  chunk_output_type: console
+---
+```{r setup, include=FALSE}
+require(tidyverse)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+rel_path <- function(rel_path){
+  rel_dir  <- dirname(rstudioapi::getSourceEditorContext()$path)
+  rel_path <- paste0(rel_dir, "/", rel_path)
+  normalizePath(rel_path)
+}
+
+## Read from gsheets API4 and save local
+if(F){
+  ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" ## Hash id of the google sheet
+  raw <- googlesheets4::read_sheet(ss_id, sheet = 1L)
+  raw$full_perm_num <- unlist(raw$full_perm_num)
+  raw$prolific_id <- unlist(as.character(raw$prolific_id))
+  str(raw)
+  saveRDS(raw, "./apps_supplementary/v4_prolifico_100/data/raw_prolific_100.rds")
+}
+## Load load and clean, save cleaned
+if(F){
+  raw <- readRDS(rel_path("data/raw_prolific_100.rds"))
+  ## Filter to only task data including training
+  dat_active <- raw[raw$plot_active == TRUE, ] %>%
+    filter(!is.na(key))
+  ## Pivot_longer, many variable columns 
+  source(rel_path("../../paper/R/pivot_longer_resp_ans_tbl.r"))
+  dat_longer <- pivot_longer_resp_ans_tbl(dat = dat_active)
+  ## Aggregate to task grain.
+  dat_task_agg <- aggregate_task_vars(dat_longer)
+  dat_task_agg <- dat_task_agg %>%
+    dplyr::mutate(task_input_inter = dplyr::if_else(
+      factor == "radial", task_input_inter -1L, task_input_inter))
+  saveRDS(dat_task_agg, rel_path("data/dat_task_agg_prolific_100.rds"))
+}
+## load aggregated data.
+dat_task_agg <- readRDS(rel_path("data/dat_task_agg_prolific_100.rds"))
+my_theme <- list(
+  theme_minimal(),
+  scale_color_brewer(palette = "Dark2"),
+  scale_fill_brewer(palette = "Dark2"),
+  geom_hline(yintercept = 0L)
+)
+my_ggplot <- function(.aes = aes(x = factor, y = task_marks,
+                                 color = is_training, fill = is_training),
+                      .title = "Default title",
+                      .data = dat_task_agg){
+  ggplot(.data, .aes) +
+    labs(title = .title) +
+    my_theme +
+    geom_point(
+      position = position_jitterdodge(jitter.width = .3, jitter.height = .05), alpha = .2) +
+    geom_boxplot( position = "dodge", alpha = .4)
+}
+```
+
+______
+
+## Quality of data
+
+I am concerned about the quality of the data, given that so many people experienced network issues. Let's explore.
+
+```{r}
+ggplot(dat_task_agg) + geom_density(aes(max_sec_on_pg, fill = "a"), alpha = .5) + my_theme +
+  ggtitle("speed density") + geom_vline(xintercept = 80L)
+sub  <- dat_task_agg %>% filter(max_sec_on_pg <= 80L)  ## Less than eq 80 sec.
+sub2 <- dat_task_agg %>% filter(max_sec_on_pg <= 10L) ## Less than eq 10 sec.
+
+cor_all <- round(cor(dat_task_agg$max_sec_on_pg, dat_task_agg$task_marks), 3L)
+paste0("cor(max_sec ~ task_marks) (all): ", cor_all)
+cor_80s <- round(cor(sub$max_sec_on_pg, sub$task_marks), 3L)
+paste0("cor(max_sec ~ task_marks) (sub 80 sec): ", cor_80s)
+
+ggplot(sub) + my_theme +
+  geom_point(aes(max_sec_on_pg, task_marks,
+                 fill = is_training, color = is_training), alpha = .2) +
+  geom_smooth(aes(max_sec_on_pg, task_marks,
+                  fill = is_training, color = is_training)) +
+  ggtitle("Are disconects, causing people to sprint though?",
+          subtitle = "maybe fast, but with fair accuracy, and smooth loess.")
+```
+
+
+## Marks by everything
+
+```{r}
+(marks_by_fct <- my_ggplot(aes(x = factor, y = task_marks,
+                               color = is_training, fill = is_training),
+                           "Marks by factor"))
+
+(marks_by_eval <- my_ggplot(aes(x = eval, y = task_marks,
+                                color = is_training, fill = is_training),
+                            "Marks by order of evaluation"))
+
+(marks_by_vc <- my_ggplot(aes(x = vc, y = task_marks,
+                              color = is_training, fill = is_training),
+                          "Marks by var-covariance"))
+
+(marks_by_dim <- my_ggplot(aes(x = p_dim, y = task_marks,
+                               color = is_training, fill = is_training),
+                           "Marks by order of dimension"))
+
+(marks_by_location <- my_ggplot(aes(x = location, y = task_marks,
+                                   color = is_training, fill = is_training),
+                               "Marks by order of location"))
+```
+
+______
+
+## Speed by factor, order
+
+```{r}
+(speed_by_factor <- my_ggplot(aes(x = factor, y = max_sec_on_pg,
+                                  color = is_training, fill = is_training),
+                              "Seconds till last response by factor") +
+   coord_cartesian(ylim = c(0L, 70L)))
+
+(speed_by_eval <- my_ggplot(aes(x = eval, y = max_sec_on_pg,
+                                color = is_training, fill = is_training),
+                            "Seconds till last response by evaluation order") +
+    coord_cartesian(ylim = c(0L, 70L)))
+```
+
+______
+
+## Input and response interactions
+
+```{r}
+(input_inter <-
+   my_ggplot(aes(x = factor, y = task_input_inter,
+                 color = is_training, fill = is_training),
+             "Number of input interaction (throughness) by factor") +
+   coord_cartesian(ylim = c(0L, 30L)))
+
+(response_inter <-
+    my_ggplot(aes(x = factor, y = task_resp_inter,
+                  color = is_training, fill = is_training),
+              "Number of response interaction (inverse confidence) by factor"))
+```
+
+I think the number input interactions could be a good quality check, I think radial automatically starts at 1 because of the observerEvent(). want to look into this.
+
+## Looking at subsets
+
+```{r}
+sub <- dat_task_agg %>% filter(task_input_inter >= 1L) ## NOT 0 input interactions
+sub2 <- dat_task_agg %>% filter(max_sec_on_pg >= 5L,
+                                max_sec_on_pg <= 80L) ## NOT 0 input interactions
+my_ggplot(aes(x = factor, y = task_marks,
+              color = is_training, fill = is_training),
+          "input_inter >= 1 restores signal, but looses grant",
+          sub)
+
+my_ggplot(aes(x = factor, y = task_marks,
+              color = is_training, fill = is_training, size = max_sec_on_pg),
+          "max_sec in (5, 80), size is time on page",
+          sub2)
+cor_gt5s <- cor(dat_task_agg$max_sec_on_pg, dat_task_agg$task_marks)
+paste0("cor(max_sec ~ task_marks) (max time in (5, 80)): ", cor_gt5s)
+```
+

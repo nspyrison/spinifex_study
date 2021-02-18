@@ -44,7 +44,6 @@ if(F){
 }
 ## load aggregated data.
 dat_task_agg <- readRDS(rel_path("data/dat_task_agg_prolific_pilot.rds"))
-
 ```
 
 ______
@@ -71,7 +70,7 @@ my_ggplot <- function(.aes = aes(x = factor, y = task_marks,
 
 (marks_by_eval <- my_ggplot(aes(x = eval, y = task_marks,
                                 color = is_training, fill = is_training),
-                            "Marks by order of evaluatin"))
+                            "Marks by order of evaluation"))
 
 (marks_by_vc <- my_ggplot(aes(x = vc, y = task_marks,
                               color = is_training, fill = is_training),
@@ -81,11 +80,9 @@ my_ggplot <- function(.aes = aes(x = factor, y = task_marks,
                                color = is_training, fill = is_training),
                            "Marks by order of dimension"))
 
-(marks_by_loation <- my_ggplot(aes(x = location, y = task_marks,
+(marks_by_location <- my_ggplot(aes(x = location, y = task_marks,
                                    color = is_training, fill = is_training),
                                "Marks by order of location"))
-
-
 ```
 
 ______
@@ -97,7 +94,7 @@ ______
                                   color = is_training, fill = is_training),
                               "Seconds till last response by factor"))
 
-(speed_by_eval <- my_ggplot(aes(x = factor, y = max_sec_on_pg,
+(speed_by_eval <- my_ggplot(aes(x = eval, y = max_sec_on_pg,
                                 color = is_training, fill = is_training),
                             "Seconds till last response by evaluation order"))
 ```
@@ -116,6 +113,5 @@ ______
         my_ggplot(aes(x = factor, y = task_resp_inter,
                       color = is_training, fill = is_training),
                   "Number of response interaction (inverse confidence) by factor "))
-
 ```
 
