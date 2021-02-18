@@ -347,6 +347,7 @@ __TODO: XXX Need to run study and add results here.__
 # Accompanying tool: spinifex application {#sec:spinifex}
 
 To accompany this study we have produced a more general use tool to perform such exploratory analysis of high dimensional data. The R package, `spinifex`, [@spyrison_spinifex_2020] R package  contains a free, open-source `shiny` [@chang_shiny_2020] application. The application allows users to explore their data with either interactive or predefined manual tours without the need for any coding. Limited implementations of grand, little, and local tours are also made available. Data can be imported in .csv and .rda format, and projections or animations can be saved as .png, .gif, and .csv formats where applicable. Run the following R code for help getting started.
+
 ```{r getting_started, eval = F}
 install.packages("spinifex", dependencies = TRUE)
 spinifex::run_app("intro")

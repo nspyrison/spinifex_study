@@ -320,7 +320,7 @@ survey_page <- conditionalPanel(
       conditionalPanel(
         "output.do_disp_prolific_code == true",
         br(),
-        h3("Enter the prolifico.co completion code '18B6C620' to redeem payment.")
+        h3("Enter the prolifico.co completion code '62CA46F3' to redeem payment.")
       )
     )
   )
