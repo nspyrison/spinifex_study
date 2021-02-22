@@ -461,9 +461,10 @@ server <- function(input, output, session){
       ## Write single row to local rv$resp_tbl
       rv$resp_tbl[rv$pg, ] <- output_row()
       ## Write entire period too google sheets, hoping this will alleviate API quota issue
-      if(rv$pg %in% c(6L, 10L, 14L)){
+      if(rv$pg %in% c(1L, 6L, 10L, 14L)){
         .rows <- NULL
-        if(rv$pg == 6L)  .rows <- 1L:6L
+        if(rv$pg == 1L)  .rows <- 1L
+        if(rv$pg == 6L)  .rows <- 2L:6L
         if(rv$pg == 10L) .rows <- 7L:10L
         if(rv$pg == 14L) .rows <- 11L:14L
         these_rows <- rv$resp_tbl[.rows, ]
@@ -585,7 +586,7 @@ server <- function(input, output, session){
   outputOptions(output, "is_intermission",       suspendWhenHidden = FALSE)
   outputOptions(output, "is_saved",              suspendWhenHidden = FALSE)
   outputOptions(output, "is_time_remaining",     suspendWhenHidden = FALSE)
-  outputOptions(output, "is_app_loaded",       suspendWhenHidden = FALSE)
+  outputOptions(output, "is_app_loaded",         suspendWhenHidden = FALSE)
 } ## End server function
 
 ### Combine as shiny app.
