@@ -53,7 +53,7 @@ pivot_longer_resp_ans_tbl <- function(dat){
   
   ## Pivot each var longer and cbind  back together at end.
   resp_longer <- dat %>%
-    dplyr::select(c(key, prolific_id, sim_nm,
+    dplyr::select(c(key, participant_num, full_perm_num, prolific_id, sim_nm,
                     period, eval, factor, vc, p_dim, location,
                     input_inter, resp_inter, sec_to_resp, sec_on_pg, bar,
                     v1_resp:v6_resp)) %>%
@@ -102,6 +102,10 @@ pivot_longer_resp_ans_tbl <- function(dat){
   }else{error("!!!all nrow() not equal!!!")}
   ret <- ret %>%
     dplyr::mutate(key = as.factor(key),
+                  participant_num = factor(participant_num, 
+                                           levels = 1L:max(participant_num)),
+                  full_perm_num = factor(full_perm_num, 
+                                         levels = 1L:max(full_perm_num)),
                   prolific_id = as.factor(prolific_id),
                   sim_nm = as.factor(sim_nm),
                   factor = as.factor(factor),
@@ -127,7 +131,8 @@ pivot_longer_resp_ans_tbl <- function(dat){
 ## Aggregate to the task grain.
 aggregate_task_vars <- function(df_long){
   df_long %>%
-    dplyr::group_by(key, prolific_id, sim_nm, factor, period, eval, is_training, vc, p_dim, location) %>%
+    dplyr::group_by(key, participant_num, full_perm_num, prolific_id, sim_nm, 
+                    factor, period, eval, is_training, vc, p_dim, location) %>%
     dplyr::summarise(task_input_inter = mean(input_inter),
                      task_resp_inter = mean(resp_inter),
                      max_sec_to_resp = max(sec_to_resp),

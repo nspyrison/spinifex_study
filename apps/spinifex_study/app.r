@@ -52,8 +52,7 @@ server <- function(input, output, session){
   save_survey        <- reactive(input$save_survey)
   output$save_survey <- renderText(save_survey())
   key <- reactive({req(resp_row)
-    resp_row()$key
-  })
+    resp_row()$key})
   plot_active <- reactive({req(resp_row)
     resp_row()$plot_active})
   factor <- reactive({req(resp_row)
