@@ -97,11 +97,22 @@ if(T){
   })
   used_nums <- unique(prev_saves$participant_num)
   if(length(used_nums) > 0L){
-    opts <- 1L:(max(used_nums) + 1L)
+    opts <- 1L:(max(used_nums) + 6L)
     open_nums <- opts[!opts %in% used_nums] ## All not used numbers
+    ## Remove over evaluated slots as of 23/02/2021:
+    #### Warning: -- Keep in mind that there there may be numbers used_numbers that are under evaled.
+    #### This can be mitigated with keep updating over_evaled_perms.
+    over_evaled_perms <- c(6L, 16L, 18L, 24L, 25L, 26L, 28L, 29L)
+    num_even_eval_perm_offsets <- 0L:(max(used_nums) %% n_perms)
+    over_evaled_participant_nums <- NULL
+    sapply(num_even_eval_perm_offsets, function(i){
+      .new_nums_to_exclude <- i * n_perms + over_evaled_perms
+      over_evaled_participant_nums <<- c(over_evaled_participant_nums, .new_nums_to_exclude)
+    })
+    open_nums <- open_nums[-1 * over_evaled_participant_nums]
     participant_num <- min(open_nums)
   } ## If gsheet empty, participant_num stays the initialized 1.
-}else{participant_num <- sample(1L:952L, 1L)} ## If turned API read turned off, assign random number. 
+}else{participant_num <- sample(1L:952L, 1L)} ## If turned API read turned off, assign random number.
 full_perm_num <- 1L + (participant_num - 1L) %% n_perms ## n_perms ~36L
 
 ## Select permutation orders
