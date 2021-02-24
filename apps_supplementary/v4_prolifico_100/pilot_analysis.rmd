@@ -81,9 +81,12 @@ I am concerned about the quality of the data, given that so many people experien
 ```{r}
 lb <- quantile(dat_task_agg$max_sec_to_resp, probs = .25) ## bottom 25 %
 ub <- quantile(dat_task_agg$max_sec_to_resp, probs = .98) ## top 2 %
-ggplot(dat_task_agg) + geom_density(aes(max_sec_to_resp, fill = "a"), alpha = .5) + my_theme +
+ggplot() + geom_density(aes(max_sec_to_resp, fill = "a"), dat_task_agg, alpha = .5) + my_theme +
   ggtitle("Seconds to respond density") +
-  geom_vline(xintercept = c(lb, ub), linetype = 2L) + lims(x = c(0, 100))
+  geom_vline(xintercept = c(lb, ub), linetype = 2L) +
+  geom_label(aes(x = c(lb + 12, ub - 12), y = c(.05, .05), 
+                 label = c(".25 percentile", ".98 percentile"))) +
+  lims(x = c(0, 100))
 
 print("!! For the rest of the analysis we will be looking at the iddle chunk of data!!")
 dat_qual <- dat_task_agg %>% filter(max_sec_to_resp > lb, max_sec_to_resp < ub)
@@ -92,8 +95,8 @@ dat_qual <- dat_task_agg %>% filter(max_sec_to_resp > lb, max_sec_to_resp < ub)
 #nrow(sub_lb) / nrow(dat_task_agg) #technically bottom 28.35% atm
 
 ### only look at eval data for correlation.
-# cor_all  <- round(cor(dat_task_agg$max_sec_on_pg, dat_task_agg$task_marks), 3L)
-# cor_qual <- round(cor(dat_qual$max_sec_on_pg, dat_qual$task_marks), 3L)
+# cor_all  <- round(cor(dat_task_agg$max_sec_to_resp, dat_task_agg$task_marks), 3L)
+# cor_qual <- round(cor(dat_qual$max_sec_to_resp, dat_qual$task_marks), 3L)
 # paste0("cor(max_sec ~ task_marks) (all): ", cor_all)
 # paste0("cor(max_sec ~ task_marks) (remove bottom 25%, top .5%): ", cor_qual)
 
@@ -110,7 +113,7 @@ ggplot(dat_qual) + my_theme +
 ```
 
 
-## Evaluations by full-perm number and prolifico id.
+## Even-ness of evaluation
 
 Let's look at the distribution of quality evaluations by full_perm_num.
 
@@ -129,7 +132,7 @@ nums_past_tgt <- perm_num_agg$full_perm_num[perm_num_agg$is_past_tgt] %>%
 .mn_val <- mean(perm_num_agg$even_studies)
 ggplot(perm_num_agg, aes(x = full_perm_num, y = even_studies, 
                          color = is_training, fill = is_training)) +
-  labs(title = "Even evaluations by permutaion", 
+  labs(title = "Evaluations by permutaion", 
        subtitle = "Though not from so many participants") +
   my_theme + 
   geom_bar(stat = "identity", position = "dodge") + 
@@ -195,13 +198,13 @@ ______
 ## Speed by factor, order
 
 ```{r}
-my_ggplot(aes(x = factor, y = max_sec_on_pg,
+my_ggplot(aes(x = factor, y = max_sec_to_resp,
               color = is_training, fill = is_training),
           "Seconds till last response by factor",
           .data = dat_qual) +
   coord_cartesian(ylim = c(0L, 70L))
 
-my_ggplot(aes(x = eval, y = max_sec_on_pg,
+my_ggplot(aes(x = eval, y = max_sec_to_resp,
               color = is_training, fill = is_training),
           "Seconds till last response by evaluation order",
           .data = dat_qual) +
