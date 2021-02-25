@@ -81,15 +81,27 @@ I am concerned about the quality of the data, given that so many people experien
 ```{r}
 lb <- quantile(dat_task_agg$max_sec_to_resp, probs = .25) ## bottom 25 %
 ub <- quantile(dat_task_agg$max_sec_to_resp, probs = .98) ## top 2 %
-ggplot() + geom_density(aes(max_sec_to_resp, fill = ""), dat_task_agg, alpha = .5) + my_theme +
+ggplot() + 
+  geom_density(aes(max_sec_to_resp, fill = ""), dat_task_agg, alpha = .5) +
   ggtitle("Seconds to respond density") +
+  my_theme +
+  lims(x = c(0, 100)) +
   geom_vline(xintercept = c(lb, ub), linetype = 2L) +
   geom_label(aes(x = c(lb + 12, ub - 12), y = c(.05, .05), 
                  label = c(".25 percentile", ".98 percentile"))) +
-  lims(x = c(0, 100))
+  annotate("rect", xmin = -Inf, xmax = lb, ymin = -Inf, ymax = Inf,
+           alpha = 0.3, fill = "firebrick1") +
+  annotate("rect", xmin = lb, xmax = ub, ymin = -Inf, ymax = Inf,
+           alpha = 0.3, fill = "aquamarine") +
+  annotate("rect", xmin = ub, xmax = Inf, ymin = -Inf, ymax = Inf,
+           alpha = 0.3, fill = "firebrick1")
 
-print("!! For the rest of the analysis we will be looking at the iddle chunk of data!!")
+print("!! For the rest of the analysis we will be looking at this middle chunk of data!!")
 dat_qual <- dat_task_agg %>% filter(max_sec_to_resp > lb, max_sec_to_resp < ub)
+
+
+obs_frac <- round(100L * nrow(dat_qual) / nrow(dat_task_agg), 2)
+paste0("Percent of original data in subset: ", obs_frac, "%")
 
 #sub_lb <- dat_task_agg %>% filter(max_sec_to_resp > lb)
 #nrow(sub_lb) / nrow(dat_task_agg) #technically bottom 28.35% atm
@@ -100,9 +112,9 @@ dat_qual <- dat_task_agg %>% filter(max_sec_to_resp > lb, max_sec_to_resp < ub)
 # paste0("cor(max_sec ~ task_marks) (all): ", cor_all)
 # paste0("cor(max_sec ~ task_marks) (remove bottom 25%, top .5%): ", cor_qual)
 
-obs_frac <- round(100L * nrow(dat_qual) / nrow(dat_task_agg), 2)
-paste0("Percent of original data in subset: ", obs_frac, "%")
+```
 
+```{r}
 ggplot(dat_qual) + my_theme +
   geom_point(aes(max_sec_to_resp, task_marks,
                  fill = is_training, color = is_training), alpha = .2) +
@@ -118,6 +130,17 @@ ggplot(dat_qual) + my_theme +
 Let's look at the distribution of quality evaluations by full_perm_num.
 
 ```{r}
+l_u_ids <- dat_qual$prolific_id %>% unique() %>% length() ## ~54
+id_evals <- round(nrow(dat_qual) / 9, 1) ## 67.2
+
+u_prolific_ids <- dat_qual$prolific_id %>% unique()
+u_prolific_ids <- 
+  u_prolific_ids[!u_prolific_ids %in% c(NULL, "NULL" ,"", "DVIA or numbat")] 
+l_u_prolific_ids <- u_prolific_ids  %>% length() ## ~ 52
+prolific_evals <- 
+  round(nrow(dat_qual[dat_qual$prolific_id %in% u_prolific_ids, ]) / 9, 1)
+paste0(l_u_prolific_ids, " unique prolific ids, with about ", prolific_evals, " evaluations within bounds.")
+
 ## perm_num_agg
 perm_num_agg <- dat_qual %>% group_by(full_perm_num, is_training) %>%
   summarise(n = n(),
@@ -159,6 +182,7 @@ ggplot(prolific_id_agg, aes(x = prolific_id, y = even_studies,
   geom_text(aes(x = .95 * max(length(unique(prolific_id_agg$prolific_id))), y = 1.2, 
                 label = "ideal"), color = "black")
 
+print("highest number of evals per person:")
 head(prolific_id_agg)
 ```
 
