@@ -97,6 +97,7 @@ rel_path <- function(rel_path){
 ```{r figExamp, echo = F, out.width = '100%',fig.cap = "Example case. Person 'A' is assigned to group 2, where they will use factor 2 (grand tour) for the first period. They perform 3 block difficulties of task 1 on simulations of increasing difficulty. Then 3 block difficulties of task 2 on unique simulations sampled from the same distributions of increasing difficulty. After this, they proceed to period 2, where they are use factor 3 (manual tour) to perform 3 block difficulties of each task. Lastly, in the third period, they use factor 1 (PCA) to perform the tasks.", eval = F}
 #knitr::include_graphics("./figures/experimental_design_personA.PNG")
 ```
+<!-- Figure \ref{fig:figExamp} is an example of referencing a the example figure. -->
 
 
 # Introduction
@@ -218,40 +219,8 @@ Participant responses, $R$ are a vector of true/false values indicating if the p
 
 Where $I$ is the indicator function. Then the total marks for this task is the sum of the marks vector.
 
-```{r}
-tgt_sim_nm <- "EEV_p6_33_66_rep2"
-tgt_fp <- paste0("../apps_supplementary/data/", tgt_sim_nm, ".rda") %>%
-  rel_path()
-## Make data plot
-load(tgt_fp, envir = globalenv())
-dat <- EEV_p6_33_66_rep2
-clas <- attr(dat, "cluster")
-source(rel_path("R/ggproto_pca_biplot.r"))
-gg1 <- ggplot() + theme_void() +
-  ggproto_pca_biplot(dat, aes_clas = clas, x_pc_num = 1L, y_pc_num = 4L) +
-  theme(axis.title = element_text(),
-        plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(hjust = 0.5)) +
-  labs(title = "PCA biplot", 
-       subtitle = "EEV_p6_33_66_rep2",
-       x = "PC1", y = "PC4")
-
-## Make ans_plot
-ans_tbl <- readRDS(rel_path("../apps/spinifex_study/www/ans_tbl.rds"))
-sub <- ans_tbl %>% dplyr::filter(sim_nm == tgt_sim_nm)
-source(rel_path("R/pivot_longer_resp_ans_tbl.r"))
-sub_longer <- pivot_longer_resp_ans_tbl(dat = sub)
-
-source(rel_path("R/ggproto_ans_plot.r"))
-gg2 <- ggplot() + theme_minimal() + 
-  ggproto_ans_plot(sub_longer) +
-  theme(plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(hjust = 0.5)) +
-  labs(title = "Variable cluster seperation & weights",
-       subtitle = "EEV_p6_33_66_rep2")
-
-require(patchwork)
-gg1 + gg2
+```{r, figBiplotScoring, echo = F, out.width = '100%', fig.cap = "PCA Biplot with Score and weight evaluation. TODO XXX NEEDS CAPTION"}
+knitr::include_graphics("./figures/figBiplotScoring.png")
 ```
 
 _TODO: XXX, NEED caption and title for figure_
@@ -266,7 +235,7 @@ Section \ref{sec:background} gives the sources and a description of the visual f
 The visualization methods were selected to standardized wherever possible. All aesthetic values (colors, shapes, sizes, absence of legend, and absence axis titles) were held consistent. Variable contributions where always shown left of the scatterplot embeddings with their aesthetic values consistent as well.
 
 <!-- PCA -->
-PCA inputs allowed for users to select between the top 4 principal components for both the x and y axis regardless of the data dimensionality (either 4 or 6). Display of the same component on both axes simultaneously was prohibited. This results in 12 combinations of valid inputs. Half of which are homomorphic, that is to say, mirrored on the x = y line and show no new information. 
+PCA inputs allowed for users to select between the top 4 principal components for both the x and y axis regardless of the data dimensionality (either 4 or 6). Display of the same component on both axes simultaneously was prohibited. This results in 12 combinations of valid inputs. Half of which are homomorphic visuals, in that they mirrored on the x = y line and show no new information.
 
 <!-- Grand tours -->
 The grand tour was restricted to 75 interpolated frames with step size of 0.1 radians between each interpolated frame. This were animated at 5 frames per second for a view time of 15 seconds to allow the animation to be viewed up to 4 times within the duration of the task evaluation. The starting basis was randomized and 4 new target frames were animated through within these conditions. The exact 'path' or morphing of the variables was held constant within simulations of the same dimensionality (while order of variables and magnitude of signal was randomized upon simulation).
@@ -275,11 +244,29 @@ The grand tour was restricted to 75 interpolated frames with step size of 0.1 ra
 Radial tours were also displayed at 5 frames per second with in interpolation step size of 0.1 radians. Users where able to swap between the 4 or 6 variables, upon which the display would change the the start of radially increasing the contribution of the selected variable till it was full, zeroed and then back to the initial. The complete animation of any 1 variable takes about 20 seconds, and is almost fully in the projection frame at around 6 second. The starting basis of each is initialized to a half-clock design, where the 4 or 6 variables were evenly distributed in half of the circle which is then orthonormalized. This is done to give no variable preference while minimizing variable interactions, as variables opposite of the manipulation variable must lose contribution as the other is rotated to full contribution (and vice versa).
 
 
-## Blocks and grouping 
+## Blocks and parameterization
 
+The volume the parameter-space increase more than exponentially with the dimensionality of the data. Care must be taken to select realistic parameter values. We vary the values for 3 aspects of the simulated data including 1) The dimensionality of the data. 2) the shapes of the clusters, by changing the variance-covariance of the clusters. 3) The location of the difference between clusters, by mixing a signal and a noise variable at different ratio.
+
+<!-- Dimensionality -->
+We test 2 levels of dimensionality, 4 dimensions containing 3 clusters and 6 dimensions with 4 clusters. Each cluster samples 140 observations. Each dimension is originally distributed as $\mathcal{N}(2 * I(signal), 1)$ (before signal mixing and standardizing by standard deviation).
+
+<!-- Shape, vc matrix -->
+For choosing the shape of the clusters we follow the convention given in by the mclust [@scrucca_mclust_2016] who name and categorize 14 variants of distributions of data containing for 3-clustered. The name of the shaped is mapped to the initial for a model's volume, shape, and orientation. We use the EEE, EEV, and EVV, which is further modified by moving 4 fifths of the data out in an "v" or banana shape. Figure XXX shows the principal component bi-plot of the 3 three model variants applied here. 
+
+```{r figModelFamilies, echo = F, out.width = '100%',fig.cap = "Illustrate the shapes of the vc model families. TODO XXX NEEDS CAPTION"}
+knitr::include_graphics("./figures/figModelFam.png")
+```
+
+<!-- Location mixing -->
+ 
 _TODO: XXX CONTINUE WRITING HERE_
 
-```{r figPermuationExample, echo = F, out.width = '100%',fig.cap = "Example permuptaion selection. NEEDS CAPTION"}
+Within each factor there is one training trial, followed by 2 time-limited evaluation trials. The training trial always happen with the simplest parameterization 
+
+
+
+```{r figPermuationExample, echo = F, out.width = '100%',fig.cap = "Example permuptaion selection. TODO XXX NEEDS CAPTION"}
 knitr::include_graphics("./figures/permutaion_example.PNG")
 ```
 
@@ -292,8 +279,8 @@ The data used for the study were sampled from 3 multivariate normal distribution
 <!-- \ref{fig:design} -->
 From the 4 sets of parameterizations, 20 simulations were drawn. The 2 most simple simulations were used during the training section of the study. All participants were exposed to the same training data sets, shown in the same order to standardize training. The remaining 18 simulations were drawn such that the remaining 3 parameterizations were sampled 6 times each. These correspond to the 3 block difficulties of a given factor and task with increasing difficulty. Referring to the middle of figure \ref{fig:design}, a participant would perform each factor-task for 3 block difficulties with increasing difficultly before proceeding. The next factor-task has 3 new data sets but parameterized for the same order of increasing difficulty. All participants experience the same order of simulations while the order of the factor visualization was changed as controlled by a partition into 3 even groups (top of the same figure).
 
-## Experimental design {#sec:design}
 
+## Experimental design {#sec:design}
 
 Below we discuss the n = 108 within-participant exploratory study across 3 factors,
 

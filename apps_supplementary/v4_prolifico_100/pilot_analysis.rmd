@@ -81,7 +81,7 @@ I am concerned about the quality of the data, given that so many people experien
 ```{r}
 lb <- quantile(dat_task_agg$max_sec_to_resp, probs = .25) ## bottom 25 %
 ub <- quantile(dat_task_agg$max_sec_to_resp, probs = .98) ## top 2 %
-ggplot() + geom_density(aes(max_sec_to_resp, fill = "a"), dat_task_agg, alpha = .5) + my_theme +
+ggplot() + geom_density(aes(max_sec_to_resp, fill = ""), dat_task_agg, alpha = .5) + my_theme +
   ggtitle("Seconds to respond density") +
   geom_vline(xintercept = c(lb, ub), linetype = 2L) +
   geom_label(aes(x = c(lb + 12, ub - 12), y = c(.05, .05), 

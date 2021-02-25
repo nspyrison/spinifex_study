@@ -25,6 +25,8 @@ pivot_longer_resp_ans_tbl <- function(dat){
     dat <- dat %>%
       dplyr::mutate(.keep = "all",
                     key = sim_nm,
+                    participant_num = 0L,
+                    full_perm_num = 0L,
                     bar         = bar,
                     factor      = NA,
                     p_dim       = NA,
@@ -46,7 +48,7 @@ pivot_longer_resp_ans_tbl <- function(dat){
                     v5_marks    = 0L,
                     v6_marks    = 0L,
                     sec_to_resp = 0L,
-                    sec_on_pg   = NA,
+                    sec_on_pg   = 0L,
                     input_inter = NA,
                     resp_inter  = NA)
   }
@@ -62,6 +64,7 @@ pivot_longer_resp_ans_tbl <- function(dat){
                         names_prefix  = "var_num",
                         values_to = "resp",
                         values_drop_na = TRUE)
+  
   marks_longer <- dat %>%
     dplyr::select(c(key, sim_nm, v1_marks:v6_marks)) %>%
     tidyr::pivot_longer(cols = v1_marks:v6_marks,
