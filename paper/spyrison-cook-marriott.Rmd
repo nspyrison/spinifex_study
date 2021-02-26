@@ -61,17 +61,10 @@ require(spinifex)
 require(ggplot2)
 require(gridExtra)
 require(dplyr)
-rel_path <- function(rel_path){
-  rel_dir  <- dirname(rstudioapi::getSourceEditorContext()$path)
-  rel_path <- paste0(rel_dir, "/", rel_path)
-  normalizePath(rel_path)
-}
 
 # Hypothesis: 
 # does the availability of the manual tour improve the ability of the analyst 
 # to understand the importance of variables contributing to the structure?
-#
-#
 # Other user studies to consider:
 # DH Jeong 2009
 # https://www.researchgate.net/profile/Brian_Fisher2/publication/220506453_IPCA_An_interactive_system_for_PCA-based_visual_analytics/links/59e395fa458515393d5b8f29/IPCA-An-interactive-system-for-PCA-based-visual-analytics.pdf 
@@ -117,7 +110,7 @@ Using a linear combinations of variables will allow us to keep position in 2 dis
 Non-linear emeddings, the compliment of the linear embedding, have also been well received recently especially with the emergence of t-Distributed stochastic neighbor embedding [@van_der_maaten_visualizing_2008]. Such techniques distort the fully dimensionality on to a low, typically 2D plane. The issue with doing so is that unit of distance is not consistent with location in the embedded space, which severely hinders the interoperabilty of these embeddings. Additionally they often have hyperparameters that need tuning. Doing so results in completely different or contradicting embeddings. Suffice it to say we exclude their consideration for such broad application for multivariate EDA.
 
 <!-- <!-- nonlinear projections precluded --> 
-<!-- More recently there have been advances and fanfare in non-linear projections such as self-organizing maps [@kohonen_self-organizing_1990], and t-SNE [@maaten_visualizing_2008]. Because of the use of non-affine transformations, they offer arbitrary model spaces, without inter-operability back to variable space. This precludes them as candidates for exploratory data analysis of the multivariate data in question. They can be useful for the rapid identification of possible candidates for outliers or classifications. However they can suffer from overfitting, and crucially cannot be interpreted in terms of the original variables.   -->
+<!-- More recently there have been advances and fanfare in non-linear projections such as self-organizing maps [@kohonen_self-organizing_1990], and t-SNE [@maaten_visualizing_2008]. Because of the use of non-affine transformations, they offer arbitrary model spaces, without interoperability back to variable space. This precludes them as candidates for exploratory data analysis of the multivariate data in question. They can be useful for the rapid identification of possible candidates for outliers or classifications. However they can suffer from overfitting, and crucially cannot be interpreted in terms of the original variables.   -->
 
 <!-- Exclude class supervised examples -->
 Additionally there are many methods suitable for data with known classes. Linear discriminant analysis [@fisher_use_1936] for instance also produces linear combinations of variables, based not in order of variation of the data, but rather on the separation of known classes. In this work we want to be fully agnostic of any such class supervision and preclude them from our comparison as well.
@@ -225,10 +218,15 @@ knitr::include_graphics("./figures/figBiplotScoring.png")
 
 _TODO: XXX, NEED caption and title for figure_
 
+<!-- The plot display of the first task was limited to 1 minute and 3 minutes on the second task. Responses we available during and after the timer was running. The value and time of each response were captured in a temporary variable that was written to the response table once the user proceeded to the next page. The number of plot manipulations and response entries was also captured for each page including training. -->
+
+<!-- discuss training, response text, timed evaluations -->
+_TODO: XXX, discuss untimed training, response text, timed evaluations_
+
 
 ## Factor application {#sec:factors}
 
-<!-- Background for methodology, applicationn here -->
+<!-- Background for methodology, application here -->
 Section \ref{sec:background} gives the sources and a description of the visual factors PCA, grand tours, and radial manual tours. Below we cover the differences in the application and parameterization applied in the user study. Due to physically distancing from COVID-19 what was originally intended to be run in person with study invigilator had to be simplified to be understood and usable in a crowdsourcing application. We opted for percomputed images and animations in order to simplify input interactions and improve user experience.
 
 <!-- aesthetic standardization -->
@@ -243,52 +241,41 @@ The grand tour was restricted to 75 interpolated frames with step size of 0.1 ra
 <!-- Radial tours -->
 Radial tours were also displayed at 5 frames per second with in interpolation step size of 0.1 radians. Users where able to swap between the 4 or 6 variables, upon which the display would change the the start of radially increasing the contribution of the selected variable till it was full, zeroed and then back to the initial. The complete animation of any 1 variable takes about 20 seconds, and is almost fully in the projection frame at around 6 second. The starting basis of each is initialized to a half-clock design, where the 4 or 6 variables were evenly distributed in half of the circle which is then orthonormalized. This is done to give no variable preference while minimizing variable interactions, as variables opposite of the manipulation variable must lose contribution as the other is rotated to full contribution (and vice versa).
 
+<!-- Training, eval, eval -->
+Within each factor there is one training trial, followed by 2 time-limited evaluation trials. The training allows the participant to become familiar with the inputs and visual specific to the factor. Upon clicking the proceed button text containing the correct answer displays with visual still intact to explore further. Training trial always happen with the simplest parameterization and are followed by 2 evaluations of increasingly difficult parameters which are limited to 1 minute each.
+
 
 ## Blocks and parameterization
 
+<!-- volume of parameter space -->
 The volume the parameter-space increase more than exponentially with the dimensionality of the data. Care must be taken to select realistic parameter values. We vary the values for 3 aspects of the simulated data including 1) The dimensionality of the data. 2) the shapes of the clusters, by changing the variance-covariance of the clusters. 3) The location of the difference between clusters, by mixing a signal and a noise variable at different ratio.
 
 <!-- Dimensionality -->
-We test 2 levels of dimensionality, 4 dimensions containing 3 clusters and 6 dimensions with 4 clusters. Each cluster samples 140 observations. Each dimension is originally distributed as $\mathcal{N}(2 * I(signal), 1)$ (before signal mixing and standardizing by standard deviation).
+We test 2 levels of dimensionality, 4 dimensions containing 3 clusters and 6 dimensions with 4 clusters. Each cluster samples 140 observations. Each dimension is originally distributed as $\mathcal{N}(2 * I(signal), 1)~|~covariances~\Sigma$ (before signal mixing and standardizing by standard deviation). Signal variables have correlation 0.9 when they have equal orientation and -0.9 when their orientations vary. Noise variables were restricted to 0 correlation. The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty.
 
 <!-- Shape, vc matrix -->
-For choosing the shape of the clusters we follow the convention given in by the mclust [@scrucca_mclust_2016] who name and categorize 14 variants of distributions of data containing for 3-clustered. The name of the shaped is mapped to the initial for a model's volume, shape, and orientation. We use the EEE, EEV, and EVV, which is further modified by moving 4 fifths of the data out in an "v" or banana shape. Figure XXX shows the principal component bi-plot of the 3 three model variants applied here. 
+For choosing the shape of the clusters we follow the convention given in by the mclust [@scrucca_mclust_2016] who name and categorize 14 variants of distributions of data containing for 3-clustered. The name of the shaped is mapped to the initial for a model's volume, shape, and orientation. We use the EEE, EEV, and EVV, which is further modified by moving 4 fifths of the data out in an "v" or banana shape. Figure \ref{fig:figModelFamilies} shows the principal component bi-plot of the 3 three model variants applied here. The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty. The training data sets use the EEE model. The evaluation periods use EEE, EEv, and EVV-banana respectively in increasing order of difficulty.
 
 ```{r figModelFamilies, echo = F, out.width = '100%',fig.cap = "Illustrate the shapes of the vc model families. TODO XXX NEEDS CAPTION"}
 knitr::include_graphics("./figures/figModelFam.png")
 ```
 
 <!-- Location mixing -->
- 
-_TODO: XXX CONTINUE WRITING HERE_
-
-Within each factor there is one training trial, followed by 2 time-limited evaluation trials. The training trial always happen with the simplest parameterization 
-
-
+The separation of any two target clusters is currently contained fully within 1 variable at this point. We mix this variable with a noise variable such that the difference in the clusters is mixed at the following respective percentages 100/0% (not mixed), 66/33%, 50/50% (signal evenly mixed). The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty. The training data does not mix separation. Location mixing within an evaluation period is held constant and rotated through the 6 permutations of their order. Randomizing the order of the location mixing is controlled by iterating once after each of the 6 factor order permutations are evaluated. This is illustrated in figure \ref{fig:figPermuationExample}.
 
 ```{r figPermuationExample, echo = F, out.width = '100%',fig.cap = "Example permuptaion selection. TODO XXX NEEDS CAPTION"}
 knitr::include_graphics("./figures/permutaion_example.PNG")
 ```
 
-
-## Synthetic data and fixed parmeters
-
-The data used for the study were sampled from 3 multivariate normal distributions. The distributions were parameterized with the number of clusters, the number of noise variables, and the number of variables. Simulations with 4 dimensions contained 3 clusters, while those with 6 dimensions were given 4 clusters. Each cluster containing 140 observations each. Each simulation contained 3 or 4 noise variables, which were distributed as $~ \mathcal{N}(0, \sigma^2)$. Non-noise variables were distributed $~ X_i \stackrel{d}{\sim} \mathcal{N}(\mu = 0, \sigma^2 = 1) | \textbf{K}$ . The variance-covariance matrix was constrained with non-diagonal elements selected between -0.1 to 0.6, before being constrained into a positive definitive matrix.
-<!-- __#TODO: This is correct for 200 series, but Cl means are Very generous__ -->
-
-<!-- \ref{fig:design} -->
-From the 4 sets of parameterizations, 20 simulations were drawn. The 2 most simple simulations were used during the training section of the study. All participants were exposed to the same training data sets, shown in the same order to standardize training. The remaining 18 simulations were drawn such that the remaining 3 parameterizations were sampled 6 times each. These correspond to the 3 block difficulties of a given factor and task with increasing difficulty. Referring to the middle of figure \ref{fig:design}, a participant would perform each factor-task for 3 block difficulties with increasing difficultly before proceeding. The next factor-task has 3 new data sets but parameterized for the same order of increasing difficulty. All participants experience the same order of simulations while the order of the factor visualization was changed as controlled by a partition into 3 even groups (top of the same figure).
+<!-- Eval evaluation -->
+With this setup we test the parameter space $p \in (4, 6),~shape \in(EEE, EEV, EVV-banana),~location ~\in~ (100/0\%, 66/33\%, 50/50\%)$ in order to evaluate the graphic display across the $factors~\in~(PCA, grand, radial)$. As we iterate though the possible permutations of these factors (6) and location (6) we perform an even evaluation of the full parameter space every 36 participants. While piloting these parameters we estimate that 3 even evaluations will be more than sufficient identify difference between the factors; we targeted for $n = 108$ participants for the study.
 
 
-## Experimental design {#sec:design}
-
-Below we discuss the n = 108 within-participant exploratory study across 3 factors,
-
-_figure idea; abstract map side by side with permutation nesting img not perticularly interesting or crutial to cretiquing the study_
+_TODO: XXX CONTINUE WRITING HERE_
 
 ## Post study survey
 
-The plot display of the first task was limited to 1 minute and 3 minutes on the second task. Responses we available during and after the timer was running. The value and time of each response were captured in a temporary variable that was written to the response table once the user proceeded to the next page. The number of plot manipulations and response entries was also captured for each page including training. 
+
 
 After responses for each task were collected, participants were given a short survey containing questions gauging demographics, experience, and subjective evaluation of each factor on a 5-point Likert scale. The questions and possible responses are as follows:
 
@@ -302,7 +289,7 @@ __likert scale [1-5], least agreement to most agreement:__
 - I am experienced with data visualization.
 - I am educated in multivariate statistical analysis.
 
-__for each factor:__ 
+__for each factor:__
 
 - I was already familiar with visualization.
 - I found this visualization easy to use.
@@ -318,9 +305,10 @@ cite Kadek's paper or another pointing to prolific.co?
 
 A sample of convenience was taken from postgraduate students in the department of econometrics and business statistics and the faculty of information technology at Monash University, based in Melbourne, Australia. Participants were required to have prior knowledge of multivariate data visualizations.
 
-## Training {#sec:training}
+<!-- ## Training {#sec:training} -->
 
-The training was controlled for all participants as much as possible. All participants received the same written interface instructions and watched the same training video introducing the methods and the same task prompts were displayed for their respective tasks. The factor-, interface-, and task- training took place in a continuous block where questions were invited. Questions were disallowed once the formal evaluation section started.
+<!-- The training was controlled for all participants as much as possible. All participants received the same written interface instructions and watched the same training video introducing the methods and the same task prompts were displayed for their respective tasks. The factor-, interface-, and task- training took place in a continuous block where questions were invited. Questions were disallowed once the formal evaluation section started. -->
+
 
 
 
