@@ -22,7 +22,7 @@ gg1 <- ggplot() + theme_void() +
 ## Make ans_plot
 ans_tbl <- readRDS("./apps/spinifex_study/www/ans_tbl.rds")
 sub <- ans_tbl %>% dplyr::filter(sim_nm == tgt_sim_nm)
-source("./paper/R/pivot_longer_resp_ans_tbl.r")
+source("./paper/R/clean_participant_data.r")
 sub_longer <- pivot_longer_resp_ans_tbl(dat = sub)
 
 source("./paper/R/ggproto_ans_plot.r")
