@@ -156,7 +156,7 @@ Considering that we want to explore multivariate data space, while maintaining p
 Later, Asimov [@asimov_grand_1985], coined data visualization _tour_, an animation of many linear projections across local changes in the basis. One of key features of the tour is the object permanence of the data points. That is to say by watching near by, orthogonally-interpolated frames one can track the relative changes of observations as variable contributions change.
 
 <!-- Grand tour -->
-Asimov originally purposed the _grand_ tour. To start, several target bases are randomly selected. These target bases are then orthogonally-interpolated between with a fixed target distance between interpolation frames. The data matrix is premultiplied to the array of interpolated bases and rendered into an animation. There is no user interaction in a grand tour and the target. 
+Asimov originally purposed the _grand_ tour. To start, several target bases are randomly selected. These target bases are then orthogonally-interpolated between with a fixed target distance between interpolation frames. The data matrix is premultiplied to the array of interpolated bases and rendered into an animation. There is no user interaction in a grand tour and the target.
 
 ## Manual Tours
 
@@ -268,7 +268,7 @@ knitr::include_graphics("./figures/permutaion_example.PNG")
 ```
 
 <!-- Eval evaluation -->
-With this setup we test the parameter space $p \in (4, 6),~shape \in(EEE, EEV, EVV-banana),~location ~\in~ (100/0\%, 66/33\%, 50/50\%)$ in order to evaluate the graphic display across the $factors~\in~(PCA, grand, radial)$. As we iterate though the possible permutations of these factors (6) and location (6) we perform an even evaluation of the full parameter space every 36 participants. While piloting these parameters we estimate that 3 even evaluations will be more than sufficient identify difference between the factors; we targeted for $n = 108$ participants for the study.
+With this setup we test the parameter space $p \in (4,~ 6),~shape \in(EEE,~ EEV,~ EVV-banana),~location ~\in~ (100/0\%,~ 66/33\%,~ 50/50\%)$ in order to evaluate the graphic display across the $factors~\in~(PCA,~grand,~radial)$. As we iterate though the possible permutations of these factors (6) and location (6) we perform an even evaluation of the full parameter space every 36 participants. While piloting these parameters we estimate that 3 even evaluations will be more than sufficient identify difference between the factors; we targeted for $n = 108$ participants for the study.
 
 
 _TODO: XXX CONTINUE WRITING HERE_
