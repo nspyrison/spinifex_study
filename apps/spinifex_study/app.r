@@ -495,7 +495,7 @@ server <- function(input, output, session){
   ## resp_tbl writes every line with the next page, this is for SURVEY ONLY.
   observeEvent(input$save_survey, {
     ## Write survey tbl to sheet 2
-    rv$survey_tbl$write_dt     <- as.character(Sys.time())
+    rv$survey_tbl$write_dt <- as.character(Sys.time())
     tryCatch({
       googlesheets4::sheet_append(ss_id, rv$survey_tbl, 2L)
     }, error = function(e){

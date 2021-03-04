@@ -102,7 +102,7 @@ if(T){
     vec_of_int_perms <- 0L:(max(used_nums) %% n_perms)
     vec_candidate_participant_nums <- tgt_full_perm_num  + n_perms * vec_of_int_perms
     unused_indx <- !(vec_candidate_participant_nums %in% used_nums)
-    participant_num <- vec_candidate_participant_nums[unused_indx][1]
+    participant_num <- vec_candidate_participant_nums[unused_indx][1L]
   } ## If gsheet empty, participant_num stays the initialized 1.
 }else{participant_num <- sample(361L:397L, 1L)} ## If turned API read turned off, assign random number.
 full_perm_num <- 1L + (participant_num - 1L) %% n_perms ## n_perms ~36L
