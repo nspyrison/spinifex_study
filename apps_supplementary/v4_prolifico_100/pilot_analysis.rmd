@@ -18,14 +18,16 @@ rel_path <- function(rel_path = "."){
   rel_path <- paste0(rel_dir, "/", rel_path)
   normalizePath(rel_path, winslash = "/")
 }
-rel_path()
 
 ## Read from gsheets API4 and save local
 if(F){
-  ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" ## Hash id of the google sheet
+  ## Hash id of the google sheet
+  ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" 
   raw <- googlesheets4::read_sheet(ss_id, sheet = 1L)
-  raw <- raw %>% filter(!is.na(plot_active)) # Remove dummy rows with application notes
-  ## Doesn't work in mutate:
+  ## Remove dummy rows
+  raw <- raw %>% filter(!is.na(plot_active), ## dummy rows
+                        !is.na(participant_num)) ## 2 missing participant_nums?
+  ## Format 
   raw$full_perm_num = unlist(as.integer(raw$full_perm_num))
   raw$prolific_id = unlist(as.character(raw$prolific_id))
   str(raw)
@@ -34,25 +36,31 @@ if(F){
 ## Load load and clean, save cleaned
 if(F){
   raw <- readRDS(rel_path("data/raw_prolific_100.rds"))
-  ## Filter to only task data including training
-  dat_active <- raw %>% filter(plot_active == TRUE)
-  #source("./paper/R/clean_participant_data.r")
-  source(file = rel_path("../../paper/R/clean_participant_data.r"), local = T, echo = T)
+  ## Only plot_active rows 
+  ## AND Only prolific_ids (rows where nchar(prolific_id) == 24 charcters long)
+  dat_active <- raw %>% filter(plot_active == TRUE,
+                        nchar(prolific_id) == 24L)
+  source(file = rel_path("../../paper/R/clean_participant_data.r"),
+         local = T, echo = F)
+  ## pivot variables columns longer for task-grained aggregation.
   dat_longer <- dat_active %>% pivot_longer_resp_ans_tbl()
-  .mean_diff <- mean(dat_longer$sec_on_pg, na.rm = TRUE) - mean(dat_longer$sec_to_resp, na.rm = TRUE)
-  dat_longer <- dat_longer %>% ## Impute missing sec_to_resp
-    mutate(sec_to_resp = dplyr::if_else(is.na(sec_to_resp), sec_on_pg - .mean_diff, sec_to_resp))
+  ## Mean impute missing sec_to_resp
+  .mean_diff <- mean(dat_longer$sec_on_pg, na.rm = TRUE) -
+    mean(dat_longer$sec_to_resp, na.rm = TRUE)
+  dat_longer <- dat_longer %>%
+    mutate(sec_to_resp = dplyr::if_else(is.na(sec_to_resp), 
+                                        sec_on_pg - .mean_diff, sec_to_resp))
   ## Aggregate to task grain.
   dat_task_agg <- aggregate_task_vars(dat_longer)
-  dat_task_agg <- dat_task_agg %>%
+  ## Fix observeEvent() over count of radial input_inter. 
+  dat_task_agg <- dat_task_agg %>% 
     dplyr::mutate(task_input_inter = dplyr::if_else(
       factor == "radial", task_input_inter -1L, task_input_inter))
+  ## Save task aggregated data.
   saveRDS(dat_task_agg, rel_path("data/dat_task_agg_prolific_100.rds"))
 }
 ## load aggregated data.
 dat_task_agg <- readRDS(rel_path("data/dat_task_agg_prolific_100.rds"))
-
-
 
 ## Local functions -----
 ## For labeling n, mean on boxplots, following:

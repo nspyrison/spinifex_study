@@ -3,11 +3,16 @@
 #' raw <- googlesheets4::read_sheet(ss_id, sheet = 1L, range = "B:S")
 #' find_low_participant_num_from_gs4read(read_sheet_b.s = raw)
 find_low_participant_num_from_gs4read <- function(read_sheet_b.s, probs = c(.25, .98)){
-  ## Setup raw
-  raw <- read_sheet_b.s %>% filter(!is.na(plot_active)) # Remove dummy rows with application notes
+  ## Remove dummy rows
+  raw <- read_sheet_b.s %>% filter(!is.na(plot_active), ## dummy rows
+                                   !is.na(participant_num)) ## 2 missing participant_nums
+  ## Format 
   raw$full_perm_num = unlist(as.integer(raw$full_perm_num))
   raw$prolific_id = unlist(as.character(raw$prolific_id))
-  ## Only plot_active rows AND Only prolific_ids (those with exactly nchar == 24)
+  
+  ### Filter:
+  ## Only plot_active rows 
+  ## Only prolific_ids (those with exactly nchar == 24)
   sub <- raw %>% filter(plot_active == TRUE,
                         nchar(prolific_id) == 24L)
   

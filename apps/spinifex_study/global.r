@@ -82,8 +82,12 @@ tryCatch({
 
 #### Assign participant_num and perm_num -----
 ## Read response sheet and set participant number to first not use integer
-participant_num <- 1L ## Initialize
-## API reads UNLOCKED. keep in mind API quota issue.
+
+## Initialize to an under evaled number, stays if API quota, otherwise overwriten.
+.opts <- 1L:23L
+.but_not <-  -c(1L, 6L, 16L, 18L)
+participant_num <- sample(360L + .opts[.but_not], 1L)
+## keep in mind API quota issue.
 prev_saves <- NULL
 was_quota_issue <- FALSE
 if(T){
@@ -97,14 +101,15 @@ if(T){
     return(e)
   })
   used_nums <- unique(prev_saves$participant_num)
+  used_nums <- used_nums[complete.cases(used_nums)]
   if(length(used_nums) > 0L){ ## Then read worked correctly; 
     tgt_full_perm_num <- find_low_participant_num_from_gs4read(prev_saves)
-    vec_of_int_perms <- 0L:(max(used_nums) %% n_perms)
+    vec_of_int_perms <- 0L:(max(used_nums) %/% n_perms + 1L)
     vec_candidate_participant_nums <- tgt_full_perm_num  + n_perms * vec_of_int_perms
     unused_indx <- !(vec_candidate_participant_nums %in% used_nums)
     participant_num <- vec_candidate_participant_nums[unused_indx][1L]
   } ## If gsheet empty, participant_num stays the initialized 1.
-}else{participant_num <- sample(361L:397L, 1L)} ## If turned API read turned off, assign random number.
+}
 full_perm_num <- 1L + (participant_num - 1L) %% n_perms ## n_perms ~36L
 
 ## Select permutation orders
