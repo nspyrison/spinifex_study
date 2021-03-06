@@ -154,8 +154,8 @@ aggregate_task_vars <- function(df_long){
   df_long %>%
     dplyr::group_by(key, participant_num, full_perm_num, prolific_id, sim_nm, 
                     factor, period, eval, is_training, vc, p_dim, location) %>%
-    dplyr::summarise(task_input_inter = mean(input_inter),
-                     task_resp_inter = mean(resp_inter),
+    dplyr::summarise(task_input_inter = mean(input_inter), ## value repeated so mean instead of sum.
+                     task_resp_inter = mean(resp_inter), ## value repeated so mean instead of sum.
                      max_sec_to_resp = max(sec_to_resp),
                      max_sec_on_pg = max(sec_on_pg),
                      cnt_resp = sum(resp),

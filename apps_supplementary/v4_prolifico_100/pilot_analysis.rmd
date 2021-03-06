@@ -256,9 +256,67 @@ my_ggplot(.aes = aes(x = eval, y = task_marks,
           .data = dat_qual)
 ```
 
-### Covariance
+### Within-participants Evaluation order
 
 ```{r}
+## Create a global unique id (guid), doesn't fix the issue, because the double counted t3 was from repeat 1_1 runs, on mar 4, remove it.
+
+## instead we'll apply a simple filter
+dat_qual_wi_participant <- dat_qual %>%
+  filter(task_marks > -1L, task_marks < 1L) %>% 
+  mutate(frame_pro_id = as.integer(prolific_id))
+# g <- 
+  ggplot(dat_qual_wi_participant, 
+            aes(x = eval, y = task_marks,
+                frame = frame_pro_id,
+                group = frame_pro_id,
+                color = is_training, fill = is_training)
+  ) +
+  labs(title = "Within Participants, Marks by evaluation order") +
+  #theme_bw() +
+  geom_point(
+    aes(size = max_sec_to_resp), alpha = .2,
+    position = position_jitterdodge(jitter.width = .8,
+                                    jitter.height = .05)
+  ) +
+  geom_line(alpha = .2)
+# plotly::ggplotly(g)
+# #R> Error in -data$group : invalid argument to unary operator
+
+## using jitter, in geom_lines doesn't perform the same offset as geom_point.
+
+cor_sec_to_resp <- cor(dat_qual_wi_participant$max_sec_to_resp,
+                       dat_qual_wi_participant$task_marks) %>% round(3)
+cor_eval <- cor(as.integer(dat_qual_wi_participant$eval),
+                dat_qual_wi_participant$task_marks) %>% round(3)
+cor_cnt_resp <- cor(dat_qual_wi_participant$cnt_resp, 
+                    dat_qual_wi_participant$task_marks) %>% round(3)
+
+print(paste0(
+  "Quite busy, looking at the correlation, cor(eval number, marks) = ", cor_eval,
+  ", a moderate negative value given that, cor(max time to respond, marks) = ", 
+  cor_sec_to_resp
+))
+
+print("Tried animating over participants, but erroring (Error in -data$group : invalid argument to unary operator) on a valid ggplot. Would be across the board with such low correlation")
+
+
+## Reviewing correlations, nothing too exciting, 
+# skimr::skim(dat_qual)
+# corr_dat <- dat_qual %>% 
+#   mutate(eval = as.numeric(eval)) %>% 
+#   select(-z_weight_check)
+# num_col_ind <- unlist(lapply(corr_dat, is.numeric))  
+# car_dat_mat <- corr_dat[, num_col_ind] %>% as.matrix() %>% cor()
+# col3 <- colorRampPalette(c("blue", "white", "red")) 
+# corrplot::corrplot.mixed(car_dat_mat, 
+#                          lower.col = col3(100),
+#                          upper.col = col3(100))
+```
+
+### Covariance
+
+```{r} 
 my_ggplot(aes(x = vc, y = task_marks,
               color = is_training, fill = is_training),
           "Marks by var-covariance",

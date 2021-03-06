@@ -182,7 +182,7 @@ The display was a 2D scatterplot with observations supervised with the shape and
 
 The instructions iterated several times in the video was: 1) Use the input controls to find a frame that contains separation between the clusters of green circles and orange triangles, 2) look at the orientation of the variable contributions in the gray circle, a visual depiction of basis, and 3) select all variables that contribute more than average in the direction of the separation in the scatterplot. Regardless of factor and block values participants were limited to 60 seconds for each evaluation of this task.  
 
-The evaluation measure of this task was designed to have a few of features: 1) the sum of squares of the individual variable marks should be 1. 2) The sum of the correct variable(s) is 1, incorrect variables sum to -1, a selection of all or none (disallowed in application) should sum to 0. With these in mind we define the following measure for evaluating the task:
+The evaluation measure of this task was designed to have a few of features: 1) the sum of squares of the individual variable marks should be 1. 2) The sum of the correct variable(s) is 1, incorrect variables sum to -1, a selection of all or none should sum to 0. With these in mind we define the following measure for evaluating the task:
 
 Given a specific dataset $\textbf{X}$ containing $k$ clusters, let $\textbf{S}_j$ be the set of observations in cluster $j$ and $\overline{S_j}$ be a vector of variable means for cluster $j$.
 
