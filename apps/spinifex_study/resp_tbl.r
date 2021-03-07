@@ -207,6 +207,7 @@ make_save_ans_tbl <- function(){
     ## var_signal, vector, the difference of the means of clusters A & B in given dim.
     var_signal_mat[i, var_ind] <- sim_signal
     ## bar, scalar, the average size of the signal per dim.
+    ##TODO VALIDATE BAR, / p? / (p-1)? / (p_noise)? z_check_weights all negative.
     bar_vect[i] <- 
       sum(var_signal_mat[i, var_ind]) / length(sim_signal)
     ## var_diff, vector, magnitude above bar of the signal in each dim

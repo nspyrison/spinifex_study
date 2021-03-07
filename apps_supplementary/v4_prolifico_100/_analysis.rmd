@@ -12,6 +12,9 @@ editor_options:
 ---
 ```{r setup, include=FALSE}
 library(tidyverse)
+library("lme4")
+library("merTools")
+
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 rel_path <- function(rel_path = "."){
   rel_dir  <- dirname(rstudioapi::getSourceEditorContext()$path)
@@ -236,27 +239,7 @@ head(prolific_id_agg)
 ```
 
 
-
-## Marks by ... 
-
-### Factor
-
-```{r}
-my_ggplot2(.x_col = factor, 
-          .y_col = task_marks,
-          .title = "Marks by factor")
-```
-
-### Evaluation order
-
-```{r}
-my_ggplot(.aes = aes(x = eval, y = task_marks,
-                     color = is_training, fill = is_training),
-          .title = "Marks by evaluation order",
-          .data = dat_qual)
-```
-
-### Within-participants Evaluation order
+## Within-participants -- Marks by Evaluation order
 
 ```{r}
 ## Create a global unique id (guid), doesn't fix the issue, because the double counted t3 was from repeat 1_1 runs, on mar 4, remove it.
@@ -302,16 +285,146 @@ print("Tried animating over participants, but erroring (Error in -data$group : i
 
 
 ## Reviewing correlations, nothing too exciting, 
-# skimr::skim(dat_qual)
-# corr_dat <- dat_qual %>% 
+# corr_dat <- dat_qual %>%
 #   mutate(eval = as.numeric(eval)) %>% 
-#   select(-z_weight_check)
-# num_col_ind <- unlist(lapply(corr_dat, is.numeric))  
+#   dplyr::select(!z_weight_check)
+# num_col_ind <- unlist(lapply(corr_dat, is.numeric))
 # car_dat_mat <- corr_dat[, num_col_ind] %>% as.matrix() %>% cor()
-# col3 <- colorRampPalette(c("blue", "white", "red")) 
-# corrplot::corrplot.mixed(car_dat_mat, 
+# col3 <- colorRampPalette(c("blue", "white", "red"))
+# corrplot::corrplot.mixed(car_dat_mat,
 #                          lower.col = col3(100),
 #                          upper.col = col3(100))
+```
+
+
+## Random effects regression model 
+
+We'll first consider the baseline fixed effects considering only the continuous variables. We have:
+
+$$\widehat{marks} = b_{int} +
+b_{SecResp} * SecResp +
+b_{SecPg} * SecPg + \\
+b_{RespInter} * RespInter + 
+b_{InputInter} * InputInter +
+b_{CntResp} * CntResp +
+\epsilon
+$$
+Where, 
+$\epsilon \sim \mathcal{N}(0,~\sigma)$
+
+
+<!-- $$ -->
+<!-- \widehat{task~marks} = b_{intercept} + \\ -->
+<!-- b_{max~sec~to~respond} * max~sec~to~respond + -->
+<!-- b_{response~interactions} * response~inter + -->
+<!-- b_{input~interteraction} * input~inter + -->
+<!-- b_{input~interteraction} -->
+<!-- \epsilon -->
+<!-- $$ -->
+<!-- Where, $ \epsilon \sim \mathcal{N}(0,~\sigma)$ -->
+
+Building on this, we add in all of our fixed factor terms: method factor, data dimension, variance-covariance shape, signal mixing location. Lastly we add the random effect of the participants. This random term, $effect_{participant}$, accounts for the difference between participant, that is the each individuals ability/disposition to effect their task marks. Then our mixed model is: 
+
+$$\widehat{marks} = b_{int} +
+b_{SecResp} * SecResp +
+b_{SecPg} * SecPg + \\
+b_{RespInter} * RespInter + 
+b_{InputInter} * InputInter +
+b_{CntResp} * \\
+b_{factor} * I(factor) + 
+b_{dim} * I(dim) + 
+b_{shape} * I(shape) + \\
+b_{location} * I(location) + 
+b_{participant} * effect_{participant} +
+\epsilon$$
+Where,  
+$$\epsilon \sim \mathcal{N}(0,~\sigma) \\
+effect_{participant} \sim \mathcal{N}(0,~\sigma_{participant}) \\
+factor \in (pca, grand*, radial) \\
+dim \in (4, 6) \text{ variables, with 3 and 4 clusters  respectivly} \\
+shape \in (EEE, EEV, EVV~banana) \\
+location \in (0/100, 33/66, 50/50) \text{ % mixing of a noise and signal variable respectively} \\
+I() \text{ is the indicator function, a logical value for each level of the fixed factor}$$
+
+<!-- $$\widehat{task~marks} = b_{intercept} + \\ -->
+<!-- b_{max~sec~to~respond} * max~sec~to~respond + -->
+<!-- b_{sec~on~pg} * sec~on~pg + -->
+<!-- b_{response~inter} * response~inter + -->
+<!-- b_{input~inter} * input~inter + -->
+<!-- b_{factor==pca} * is~factor==pca + -->
+<!-- b_{factor==grand} * is~factor==grand + -->
+<!-- b_{factor==radial} * is~factor==radial + \\ -->
+<!-- b_{dim==4} * is~dim==4 + -->
+<!-- b_{dim==6} * is~dim==6 + -->
+<!-- b_{shape==eee} * is~shape==eee + -->
+<!-- b_{shape==eev} * is~shape==eev + -->
+<!-- b_{shape==evv} * is~shape==evv + \\ -->
+<!-- b_{location==0\_1} * is~location==0\_1 + -->
+<!-- b_{location==33\_66} * is~location==33\_66 + -->
+<!-- b_{location==50\_50} * is~location==50\_50 + \\ -->
+<!-- effect_{participant} + -->
+<!-- \epsilon$$ -->
+
+```{r}
+## Mixed (fixed and random/variable) effects regression model,
+### following along with:
+if(F) 
+  browseURL("https://m-clark.github.io/mixed-models-with-R/random_intercepts.html#running-a-mixed-model")
+#install.packages("lme4")
+
+dat_qual_onlyeval_renamed <- dat_qual %>% filter(is_training == FALSE) %>%
+  rename(shape = vc, dim = p_dim, order = eval, participant = prolific_id)
+
+## The Models:
+marks_lmer1 <- lmer(
+  task_marks ~ 
+    max_sec_to_resp + max_sec_on_pg + task_resp_inter + task_input_inter + cnt_resp + # Numeric
+    factor + dim + shape + location + order + ## Fixed factor random terms
+    (1 | participant), ## Random effect
+  data = dat_qual_onlyeval_renamed
+)
+summary(marks_lmer1)
+plotREsim(REsim(marks_lmer1))  # plot the interval estimates
+
+print("and simplifying the model, by removing 3 of the most correlated, redundant numeric variables, we lose ~ 1% AIC relative to the first model.")
+marks_lmer2 <- lmer(
+  task_marks ~ 
+    max_sec_to_resp + task_input_inter + cnt_resp + # Numeric
+    factor + dim + shape + location + order + ## Fixed factor random terms
+    (1 | participant), ## Random effect
+  data = dat_qual_onlyeval_renamed
+)
+summary(marks_lmer2)
+
+
+# print("Confidence intervals:")
+# confint(marks_lmer)
+# 
+# print("Head of participant effect:")
+# coef(marks_lmer)$participant %>% head(5)
+# 
+# predictInterval(marks_mixed_mod)   # for various model predictions, possibly with new data
+# REsim(marks_mixed_mod)             # mean, median and sd of the random effect estimates
+```
+
+
+## Marks by ... 
+
+### Factor
+
+```{r}
+my_ggplot2(.x_col = factor, 
+          .y_col = task_marks,
+          .title = "Marks by factor")
+```
+
+### Evaluation order
+
+```{r}
+my_ggplot(.aes = aes(x = eval, y = task_marks,
+                     color = is_training, fill = is_training),
+          .title = "Marks by evaluation order",
+          .data = dat_qual)
 ```
 
 ### Covariance
@@ -404,6 +517,5 @@ my_ggplot(aes(x = factor, y = task_resp_inter,
           "Number of response interaction (inverse confidence) by factor",
           .data = dat_qual)
 ```
-
 
 
