@@ -173,23 +173,27 @@ In order to simplify the task and keep its duration realistic we consider a vari
 <!-- hypothesis statement -->
 _Does the animated removal of single variables via the radial tour improve the ability of the analyst to understand the importance of variables contribution to the separation of clusters?_
 
+<!-- rational for standards of comparison -->
 PCA will be compared as a baseline as it is a popular stationary linear embedding. The grand tour will act as a secondary control that includes the object permanence of the data to near by frames, but with the ability to check individual variable or influence it's path. using these as comparisons we want to identify how much, if any, the radial tour helps an analyst to interpret the contributions of individual variables.
 
 
 ## Task and evaluation {#sec:task}
 
+<!-- geom, clusters, explicit task -->
 The display was a 2D scatterplot with observations supervised with the shape and color of the data points mapped to their cluster. There were either 3 or 4 clusters with even number of observations. Participants were asked to 'check any/all variables that contribute more than average to the cluster separation green circles and orange triangles', which was further explained in the explanatory video as 'mark and and all variable that carry more than their fair share of the weight, or 1 quarter in the case of 4 variables'.
 
+<!-- Instruction and video -->
 The instructions iterated several times in the video was: 1) Use the input controls to find a frame that contains separation between the clusters of green circles and orange triangles, 2) look at the orientation of the variable contributions in the gray circle, a visual depiction of basis, and 3) select all variables that contribute more than average in the direction of the separation in the scatterplot. Regardless of factor and block values participants were limited to 60 seconds for each evaluation of this task.  
 
+<!-- evaluating measure -->
 The evaluation measure of this task was designed to have a few of features: 1) the sum of squares of the individual variable marks should be 1. 2) The sum of the correct variable(s) is 1, incorrect variables sum to -1, a selection of all or none should sum to 0. With these in mind we define the following measure for evaluating the task:
 
 Given a specific dataset $\textbf{X}$ containing $k$ clusters, let $\textbf{S}_j$ be the set of observations in cluster $j$ and $\overline{S_j}$ be a vector of variable means for cluster $j$.
 
 \begin{gather*}
-  \textbf{X}_{[n,~p]} = (x_1, ~....,~ x_p)\\
-  \textbf{S}_j = (s_{j1}, ~....,~ s_{ji}) ~|~ j \in [1, k],~ \textbf{S}_{j} \in \textbf{X}  \\
-  \overline{S_j} = (\overline{s_1}, ~....,~ \overline{s_p})\\
+  \textbf{X}_{[n,~p]} = (x_1, ~....,~ x_p) \\
+  \textbf{S}_j = (s_{j1}, ~....,~ s_{ji}) ~|~ j \in [1, k],~ \textbf{S}_{j} \in \textbf{X} \\
+  \overline{S_j} = (\overline{s_1}, ~....,~ \overline{s_p}) \\
 \end{gather*}
 
 We define weights, $W$ to be a vector of variable marks of each variable if selected, the fraction of the difference in variable means, less $1/p$, the weight each variable would hold is the signal was uniformly distributed among the variables.
@@ -203,6 +207,7 @@ We define weights, $W$ to be a vector of variable marks of each variable if sele
   } - \frac{1}{p}
 \end{align*}
 
+<!-- bring in participant responses  -->
 Participant responses, $R$ are a vector of true/false values indicating if the participant thinks the variable separates the two clusters more than if the separation was spread uniformly between variables. Then $M$ is a vector of variable marks.
 
 \begin{align*}
@@ -212,40 +217,32 @@ Participant responses, $R$ are a vector of true/false values indicating if the p
 
 Where $I$ is the indicator function. Then the total marks for this task is the sum of the marks vector.
 
-```{r, figBiplotScoring, echo = F, out.width = '100%', fig.cap = "PCA Biplot with Score and weight evaluation. TODO XXX NEEDS CAPTION"}
+```{r, figBiplotScoring, echo = F, out.width = '100%', fig.cap = "(L), PCA Biplot of the components showing the most cluster separation with (R) Score and weight evaluation. The bar is the absolute standardized separation of cluster means explained by the variable. The dashed line is 1 / dimensionality, the ammount of separation each variable would have if evenly detributed. The green/red lines are the marks of each variable if selected. These are the signed square of the differce between each variable value and the dashed line."}
 knitr::include_graphics("./figures/figBiplotScoring.png")
 ```
 
-_TODO: XXX, NEED caption and title for figure_
-
-<!-- The plot display of the first task was limited to 1 minute and 3 minutes on the second task. Responses we available during and after the timer was running. The value and time of each response were captured in a temporary variable that was written to the response table once the user proceeded to the next page. The number of plot manipulations and response entries was also captured for each page including training. -->
-
-<!-- discuss training, response text, timed evaluations -->
-_TODO: XXX, discuss untimed training, response text, timed evaluations_
-
+<!--Period order: Training, eval, eval -->
+Each of the 3 periods introduced a new factor, where participants were first able to explore an untimed task with data under the simplest parameterization. The training allows the participant to become familiar with the inputs and visual specific to the factor. Upon clicking the proceed button text containing the correct answer displays with visual still intact to explore further. After the training, participant performed 2 evaluation trials. After 60 second the display was removed, though few participants spent 60 second on any particular task. These evaluation trials where performed under different parameterizations as explained in section \ref{sec:blocks}.
 
 ## Factor application {#sec:factors}
 
 <!-- Background for methodology, application here -->
-Section \ref{sec:background} gives the sources and a description of the visual factors PCA, grand tours, and radial manual tours. Below we cover the differences in the application and parameterization applied in the user study. Due to physically distancing from COVID-19 what was originally intended to be run in person with study invigilator had to be simplified to be understood and usable in a crowdsourcing application. We opted for precomputed images and animations in order to simplify input interactions and improve user experience.
+Section \ref{sec:background} gives the sources and a description of the visual factors PCA, grand tours, and radial manual tours. Below we cover the aesthetic standardization, as well the unique input and display within each factor.
 
 <!-- aesthetic standardization -->
 The visualization methods were selected to standardized wherever possible. All aesthetic values (colors, shapes, sizes, absence of legend, and absence axis titles) were held consistent. Variable contributions where always shown left of the scatterplot embeddings with their aesthetic values consistent as well.
 
 <!-- PCA -->
-PCA inputs allowed for users to select between the top 4 principal components for both the x and y axis regardless of the data dimensionality (either 4 or 6). Display of the same component on both axes simultaneously was prohibited. This results in 12 combinations of valid inputs. Half of which are homomorphic visuals, in that they mirrored on the x = y line and show no new information.
+PCA inputs allowed for users to select between the top 4 principal components for both the x and y axis regardless of the data dimensionality (either 4 or 6).
 
 <!-- Grand tours -->
-The grand tour was restricted to 75 interpolated frames with step size of 0.1 radians between each interpolated frame. This were animated at 5 frames per second for a view time of 15 seconds to allow the animation to be viewed up to 4 times within the duration of the task evaluation. The starting basis was randomized and 4 new target frames were animated through within these conditions. The exact 'path' or morphing of the variables was held constant within simulations of the same dimensionality (while order of variables and magnitude of signal was randomized upon simulation).
+There were no user input for grand tour, users were instead shown a 15 second animation of the same randomly selected path. Users were able to view the same clip up to 4 times within the time limit.
 
 <!-- Radial tours -->
 Radial tours were also displayed at 5 frames per second with in interpolation step size of 0.1 radians. Users where able to swap between the 4 or 6 variables, upon which the display would change the the start of radially increasing the contribution of the selected variable till it was full, zeroed and then back to the initial. The complete animation of any 1 variable takes about 20 seconds, and is almost fully in the projection frame at around 6 second. The starting basis of each is initialized to a half-clock design, where the 4 or 6 variables were evenly distributed in half of the circle which is then orthonormalized. This is done to give no variable preference while minimizing variable interactions, as variables opposite of the manipulation variable must lose contribution as the other is rotated to full contribution (and vice versa).
 
-<!-- Training, eval, eval -->
-Within each factor there is one training trial, followed by 2 time-limited evaluation trials. The training allows the participant to become familiar with the inputs and visual specific to the factor. Upon clicking the proceed button text containing the correct answer displays with visual still intact to explore further. Training trial always happen with the simplest parameterization and are followed by 2 evaluations of increasingly difficult parameters which are limited to 1 minute each.
 
-
-## Blocks and parameterization
+## Blocks and parameterization {#sec:blocks}
 
 <!-- volume of parameter space -->
 The volume the parameter-space increase more than exponentially with the dimensionality of the data. Care must be taken to select realistic parameter values. We vary the values for 3 aspects of the simulated data including 1) The dimensionality of the data. 2) the shapes of the clusters, by changing the variance-covariance of the clusters. 3) The location of the difference between clusters, by mixing a signal and a noise variable at different ratio.
@@ -270,26 +267,27 @@ knitr::include_graphics("./figures/permutaion_example.PNG")
 <!-- Eval evaluation -->
 With this setup we test the parameter space $p \in (4,~ 6),~shape \in(EEE,~ EEV,~ EVV-banana),~location ~\in~ (100/0\%,~ 66/33\%,~ 50/50\%)$ in order to evaluate the graphic display across the $factors~\in~(PCA,~grand,~radial)$. As we iterate though the possible permutations of these factors (6) and location (6) we perform an even evaluation of the full parameter space every 36 participants. While piloting these parameters we estimate that 3 even evaluations will be more than sufficient identify difference between the factors; we targeted for $n = 108$ participants for the study.
 
-
 _TODO: XXX CONTINUE WRITING HERE_
 
 ## Post study survey
 
-
-
+<!-- placement and likert scale -->
 After responses for each task were collected, participants were given a short survey containing questions gauging demographics, experience, and subjective evaluation of each factor on a 5-point Likert scale. The questions and possible responses are as follows:
+
+__Demographic:__
 
 - What are your preferred pronouns? [decline to answer, he/him, she/her, they/them or other]
 - Which age group do you belong to? [decline to answer, 18 to 24, 25 to 35, 36 to 45, 45 to 60, 60 and up]
 - What is your highest completed education? [decline to answer, Undergraduate degree (BA/BSc/other), Graduate degree (MA/MSc/MPhil/other), Doctorate degree (PhD/other); prolific.co participants were filtered to those stating they had an least an undergraduate degree]
 
-__likert scale [1-5], least agreement to most agreement:__
+__Within participant bias:__ $\\$
+likert scale [1-5], least agreement to most agreement
 
 - I understand the how to perform the task.
 - I am experienced with data visualization.
 - I am educated in multivariate statistical analysis.
 
-__for each factor:__
+__Subjective by factor:__ 
 
 - I was already familiar with visualization.
 - I found this visualization easy to use.
@@ -334,3 +332,24 @@ spinifex::run_app("primary")
 This article was created in R [@r_core_team_r:_2020], using `knitr` [@stodden_knitr:_2014] and `rmarkdown` [@xie_r_2018], with code generating the examples inline. The source files for this article, application, data, and analysis can be found at [github.com/nspyrison/spinifex_study/](https://github.com/nspyrison/spinifex_paper/). The source code for the `spinifex` package and accompanying shiny application can be found at [github.com/nspyrison/spinifex/](https://github.com/nspyrison/spinifex/).
 
 # Bibliography {#sec:bib}
+
+
+
+# Supplemental material
+<!-- Loose collection of overly detailed content. -->
+
+
+
+<!-- About factors: -->
+
+<!-- simplified for crowdsourcing -->
+differences in the application and parameterization applied in the user study. Due to physically distancing from COVID-19 what was originally intended to be run in person with study invigilator had to be simplified to be understood and usable in a crowdsourcing application. We opted for precomputed images and animations in order to simplify input interactions and improve user experience.
+
+<!-- PCA -->
+Display of the same component on both axes simultaneously was prohibited. This results in 12 combinations of valid inputs. Half of which are homomorphic visuals, in that they mirrored on the x = y line and show no new information.
+
+<!-- Grand tours -->
+Display of the same component on both axes simultaneously was prohibited. This results in 12 combinations of valid inputs. Half of which are homomorphic visuals, in that they mirrored on the x = y line and show no new information.
+
+<!-- Radial tours -->
+Radial tours were also displayed at 5 frames per second with in interpolation step size of 0.1 radians. Users where able to swap between the 4 or 6 variables, upon which the display would change the the start of radially increasing the contribution of the selected variable till it was full, zeroed and then back to the initial. The complete animation of any 1 variable takes about 20 seconds, and is almost fully in the projection frame at around 6 second. The starting basis of each is initialized to a half-clock design, where the 4 or 6 variables were evenly distributed in half of the circle which is then orthonormalized. This is done to give no variable preference while minimizing variable interactions, as variables opposite of the manipulation variable must lose contribution as the other is rotated to full contribution (and vice versa).
