@@ -256,9 +256,26 @@ dat_qual_wi_participant <- dat_qual %>%
                                                jitter.height = .05)
   ) +
   geom_line(alpha = .2)
+  ## using jitter, in geom_lines doesn't perform the same offset as geom_point.
+  
+  ### Looking at facets becomes too busy.
+  # tgt_ids <- head(unique(dat_qual_wi_participant$prolific_id))
+  # dat_qual_wi_participant %>% 
+  #   filter(prolific_id %in% tgt_ids) %>% 
+  #   ggplot(aes(x = eval, y = task_marks,
+  #              frame = frame_pro_id,
+  #              group = frame_pro_id,
+  #              color = is_training, fill = is_training)
+  #   ) +
+  #   labs(title = "Within Participants, Marks by evaluation order") +
+  #   scale_color_brewer(palette = "Dark2") + 
+  #   scale_fill_brewer(palette = "Dark2") +
+  #   geom_point(aes(size = cnt_resp), alpha = .2) +
+  #   geom_line(alpha = .2) + facet_grid(vars(prolific_id))
+  
+print("Tried animating over participants, but erroring (Error in -data$group : invalid argument to unary operator) on a valid ggplot. Would be across the board with such low correlation")
 
 
-## using jitter, in geom_lines doesn't perform the same offset as geom_point.
 
 cor_sec_to_resp <- cor(dat_qual_wi_participant$max_sec_to_resp,
                        dat_qual_wi_participant$task_marks) %>% round(3)
@@ -273,7 +290,7 @@ print(paste0(
   cor_sec_to_resp
 ))
 
-print("Tried animating over participants, but erroring (Error in -data$group : invalid argument to unary operator) on a valid ggplot. Would be across the board with such low correlation")
+
 
 
 ## Reviewing correlations, nothing too exciting, 
@@ -348,7 +365,6 @@ $$
 if(F) 
   browseURL("https://m-clark.github.io/mixed-models-with-R/random_intercepts.html#running-a-mixed-model")
 #install.packages("lme4")
-
 dat_qual_onlyeval_renamed <- dat_qual %>% filter(is_training == FALSE) %>%
   rename(shape = vc, dim = p_dim, order = eval, participant = prolific_id)
 

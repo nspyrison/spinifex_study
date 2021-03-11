@@ -127,7 +127,7 @@ pivot_longer_resp_ans_tbl <- function(dat){
                                          levels = 1L:max(full_perm_num)),
                   prolific_id = as.factor(prolific_id),
                   sim_nm = as.factor(sim_nm),
-                  factor = as.factor(factor),
+                  factor = factor(factor, levels = c("pca", "grand", "radial")),
                   period = as.factor(period),
                   eval = factor(eval, levels = 
                                   c("t1", 1L:2L, "t2", 3L:4L, "t3", 5L:6L)),
