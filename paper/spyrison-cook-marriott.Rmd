@@ -8,7 +8,7 @@ title: >
 author:
   Nicholas Spyrison, Dianne Cook, Kimbal Marriott
 abstract: >
-  Viewing data in its original variable space is foundamental to the exploratory data analysis. For multivariate data this is an complex task. We perform a between-participant user study to evaluate 3 types of linear embeddings, namely, biplots of principal componts, grand tours, and radial tours. Crowdsourced participants (n = 108, via prolific.co) were asked to identify which variable(s) explain the difference between 2 clusters of data. We find that...
+  Viewing data in its original variable space is foundamental to the exploratory data analysis. For multivariate data this is an complex task. We perform a between-participant user study to evaluate 3 types of linear embeddings, namely, biplots of principal componts, grand tours, and radial tours. Crowdsourced participants (N = 127, via prolific.co) were asked to identify which variable(s) explain the difference between 2 clusters of data. We find that...
 keywords: multivariate data, exploratory data analysis, high dimensional data, data visualization, cluster analysis, dimension reduction, data science, user study, between users, linear projections, linear embeddings
 bibliography: spyrison-cook-marriott.bib
 editor_options: 
@@ -310,6 +310,43 @@ cite Kadek's paper or another pointing to prolific.co?
 # Results {#sec:results}
 
 __TODO: XXX Need to run study and add results here.__
+
+## Random effects regression model 
+
+In order to compare the within-participant effect we fit random effect regression model predicting the marks of non-training evaluations. We'll include most of the continuous variables, but hold out 2 that are most correlated which actually lower model AIC (Akaike's Information Criterion) when included. We also interact the number of input interactions with factor as there are no interaction for the grand tour and fundamentally different between pca and radial tours. We include a vector of coefficient against the iddentity dummy of our 4 factor variables (factor, dimensions, variance-covariance shape, and noise location). Lastly we include the a random effects term to account for the individual participants effect on the score. Our applied random effects model is: 
+
+$$
+\begin{align*}
+\widehat{marks} = ~
+&\beta_{int} +
+\beta_{SecResp} * SecResp +
+\beta_{SecPg} * SecPg + 
+\beta_{RespInter} * RespInter + \\
+&\beta_{CntResp} * CntResp + 
+\boldsymbol{\beta}_{InputInter*Factor} * InputInter * I(\boldsymbol{Factor}) +
+\boldsymbol{\beta}_{factor} * I(\boldsymbol{factor}) + \\
+&\boldsymbol{\beta}_{dim} * I(\boldsymbol{dim}) + 
+\boldsymbol{\beta}_{shape} * I(\boldsymbol{shape}) + 
+\boldsymbol{\beta}_{location} * I(\boldsymbol{location}) + 
+\boldsymbol{\beta}_{participant} * \boldsymbol{effect}_{participant} +
+\epsilon
+\end{align*}
+$$
+where,  
+$$
+\begin{align*}
+&\epsilon \sim \mathcal{N}(0,~\sigma) \\
+&effect_{participant_i} \sim \mathcal{N}(0,~\sigma_{participant_i}) ~|~ i \in level(participant~ids) \\
+&factor \in (pca,~grand,~radial) \\
+&dim \in (4,~6) \text{ variables, with 3 & 4 clusters  respectivly} \\
+&shape \in (EEE,~EEV,~EVV~banana) \\
+&location \in (0/100,~33/66,~50/50) \text{ % mixing of a noise and signal variable respectively} \\
+&I() \text{ is the indicator function, a logical value for each level of the fixed factor}
+&\end{align*}
+$$
+
+
+
 
 
 # Discussion {#sec:discussion}
