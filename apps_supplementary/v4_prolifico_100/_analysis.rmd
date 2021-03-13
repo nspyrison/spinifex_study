@@ -64,10 +64,11 @@ if(F){
       factor == "radial", task_input_inter -1L, task_input_inter))
   ## Plot friendly titles
   dat_task_agg <- dat_task_agg %>%
+  mutate(instance_id = paste(sep = "_", participant_num, full_perm_num, prolific_id)) %>%
   rename(shape = vc, dim = p_dim, `evaluation order` = eval, participant = prolific_id,
          `is training` = is_training, `# response interactions` = task_resp_inter,
          `max seconds to respond` = max_sec_to_resp, `seconds on page` = max_sec_on_pg,
-         `# of responses` = cnt_resp, marks = task_marks, 
+         `# of responses` = cnt_resp, marks = task_marks,
          `parameter permutation` = full_perm_num)
   ## Save task aggregated data.
   saveRDS(dat_task_agg, rel_path("data/dat_task_agg_prolific_100.rds"))
@@ -112,31 +113,43 @@ Let's look at the distribution of quality evaluations by full_perm_num.
 ```{r}
 #### Aggregation tables
 
+## app_instance_agg
+app_intance_agg <- dat_task_agg %>% 
+  group_by(instance_id, participant_num, `parameter permutation`, participant, `is training`) %>% 
+  summarise(`full evaluations` = max(sum(`is training`) / 3, sum(!`is training`) / 6)
+  ) %>% ungroup() %>% 
+  mutate(is_instance_training_even = if_else(`full evaluations` == 1, TRUE, FALSE)) %>% 
+  arrange(desc(`full evaluations`))
+## Find vector of evenly evaled instances
+even_evaled_instance_ids <- app_intance_agg %>%
+  filter(`is training` == TRUE, is_instance_training_even == TRUE) %>%
+  pull(instance_id)
+## Decode back to the original dataset.
+dat_qual <- dat_task_agg %>% mutate(
+  `is even eval` = if_else(instance_id %in% even_evaled_instance_ids, TRUE, FALSE))
+
+
 ## participant_agg
-participant_agg <- dat_qual %>% group_by(participant, `is training`) %>%
-  summarise(n = n(),
-            `full evaluations` = max(sum(`is training`) / 3, sum(!`is training`) / 6),
-  ) %>% ungroup() %>% arrange(desc(`full evaluations`))
+participant_agg <- dat_task_agg %>%
+  group_by(participant, `is training`) %>%
+  summarise(`full evaluations` = max(sum(`is training`) / 3, sum(!`is training`) / 6)
+  ) %>% ungroup() %>% 
+  arrange(desc(`full evaluations`))
 
 ## perm_num_agg
-perm_num_agg <- dat_qual %>% group_by(full_perm_num, `is training`) %>%
-  summarise(n = n(),
-            `full evaluations` = max(sum(`is training`) / 3, sum(!`is training`) / 6),
-  ) %>% ungroup() %>% arrange(desc(`full evaluations`))
+perm_num_agg <- dat_task_agg %>%
+  group_by(full_perm_num, `is training`) %>%
+  summarise(`full evaluations` = max(sum(`is training`) / 3, sum(!`is training`) / 6)
+  ) %>% ungroup() %>% 
+  arrange(desc(`full evaluations`))
 
-## app_instance_agg
-app_intance_agg <- dat_qual %>% group_by(participant_num, full_perm_num, participant, `is training`) %>% arrange()
-  summarise(instance_id = paste(sep = "_", participant_num, full_perm_num, participant),
-            n = n(),
-            `full evaluations` = max(sum(`is training`) / 3, sum(!`is training`) / 6),
-  ) %>% ungroup() %>% arrange(desc(`full evaluations`))
 
 
 
 #### Plot Evenness:
 
 ## Evaluations by participant
-ggplot(participant_agg, aes(x = participant, y = even_studies, 
+ggplot(participant_agg, aes(x = participant, y = `full evaluations`, 
                          color = `is training`, fill = `is training`)) +
   labs(title = "Evaluations by participant") +
   my_theme + 
@@ -144,7 +157,7 @@ ggplot(participant_agg, aes(x = participant, y = even_studies,
   geom_text(aes(x = .95 * max(length(unique(participant_agg$participant))), y = 1.2, 
                 label = "ideal"), color = "black")
 
-## Evaluations by parameter permutaion
+## Evaluations by parameter permutation
 .mn_val <- mean(perm_num_agg$even_studies)
 (gg_eval_by_perm_num <- perm_num_agg %>% filter(`is training` == FALSE) %>% 
     ggplot(aes(x = `parameter permutation`, y = `full evaluations`,
