@@ -114,69 +114,64 @@ Let's look at the distribution of quality evaluations by full_perm_num.
 #### Aggregation tables
 
 ## app_instance_agg
-app_intance_agg <- dat_task_agg %>% 
-  group_by(instance_id, participant_num, `parameter permutation`, participant, `is training`) %>% 
-  summarise(`full evaluations` = max(sum(`is training`) / 3, sum(!`is training`) / 6)
-  ) %>% ungroup() %>% 
-  mutate(is_instance_training_even = if_else(`full evaluations` == 1, TRUE, FALSE)) %>% 
-  arrange(desc(`full evaluations`))
-## Find vector of evenly evaled instances
+app_intance_agg <- dat_task_agg %>% filter(`is training` == FALSE) %>%
+  group_by(instance_id, participant_num, `parameter permutation`, participant) %>%
+  summarise(`n instance evals` = n()) %>% 
+  ungroup() %>% 
+  mutate(is_instance_even = if_else(`n instance evals` == 6, TRUE, FALSE)) %>% 
+  arrange(desc(`n instance evals`))
+## Find vector of evenly evaled instance_ids
 even_evaled_instance_ids <- app_intance_agg %>%
-  filter(`is training` == TRUE, is_instance_training_even == TRUE) %>%
+  filter(is_instance_even == TRUE) %>%
   pull(instance_id)
-## Decode back to the original dataset.
-dat_qual <- dat_task_agg %>% mutate(
-  `is even eval` = if_else(instance_id %in% even_evaled_instance_ids, TRUE, FALSE))
-
+## Decode the original dataset by evenness of instance_id.
+dat_qual_full <- dat_task_agg %>% mutate(
+  `is even instance` = if_else(instance_id %in% even_evaled_instance_ids, TRUE, FALSE))
+dat_qual <- dat_qual_full %>% filter(`is training` == FALSE)
 
 ## participant_agg
-participant_agg <- dat_task_agg %>%
-  group_by(participant, `is training`) %>%
-  summarise(`full evaluations` = max(sum(`is training`) / 3, sum(!`is training`) / 6)
-  ) %>% ungroup() %>% 
-  arrange(desc(`full evaluations`))
+participant_agg <- dat_qual %>%
+  group_by(participant, `is even instance`) %>%
+  summarise(`even evaluations` = n() / 6) %>%
+  ungroup() %>%
+  arrange(desc(`even evaluations`))
 
 ## perm_num_agg
-perm_num_agg <- dat_task_agg %>%
-  group_by(full_perm_num, `is training`) %>%
-  summarise(`full evaluations` = max(sum(`is training`) / 3, sum(!`is training`) / 6)
-  ) %>% ungroup() %>% 
-  arrange(desc(`full evaluations`))
-
-
-
+perm_num_agg <- dat_qual %>%
+  group_by(`parameter permutation`, `is even instance`) %>%
+  summarise(`even evaluations` = n() / 6) %>%
+  ungroup() %>%
+  arrange(desc(`even evaluations`))
 
 #### Plot Evenness:
 
 ## Evaluations by participant
-ggplot(participant_agg, aes(x = participant, y = `full evaluations`, 
-                         color = `is training`, fill = `is training`)) +
+ggplot(participant_agg, aes(x = participant, y = `even evaluations`,
+                            color = `is even instance`, fill = `is even instance`)) +
   labs(title = "Evaluations by participant") +
   my_theme + 
   geom_bar(stat = "identity", position = "dodge") + geom_hline(yintercept = 1) +
-  geom_text(aes(x = .95 * max(length(unique(participant_agg$participant))), y = 1.2, 
+  geom_text(aes(x = .95 * max(length(unique(participant))), y = 1.2,
                 label = "ideal"), color = "black")
 
 ## Evaluations by parameter permutation
-.mn_val <- mean(perm_num_agg$even_studies)
-(gg_eval_by_perm_num <- perm_num_agg %>% filter(`is training` == FALSE) %>% 
-    ggplot(aes(x = `parameter permutation`, y = `full evaluations`,
-               color = `is training`, fill = `is training`)) +
+.mn_val <- sum(perm_num_agg$`even evaluations`[perm_num_agg$`is even instance` == TRUE], na.rm = TRUE) / 36
+(gg_eval_by_perm_num <- perm_num_agg %>% 
+    ggplot(aes(x = `parameter permutation`, y = `even evaluations`,
+               color = `is even instance`, fill = `is even instance`)) +
   labs(title = "Evaluations by parameter permutaion") +
   my_theme + 
   geom_bar(stat = "identity", position = "dodge") + 
   geom_hline(yintercept = .mn_val, linetype = 3) +
   geom_hline(yintercept = 3, linetype = 2) + 
-  geom_text(aes(x = 30, y = 3.2, label = "target"), color = "black") +
-  geom_text(aes(x = 26.5, y = .mn_val + .2, label = "mean of full evaluations"), color = "black")
+  geom_text(aes(x = 33, y = 3.2, label = "target"), color = "black") +
+  geom_text(aes(x = 26, y = .mn_val + .2, label = "mean of full evaluations"), color = "black")
 )
+
+##TODO: RESUME CHECKING HERE, Something feels off. mean looks low, review 24-29 for example.
+##Participant_number isn't matching with key, will need to evaluate.
 ```
 
-```{r}
-
-
-
-```
 
 
 ## Last response time density
@@ -184,36 +179,36 @@ ggplot(participant_agg, aes(x = participant, y = `full evaluations`,
 I am concerned about the quality of the data, given that so many people experienced network issues. Let's explore.
 
 ```{r}
-print(paste0("N_raw = ", length(unique(dat_task_agg$participant)), " unique prolific ids"))
-lb <- quantile(dat_task_agg$`max seconds to respond`, probs = .25) ## bottom 25 %
-ub <- quantile(dat_task_agg$`max seconds to respond`, probs = .95) ## top 5 %
+print(paste0("N_raw = ", length(unique(dat_qual$participant)), " unique prolific ids"))
+lb <- quantile(dat_qual$`max seconds to respond`, probs = .25) ## bottom 25 %
+ub <- quantile(dat_qual$`max seconds to respond`, probs = .95) ## top 5 %
 ann_offset <- 7
 ggplot() + 
-  geom_density(aes(`max seconds to respond`, fill = ""), dat_task_agg, alpha = .5) +
+  geom_density(aes(`max seconds to respond`, fill = ""), dat_qual, alpha = .5) +
   ggtitle("Seconds to respond density") +
   my_theme +
   lims(x = c(0, 100)) +
-  geom_vline(xintercept = c(lb, ub), linetype = 2L) +
+  # geom_vline(xintercept = c(lb, ub), linetype = 2L) +
   geom_vline(xintercept = 60, linetype = 3L) +
-  geom_label(aes(x = c(lb + ann_offset, 60 - ann_offset, ub - ann_offset), 
-                 y = c(.05, .045, .05), 
-                 label = c("25th percentile", "plot turns off" ,"95th percentile")
-  )) +
-  annotate("rect", xmin = -Inf, xmax = lb, ymin = -Inf, ymax = Inf,
-           alpha = 0.3, fill = "firebrick1") +
-  annotate("rect", xmin = lb, xmax = ub, ymin = -Inf, ymax = Inf,
-           alpha = 0.3, fill = "aquamarine") +
-  annotate("rect", xmin = ub, xmax = Inf, ymin = -Inf, ymax = Inf,
-           alpha = 0.3, fill = "firebrick1")
+  geom_label(aes(x =  60 - ann_offset, #c(lb + ann_offset, 60 - ann_offset, ub - ann_offset), 
+                 y = .03, #c(.05, .045, .05), 
+                 label = "plot turns off"#c("25th percentile", "plot turns off" ,"95th percentile")
+  )) #+
+  # annotate("rect", xmin = -Inf, xmax = lb, ymin = -Inf, ymax = Inf,
+  #          alpha = 0.3, fill = "firebrick1") +
+  # annotate("rect", xmin = lb, xmax = ub, ymin = -Inf, ymax = Inf,
+  #          alpha = 0.3, fill = "aquamarine") +
+  # annotate("rect", xmin = ub, xmax = Inf, ymin = -Inf, ymax = Inf,
+  #          alpha = 0.3, fill = "firebrick1")
 
-dat_qual <- dat_task_agg 
+# dat_qual <- dat_qual
 #%>% filter(`max seconds to respond` > lb, `max seconds to respond` < ub)
 ## windsorized conflicts with the within participant evaluation.
 
 #print(paste0("N_windsorized = ", length(unique(dat_qual$participant)), " unique prolific ids"))
-obs_percent <- round(100L * nrow(dat_qual) / nrow(dat_task_agg), 2)
-paste0("Percent of original task evaluations in subset: ", obs_percent, "%")
-print("NOTE: The rest of the analysis we will be looking at this middle ~70% of the evaluations.")
+# obs_percent <- round(100L * nrow(dat_qual) / nrow(dat_task_agg), 2)
+# paste0("Percent of original task evaluations in subset: ", obs_percent, "%")
+# print("NOTE: The rest of the analysis we will be looking at this middle ~70% of the evaluations.")
 ```
 
 ```{r}
@@ -229,53 +224,30 @@ ggplot(dat_qual) + my_theme +
 ## Within-participants -- Marks by Evaluation order
 
 ```{r}
-## Create a global unique id (guid), doesn't fix the issue, because the double counted t3 was from repeat 1_1 runs, on mar 4, remove it.
-
-## instead we'll apply a simple filter
-dat_qual_wi_participant <- dat_qual %>%
-  filter(marks > -1L, marks < 1L)
-
-  ggplot(dat_qual_wi_participant, 
+  ggplot(dat_qual, 
             aes(x = factor, y = marks,
-                frame = participant, group = participant,
+                
                 color = `is training`, fill = `is training`)
   ) +
+  geom_boxplot(alpha = .05) +
   labs(title = "Within Participants, Marks by factor") +
   scale_color_brewer(palette = "Dark2") + 
   scale_fill_brewer(palette = "Dark2") +
-  geom_line(alpha = .2)
-  
-  ### Looking at facets becomes too busy.
-  # tgt_ids <- head(unique(dat_qual_wi_participant$participant))
-  # dat_qual_wi_participant %>% 
-  #   filter(participant %in% tgt_ids) %>% 
-  #   ggplot(aes(x = `evaluation order`, y = marks,
-  #              frame = frame_pro_id,
-  #              group = frame_pro_id,
-  #              color = `is training`, fill = `is training`)
-  #   ) +
-  #   labs(title = "Within Participants, Marks by evaluation order") +
-  #   scale_color_brewer(palette = "Dark2") + 
-  #   scale_fill_brewer(palette = "Dark2") +
-  #   geom_point(aes(size = `# of responses`), alpha = .2) +
-  #   geom_line(alpha = .2) + facet_grid(vars(participant))
-  
-print("Tried animating over participants, but erroring (Error in -data$group : invalid argument to unary operator) on a valid ggplot. Would be across the board with such low correlation")
+  geom_line(aes(frame = participant, group = participant),
+            alpha = .2)
 
-
-
-cor_sec_to_resp <- cor(dat_qual_wi_participant$`max seconds to respond`,
-                       dat_qual_wi_participant$marks) %>% round(3)
-cor_eval <- cor(as.integer(dat_qual_wi_participant$`evaluation order`),
-                dat_qual_wi_participant$marks) %>% round(3)
-cor_cnt_resp <- cor(dat_qual_wi_participant$`seconds on page`, 
-                    dat_qual_wi_participant$marks) %>% round(3)
-
-print(paste0(
-  "Quite busy, looking at the correlation, cor(evaluation order, marks) = ", cor_eval,
-  ", a moderate negative value given that, cor(max time to respond, marks) = ", 
-  cor_sec_to_resp
-))
+# cor_sec_to_resp <- cor(dat_qual$`max seconds to respond`,
+#                        dat_qual$marks) %>% round(3)
+# cor_eval <- cor(as.integer(dat_qual$`evaluation order`),
+#                 dat_qual$marks) %>% round(3)
+# cor_cnt_resp <- cor(dat_qual$`seconds on page`, 
+#                     dat_qual$marks) %>% round(3)
+# 
+# print(paste0(
+#   "Quite busy, looking at the correlation, cor(evaluation order, marks) = ", cor_eval,
+#   ", a moderate negative value given that, cor(max time to respond, marks) = ", 
+#   cor_sec_to_resp
+# ))
 
 
 
@@ -295,22 +267,43 @@ print(paste0(
 
 ## Random effects regression model 
 
-We'll first consider the baseline fixed effects considering only the continuous variables. We have:
+We create a number of base models for comparison We have:
 
 $$
 \begin{align*}
-\widehat{marks} = ~
-&\beta_{int} +
-\beta_{SecResp} * SecResp +
-\beta_{SecPg} * SecPg + 
-\beta_{RespInter} * RespInter ~+ \\
-&\beta_{CntResp} * CntResp +
-\beta_{InputInter} * InputInter +
-\epsilon
+\text{model F: } ~~~~~ \widehat{marks}_{partcipant~n} = 
+  ~ &\beta_{0} + \Sigma_{f = 1}^3(\alpha_{factor~f} * \beta_{factor~f}) + 
+  \Sigma_{n = 1}^N(effect_{participant~n}) + \epsilon \\
+\text{model L: } ~~~~~ \widehat{marks}_{partcipant~n =
+  ~ &\beta_{0} + \Sigma_{l = 1}^3(\alpha_{location~l} * \beta_{location~l}) +
+  \Sigma_{n = 1}^N(effect_{participant~n}) + \epsilon \\
+\text{model S: } ~~~~~ \widehat{marks}_{partcipant~n =
+  ~ &\beta_{0} + \Sigma_{s = 1}^3(\alpha_{shape~s} * \beta_{shape~s}) +
+  \Sigma_{n = 1}^N(effect_{participant~n}) + \epsilon \\
+\text{model D: } ~~~~~ \widehat{marks}_{partcipant~n =
+  ~ &\beta_{0} + \Sigma_{d = 1}^2(\alpha_{dim~d} * \beta_{dim~d}) +
+  \Sigma_{n = 1}^N(effect_{participant~n}) + \epsilon \\
+  
+  \text{model FL: } ~~~~~ \widehat{marks}_{partcipant~n = ~ &\beta_{0} +
+  \Sigma_{f = 1}^3\Sigma_{l = 1}^3(\alpha_{factor~f*location~l} * \beta_{factor~f*location~l}) + \\
+  &\Sigma_{n = 1}^N(effect_{participant~n}) + \epsilon \\
+
+\text{model FL+S+D: } ~~~~~ \widehat{marks}_{partcipant~n = ~ &\beta_{0} +
+  \Sigma_{f = 1}^3\Sigma_{l = 1}^3(\alpha_{factor~f*location~l} * \beta_{factor~f*location~l}) + \\
+  &\Sigma_{s = 1}^3(\alpha_{shape~s} * \beta_{shape~s}) +
+  \Sigma_{d = 1}^2(\alpha_{dim~d} * \beta_{dim~d}) + \\
+  &\Sigma_{n = 1}^N(effect_{participant~n}) + \epsilon \\
 \end{align*}
 $$
+
 Where, 
-$$\epsilon \sim \mathcal{N}(0,~\sigma)$$
+$$\epsilon \sim \mathcal{N}(0,~\sigma) \\
+effect_{participant~n} \sim \mathcal{N}(0,~\tau_{participant~n}) ~|~ n \in (1,~...,~N)  \\
+factor_f \in (pca,~grand,~radial) \\
+location_l \in (0/100,~33/66,~50/50) \text{ % mixing of a noise and signal variable respectively} \\
+shape_s \in (EEE,~EEV,~EVV~banana) \\
+dim_d \in (4,~6) \text{ variables, with 3 & 4 clusters respectively} \\
+$$
 
 Building on this, we add in vectors of all of our fixed factor terms: method factor, data dimension, variance-covariance shape, signal mixing location. Add a factor interaction to the number of input interactions as it is it intrinsically different based on the factor. Lastly we add the random effect of the participants. This random term, $effect_{participant}$, accounts for the difference between participant, that is the each individuals ability/disposition to effect their task marks. Then our mixed model is: 
 
@@ -332,17 +325,7 @@ $$
 \end{align*}
 $$
 where,  
-$$
-\begin{align*}
-&\epsilon \sim \mathcal{N}(0,~\sigma) \\
-&effect_{participant_i} \sim \mathcal{N}(0,~\sigma_{participant_i}) ~|~ i \in level(participant~ids)  \\
-&factor \in (pca,~grand,~radial) \\
-&dim \in (4,~6) \text{ variables, with 3 & 4 clusters respectively} \\
-&shape \in (EEE,~EEV,~EVV~banana) \\
-&location \in (0/100,~33/66,~50/50) \text{ % mixing of a noise and signal variable respectively} \\
-&I() \text{ is the indicator function, a logical value for each level of the fixed factor}
-&\end{align*}
-$$
+
 
 
 
@@ -352,22 +335,19 @@ $$
 if(F) 
   browseURL("https://m-clark.github.io/mixed-models-with-R/random_intercepts.html#running-a-mixed-model")
 #install.packages("lme4")
-dat_qual_onlyeval <- dat_qual %>% filter(`is training` == FALSE)
 
 ## The Models:
+lmer_factor <- lmer(marks ~ factor + (1 | participant), data = dat_qual)
+lmer_location <- lmer(marks ~ location + (1 | participant), data = dat_qual)
+lmer_shape <- lmer(marks ~ shape + (1 | participant), data = dat_qual)
+lmer_dim <- lmer(marks ~ dim + (1 | participant), data = dat_qual)
+lmer_factorLocation <- lmer(marks ~ factor * location + (1 | participant), data = dat_qual)
+lmer_factorLocation.dim <- 
+  lmer(marks ~ factor * location + dim + (1 | participant), data = dat_qual)
 
-### 1) Start with simple terms of all variables
 
-marks_lmer1 <- lmer( ## 15 terms remain after dropping 3 due to rank deficiency
-  marks ~ 
-    `max seconds to respond` + `seconds on page` + `# response interactions` + `# of responses` + task_input_inter * factor + ## Numeric, input_inter*factor interaction
-    factor + dim + shape + location + `evaluation order` + ## Fixed factor random terms
-    (1 | participant), ## Random effect
-  data = dat_qual_onlyeval_renamed
-)
-aic_1 <- AIC(marks_lmer1)
-print(paste0("Model 1) simple terms of all variables. 16 terms remain after dropping 4 due to rank deficiency, AIC = ", 
-             round(aic_1, 0), "."))
+# print(paste0("Model 1) simple terms of all variables. 16 terms remain after dropping 4 due to rank deficiency, AIC = ", 
+#              round(aic_1, 0), "."))
 
 ### 2) remove the least bang for buck, 3 variables that are highly correlated, lose .1% AIC
 marks_lmer2 <- lmer( ## 13 terms remain after dropping 3 due to rank deficiency
@@ -375,13 +355,13 @@ marks_lmer2 <- lmer( ## 13 terms remain after dropping 3 due to rank deficiency
     `max seconds to respond` + `# response interactions` + task_input_inter * factor + ## Numeric
     factor + dim + shape + location + `evaluation order` + ## Fixed factor random terms
     (1 | participant), ## Random effect
-  data = dat_qual_onlyeval_renamed
+  data = dat_qual
 )
-aic_2 <- AIC(marks_lmer2)
-print("Model 2) simplify by removing 2 of the most correlated (redundant explaintion) numeric variables. We gain ~.2% AIC to remove 2 terms relative to the first model.")
+# aic_2 <- AIC(marks_lmer2)
+# print("Model 2) simplify by removing 2 of the most correlated (redundant explaintion) numeric variables. We gain ~.2% AIC to remove 2 terms relative to the first model.")
 
 ### 3) Try to mix all terms of the simple model with factor
-print("Model 3) we try to make an over complex model by starting with model 2, leave independant terms and introduce factor interactions. This costs 22 terms to improve AIC by 6.5%")
+# print("Model 3) we try to make an over complex model by starting with model 2, leave independant terms and introduce factor interactions. This costs 22 terms to improve AIC by 6.5%")
 marks_lmer3 <- lmer( ## 35 terms remain after dropping 10 due to rank deficiency, 
   marks ~
     ## Independent
@@ -392,7 +372,7 @@ marks_lmer3 <- lmer( ## 35 terms remain after dropping 10 due to rank deficiency
     factor * (`max seconds to respond` + `seconds on page` + `# response interactions` + task_input_inter) + ## Numeric
     factor * (dim  + shape  + location + `evaluation order`) + ## Fixed factor random terms
     factor * (1 | participant), ## Random effect
-  data = dat_qual_onlyeval_renamed
+  data = dat_qual
 )
 ## Addition model warnings:
 # Warning messages:
@@ -422,8 +402,8 @@ print("Let's take a closer look at model 2: \n summary:")
 ## Residual plot
 resid_2 <- data.frame(
   predicted  = predict(marks_lmer2), residual = residuals(marks_lmer2),
-  factor = dat_qual_onlyeval_renamed$factor, 
-  `# of responses` = dat_qual_onlyeval_renamed$`# of responses`,
+  factor = dat_qual$factor, 
+  `# of responses` = dat_qual$`# of responses`,
   check.names = FALSE)
 p <- ggplot(resid_2, aes(x = predicted, y = residual, color = factor, size = `# of responses`)) +
   geom_point(alpha = .2) + my_theme + ggtitle("Residuals by predcted values") + 
