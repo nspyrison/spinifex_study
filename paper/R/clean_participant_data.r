@@ -44,6 +44,7 @@ pivot_longer_resp_ans_tbl <- function(dat){
                     participant_num = 0L,
                     full_perm_num = 0L,
                     bar         = bar,
+                    write_dt    = "NA",
                     factor      = NA,
                     p_dim       = NA,
                     prolific_id = NA,
@@ -73,7 +74,7 @@ pivot_longer_resp_ans_tbl <- function(dat){
   resp_longer <- dat %>%
     dplyr::select(c(key, participant_num, full_perm_num, prolific_id, sim_nm,
                     period, eval, factor, vc, p_dim, location,
-                    input_inter, resp_inter, sec_to_resp, sec_on_pg, bar,
+                    input_inter, resp_inter, sec_to_resp, sec_on_pg, bar, write_dt ,
                     v1_resp:v6_resp)) %>%
     tidyr::pivot_longer(cols = v1_resp:v6_resp,
                         names_to = "var_num",
@@ -121,7 +122,7 @@ pivot_longer_resp_ans_tbl <- function(dat){
   }else{error("!!!all nrow() not equal!!!")}
   ret <- ret %>%
     dplyr::mutate(key = as.factor(key),
-                  participant_num = factor(participant_num, 
+                  participant_num = factor(participant_num,
                                            levels = 1L:max(participant_num)),
                   full_perm_num = factor(full_perm_num, 
                                          levels = 1L:max(full_perm_num)),
@@ -137,6 +138,7 @@ pivot_longer_resp_ans_tbl <- function(dat){
                                  levels = c(4L, 6L)),
                   location = as.factor(location),
                   var_num = as.factor(substr(var_num, 2L, 2L)),
+                  write_dt = lubridate::as_datetime(write_dt)
     ) %>% tibble::as_tibble()
   return(ret)
 }
@@ -160,7 +162,8 @@ aggregate_task_vars <- function(df_long){
                      max_sec_on_pg = max(sec_on_pg),
                      cnt_resp = sum(resp),
                      task_marks = sum(marks),
-                     z_weight_check = sum(weight)
+                     z_sum_weight_check = sum(weight),
+                     z_sum_sq_weight_check = sum(weight^2)
     ) %>% dplyr::ungroup() %>%
     tibble::as_tibble()
 }
