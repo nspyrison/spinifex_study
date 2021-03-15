@@ -14,9 +14,10 @@ editor_options:
   chunk_output_type: console
 ---
 ```{r setup, include=FALSE}
-library(tidyverse)
-library("lme4")
-library("merTools")
+require(tidyverse)
+require("lme4") ## Random Effects (RE) model creation
+require("merTools")
+require("performance") ## tidy model eval
 
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 rel_path <- function(rel_path = "."){
@@ -65,7 +66,7 @@ if(F){
   ## Plot friendly titles
   dat_task_agg <- dat_task_agg %>%
   mutate(instance_id = paste(sep = "_", participant_num, full_perm_num, prolific_id)) %>%
-  rename(shape = vc, dim = p_dim, `evaluation order` = eval, participant = prolific_id,
+  rename(shape = vc, dim = p_dim, order = eval, participant = prolific_id,
          `is training` = is_training, `# response interactions` = task_resp_inter,
          `max seconds to respond` = max_sec_to_resp, `seconds on page` = max_sec_on_pg,
          `# of responses` = cnt_resp, marks = task_marks,
@@ -89,7 +90,7 @@ my_theme <- list(
         legend.box = "vertical",
         legend.margin = margin(-6))
 )
-my_ggplot <- function(.aes = aes(x = `evaluation order`, y = marks,
+my_ggplot <- function(.aes = aes(x = order, y = marks,
                                  color = `is training`, fill = `is training`),
                       .title = "Default title",
                       .data = dat_qual)
@@ -235,37 +236,10 @@ ggplot(dat_qual) + my_theme +
   scale_fill_brewer(palette = "Dark2") +
   geom_line(aes(frame = participant, group = participant),
             alpha = .2)
-
-# cor_sec_to_resp <- cor(dat_qual$`max seconds to respond`,
-#                        dat_qual$marks) %>% round(3)
-# cor_eval <- cor(as.integer(dat_qual$`evaluation order`),
-#                 dat_qual$marks) %>% round(3)
-# cor_cnt_resp <- cor(dat_qual$`seconds on page`, 
-#                     dat_qual$marks) %>% round(3)
-# 
-# print(paste0(
-#   "Quite busy, looking at the correlation, cor(evaluation order, marks) = ", cor_eval,
-#   ", a moderate negative value given that, cor(max time to respond, marks) = ", 
-#   cor_sec_to_resp
-# ))
-
-
-
-
-## Reviewing correlations, nothing too exciting, 
-# corr_dat <- dat_qual %>%
-#   mutate(`evaluation order` = as.numeric(`evaluation order`)) %>% 
-#   dplyr::select(!z_weight_check)
-# num_col_ind <- unlist(lapply(corr_dat, is.numeric))
-# car_dat_mat <- corr_dat[, num_col_ind] %>% as.matrix() %>% cor()
-# col3 <- colorRampPalette(c("blue", "white", "red"))
-# corrplot::corrplot.mixed(car_dat_mat,
-#                          lower.col = col3(100),
-#                          upper.col = col3(100))
 ```
 
 
-## Random effects regression model 
+## Random effects regression models
 
 We create a number of base models for comparison We have:
 
@@ -273,61 +247,62 @@ $$
 \begin{align*}
 \text{model F: } ~~~~~ \widehat{marks}_{partcipant~n} = 
   ~ &\beta_{0} + \Sigma_{f = 1}^3(\alpha_{factor~f} * \beta_{factor~f}) + 
-  \Sigma_{n = 1}^N(effect_{participant~n}) + \epsilon \\
-\text{model L: } ~~~~~ \widehat{marks}_{partcipant~n =
+  effect_{participant~n} + \epsilon \\
+\text{model L: } ~~~~~ \widehat{marks}_{partcipant~n} =
   ~ &\beta_{0} + \Sigma_{l = 1}^3(\alpha_{location~l} * \beta_{location~l}) +
-  \Sigma_{n = 1}^N(effect_{participant~n}) + \epsilon \\
-\text{model S: } ~~~~~ \widehat{marks}_{partcipant~n =
+  effect_{participant~n} + \epsilon \\
+\text{model S: } ~~~~~ \widehat{marks}_{partcipant~n} =
   ~ &\beta_{0} + \Sigma_{s = 1}^3(\alpha_{shape~s} * \beta_{shape~s}) +
-  \Sigma_{n = 1}^N(effect_{participant~n}) + \epsilon \\
-\text{model D: } ~~~~~ \widehat{marks}_{partcipant~n =
+  effect_{participant~n} + \epsilon \\
+\text{model D: } ~~~~~ \widehat{marks}_{partcipant~n} =
   ~ &\beta_{0} + \Sigma_{d = 1}^2(\alpha_{dim~d} * \beta_{dim~d}) +
-  \Sigma_{n = 1}^N(effect_{participant~n}) + \epsilon \\
+  effect_{participant~n} + \epsilon \\
+\text{model O: } ~~~~~ \widehat{marks}_{partcipant~n} =
+  ~ &\beta_{0} + \Sigma_{o = 1}^6(\alpha_{order~o} * \beta_{order~o}) +
+  effect_{participant~n} + \epsilon \\
   
-  \text{model FL: } ~~~~~ \widehat{marks}_{partcipant~n = ~ &\beta_{0} +
-  \Sigma_{f = 1}^3\Sigma_{l = 1}^3(\alpha_{factor~f*location~l} * \beta_{factor~f*location~l}) + \\
-  &\Sigma_{n = 1}^N(effect_{participant~n}) + \epsilon \\
+\text{model FL: } ~~~~~ \widehat{marks}_{partcipant~n} = ~ &\beta_{0} +
+  \Sigma_{f = 1}^3(\Sigma_{l = 1}^3(\alpha_{factor~f*location~l} * \beta_{factor~f*location~l})) + \\
+  &effect_{participant~n} + \epsilon \\
 
-\text{model FL+S+D: } ~~~~~ \widehat{marks}_{partcipant~n = ~ &\beta_{0} +
-  \Sigma_{f = 1}^3\Sigma_{l = 1}^3(\alpha_{factor~f*location~l} * \beta_{factor~f*location~l}) + \\
+\text{model F+L+S+D+O: } ~~~~~ \widehat{marks}_{partcipant~n} = ~ &\beta_{0} +
+  \Sigma_{f = 1}^3(\alpha_{factor~f} * \beta_{factor~f}) + 
+  \Sigma_{l = 1}^3(\alpha_{location~l} * \beta_{location~l}) + \\
   &\Sigma_{s = 1}^3(\alpha_{shape~s} * \beta_{shape~s}) +
   \Sigma_{d = 1}^2(\alpha_{dim~d} * \beta_{dim~d}) + \\
-  &\Sigma_{n = 1}^N(effect_{participant~n}) + \epsilon \\
+  &\Sigma_{o = 1}^6(\alpha_{order~o} * \beta_{order~o}) + 
+  effect_{participant~n} + \epsilon \\
+
+\text{model FL+S+D+O: } ~~~~~ \widehat{marks}_{partcipant~n} = ~ &\beta_{0} +
+  \Sigma_{f = 1}^3(\Sigma_{l = 1}^3(\alpha_{factor~f*location~l} * \beta_{factor~f*location~l})) + \\
+  &\Sigma_{s = 1}^3(\alpha_{shape~s} * \beta_{shape~s}) +
+  \Sigma_{d = 1}^2(\alpha_{dim~d} * \beta_{dim~d}) + \\
+  &\Sigma_{o = 1}^6(\alpha_{order~o} * \beta_{order~o}) + 
+  effect_{participant~n} + \epsilon \\
+
+\text{model F(L+S+D)+O: } ~~~~~ \widehat{marks}_{partcipant~n} = ~ &\beta_{0} +
+  \Sigma_{f = 1}^3(\Sigma_{l = 1}^3(\alpha_{factor~f*location~l} * \beta_{factor~f*location~l})) + \\
+  &\Sigma_{f = 1}^3(\Sigma_{s = 1}^3(\alpha_{factor~f*shape~s} * \beta_{factor~f*shape~s}) + \\
+  &\Sigma_{d = 1}^2(\Sigma_{s = 1}^2(\alpha_{factor~f*dim~d} * \beta_{factor~f*dim~d}) + \\
+  &\Sigma_{o = 1}^6(\alpha_{order~o} * \beta_{order~o}) + 
+  effect_{participant~n} + \epsilon \\
+
 \end{align*}
 $$
 
-Where, 
-$$\epsilon \sim \mathcal{N}(0,~\sigma) \\
-effect_{participant~n} \sim \mathcal{N}(0,~\tau_{participant~n}) ~|~ n \in (1,~...,~N)  \\
-factor_f \in (pca,~grand,~radial) \\
-location_l \in (0/100,~33/66,~50/50) \text{ % mixing of a noise and signal variable respectively} \\
-shape_s \in (EEE,~EEV,~EVV~banana) \\
-dim_d \in (4,~6) \text{ variables, with 3 & 4 clusters respectively} \\
-$$
-
-Building on this, we add in vectors of all of our fixed factor terms: method factor, data dimension, variance-covariance shape, signal mixing location. Add a factor interaction to the number of input interactions as it is it intrinsically different based on the factor. Lastly we add the random effect of the participants. This random term, $effect_{participant}$, accounts for the difference between participant, that is the each individuals ability/disposition to effect their task marks. Then our mixed model is: 
-
+Where,
 $$
 \begin{align*}
-\widehat{marks} = ~
-&\beta_{int} +
-\beta_{SecResp} * SecResp +
-\beta_{SecPg} * SecPg + 
-\beta_{RespInter} * RespInter + \\
-&\beta_{CntResp} * CntResp + 
-\boldsymbol{\beta}_{InputInter*Factor} * InputInter * I(\boldsymbol{Factor}) +
-\boldsymbol{\beta}_{factor} * I(\boldsymbol{factor}) + \\
-&\boldsymbol{\beta}_{dim} * I(\boldsymbol{dim}) + 
-\boldsymbol{\beta}_{shape} * I(\boldsymbol{shape}) + 
-\boldsymbol{\beta}_{location} * I(\boldsymbol{location}) + 
-\boldsymbol{\beta}_{participant} * \boldsymbol{effect}_{participant} +
-\epsilon
+&\beta_0 \text{ is the sum of the marginal intercept and the mean of the participant effect} \\
+&\epsilon \sim \mathcal{N}(0,~\sigma) \\
+&effect_{participant~n} \sim \mathcal{N}(0,~\tau_{participant~n}) ~|~ n \in (1,~... ~N) \\
+&factor~f \in (pca,~grand,~radial) \\
+&location~l \in (0/100,~33/66,~50/50) \text{ % mixing of a noise and signal variable respectively} \\
+&shape~s \in (EEE,~EEV,~EVV~banana) \\
+&dim~d \in (4,~6) \text{ variables with 3 & 4 clusters respectively} \\
+&order~o \in (1,~... ~6) \text{, treated as a factor variable rather than numeric variable}
 \end{align*}
 $$
-where,  
-
-
-
 
 ```{r}
 ## Mixed (fixed and random/variable) effects regression model,
@@ -337,87 +312,149 @@ if(F)
 #install.packages("lme4")
 
 ## The Models:
-lmer_factor <- lmer(marks ~ factor + (1 | participant), data = dat_qual)
-lmer_location <- lmer(marks ~ location + (1 | participant), data = dat_qual)
-lmer_shape <- lmer(marks ~ shape + (1 | participant), data = dat_qual)
-lmer_dim <- lmer(marks ~ dim + (1 | participant), data = dat_qual)
-lmer_factorLocation <- lmer(marks ~ factor * location + (1 | participant), data = dat_qual)
-lmer_factorLocation.dim <- 
-  lmer(marks ~ factor * location + dim + (1 | participant), data = dat_qual)
+m_factor <- lmer(marks ~ factor + (1 | participant), data = dat_qual)
+m_location <- lmer(marks ~ location + (1 | participant), data = dat_qual)
+m_shape <- lmer(marks ~ shape + (1 | participant), data = dat_qual)
+m_dim <- lmer(marks ~ dim + (1 | participant), data = dat_qual)
+m_order <- lmer(marks ~ order + (1 | participant), data = dat_qual)
+m_param <- lmer(marks ~ `parameter permutation` + (1 | participant), data = dat_qual)
+m_factorLocation <- 
+  lmer(marks ~ factor * location + (1 | participant), data = dat_qual)
+m_factor.location.dim.shape.order <- 
+  lmer(marks ~ factor + location + dim + shape + order + (1 | participant), data = dat_qual)
+m_factorLocation.dim.shape.order <- 
+  lmer(marks ~ factor * location + dim + shape + order + (1 | participant), data = dat_qual)
+m_factor_location.dim.shape_.order <- lmer(
+  marks ~ factor * (dim + shape + location) + order + (1 | participant), data = dat_qual)
 
-
-# print(paste0("Model 1) simple terms of all variables. 16 terms remain after dropping 4 due to rank deficiency, AIC = ", 
-#              round(aic_1, 0), "."))
-
-### 2) remove the least bang for buck, 3 variables that are highly correlated, lose .1% AIC
-marks_lmer2 <- lmer( ## 13 terms remain after dropping 3 due to rank deficiency
-  marks ~
-    `max seconds to respond` + `# response interactions` + task_input_inter * factor + ## Numeric
-    factor + dim + shape + location + `evaluation order` + ## Fixed factor random terms
-    (1 | participant), ## Random effect
-  data = dat_qual
+model_ls <- list(m_factor = m_factor,
+                 m_location = m_location, 
+                 m_shape = m_shape,
+                 m_dim = m_dim,
+                 m_order = m_order,
+                 m_factorLocation = m_factorLocation,
+                 m_factor.location.dim.shape.order = m_factor.location.dim.shape.order,
+                 m_factorLocation.dim.shape.order = m_factorLocation.dim.shape.order,
+                 m_factor_location.dim.shape_.order = m_factor_location.dim.shape_.order
 )
-# aic_2 <- AIC(marks_lmer2)
-# print("Model 2) simplify by removing 2 of the most correlated (redundant explaintion) numeric variables. We gain ~.2% AIC to remove 2 terms relative to the first model.")
 
-### 3) Try to mix all terms of the simple model with factor
-# print("Model 3) we try to make an over complex model by starting with model 2, leave independant terms and introduce factor interactions. This costs 22 terms to improve AIC by 6.5%")
-marks_lmer3 <- lmer( ## 35 terms remain after dropping 10 due to rank deficiency, 
-  marks ~
-    ## Independent
-    `max seconds to respond` + `# response interactions` + task_input_inter + ## Numeric
-    factor + dim * factor + shape + location + `evaluation order` + ## Fixed factor random terms
-    (1 | participant) +
-    ## factor interactions
-    factor * (`max seconds to respond` + `seconds on page` + `# response interactions` + task_input_inter) + ## Numeric
-    factor * (dim  + shape  + location + `evaluation order`) + ## Fixed factor random terms
-    factor * (1 | participant), ## Random effect
-  data = dat_qual
+## ggplot2 plot_residuals function 
+plot_residual <- function(model){
+  .df <- data.frame(predicted  = predict(model), 
+                    residual = residuals(model),
+                    factor = dat_qual$factor
+  )
+  p <- ggplot(.df, aes(x = predicted, y = residual, color = factor, shape = factor)) +
+    geom_point(alpha = .33) + my_theme + ggtitle("Residuals by predcted values") + 
+    theme(legend.position = "bottom",
+          legend.box = "vertical",
+          legend.margin = margin(-6))
+  p <- ggExtra::ggMarginal(p, type = "density", fill = "grey80")
+  return(p)
+}
+plot_REsim_qq <- function(model){
+  .df <- data.frame(y = REsim(model)$mean)
+  ggplot(.df, aes(sample = y)) + 
+    stat_qq(alpha = .5) + stat_qq_line() + my_theme +
+    ggtitle("qq plot of the mean of random effects simulation")
+}
+
+## lapply over models
+performance_ls <- aic_ls <- bic_ls <- summary_ls <- plotREsim_ls <- 
+  plot_REsim_qq_ls <- plot_residual_ls <- annova_ls <- list()
+mute <- lapply(seq_along(model_ls), function(i){
+  #print(paste0("fitting model: ", names(model_ls)[i])) 
+  this_model <- model_ls[[i]]
+  performance_ls[[i]] <<- performance::model_performance(this_model)
+  # summary_ls[[i]] <<- summary(this_model)
+  # plotREsim_ls[[i]] <<- plotREsim(REsim(this_model))
+  # plot_REsim_qq_ls[[i]] <<- plot_REsim_qq(this_model)
+  # plot_residual_ls[[i]] <<- plot_residual(this_model)
+  # annova_ls[[i]] <<- anova(this_model)
+})
+.perf_df <- dplyr::bind_rows(performance_ls)
+model_comp_tbl <- tibble(`Model name` = names(model_ls), 
+                         `AIC` = round(.perf_df[, 1]),
+                         `BIC` = round(.perf_df[, 2]),
+                         `R2 (cond. on RE)` = round(.perf_df[, 3], 3),
+                         `R2 (marg.; w/o RE)` = round(.perf_df[, 4], 3),
+                         `RMSE` = round(.perf_df[, 6], 3)
 )
-## Addition model warnings:
-# Warning messages:
-# 1: In checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv,  :
-#   unable to evaluate scaled gradient
-# 2: In checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv,  :
-#   Model failed to converge: degenerate  Hessian with 1 negative eigenvalues
-aic_3 <- AIC(marks_lmer3)
 
-# print("Confidence intervals:")
-# confint(marks_lmer)
-# 
-# print("Head of participant effect:")
-# coef(marks_lmer)$participant %>% head(5)
-# 
-# print("Prediction interval")
-# predictInterval(marks_mixed_mod)   # for various model predictions, possibly with new data
-# REsim(marks_mixed_mod)             # mean, median and sd of the random effect estimates
+format_column_extrema <- function(df, col, extrema = max, markup = "**"){ 
+  ## c("*", "**", "~~"), c("italics", "bold", "strikethrough")
+  v <- as.data.frame(df[, col])[, 1]
+  ## Make sure values are not factors
+  r_idx <- which(v == extrema(v))
+  ## Update formatting
+  v[r_idx] <- paste0(markup, v[r_idx], markup)
+  df[, col] <- v
+  return(df)
+}
 
-print("Let's take a closer look at model 2: \n summary:")
-## Model summary
-(s <- print(summary(marks_lmer2), digits = 3))
-
-## Anova table
-(a <- anova(marks_lmer2)) ## do we need t interact task_input_inter with factor (task_input_inter doesn't make sense for grand)?
-
-## Residual plot
-resid_2 <- data.frame(
-  predicted  = predict(marks_lmer2), residual = residuals(marks_lmer2),
-  factor = dat_qual$factor, 
-  `# of responses` = dat_qual$`# of responses`,
-  check.names = FALSE)
-p <- ggplot(resid_2, aes(x = predicted, y = residual, color = factor, size = `# of responses`)) +
-  geom_point(alpha = .2) + my_theme + ggtitle("Residuals by predcted values") + 
-  theme(legend.position = "bottom",
-        legend.box = "vertical",
-        legend.margin = margin(-6))
-(r <- ggExtra::ggMarginal(p, type = "density", fill = "grey80"))
-
-
-## Random effects, as simulated from model posterior distributions
-print("Random effect of participant, as simulated from the model posterior distributions")
-(resim <- plotREsim(REsim(marks_lmer2)))  # plot the interval estimates
+print("regressing marks ~ * + RE(participant)")
+model_comp_tbl %>% 
+  format_column_extrema(2, min) %>% 
+  format_column_extrema(3, min) %>% 
+  format_column_extrema(4, max) %>% 
+  format_column_extrema(5, max) %>% 
+  format_column_extrema(6, min) %>% 
+  knitr::kable()
 ```
 
+
+### Regressing against the time
+
+Because factor uniquely performed so well, let's use it as a benchmark as compared to models:
+
+- marks ~ factor + RE_participant -- benchmark
+- marks ~ factor + RE_participant.data
+- time ~ factor + RE_participant
+- time ~ factor + RE_participant.data
+
+```{r}
+marks_f_re_partcipant <- lmer(marks ~ factor + (1 | participant), data = dat_qual)
+marks_f_re_partcipant.data <- 
+  lmer(marks ~ factor + (1 | participant) + (1 | sim_nm), data = dat_qual)
+time_f_re_partcipant <- 
+  lmer(`max seconds to respond` ~ factor + (1 | participant), data = dat_qual)
+time_f_re_partcipant.data <- 
+  lmer(`max seconds to respond` ~ factor + (1 | participant) + (1 | sim_nm), data = dat_qual)
+
+model_ls2 <- list(marks_f_re_partcipant = marks_f_re_partcipant,
+                  marks_f_re_partcipant.data = marks_f_re_partcipant.data,
+                  time_f_re_partcipant = time_f_re_partcipant,
+                  time_f_re_partcipant.data = time_f_re_partcipant.data
+)
+
+performance_ls2 <- list()
+mute <- lapply(seq_along(model_ls2), function(i){
+  this_model <- model_ls2[[i]]
+  performance_ls2[[i]] <<- performance::model_performance(this_model)
+})
+
+.perf_df <- dplyr::bind_rows(performance_ls2)
+model_comp_tbl2 <- tibble(`Model name` = names(model_ls2),
+                          `AIC` = round(.perf_df[, 1]),
+                          `BIC` = round(.perf_df[, 2]),
+                          `R2 (cond. on RE)` = round(.perf_df[, 3], 3),
+                          `R2 (marg., w/o RE)` = round(.perf_df[, 4], 3),
+                          `RMSE` = round(.perf_df[, 6], 3)
+)
+
+knitr::kable(model_comp_tbl2)
+
+print("Random effect of the dataset as compared to that of the participant:")
+summary(marks_f_re_partcipant.data)
+.resim <- REsim(marks_f_re_partcipant.data)
+plotREsim(.resim)
+.resim_data <- .resim %>%
+  filter(groupFctr == "sim_nm") %>% 
+  arrange(mean)
+print("Most difficult and easiest datasets:")
+head(.resim_data)
+tail(.resim_data)
+```
 
 ## Marks by ... 
 
@@ -434,7 +471,7 @@ print("Random effect of participant, as simulated from the model posterior distr
 ### Order, of evaluation
 
 ```{r}
-(gg_marks_by_eval_order <- my_ggplot(.aes = aes(x = `evaluation order`, y = marks,
+(gg_marks_by_eval_order <- my_ggplot(.aes = aes(x = order, y = marks,
                      color = `is training`, fill = `is training`),
           .title = "Marks by evaluation order",
           .data = dat_qual))
@@ -493,7 +530,7 @@ my_ggplot(aes(x = location, y = marks,
               color = `is training`, fill = `is training`),
           "Marks by location, faceted by evaluation order",
           .data = dat_qual) + 
-  facet_wrap(vars(`evaluation order`))
+  facet_wrap(vars(order))
 ```
 
 ______
@@ -507,7 +544,7 @@ my_ggplot(aes(x = factor, y = `max seconds to respond`,
           .data = dat_qual) +
   coord_cartesian(ylim = c(0L, 70L))
 
-my_ggplot(aes(x = `evaluation order`, y = `max seconds to respond`,
+my_ggplot(aes(x = order, y = `max seconds to respond`,
               color = `is training`, fill = `is training`),
           "Seconds till last response by evaluation order",
           .data = dat_qual) +
