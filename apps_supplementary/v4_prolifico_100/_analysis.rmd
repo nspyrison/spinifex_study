@@ -149,7 +149,22 @@ perm_num_agg <- dat_qual %>%
   ungroup() %>%
   arrange(desc(`even evaluations`))
 
-##TODO: Want to be able to remove all but one evaluations from a participant, if the perm_number is evaled more than 3 times.
+## Remove all instances where the participant AND the permutation number are over evaluated
+candidate_participants_for_removal <- participant_agg %>%
+  filter(`is even instance` == TRUE,
+         `even evaluations` > 1) %>% 
+  pull(participant)
+candidate_perm_num_for_removal <- perm_num_agg %>% 
+  filter(`is even instance` == TRUE,
+         `even evaluations` > 3) %>% 
+  pull(`parameter permutation`)
+canidate_instance_for_removal <- intance_agg %>%
+  mutate(`is over evaled participant` = if_else(participant %in% candidate_participants_for_removal, TRUE, FALSE),
+         `is over evaled perm num` = if_else(`parameter permutation` %in% candidate_perm_num_for_removal, TRUE, FALSE),
+         ## THESE ARE IDEAL FOR REMOVAL.
+         `is over evaled participant and perm` = `is over evaled participant` & `is over evaled perm num`) %>%
+  filter(`is over evaled participant and perm` == TRUE) %>%
+  pull(instance_id)
 
 #### Plot Evenness:
 
@@ -175,6 +190,31 @@ ggplot(participant_agg, aes(x = participant, y = `even evaluations`,
   geom_text(aes(x = 33, y = 3.2, label = "target"), color = "black") +
   geom_text(aes(x = 26, y = .mn_val + .2, label = "mean of even evaluations"), color = "black")
 )
+
+## Evaluation by pameter permutations with candidates removed
+print(paste0("we have identfied ", length(canidate_instance_for_removal), " instances for removal where both the candidate and permutation number are over evaluated. if we remove these then the remaining permutation number eveness looks like:"))
+
+perm_num_agg_removed <- dat_qual %>% 
+  filter(!(instance_id %in% canidate_instance_for_removal)) %>% 
+  group_by(`parameter permutation`, `is even instance`) %>%
+  summarise(`even evaluations` = n() / 6) %>%
+  ungroup() %>%
+  arrange(desc(`even evaluations`))
+
+.mn_val <- sum(perm_num_agg_removed$`even evaluations`[perm_num_agg_removed$`is even instance` == TRUE], na.rm = TRUE) / 36
+(gg_eval_by_perm_num_removed <- perm_num_agg_removed %>% 
+    ggplot(aes(x = `parameter permutation`, y = `even evaluations`,
+               color = `is even instance`, fill = `is even instance`)) +
+  labs(title = "Evaluations by parameter permutaion", 
+       subtitle = "instances with over over evaluated participants AND permutations removed.") +
+  my_theme + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  geom_hline(yintercept = .mn_val, linetype = 2) +
+  geom_hline(yintercept = 3, linetype = 1) + 
+  geom_text(aes(x = 33, y = 3.1, label = "target"), color = "black") +
+  geom_text(aes(x = 26, y = .mn_val + .1, label = "mean of even evaluations"), color = "black")
+)
+
 ```
 
 
