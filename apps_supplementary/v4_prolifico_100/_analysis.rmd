@@ -79,6 +79,8 @@ if(F){
 }
 ## load aggregated data.
 dat_task_agg <- readRDS(rel_path("data/dat_task_agg_prolific_100.rds"))
+## filter out raining data for now; is even eval is the new color/fill go to.
+dat_task_agg <- dat_task_agg %>% filter(`is training` == FALSE)
 
 
 ## Local functions -----
@@ -94,7 +96,7 @@ my_theme <- list(
         legend.margin = margin(-6))
 )
 my_ggplot <- function(.aes = aes(x = order, y = marks,
-                                 color = `is training`, fill = `is training`),
+                                 color = `is even instance`, fill = `is even instance`),
                       .title = "Default title",
                       .data = dat_qual)
 {
@@ -118,7 +120,7 @@ Let's look at the distribution of quality evaluations by full_perm_num.
 #### Aggregation tables
 
 ## instance_agg
-intance_agg <- dat_task_agg %>% filter(`is training` == FALSE) %>%
+intance_agg <- dat_task_agg %>%
   group_by(instance_id, participant_num, `parameter permutation`, participant) %>%
   summarise(`n instance evals` = n()) %>% 
   ungroup() %>% 
@@ -129,9 +131,9 @@ even_evaled_instance_ids <- intance_agg %>%
   filter(is_instance_even == TRUE) %>%
   pull(instance_id)
 ## Decode the original dataset by evenness of instance_id.
-dat_qual_full <- dat_task_agg %>% mutate(
-  `is even instance` = if_else(instance_id %in% even_evaled_instance_ids, TRUE, FALSE))
-dat_qual <- dat_qual_full %>% filter(`is training` == FALSE)
+dat_qual <- dat_task_agg %>% 
+  mutate(`is even instance` = if_else(instance_id %in% even_evaled_instance_ids, TRUE, FALSE))
+dat_qual_even <- dat_qual %>% filter(`is even instance` == TRUE)
 
 ## participant_agg
 participant_agg <- dat_qual %>%
@@ -146,6 +148,8 @@ perm_num_agg <- dat_qual %>%
   summarise(`even evaluations` = n() / 6) %>%
   ungroup() %>%
   arrange(desc(`even evaluations`))
+
+##TODO: Want to be able to remove all but one evaluations from a participant, if the perm_number is evaled more than 3 times.
 
 #### Plot Evenness:
 
@@ -166,10 +170,10 @@ ggplot(participant_agg, aes(x = participant, y = `even evaluations`,
   labs(title = "Evaluations by parameter permutaion") +
   my_theme + 
   geom_bar(stat = "identity", position = "dodge") + 
-  geom_hline(yintercept = .mn_val, linetype = 3) +
-  geom_hline(yintercept = 3, linetype = 2) + 
+  geom_hline(yintercept = .mn_val, linetype = 2) +
+  geom_hline(yintercept = 3, linetype = 1) + 
   geom_text(aes(x = 33, y = 3.2, label = "target"), color = "black") +
-  geom_text(aes(x = 26, y = .mn_val + .2, label = "mean of full evaluations"), color = "black")
+  geom_text(aes(x = 26, y = .mn_val + .2, label = "mean of even evaluations"), color = "black")
 )
 ```
 
@@ -180,9 +184,10 @@ ggplot(participant_agg, aes(x = participant, y = `even evaluations`,
 I am concerned about the quality of the data, given that so many people experienced network issues. Let's explore.
 
 ```{r}
-print(paste0("N_raw = ", length(unique(dat_qual$participant)), " unique prolific ids"))
-lb <- quantile(dat_qual$`max seconds to respond`, probs = .25) ## bottom 25 %
-ub <- quantile(dat_qual$`max seconds to respond`, probs = .95) ## top 5 %
+## Remove windsorizing
+# print(paste0("N_raw = ", length(unique(dat_qual$participant)), " unique prolific ids"))
+# lb <- quantile(dat_qual$`max seconds to respond`, probs = .25) ## bottom 25 %
+# ub <- quantile(dat_qual$`max seconds to respond`, probs = .95) ## top 5 %
 ann_offset <- 7
 ggplot() + 
   geom_density(aes(`max seconds to respond`, fill = ""), dat_qual, alpha = .5) +
@@ -215,9 +220,9 @@ ggplot() +
 ```{r}
 ggplot(dat_qual) + my_theme +
   geom_point(aes(`max seconds to respond`, marks,
-                 fill = `is training`, color = `is training`), alpha = .2) +
+                 fill = `is even instance`, color = `is even instance`), alpha = .2) +
   geom_smooth(aes(`max seconds to respond`, marks,
-                  fill = `is training`, color = `is training`)) +
+                  fill = `is even instance`, color = `is even instance`)) +
   ggtitle("Mark by last response time")
 ```
 
@@ -225,11 +230,7 @@ ggplot(dat_qual) + my_theme +
 ## Within-participants -- Marks by Evaluation order
 
 ```{r}
-  ggplot(dat_qual, 
-            aes(x = factor, y = marks,
-                
-                color = `is training`, fill = `is training`)
-  ) +
+  ggplot(dat_qual_even,aes(x = factor, y = marks)) +
   geom_boxplot(alpha = .05) +
   labs(title = "Within Participants, Marks by factor") +
   scale_color_brewer(palette = "Dark2") + 
@@ -463,7 +464,7 @@ tail(.resim_data)
 ```{r}
 (gg_marks_by_factor <- my_ggplot(
   .aes = aes(x = factor, y = marks,
-             color = `is training`, fill = `is training`),
+             color = `is even instance`, fill = `is even instance`),
   .title = "Marks by factor",
   .data = dat_qual))
 ```
@@ -472,7 +473,7 @@ tail(.resim_data)
 
 ```{r}
 (gg_marks_by_eval_order <- my_ggplot(.aes = aes(x = order, y = marks,
-                     color = `is training`, fill = `is training`),
+                     color = `is even instance`, fill = `is even instance`),
           .title = "Marks by evaluation order",
           .data = dat_qual))
 ```
@@ -481,7 +482,7 @@ tail(.resim_data)
 
 ```{r} 
 (gg_marks_by_shape <- my_ggplot(aes(x = shape, y = marks,
-              color = `is training`, fill = `is training`),
+              color = `is even instance`, fill = `is even instance`),
           "Marks by var-covariance",
           .data = dat_qual))
 ```
@@ -490,7 +491,7 @@ tail(.resim_data)
 
 ```{r}
 (gg_marks_by_dim <- my_ggplot(aes(x = dim, y = marks,
-              color = `is training`, fill = `is training`),
+              color = `is even instance`, fill = `is even instance`),
           "Marks by dimension",
           .data = dat_qual))
 ```
@@ -499,7 +500,7 @@ tail(.resim_data)
 
 ```{r}
 (gg_marks_by_location <- my_ggplot(aes(x = location, y = marks,
-              color = `is training`, fill = `is training`),
+              color = `is even instance`, fill = `is even instance`),
           "Marks by location",
           .data = dat_qual))
 ```
@@ -508,7 +509,7 @@ tail(.resim_data)
 
 ```{r}
 my_ggplot(aes(x = location, y = marks,
-              color = `is training`, fill = `is training`),
+              color = `is even instance`, fill = `is even instance`),
           "Marks by location, faceted by factor",
           .data = dat_qual) + facet_wrap(vars(factor))
 ```
@@ -517,7 +518,7 @@ my_ggplot(aes(x = location, y = marks,
 
 ```{r}
 my_ggplot(aes(x = location, y = marks,
-              color = `is training`, fill = `is training`),
+              color = `is even instance`, fill = `is even instance`),
           "Marks by location, faceted by covariance shape",
           .data = dat_qual) + 
   facet_wrap(vars(shape))
@@ -527,7 +528,7 @@ my_ggplot(aes(x = location, y = marks,
 
 ```{r}
 my_ggplot(aes(x = location, y = marks,
-              color = `is training`, fill = `is training`),
+              color = `is even instance`, fill = `is even instance`),
           "Marks by location, faceted by evaluation order",
           .data = dat_qual) + 
   facet_wrap(vars(order))
@@ -539,13 +540,13 @@ ______
 
 ```{r}
 my_ggplot(aes(x = factor, y = `max seconds to respond`,
-              color = `is training`, fill = `is training`),
+              color = `is even instance`, fill = `is even instance`),
           "Seconds till last response by factor",
           .data = dat_qual) +
   coord_cartesian(ylim = c(0L, 70L))
 
 my_ggplot(aes(x = order, y = `max seconds to respond`,
-              color = `is training`, fill = `is training`),
+              color = `is even instance`, fill = `is even instance`),
           "Seconds till last response by evaluation order",
           .data = dat_qual) +
   coord_cartesian(ylim = c(0L, 70L))
@@ -557,13 +558,13 @@ ______
 
 ```{r}
 my_ggplot(aes(x = factor, y = task_input_inter,
-              color = `is training`, fill = `is training`),
+              color = `is even instance`, fill = `is even instance`),
           "Number of input interaction (throughness) by factor",
           .data = dat_qual) +
   coord_cartesian(ylim = c(0L, 30L))
 
 my_ggplot(aes(x = factor, y = `# response interactions`,
-              color = `is training`, fill = `is training`),
+              color = `is even instance`, fill = `is even instance`),
           "Number of response interaction (inverse confidence) by factor",
           .data = dat_qual)
 ```
