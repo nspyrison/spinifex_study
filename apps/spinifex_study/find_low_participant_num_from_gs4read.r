@@ -11,31 +11,46 @@ find_low_participant_num_from_gs4read <- function(read_sheet_b.s, probs = c(.25,
   raw$prolific_id = unlist(as.character(raw$prolific_id))
   
   ### Filter:
-  ## Only plot_active rows 
-  ## Only prolific_ids (those with exactly nchar == 24)
+  ## -Only plot_active rows
+  ## -Only prolific_ids (those with exactly nchar == 24)
+  ## -Only non-training rows
   sub <- raw %>% filter(plot_active == TRUE,
-                        nchar(prolific_id) == 24L)
+                        nchar(stringr::str_trim(participant_num)) == 24L,
+                        is_training == FALSE) %>%
+    ## Create instance_id
+    mutate(instance_id = paste(sep = "_", participant_num, full_perm_num, prolific_id))
   
-  ## Impute missing sec_to_resp AND add is_trainig flag
-  .mean_diff <- mean(sub$sec_on_pg, na.rm = TRUE) - mean(sub$sec_to_resp, na.rm = TRUE)
-  sub <- sub %>%
-    mutate(
-      sec_to_resp = if_else(is.na(sec_to_resp), sec_on_pg - .mean_diff, sec_to_resp),
-      is_training = if_else(substr(eval, 1L, 1L) == "t", TRUE, FALSE)
-    )
-  ## Keep only rows needed to get to qual_cnt_tbl
-  sub <- sub %>% select(participant_num, full_perm_num, prolific_id, sec_to_resp, sec_on_pg, is_training)
-  ## Filter to only within qual_flag
-  q_vals <- quantile(sub$sec_to_resp, probs = probs)
-  dat_qual <- sub %>% filter(sec_to_resp > q_vals[1L],
-                             sec_to_resp < q_vals[2L])
+  ## The flag is no longer on time, but rather fullness of evaluation...
+  ## app_instance_agg
+  dat_intance_agg <- dat_task_agg %>% filter(`is training` == FALSE) %>%
+    group_by(instance_id, participant_num, `parameter permutation`, participant) %>%
+    summarise(`n instance evals` = n()) %>% 
+    ungroup() %>% 
+    mutate(is_instance_even = if_else(`n instance evals` == 6, TRUE, FALSE)) %>% 
+    arrange(desc(`n instance evals`))
+  ## Find vector of evenly evaled instance_ids
+  even_evaled_instance_ids <- dat_intance_agg %>%
+    filter(is_instance_even == TRUE) %>%
+    pull(instance_id)
+  ## Decode the original dataset by evenness of instance_id.
+  dat_qual_full <- dat_task_agg %>% mutate(
+    `is even instance` = if_else(instance_id %in% even_evaled_instance_ids, TRUE, FALSE))
+  dat_qual <- dat_qual_full %>% filter(`is training` == FALSE)
+  
+  
+  
+  
+  
+  
+  
   dat_qual_task_agg <- dat_qual %>% group_by(full_perm_num , is_training) %>%
     summarise(n = n(),
               cnt_even_studies = max(sum(is_training) / 3L, sum(!is_training) / 6L),
               cnt_u_participants = length(unique(participant_num))
     ) %>% ungroup()
   ## Remove training rows
-  dat_qual_task_agg <- dat_qual_task_agg %>% filter(is_training == FALSE)
+  
+  
   ## Order by increasing count of study evaluations
   dat_qual_task_agg <- dat_qual_task_agg[order(dat_qual_task_agg$cnt_even_studies, decreasing = FALSE),]
   ## Return the first, lowest evaluated full_perm_num.

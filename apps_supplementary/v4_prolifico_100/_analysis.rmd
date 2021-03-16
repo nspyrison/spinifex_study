@@ -25,7 +25,10 @@ rel_path <- function(rel_path = "."){
   rel_path <- paste0(rel_dir, "/", rel_path)
   normalizePath(rel_path, winslash = "/")
 }
+```
 
+
+```{r}
 ## Read from gsheets API4 and save local
 if(F){
   ## Hash id of the google sheet
@@ -33,7 +36,7 @@ if(F){
   raw <- googlesheets4::read_sheet(ss_id, sheet = 1L)
   ## Remove dummy rows
   raw <- raw %>% filter(!is.na(plot_active), ## dummy rows
-                        !is.na(participant_num)) ## 2 missing participant_nums?
+                        nchar(stringr::str_trim(prolific_id)) == 24L) ## trimmed nchar(prolifico_id) = 24L
   ## Format 
   raw$full_perm_num = unlist(as.integer(raw$full_perm_num))
   raw$participant = unlist(as.character(raw$participant))
@@ -114,15 +117,15 @@ Let's look at the distribution of quality evaluations by full_perm_num.
 ```{r}
 #### Aggregation tables
 
-## app_instance_agg
-app_intance_agg <- dat_task_agg %>% filter(`is training` == FALSE) %>%
+## instance_agg
+intance_agg <- dat_task_agg %>% filter(`is training` == FALSE) %>%
   group_by(instance_id, participant_num, `parameter permutation`, participant) %>%
   summarise(`n instance evals` = n()) %>% 
   ungroup() %>% 
   mutate(is_instance_even = if_else(`n instance evals` == 6, TRUE, FALSE)) %>% 
   arrange(desc(`n instance evals`))
 ## Find vector of evenly evaled instance_ids
-even_evaled_instance_ids <- app_intance_agg %>%
+even_evaled_instance_ids <- intance_agg %>%
   filter(is_instance_even == TRUE) %>%
   pull(instance_id)
 ## Decode the original dataset by evenness of instance_id.
@@ -168,9 +171,6 @@ ggplot(participant_agg, aes(x = participant, y = `even evaluations`,
   geom_text(aes(x = 33, y = 3.2, label = "target"), color = "black") +
   geom_text(aes(x = 26, y = .mn_val + .2, label = "mean of full evaluations"), color = "black")
 )
-
-##TODO: RESUME CHECKING HERE, Something feels off. mean looks low, review 24-29 for example.
-##Participant_number isn't matching with key, will need to evaluate.
 ```
 
 

@@ -5,8 +5,8 @@ account: ebsmonash
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3356216
-bundleId: 4303424
+bundleId: 4350460
 url: https://ebsmonash.shinyapps.io/spinifex_study/
-when: 1614923992.37041
+when: 1615855719.0454
 asMultiple: FALSE
 asStatic: FALSE

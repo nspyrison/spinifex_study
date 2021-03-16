@@ -4,9 +4,10 @@
 
 ### Setup -----
 source("resp_tbl.r", local = TRUE) ## Needs initialization from global.r.
-source("find_low_participant_num_from_gs4read.r", local = TRUE) ## Needs initialization from global.r.
-library("shiny")
-library("googlesheets4") ## Google sheets (with api v4) for read/write responses.
+source("solve_partcipant_num_from_gs4read.r", local = TRUE) ## Needs initialization from global.r.
+require("shiny")
+require("googlesheets4") ## Google sheets (with api v4) for read/write responses.
+require("dplyr")
 do_disp_dev_tools <- FALSE ## Expects: TRUE / FALSE
 options(shiny.autoreload = TRUE) ## May reduce caching errors
 #options(error = browser) ## occasionally helpful for troubleshooting
@@ -84,12 +85,9 @@ tryCatch({
 ## Read response sheet and set participant number to first not use integer
 
 ## Initialize to an under evaled number, stays if API quota, otherwise overwriten.
-.opts <- 1L:23L
-.but_not <-  -c(1L, 6L, 16L, 18L)
-participant_num <- sample(360L + .opts[.but_not], 1L)
-## keep in mind API quota issue.
+participant_num <- NA_integer_
 prev_saves <- NULL
-was_quota_issue <- FALSE
+was_quota_issue <- FALSE ## keep in mind API quota issue.
 if(T){
   ## tryCatch for api quota limit
   tryCatch({
@@ -97,18 +95,10 @@ if(T){
   }, error = function(e){
     was_quota_issue <- TRUE
     txt <- "Google API quota reached, Please try again in 2 minutes. Closing app in 15 seconds."
-    warning(txt)
+    stop(txt)
     return(e)
   })
-  used_nums <- unique(prev_saves$participant_num)
-  used_nums <- used_nums[complete.cases(used_nums)]
-  if(length(used_nums) > 0L){ ## Then read worked correctly; 
-    tgt_full_perm_num <- find_low_participant_num_from_gs4read(prev_saves)
-    vec_of_int_perms <- 0L:(max(used_nums) %/% n_perms + 1L)
-    vec_candidate_participant_nums <- tgt_full_perm_num  + n_perms * vec_of_int_perms
-    unused_indx <- !(vec_candidate_participant_nums %in% used_nums)
-    participant_num <- vec_candidate_participant_nums[unused_indx][1L]
-  } ## If gsheet empty, participant_num stays the initialized 1.
+  participant_num <- solve_partcipant_num_from_gs4read(prev_saves, n_perms = 36L)
 }
 full_perm_num <- 1L + (participant_num - 1L) %% n_perms ## n_perms ~36L
 
@@ -142,7 +132,6 @@ survey_questions <- c("What are your preferred pronouns?",
 init_resp_tbl   <- make_resp_tbl(participant_num, n_perms)
 init_survey_tbl <- make_survey_tbl(participant_num, n_perms)
 init_resp_tbl   <- read_join_ans_tbl(init_resp_tbl) ## Adds responses.
-
 
 ## Context, "onStart()" and onStop()
 ## quasi onStart():

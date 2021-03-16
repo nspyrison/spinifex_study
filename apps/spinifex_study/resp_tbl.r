@@ -208,7 +208,7 @@ make_save_ans_tbl <- function(){
     var_signal_mat[i, var_ind] <- sim_signal
     ## bar, scalar, the average size of the signal per dim.
     ##TODO VALIDATE BAR, / p? / (p-1)? / (p_noise)? z_check_weights all negative.
-    bar_vect[i] <- 
+    bar_vect[i] <-
       sum(var_signal_mat[i, var_ind]) / length(sim_signal)
     ## var_diff, vector, magnitude above bar of the signal in each dim
     var_diff_mat[i, var_ind] <- var_signal_mat[i, var_ind] - bar_vect[i]
