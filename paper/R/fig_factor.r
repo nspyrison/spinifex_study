@@ -15,6 +15,7 @@ this_theme <- list(
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
         legend.position = "off"),
+  coord_fixed(),
   labs(x = "", y = "")
 )
   
@@ -46,7 +47,7 @@ for(i in 1:4){ ## creates P1:P4
 .ang <- seq(0, pi, length.out = 7)[-7] ## p + 1
 .u_circ_p6 <- as.matrix(data.frame(x = sin(.ang), y = cos(.ang)))
 bas_p6 <- tourr::orthonormalise(.u_circ_p6)
-mv <- 1
+mv <- 4
 mt <- manual_tour(bas_p6, mv, ang = .29)
 if(F)
   for(i in 1:dim(mt)[3]){ ## creates P1:P4
@@ -66,13 +67,14 @@ require("dplyr")
 
 ggplot() + geom_table(data = data.tb, aes(x,y,label = tb))
 text1 <- tibble(`PCA                                           ` = 
-                c("Inputs: x, y axes [PC1:PC4]", "Not animated"))
-tb1 <- tibble(x=0, y=0, text1 = list(text1))
+                c("Inputs: x, y axes [PC1:PC4]", "Not animated, discrete jump to selected pair of PC"))
+tb1 <- tibble(x = 0, y = 0, text1 = list(text1))
 gt1 <- ggplot() + 
   geom_table(data = tb1, aes(x,y,label = text1),
              table.theme = ttheme_gtminimal, table.hjust = 0 ) + this_theme
 
-text2 <- tibble(`Grand                                           ` = c("Inputs: none                 ", "Animated through randomly \n selected target bases"))
+text2 <- tibble(`Grand                                           ` = 
+                  c("Inputs: none                 ", "Animated through randomly \n selected target bases"))
 tb2 <- tibble(x=0, y=0, text2 = list(text2))
 gt2 <- ggplot() + 
   geom_table(data = tb2, aes(x,y,label = text2),
@@ -81,7 +83,7 @@ text3 <-
   tibble(`Radial                                                               ` = 
            c("Inputs: mapipulation variable [1:6]", 
              "Animates selected variable to \n norm=1, norm=0, then back to start."))
-tb3 <- tibble(x=0, y=0, text3 = list(text3))
+tb3 <- tibble(x = 0, y = 0, text3 = list(text3))
 gt3 <- ggplot() + 
   geom_table(data = tb3, aes(x,y,label = text3),
              table.theme = ttheme_gtminimal, table.hjust = 0 ) + this_theme

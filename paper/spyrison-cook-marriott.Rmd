@@ -2,6 +2,7 @@
 header-includes:
   - \usepackage{amsmath} ## LaTeX preamble
   - \usepackage{graphicx}
+  - \usepackage{pdflscape}
 output: pdf_document
 title: >
   The effect of user interaction for understanding variable contributions to structure in linear projections 
@@ -33,8 +34,8 @@ editor_options:
   #   # address:
   #   # - Faculty of Information Technology
   #   # email:  Kim.Marriott@monash.edu
-# preamble: >
-#   % preamble packages
+# preamble: > %% LaTeX preamble, load packages
+#   \usepackage{amsmath}
 # link-citations: true
 # fig_caption: yes
 # toc: false
@@ -168,9 +169,11 @@ The _manual_ tour [@cook_manual_1997; @spyrison_spinifex_2020] defines its basis
 <!-- radial tour variant -->
 In order to simplify the task and keep its duration realistic we consider a variant of the manual tour, called a _radial_ tour. In a radial tour the selected variable is allowed to change its magnitude of contribution, but not it's angle; it must move along the direction of its original radius.
 
+\begin{landscape}
 ```{r figFactor, echo = F, out.width = '100%',fig.cap = "Example permuptaion selection. TODO XXX NEEDS CAPTION AND ROTATE TO LANDSCAPE."}
 knitr::include_graphics("./figures/figFactor.png")
 ```
+\end{landscape}
 
 # User study {#sec:userstudy}
 
@@ -197,23 +200,20 @@ The evaluation measure of this task was designed to have a few of features: 1) t
 
 Let a dataset $\textbf{X}$ be a simulation containing clusters of observations of different distributions. Let $\textbf{X}_k$ be the subset of observations in cluster $k$ containing the $p$ variables.
 
-```{r}
-##TODO THIS CAUSES AN ERROR????
-```
-<!-- $$ -->
-<!-- \begin{align*} -->
-<!--   &\textbf{X}_{[n,~p]} = (x_1, ~....,~ x_p) \\ -->
-<!--   &\textbf{X}_{[n_k,~p]k} = (x_1, ~....,~ x_p) -->
-<!--     ~|~ n_k \in [1, n], \text{ an observation subset of } \textbf{X} -->
-<!-- \end{align*} -->
-<!-- $$ -->
+\begin{align*}
+  &\textbf{X}_{[n,~p]} = (x_1, ~....,~ x_p) \\
+  &\textbf{X}_{[n_k,~p]k} = (x_1, ~....,~ x_p)
+    ~|~ n_k \in [1, n], \text{ an observation subset of } \textbf{X}
+\end{align*}
+
+
 where
-<!-- $$ -->
-<!-- \begin{align*} -->
-<!--   x_{i, j, k} \text{ is scalar; observation } i \in (1, ... n), -->
-<!--     \text{ variable } j \in (1, ... p), \text{ cluster } k \in (1, ... K) -->
-<!-- \end{align*} -->
-<!-- $$ -->
+
+\begin{align*}
+  x_{i, j, k} \text{ is scalar; observation } i \in (1, ... n),
+    \text{ variable } j \in (1, ... p), \text{ cluster } k \in (1, ... K)
+\end{align*}
+
 
 We define weights, $W$ to be a vector explaining the variable-wise differnce between 2 clusters. Namely the difference of each variable between clusters, as a proportion of the total difference, less $1/p$ the amount of different each variable would hold if it were uniformly distributed.
 
@@ -330,7 +330,6 @@ __TODO: XXX Need to run study and add results here.__
 ## Random effects regression model
 
 In order to compare the within-participant effect we fit random effect regression model predicting the marks of non-training evaluations. We'll include most of the continuous variables, but hold out 2 that are most correlated which actually lower model AIC (Akaike's Information Criterion) when included. We also interact the number of input interactions with factor as there are no interaction for the grand tour and fundamentally different between pca and radial tours. We include a vector of coefficient against the identity function/dummy variable of our 4 factor variables (factor, dimensions, variance-covariance shape, and noise location). Lastly we include the a random effects term to account for the individual participants effect on the score. Our applied random effects model is:
-
 
 \begin{align*}
   \widehat{marks} = ~
