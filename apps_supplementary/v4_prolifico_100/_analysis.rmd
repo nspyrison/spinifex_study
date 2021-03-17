@@ -158,11 +158,13 @@ candidate_perm_num_for_removal <- perm_num_agg %>%
   filter(`is even instance` == TRUE,
          `even evaluations` > 3) %>% 
   pull(`parameter permutation`)
-canidate_instance_for_removal <- intance_agg %>%
+intance_agg_over_eval <- intance_agg %>%
   mutate(`is over evaled participant` = if_else(participant %in% candidate_participants_for_removal, TRUE, FALSE),
          `is over evaled perm num` = if_else(`parameter permutation` %in% candidate_perm_num_for_removal, TRUE, FALSE),
          ## THESE ARE IDEAL FOR REMOVAL.
-         `is over evaled participant and perm` = `is over evaled participant` & `is over evaled perm num`) %>%
+         `is over evaled participant and perm` = `is over evaled participant` & `is over evaled perm num`)
+# Participant AND Parameter over evaled
+canidate_instance_for_removal <- intance_agg_over_eval %>%
   filter(`is over evaled participant and perm` == TRUE) %>%
   pull(instance_id)
 
@@ -192,7 +194,7 @@ ggplot(participant_agg, aes(x = participant, y = `even evaluations`,
 )
 
 ## Evaluation by pameter permutations with candidates removed
-print(paste0("we have identfied ", length(canidate_instance_for_removal), " instances for removal where both the candidate and permutation number are over evaluated. if we remove these then the remaining permutation number eveness looks like:"))
+print(paste0("We have identfied ", length(canidate_instance_for_removal), " instances for removal where both the candidate and permutation number are over evaluated. if we remove these then the remaining permutation number eveness looks like:"))
 
 perm_num_agg_removed <- dat_qual %>% 
   filter(!(instance_id %in% canidate_instance_for_removal)) %>% 
@@ -215,6 +217,7 @@ perm_num_agg_removed <- dat_qual %>%
   geom_text(aes(x = 26, y = .mn_val + .1, label = "mean of even evaluations"), color = "black")
 )
 
+print("We want to futher extend the prolific crowdsourcing another 11 people, and an additional 3 people awaiting paid. We conservatively estimate this will be about 45 pounds.")
 ```
 
 
