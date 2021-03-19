@@ -46,11 +46,15 @@ solve_partcipant_num_from_gs4read <- function(read_sheet_b.s, n_perms = 36L){
     ungroup()
   ## backfill missing perm numbers in agg table
   missing_perm_nums <- which(!(1L:n_perms %in% unique(perm_agg$full_perm_num)))
-  for(i in 1:length(missing_perm_nums)){
+  for(i in 1L:length(missing_perm_nums)){
     perm_agg <- rbind(perm_agg, c(missing_perm_nums[i], 0L))
   }
+  
+  perm_agg <- perm_agg[complete.cases(perm_agg), ]
   ## Order
   perm_agg <- perm_agg %>%
+    ## only rows in 1:36, not 0, not NA
+    filter(full_perm_num %in% 1L:n_perms) %>%
     arrange(n_even_evals)
   tgt_perm <- perm_agg$full_perm_num[1]
   
