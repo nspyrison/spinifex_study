@@ -80,7 +80,6 @@ solve_partcipant_num_from_gs4read <- function(read_sheet_b.s, n_perms = 36L){
   
   message(paste0("target permutation number: ", tgt_perm))
   used_participant_nums <- unique(sub$participant_num)
-  browser()
   candidate <- tgt_perm
   n <- 0L
   while(candidate %in% used_participant_nums){
