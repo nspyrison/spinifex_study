@@ -14,7 +14,7 @@ editor_options:
   chunk_output_type: console
 ---
 ```{r setup, include=FALSE}
-require(tidyverse)
+library(tidyverse)
 require("lme4") ## Random Effects (RE) model creation
 require("merTools")
 require("performance") ## tidy model eval
@@ -38,8 +38,9 @@ if(F){
   raw <- raw %>% filter(!is.na(plot_active), ## dummy rows
                         nchar(stringr::str_trim(prolific_id)) == 24L) ## trimmed nchar(prolifico_id) = 24L
   ## Format 
-  raw$full_perm_num = unlist(as.integer(raw$full_perm_num))
-  raw$participant = unlist(as.character(raw$participant))
+  # raw$full_perm_num = unlist(as.integer(raw$full_perm_num))
+  # raw$prolific_id = unlist(as.character(raw$prolific_id))
+  
   dim(raw)
   saveRDS(raw, "./apps_supplementary/v4_prolifico_100/data/raw_prolific_100.rds")
 }
@@ -58,12 +59,12 @@ if(F){
   .mean_diff <- mean(dat_longer$sec_on_pg, na.rm = TRUE) -
     mean(dat_longer$sec_to_resp, na.rm = TRUE)
   dat_longer <- dat_longer %>%
-    mutate(sec_to_resp = dplyr::if_else(is.na(sec_to_resp), 
+    mutate(sec_to_resp = dplyr::if_else(is.na(sec_to_resp),
                                         sec_on_pg - .mean_diff, sec_to_resp))
   ## Aggregate to task grain.
   dat_task_agg <- aggregate_task_vars(dat_longer)
-  ## Fix observeEvent() over count of radial input_inter. 
-  dat_task_agg <- dat_task_agg %>% 
+  ## Fix observeEvent() over count of radial input_inter.
+  dat_task_agg <- dat_task_agg %>%
     dplyr::mutate(task_input_inter = dplyr::if_else(
       factor == "radial", task_input_inter -1L, task_input_inter))
   ## Plot friendly titles
@@ -120,18 +121,18 @@ Let's look at the distribution of quality evaluations by full_perm_num.
 #### Aggregation tables
 
 ## instance_agg
-intance_agg <- dat_task_agg %>%
+instance_agg <- dat_task_agg %>%
   group_by(instance_id, participant_num, `parameter permutation`, participant) %>%
-  summarise(`n instance evals` = n()) %>% 
-  ungroup() %>% 
-  mutate(is_instance_even = if_else(`n instance evals` == 6, TRUE, FALSE)) %>% 
+  summarise(`n instance evals` = n()) %>%
+  ungroup() %>%
+  mutate(is_instance_even = if_else(`n instance evals` == 6, TRUE, FALSE)) %>%
   arrange(desc(`n instance evals`))
 ## Find vector of evenly evaled instance_ids
-even_evaled_instance_ids <- intance_agg %>%
+even_evaled_instance_ids <- instance_agg %>%
   filter(is_instance_even == TRUE) %>%
   pull(instance_id)
 ## Decode the original dataset by evenness of instance_id.
-dat_qual <- dat_task_agg %>% 
+dat_qual <- dat_task_agg %>%
   mutate(`is even instance` = if_else(instance_id %in% even_evaled_instance_ids, TRUE, FALSE))
 dat_qual_even <- dat_qual %>% filter(`is even instance` == TRUE)
 
@@ -152,19 +153,20 @@ perm_num_agg <- dat_qual %>%
 ## Remove all instances where the participant AND the permutation number are over evaluated
 candidate_participants_for_removal <- participant_agg %>%
   filter(`is even instance` == TRUE,
-         `even evaluations` > 1) %>% 
+         `even evaluations` > 1) %>%
   pull(participant)
-candidate_perm_num_for_removal <- perm_num_agg %>% 
+candidate_perm_num_for_removal <- perm_num_agg %>%
   filter(`is even instance` == TRUE,
-         `even evaluations` > 3) %>% 
+         `even evaluations` > 3) %>%
   pull(`parameter permutation`)
-intance_agg_over_eval <- intance_agg %>%
+browser()
+instance_agg_over_eval <- instance_agg %>%
   mutate(`is over evaled participant` = if_else(participant %in% candidate_participants_for_removal, TRUE, FALSE),
          `is over evaled perm num` = if_else(`parameter permutation` %in% candidate_perm_num_for_removal, TRUE, FALSE),
          ## THESE ARE IDEAL FOR REMOVAL.
          `is over evaled participant and perm` = `is over evaled participant` & `is over evaled perm num`)
 # Participant AND Parameter over evaled
-canidate_instance_for_removal <- intance_agg_over_eval %>%
+canidate_instance_for_removal <- instance_agg_over_eval %>%
   filter(`is over evaled participant and perm` == TRUE) %>%
   pull(instance_id)
 
@@ -174,21 +176,21 @@ canidate_instance_for_removal <- intance_agg_over_eval %>%
 ggplot(participant_agg, aes(x = participant, y = `even evaluations`,
                             color = `is even instance`, fill = `is even instance`)) +
   labs(title = "Evaluations by participant") +
-  my_theme + 
+  my_theme +
   geom_bar(stat = "identity", position = "dodge") + geom_hline(yintercept = 1) +
   geom_text(aes(x = .95 * max(length(unique(participant))), y = 1.2,
                 label = "ideal"), color = "black")
 
 ## Evaluations by parameter permutation
 .mn_val <- sum(perm_num_agg$`even evaluations`[perm_num_agg$`is even instance` == TRUE], na.rm = TRUE) / 36
-(gg_eval_by_perm_num <- perm_num_agg %>% 
+(gg_eval_by_perm_num <- perm_num_agg %>%
     ggplot(aes(x = `parameter permutation`, y = `even evaluations`,
                color = `is even instance`, fill = `is even instance`)) +
   labs(title = "Evaluations by parameter permutaion") +
   my_theme + 
-  geom_bar(stat = "identity", position = "dodge") + 
+  geom_bar(stat = "identity", position = "dodge") +
   geom_hline(yintercept = .mn_val, linetype = 2) +
-  geom_hline(yintercept = 3, linetype = 1) + 
+  geom_hline(yintercept = 3, linetype = 1) +
   geom_text(aes(x = 33, y = 3.2, label = "target"), color = "black") +
   geom_text(aes(x = 26, y = .mn_val + .2, label = "mean of even evaluations"), color = "black")
 )
@@ -196,23 +198,23 @@ ggplot(participant_agg, aes(x = participant, y = `even evaluations`,
 ## Evaluation by pameter permutations with candidates removed
 print(paste0("We have identfied ", length(canidate_instance_for_removal), " instances for removal where both the candidate and permutation number are over evaluated. if we remove these then the remaining permutation number eveness looks like:"))
 
-perm_num_agg_removed <- dat_qual %>% 
-  filter(!(instance_id %in% canidate_instance_for_removal)) %>% 
+perm_num_agg_removed <- dat_qual %>%
+  filter(!(instance_id %in% canidate_instance_for_removal)) %>%
   group_by(`parameter permutation`, `is even instance`) %>%
   summarise(`even evaluations` = n() / 6) %>%
   ungroup() %>%
   arrange(desc(`even evaluations`))
 
 .mn_val <- sum(perm_num_agg_removed$`even evaluations`[perm_num_agg_removed$`is even instance` == TRUE], na.rm = TRUE) / 36
-(gg_eval_by_perm_num_removed <- perm_num_agg_removed %>% 
+(gg_eval_by_perm_num_removed <- perm_num_agg_removed %>%
     ggplot(aes(x = `parameter permutation`, y = `even evaluations`,
                color = `is even instance`, fill = `is even instance`)) +
   labs(title = "Evaluations by parameter permutaion", 
        subtitle = "instances with over over evaluated participants AND permutations removed.") +
   my_theme + 
-  geom_bar(stat = "identity", position = "dodge") + 
+  geom_bar(stat = "identity", position = "dodge") +
   geom_hline(yintercept = .mn_val, linetype = 2) +
-  geom_hline(yintercept = 3, linetype = 1) + 
+  geom_hline(yintercept = 3, linetype = 1) +
   geom_text(aes(x = 33, y = 3.1, label = "target"), color = "black") +
   geom_text(aes(x = 26, y = .mn_val + .1, label = "mean of even evaluations"), color = "black")
 )
@@ -276,7 +278,7 @@ ggplot(dat_qual) + my_theme +
   ggplot(dat_qual_even,aes(x = factor, y = marks)) +
   geom_boxplot(alpha = .05) +
   labs(title = "Within Participants, Marks by factor") +
-  scale_color_brewer(palette = "Dark2") + 
+  scale_color_brewer(palette = "Dark2") +
   scale_fill_brewer(palette = "Dark2") +
   geom_line(aes(frame = participant, group = participant),
             alpha = .2)
