@@ -3,6 +3,7 @@ header-includes:
   - \usepackage{amsmath} ## LaTeX preamble
   - \usepackage{graphicx}
   - \usepackage{pdflscape}
+  - \usepackage{lmodern} ## \pounds symbol
 output: pdf_document
 title: >
   The effect of user interaction for understanding variable contributions to structure in linear projections 
@@ -164,7 +165,7 @@ Asimov originally purposed the _grand_ tour. To start, several target bases are 
 ## Manual Tours
 
 <!-- Manual tour -->
-The _manual_ tour [@cook_manual_1997; @spyrison_spinifex_2020] defines its basis path by manipulating the basis contribution of a single selected variable. A manipulation dimension is appended onto the projection plane, with a full contribution given to the selected variable. The target bases are then selected based on rotating this newly created manipulation space. The target bases are then similarly orthogonally-interpolated, data projected, and rendered into an animation. In order for variables to remain independent of each other the contributions of the other variables must also change, _ie._ the orthonormally of the dimension space should be preserved. A key feature of the manual tour is that it affords users a way to control the variable contributions of the next target basis. This means that such manipulations can be selected and queued in advance or select on the spot for human-in-the-loop analysis[@karwowski_international_2006]. Due to the huge volume of $p$-space (an aspect of the curse of dimensionality [@bellman_dynamic_1957]) and the abstraction constrained interpolation of the basis navigating large changes in the basis can become cumbersome. It is advisable to first identify a basis of particular interest and then use a manual tour as a finer, local exploration tool to observe how the contributions of the selected variable does or does not contribute to the feature of interest.
+The _manual_ tour [@cook_manual_1997; @spyrison_spinifex_2020] defines its basis path by manipulating the basis contribution of a single selected variable. A manipulation dimension is appended onto the projection plane, with a full contribution given to the selected variable. The target bases are then selected based on rotating this newly created manipulation space. The target bases are then similarly orthogonally-interpolated, data projected, and rendered into an animation. In order for variables to remain independent of each other the contributions of the other variables must also change, _ie._ dimension space should maintain its structure. A key feature of the manual tour is that it affords users a way to control the variable contributions of the next target basis. This means that such manipulations can be selected and queued in advance or select on the spot for human-in-the-loop analysis[@karwowski_international_2006]. Due to the huge volume of $p$-space (an aspect of the curse of dimensionality [@bellman_dynamic_1957]) and the abstraction constrained interpolation of the basis navigating large changes in the basis can become cumbersome. It is advisable to first identify a basis of particular interest and then use a manual tour as a finer, local exploration tool to observe how the contributions of the selected variable does or does not contribute to the feature of interest.
 
 <!-- radial tour variant -->
 In order to simplify the task and keep its duration realistic we consider a variant of the manual tour, called a _radial_ tour. In a radial tour the selected variable is allowed to change its magnitude of contribution, but not it's angle; it must move along the direction of its original radius.
@@ -286,22 +287,21 @@ knitr::include_graphics("./figures/permutaion_example.png")
 ```
 
 <!-- Eval evaluation -->
-With this setup we test the parameter space $p \in (4,~ 6),~shape \in(EEE,~ EEV,~ EVV-banana),~location ~\in~ (100/0\%,~ 66/33\%,~ 50/50\%)$ in order to evaluate the graphic display across the $factors~\in~(PCA,~grand,~radial)$. As we iterate though the possible permutations of these factors (6) and location (6) we perform an even evaluation of the full parameter space every 36 participants. While piloting these parameters we estimate that 3 even evaluations will be more than sufficient identify difference between the factors; we targeted for $n = 108$ participants for the study.
+With this setup we test the parameter space $p \in (4,~ 6),~shape \in(EEE,~ EEV,~ EVV-banana),~location ~\in~ (100/0\%,~ 66/33\%,~ 50/50\%)$ in order to evaluate the graphic display across the $factors~\in~(PCA,~grand,~radial)$. As we iterate though the possible permutations of these factors (6) and location (6) we perform an even evaluation of the full parameter space every 36 participants. While piloting these parameters we estimate that 3 even evaluations will be more than sufficient identify difference between the factors; we targeted for $N = XXX$ participants for the study.
 
 _TODO: XXX CONTINUE WRITING HERE_
 
 ## Post study survey
 
 <!-- placement and Likert scale -->
-After responses for each task were collected, participants were given a short survey containing questions gauging demographics, experience, and subjective evaluation of each factor on a 5-point Likert scale. The questions and possible responses are as follows:
+After the evaluation section of the study, participants were given a short survey containing questions gauging demographics, experience, and subjective evaluation of each factor on a 5-point Likert scale. The questions and possible responses are as follows:
 
 __Demographic:__
-
 - What are your preferred pronouns? [decline to answer, he/him, she/her, they/them or other]
 - Which age group do you belong to? [decline to answer, 18 to 24, 25 to 35, 36 to 45, 45 to 60, 60 and up]
 - What is your highest completed education? [decline to answer, Undergraduate degree (BA/BSc/other), Graduate degree (MA/MSc/MPhil/other), Doctorate degree (PhD/other); prolific.co participants were filtered to those stating they had an least an undergraduate degree]
 
-__Within participant bias:__ $\\$
+__Within participant bias:__ \\
 Likert scale [1-5], least agreement to most agreement.
 
 - I understand the how to perform the task.
@@ -314,13 +314,13 @@ __Subjective by factor:__
 - I found this visualization easy to use.
 - I felt confident in my answers with this visualization.
 - I liked using this visualization.
+<!-- see Tory 2006 for example of ease/confidence/likeability -->
 
 The code, response files, their analyses, and study application are made publicly available at on GitHub at [github.com/nspyrison/spinifex_study](https://github.com/nspyrison/spinifex_study).
 
 ## Sampling population {#sec:population}
 
-<!-- see Tory 2006 for example of ease/confidence/likeability -->
-cite Kadek's paper or another pointing to prolific.co?
+We recruited $N = XXX$ via prolifico [@palan_prolific_2018]. We make the assumption that interpretation of biplot displays used will not be commonly used for wide audience and apply a single filter; that participants have completed at least an undergraduate degree (some 58,700 of the 150,400 users). Participants were compensated for their time at \pounds 7.50 per hour, whereas the mean of survey was about 16 minutes. We can't preclude previous knowledge or experience with the factors, but instead try to control for this in the user study. Figure XXX shows distributions of age and preferred pronouns of the participants that completed the post-study survey who are relatively young and well educated.
 
 
 # Results {#sec:results}
@@ -381,7 +381,7 @@ spinifex::run_app("primary")
 
 # Acknowledgments {#sec:acknowledgments}
 
-This article was created in R [@r_core_team_r:_2020], using `knitr` [@stodden_knitr:_2014] and `rmarkdown` [@xie_r_2018], with code generating the examples inline. The source files for this article, application, data, and analysis can be found at [github.com/nspyrison/spinifex_study/](https://github.com/nspyrison/spinifex_paper/). The source code for the `spinifex` package and accompanying shiny application can be found at [github.com/nspyrison/spinifex/](https://github.com/nspyrison/spinifex/).
+This research was supported by an Australian Government Research Training Program (RTP) Scholarship. This article was created in R [@r_core_team_r:_2020], using `knitr` [@stodden_knitr:_2014] and `rmarkdown` [@xie_r_2018]. The source files for this article, application, data, and analysis can be found at [github.com/nspyrison/spinifex_study/](https://github.com/nspyrison/spinifex_study/). The source code for the `spinifex` package and accompanying shiny application can be found at [github.com/nspyrison/spinifex/](https://github.com/nspyrison/spinifex/).
 
 # Bibliography {#sec:bib}
 
