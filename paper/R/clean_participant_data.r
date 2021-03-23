@@ -154,16 +154,17 @@ pivot_longer_resp_ans_tbl <- function(dat){
 ## Aggregate to the task grain.
 aggregate_task_vars <- function(df_long){
   df_long %>%
-    dplyr::group_by(key, participant_num, full_perm_num, prolific_id, sim_nm, 
+    dplyr::group_by(key, participant_num, full_perm_num, prolific_id, sim_nm,
                     factor, period, eval, is_training, vc, p_dim, location) %>%
-    dplyr::summarise(task_input_inter = mean(input_inter), ## value repeated so mean instead of sum.
-                     task_resp_inter = mean(resp_inter), ## value repeated so mean instead of sum.
-                     max_sec_to_resp = max(sec_to_resp),
-                     max_sec_on_pg = max(sec_on_pg),
+    dplyr::summarise(write_dt = first(write_dt),
+                     task_input_inter = first(input_inter),
+                     task_resp_inter = first(resp_inter),
+                     sec_to_resp = first(sec_to_resp),
+                     sec_on_pg = first(sec_on_pg),
                      cnt_resp = sum(resp),
                      task_marks = sum(marks),
                      z_sum_weight_check = sum(weight),
-                     z_sum_sq_weight_check = sum(weight^2)
+                     zz_sum_sq_weight_check = sum(weight^2)
     ) %>% dplyr::ungroup() %>%
     tibble::as_tibble()
 }

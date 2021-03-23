@@ -59,20 +59,20 @@ if(F){
   .mean_diff <- mean(dat_longer$sec_on_pg, na.rm = TRUE) -
     mean(dat_longer$sec_to_resp, na.rm = TRUE)
   dat_longer <- dat_longer %>%
-    mutate(sec_to_resp = dplyr::if_else(is.na(sec_to_resp),
-                                        sec_on_pg - .mean_diff, sec_to_resp))
+    mutate(sec_to_resp = 
+             if_else(is.na(sec_to_resp), sec_on_pg - .mean_diff, sec_to_resp))
   ## Aggregate to task grain.
   dat_task_agg <- aggregate_task_vars(dat_longer)
   ## Fix observeEvent() over count of radial input_inter.
   dat_task_agg <- dat_task_agg %>%
-    dplyr::mutate(task_input_inter = dplyr::if_else(
-      factor == "radial", task_input_inter -1L, task_input_inter))
+    mutate(task_input_inter = 
+             if_else(factor == "radial", task_input_inter -1L, task_input_inter))
   ## Plot friendly titles
   dat_task_agg <- dat_task_agg %>%
   mutate(instance_id = paste(sep = "_", participant_num, full_perm_num, prolific_id)) %>%
   rename(shape = vc, dim = p_dim, order = eval, participant = prolific_id,
          `is training` = is_training, `# response interactions` = task_resp_inter,
-         `max seconds to respond` = max_sec_to_resp, `seconds on page` = max_sec_on_pg,
+         `seconds to last response` = sec_to_resp, `seconds on page` = sec_on_pg,
          `# of responses` = cnt_resp, marks = task_marks,
          `parameter permutation` = full_perm_num)
   ## Save task aggregated data.
@@ -123,55 +123,69 @@ Let's look at the distribution of quality evaluations by full_perm_num.
 ## instance_agg
 instance_agg <- dat_task_agg %>%
   group_by(instance_id, participant_num, `parameter permutation`, participant) %>%
-  summarise(`n instance evals` = n()) %>%
+  summarise(`n instance evals` = n() / 6) %>%
   ungroup() %>%
-  mutate(is_instance_even = if_else(`n instance evals` == 6, TRUE, FALSE)) %>%
+  mutate(is_instance_even = if_else(`n instance evals` == 1, TRUE, FALSE)) %>%
   arrange(desc(`n instance evals`))
 ## Find vector of evenly evaled instance_ids
-even_evaled_instance_ids <- instance_agg %>%
+instance_id_is_even_whitelist <- instance_agg %>%
   filter(is_instance_even == TRUE) %>%
   pull(instance_id)
 ## Decode the original dataset by evenness of instance_id.
 dat_qual <- dat_task_agg %>%
-  mutate(`is even instance` = if_else(instance_id %in% even_evaled_instance_ids, TRUE, FALSE))
-dat_qual_even <- dat_qual %>% filter(`is even instance` == TRUE)
+  mutate(`is even instance` = if_else(instance_id %in% instance_id_is_even_whitelist, TRUE, FALSE))
 
-## participant_agg
+## participant aggregate table
 participant_agg <- dat_qual %>%
   group_by(participant, `is even instance`) %>%
   summarise(`even evaluations` = n() / 6) %>%
   ungroup() %>%
   arrange(desc(`even evaluations`))
-
-## perm_num_agg
+## perm_num aggregate table
 perm_num_agg <- dat_qual %>%
   group_by(`parameter permutation`, `is even instance`) %>%
   summarise(`even evaluations` = n() / 6) %>%
   ungroup() %>%
   arrange(desc(`even evaluations`))
 
-## Remove all instances where the participant AND the permutation number are over evaluated
-candidate_participants_for_removal <- participant_agg %>%
-  filter(`is even instance` == TRUE,
-         `even evaluations` > 1) %>%
+#### Identify and remove instances with over evaled perms AND participants.
+## Identify participants that have performed more than 1 even eval from
+participant_blacklist <- participant_agg %>%
+  group_by(participant) %>%
+  summarise(`even evaluations` = sum(`even evaluations`)) %>%
+  ungroup() %>%
+  filter(`even evaluations` > 1) %>%
   pull(participant)
-candidate_perm_num_for_removal <- perm_num_agg %>%
+## Identify over evaled perm numbers
+perm_num_blacklist <- perm_num_agg %>%
   filter(`is even instance` == TRUE,
          `even evaluations` > 3) %>%
   pull(`parameter permutation`)
-browser()
-instance_agg_over_eval <- instance_agg %>%
-  mutate(`is over evaled participant` = if_else(participant %in% candidate_participants_for_removal, TRUE, FALSE),
-         `is over evaled perm num` = if_else(`parameter permutation` %in% candidate_perm_num_for_removal, TRUE, FALSE),
-         ## THESE ARE IDEAL FOR REMOVAL.
-         `is over evaled participant and perm` = `is over evaled participant` & `is over evaled perm num`)
-# Participant AND Parameter over evaled
-canidate_instance_for_removal <- instance_agg_over_eval %>%
-  filter(`is over evaled participant and perm` == TRUE) %>%
+
+## Decode the original dataset by evenness of instance_id.
+dat_qual <- dat_qual %>%
+  mutate(particiapnat_blacklisted = if_else(participant %in% participant_blacklist, TRUE, FALSE),
+         perm_num_blacklisted = if_else(`parameter permutation` %in% perm_num_blacklist, TRUE, FALSE),
+         removal_priority = particiapnat_blacklisted + perm_num_blacklisted,
+         perm_prolific_id = paste(sep = "_", `parameter permutation`, participant))
+
+## Identify the final results to keep as prioritized with the first 3 evals of:
+#### arrange(`parameter permutation`, removal_priority, desc(write_dt))
+#### where removal_priority get 1 each for perm and partcipant being over evaled.
+perm_prolific_id_whitelist <- dat_qual %>%
+  filter(`is even instance` == TRUE) %>%
+  arrange(`parameter permutation`, removal_priority, desc(write_dt)) %>%
+  group_by(`parameter permutation`, instance_id) %>%
+  summarise(`even evaluations` = 1) %>%
+  mutate(wi_perm_instance_rn = row_number()) %>%
+  filter(wi_perm_instance_rn < 4) %>%
   pull(instance_id)
+ 
+## Apply the final white list, the last 3 even evaluations of each perm 
+dat_qual <- dat_qual %>% 
+  filter(instance_id %in% perm_prolific_id_whitelist)
 
 #### Plot Evenness:
-
 ## Evaluations by participant
 ggplot(participant_agg, aes(x = participant, y = `even evaluations`,
                             color = `is even instance`, fill = `is even instance`)) +
@@ -195,34 +209,27 @@ ggplot(participant_agg, aes(x = participant, y = `even evaluations`,
   geom_text(aes(x = 26, y = .mn_val + .2, label = "mean of even evaluations"), color = "black")
 )
 
-## Evaluation by pameter permutations with candidates removed
-print(paste0("We have identfied ", length(canidate_instance_for_removal), " instances for removal where both the candidate and permutation number are over evaluated. if we remove these then the remaining permutation number eveness looks like:"))
+## Evaluation by parameter permutations with candidates removed
+print("After evaluating the evenness of participants, permutations, the probability of adverse network interactions we have selected 3 evaluations of each block permutation to perfom the analysis on:")
+print("Note: Training removed, partial evaluations removed, only the evaluations of the remaining instances.")
 
-perm_num_agg_removed <- dat_qual %>%
-  filter(!(instance_id %in% canidate_instance_for_removal)) %>%
+#### Now update perm agg and plot 
+perm_num_agg2 <- dat_qual %>%
   group_by(`parameter permutation`, `is even instance`) %>%
   summarise(`even evaluations` = n() / 6) %>%
-  ungroup() %>%
-  arrange(desc(`even evaluations`))
+  ungroup()
 
-.mn_val <- sum(perm_num_agg_removed$`even evaluations`[perm_num_agg_removed$`is even instance` == TRUE], na.rm = TRUE) / 36
-(gg_eval_by_perm_num_removed <- perm_num_agg_removed %>%
+(gg_eval_by_perm_num_removed <- perm_num_agg2 %>%
     ggplot(aes(x = `parameter permutation`, y = `even evaluations`,
                color = `is even instance`, fill = `is even instance`)) +
   labs(title = "Evaluations by parameter permutaion", 
-       subtitle = "instances with over over evaluated participants AND permutations removed.") +
-  my_theme + 
+       subtitle = "Remaining set of data, 3 evaluations of all block parameter permutations") +
+  my_theme +
   geom_bar(stat = "identity", position = "dodge") +
-  geom_hline(yintercept = .mn_val, linetype = 2) +
-  geom_hline(yintercept = 3, linetype = 1) +
-  geom_text(aes(x = 33, y = 3.1, label = "target"), color = "black") +
-  geom_text(aes(x = 26, y = .mn_val + .1, label = "mean of even evaluations"), color = "black")
+  geom_hline(yintercept = 3, linetype = 2) +
+  geom_text(aes(x = 33, y = 3.1, label = "target"), color = "black")
 )
-
-print("We want to futher extend the prolific crowdsourcing another 11 people, and an additional 3 people awaiting paid. We conservatively estimate this will be about 45 pounds.")
 ```
-
-
 
 ## Last response time density
 
@@ -231,11 +238,11 @@ I am concerned about the quality of the data, given that so many people experien
 ```{r}
 ## Remove windsorizing
 # print(paste0("N_raw = ", length(unique(dat_qual$participant)), " unique prolific ids"))
-# lb <- quantile(dat_qual$`max seconds to respond`, probs = .25) ## bottom 25 %
-# ub <- quantile(dat_qual$`max seconds to respond`, probs = .95) ## top 5 %
+# lb <- quantile(dat_qual$`seconds to last response`, probs = .25) ## bottom 25 %
+# ub <- quantile(dat_qual$`seconds to last response`, probs = .95) ## top 5 %
 ann_offset <- 7
-ggplot() + 
-  geom_density(aes(`max seconds to respond`, fill = ""), dat_qual, alpha = .5) +
+ggplot() +
+  geom_density(aes(`seconds to last response`, fill = ""), dat_qual, alpha = .5) +
   ggtitle("Seconds to respond density") +
   my_theme +
   lims(x = c(0, 100)) +
@@ -253,7 +260,7 @@ ggplot() +
   #          alpha = 0.3, fill = "firebrick1")
 
 # dat_qual <- dat_qual
-#%>% filter(`max seconds to respond` > lb, `max seconds to respond` < ub)
+#%>% filter(`seconds to last response` > lb, `seconds to last response` < ub)
 ## windsorized conflicts with the within participant evaluation.
 
 #print(paste0("N_windsorized = ", length(unique(dat_qual$participant)), " unique prolific ids"))
@@ -263,19 +270,23 @@ ggplot() +
 ```
 
 ```{r}
+# colnames(dat_qual)
+# dat_qual %>% 
+#   dplyr::select(factor, period, order, shape, dim, location, marks) %>% 
+#   data.matrix() %>% cor() %>% corrplot::corrplot(order = "AOE", type = "upper", tl.pos = "d")
 ggplot(dat_qual) + my_theme +
-  geom_point(aes(`max seconds to respond`, marks,
-                 fill = `is even instance`, color = `is even instance`), alpha = .2) +
-  geom_smooth(aes(`max seconds to respond`, marks,
-                  fill = `is even instance`, color = `is even instance`)) +
-  ggtitle("Mark by last response time")
+  geom_point(aes(`seconds to last response`, marks,
+                 fill = factor, color = factor), alpha = .2) +
+  geom_smooth(aes(`seconds to last response`, marks,
+                  fill = factor, color = factor)) +
+  ggtitle("Mark by last response time", "Radial tends to score higher, and respond quickest")
 ```
 
 
 ## Within-participants -- Marks by Evaluation order
 
 ```{r}
-  ggplot(dat_qual_even,aes(x = factor, y = marks)) +
+ggplot(dat_qual, aes(x = factor, y = marks)) +
   geom_boxplot(alpha = .05) +
   labs(title = "Within Participants, Marks by factor") +
   scale_color_brewer(palette = "Dark2") +
@@ -463,9 +474,9 @@ marks_f_re_partcipant <- lmer(marks ~ factor + (1 | participant), data = dat_qua
 marks_f_re_partcipant.data <- 
   lmer(marks ~ factor + (1 | participant) + (1 | sim_nm), data = dat_qual)
 time_f_re_partcipant <- 
-  lmer(`max seconds to respond` ~ factor + (1 | participant), data = dat_qual)
+  lmer(`seconds to last response` ~ factor + (1 | participant), data = dat_qual)
 time_f_re_partcipant.data <- 
-  lmer(`max seconds to respond` ~ factor + (1 | participant) + (1 | sim_nm), data = dat_qual)
+  lmer(`seconds to last response` ~ factor + (1 | participant) + (1 | sim_nm), data = dat_qual)
 
 model_ls2 <- list(marks_f_re_partcipant = marks_f_re_partcipant,
                   marks_f_re_partcipant.data = marks_f_re_partcipant.data,
@@ -508,91 +519,108 @@ tail(.resim_data)
 
 ```{r}
 (gg_marks_by_factor <- my_ggplot(
-  .aes = aes(x = factor, y = marks,
-             color = `is even instance`, fill = `is even instance`),
-  .title = "Marks by factor",
+  .aes = aes(x = factor, y = marks, color = factor, fill = factor),
+  .title = "Marks by factor*location",
+  .data = dat_qual))
+```
+
+#### ... faceted by location
+
+```{r}
+my_ggplot(
+  aes(x = factor, y = marks, color = factor, fill = factor), 
+  "Marks by factor, facet by location",
+  .data = dat_qual) + 
+  facet_wrap(vars(location))
+```
+
+#### ... faceted by shape
+
+```{r}
+my_ggplot(
+  aes(x = factor, y = marks, color = factor, fill = factor),
+  "Marks by factor, faceted by shape",
+  .data = dat_qual) + 
+  facet_wrap(vars(shape))
+```
+
+#### ... facet by order
+
+```{r}
+my_ggplot(aes(x = factor, y = marks,
+              color = factor, fill = factor),
+          "Marks by factor, faceted by order",
+          .data = dat_qual) + 
+  facet_wrap(vars(order))
+```
+
+#### ... facet by dimension
+
+```{r}
+my_ggplot(aes(x = factor, y = marks, color = factor, fill = factor),
+          "Marks by factor, faceted by dimension",
+          .data = dat_qual) + 
+  facet_wrap(vars(dim))
+```
+
+### Location, of signal mixing
+
+```{r}
+(gg_marks_by_location <- my_ggplot(
+  aes(x = location, y = marks, color = factor, fill = factor),
+  "Marks by location",
   .data = dat_qual))
 ```
 
 ### Order, of evaluation
 
 ```{r}
-(gg_marks_by_eval_order <- my_ggplot(.aes = aes(x = order, y = marks,
-                     color = `is even instance`, fill = `is even instance`),
-          .title = "Marks by evaluation order",
-          .data = dat_qual))
+(gg_marks_by_eval_order <- my_ggplot(
+  .aes = aes(x = order, y = marks, color = factor, fill = factor),
+  .title = "Marks by evaluation order",
+  .data = dat_qual))
 ```
 
-### Shape, Variance-covariance 
+### Shape,  variance-covariance 
 
 ```{r} 
-(gg_marks_by_shape <- my_ggplot(aes(x = shape, y = marks,
-              color = `is even instance`, fill = `is even instance`),
-          "Marks by var-covariance",
-          .data = dat_qual))
+(gg_marks_by_shape <- my_ggplot(
+  aes(x = shape, y = marks, color = factor, fill = factor),
+  "Marks by var-covariance",
+  .data = dat_qual))
 ```
 
 ### Dimension
 
 ```{r}
-(gg_marks_by_dim <- my_ggplot(aes(x = dim, y = marks,
-              color = `is even instance`, fill = `is even instance`),
-          "Marks by dimension",
-          .data = dat_qual))
+(gg_marks_by_dim <- my_ggplot(
+  aes(x = dim, y = marks, color = factor, fill = factor),
+  "Marks by dimension",
+  .data = dat_qual))
 ```
 
-### Location, of signal mixing
 
-```{r}
-(gg_marks_by_location <- my_ggplot(aes(x = location, y = marks,
-              color = `is even instance`, fill = `is even instance`),
-          "Marks by location",
-          .data = dat_qual))
-```
-
-#### Facet by factor
-
-```{r}
-my_ggplot(aes(x = location, y = marks,
-              color = `is even instance`, fill = `is even instance`),
-          "Marks by location, faceted by factor",
-          .data = dat_qual) + facet_wrap(vars(factor))
-```
-
-#### Facet by covariance shape
-
-```{r}
-my_ggplot(aes(x = location, y = marks,
-              color = `is even instance`, fill = `is even instance`),
-          "Marks by location, faceted by covariance shape",
-          .data = dat_qual) + 
-  facet_wrap(vars(shape))
-```
-
-#### Facet by evaluation order
-
-```{r}
-my_ggplot(aes(x = location, y = marks,
-              color = `is even instance`, fill = `is even instance`),
-          "Marks by location, faceted by evaluation order",
-          .data = dat_qual) + 
-  facet_wrap(vars(order))
-```
 
 ______
 
-## Speed by factor, evaluation order
+## Speed of response
 
 ```{r}
-my_ggplot(aes(x = factor, y = `max seconds to respond`,
-              color = `is even instance`, fill = `is even instance`),
-          "Seconds till last response by factor",
+my_ggplot(aes(x = factor, y = `seconds to last response`,
+              color = factor, fill = factor),
+          "Seconds to last response by factor",
           .data = dat_qual) +
   coord_cartesian(ylim = c(0L, 70L))
 
-my_ggplot(aes(x = order, y = `max seconds to respond`,
-              color = `is even instance`, fill = `is even instance`),
-          "Seconds till last response by evaluation order",
+my_ggplot(aes(x = order, y = `seconds to last response`,
+              color = "", fill = ""),
+          "Seconds to last response by order",
+          .data = dat_qual) +
+  coord_cartesian(ylim = c(0L, 70L))
+
+my_ggplot(aes(x = location, y = `seconds to last response`,
+              color = "", fill = ""),
+          "Seconds to last response by factor",
           .data = dat_qual) +
   coord_cartesian(ylim = c(0L, 70L))
 ```
@@ -602,42 +630,61 @@ ______
 ## Input and response interactions
 
 ```{r}
+## Factor
 my_ggplot(aes(x = factor, y = task_input_inter,
-              color = `is even instance`, fill = `is even instance`),
+              color = factor, fill = factor),
           "Number of input interaction (throughness) by factor",
           .data = dat_qual) +
   coord_cartesian(ylim = c(0L, 30L))
 
 my_ggplot(aes(x = factor, y = `# response interactions`,
-              color = `is even instance`, fill = `is even instance`),
+              color = factor, fill = factor),
           "Number of response interaction (inverse confidence) by factor",
+          .data = dat_qual)
+
+## Order
+my_ggplot(aes(x = order, y = task_input_inter,
+              color = "", fill = ""),
+          "Number of input interaction (throughness) by order",
+          .data = dat_qual) +
+  coord_cartesian(ylim = c(0L, 30L))
+
+my_ggplot(aes(x = order, y = `# response interactions`,
+              color = "", fill = ""),
+          "Number of response interaction (inverse confidence) by order",
+          .data = dat_qual)
+
+## Location
+my_ggplot(aes(x = location, y = task_input_inter,
+              color = "", fill = ""),
+          "Number of input interaction (throughness) by location",
+          .data = dat_qual) +
+  coord_cartesian(ylim = c(0L, 30L))
+
+my_ggplot(aes(x = location, y = `# response interactions`,
+              color = "", fill = ""),
+          "Number of response interaction (inverse confidence) by location",
           .data = dat_qual)
 ```
 
 
-## Manual saving
+## Saving paper figures
 ```{r}
 if(F){
-  
   gg_eval_by_perm_num ## evenness of perm num 
   gg_marks_by_factor
   gg_marks_by_eval_order
   gg_marks_by_shape
   gg_marks_by_dim
   gg_marks_by_location
-  
-  ## MODEL
-  ## _Save model figures
-  (figModel <- cowplot::plot_grid(r, resim, ncol = 2, rel_widths = c(3, 2)))
-  ggsave("figModels.png", plot = figModel, path = "./paper/figures",
-         device = "png", width = 8, height = 4, unit = "in")
-  ## _Save model summary, annova, residual_df in as list.
-  model_ls <- list(
-    summary = s,
-    anova = a,
-    residual_df = resid_2
-  )
-  saveRDS(model_ls, file = "./paper/figures/model_ls.rds")
-}
 
+
+## MODEL
+## _Save model figure
+resid <- plotREsim(REsim(m_factor))
+resim <- plot_residual(m_factor)
+(figModel <- cowplot::plot_grid(resid, resim, ncol = 2, rel_widths = c(3, 2)))
+ggsave("figModels.png", plot = figModel, path = "./paper/figures",
+       device = "png", width = 8, height = 4, unit = "in")
+}
 ```
