@@ -56,8 +56,8 @@ knitr::opts_chunk$set(
   message = FALSE,
   warning = FALSE,
   error = FALSE,
-  cache = TRUE,
-  cache.lazy = TRUE
+  cache = FALSE,
+  cache.lazy = FALSE
 )
 require(spinifex)
 require(ggplot2)
@@ -344,7 +344,7 @@ __TODO: XXX Need to run study and add results here.__
 In order to explore how the parameterizations of study we fix regression models, regressing against the marks as defined in secion XXX. The factors of our model with involve a number of  (visual *factor*, *dimension*ality of the data, variance-covariance *shape*, and noise/signal mixing *location*). We compare these against any potential learning effect by comparing against evaluation *order*. Lastly, all models include the a random effects term to account for the individual participants effect on the score, explaining the within-participant effect on the score.
 
 <!-- Measures of model comparison -->
-Evaluation of the models will include Akaike's Information Criterion (AIC), Bayesian information criterion (BIC). These are comparisons measures of models based on its maximized log-likelihood function and penalize over fitting models linearly with the number of fixed terms. Root mean square error (RMSE) is the standard deviation of the residuals is also included. For the above 3 measures, the lower the value the more accurate the model. We additionally include Nakagawa's R^2 for mixed models
+Evaluation of the models will include Akaike's Information Criterion (AIC), Bayesian information criterion (BIC). These are comparisons measures of models based on its maximized log-likelihood function and penalize over fitting models linearly with the number of fixed terms. Root mean square error (RMSE) is the standard deviation of the residuals is also included. For the above 3 measures, the lower the value the more accurate the model. We additionally include Nakagawa's R\^2 for mixed models
 [@nakagawa_coefficient_2017], which has conditional and marginal measures with respect to the random effect terms, but doesn't penalize overfitting.
 <!-- Add ICC?? see ?performance::icc -->
 
@@ -391,7 +391,7 @@ In building a set of models to test we include all single term models, a model w
   effect_{participant} + \epsilon
 \end{align*}
 
-where,
+where
 
 \begin{align*}
 &\beta_0 \text{ is the sum of the marginal intercept and the mean of the participant effect} \\
@@ -404,7 +404,8 @@ where,
 &order~o \in (1,~... ~6) \text{, treated as a factor variable rather than numeric variable}
 \end{align*}
 
-Among the above models, the simple factor model performs best in terms of AIC & BIC, and is thus included as a benchmark model of comparison going forward. In see the a particular simulation effect on the score an additional random effect term based on the simulation data is used. We also want to see how well the time till response can be explained by the single factor model; consider:
+<!-- Extend models -->
+Among the above models, the simple factor model performs best in terms of AIC and BIC, and is thus included as a benchmark model of comparison going forward. In see the a particular simulation effect on the score an additional random effect term based on the simulation data is used. We also want to see how well the time till response can be explained by the single factor model; consider:
 
 \begin{align*}
 \text{model marks\~F+RE(participant): } ~~~~~ \widehat{marks} = 
@@ -421,26 +422,33 @@ Among the above models, the simple factor model performs best in terms of AIC & 
   effect_{participant} + effect_{simulation} + \epsilon \\
 \end{align*}
   
-marks~F+RE(participant)
-                  `marks~F+RE(participant)+RE(simulation)`
-                  `time~F+RE(participant)`
-                  `time~F+RE(participant)+RE(simulation)`
+where
+
+\begin{align*}
+&effect_{simulation} \sim \mathcal{N}(0,~\pi_{simulation}) \\
+&time \text{ is the duartion of time on the page till the last response change} \\
+\end{align*}
 
 
+<!-- Tables don't render in landscape mode. -->
+<!-- \begin{landscape} -->
 ```{r modelTable, fig.cap = "TEST caption. NOTE: use the caption arg in kable(), not this."}
 model_comp_tbl_ls <- readRDS("./figures/model_comp_tbl_ls.rds")
-knitr::kable(model_comp_tbl_ls[[1]], #"latex",
-             booktabs = TRUE, linesep = "", caption = "Model comparison of our random effects models regressing marks. Each model includs a random effect term of the participant, which explains the individuals influence on their marks. Complex models perform better in terms of R^2 and RMSE, yet AIC & BIC penialize their large number of fixed effect in favor of the much simpler model containing only factor.")
-knitr::kable(model_comp_tbl_ls[[2]], #"latex",
-             booktabs = TRUE, linesep = "", caption = "We select the simple facot model as our benchmark and compare the random effects from participants with the random effects of simulated data. The random effect of the data is small compared to the random effect of the data. The random effect of the participant is good at prediciting the time users take, its conditional R^2 is much larger than the marginal R^2 of the factor fixed term.")
+knitr::kable(model_comp_tbl_ls[[1]],# "latex",
+             booktabs = TRUE, linesep = "", caption = "Model comparison of our random effects models regressing marks. Each model includs a random effect term of the participant, which explains the individuals influence on their marks. Complex models perform better in terms of R2 and RMSE, yet AIC and BIC penialize their large number of fixed effect in favor of the much simpler model containing only factor.")
+knitr::kable(model_comp_tbl_ls[[2]],# "latex",
+             booktabs = TRUE, linesep = "", caption = "We select the simple facot model as our benchmark and compare the random effects from participants with the random effects of simulated data. The random effect of the data is small compared to the random effect of the data. The random effect of the participant is good at prediciting the time users take, its conditional R2 is much larger than the marginal R2 of the factor fixed term.")
 ```
+<!-- \end{landscape} -->
 
-```{r figModel, out.width="100%", fig.show='asis', fig.cap='Model residuals and Effect ranges. TODO XXX EDIT CAPTION.'}
+<!-- Residuals and random effects simulation -->
+Residual plots had no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \ref{fig:figModel} illustrates a typically residual plot (left), while the right compares 95\% confidence interval of the effect ranges for participant and simulation. The effect ranges are estimated from simulations of the posterior distribution. The effect size of participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha$ = .95, while none the of the simulations significantly deviate from the null of having no effect size on the marks.
+
+```{r figModel, out.width="100%", fig.show='asis', fig.cap='Residual plot and estimated effect ranges for factor regressing on marks with random effects for both partitcipant and data simulation. The effect size of participant is relatively large, with several significant extrema (alpha = .95). none of the simulations deviate significantly.'}
 if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 knitr::include_graphics("./figures/figModels.png")
 ```
-
 
 # Discussion {#sec:discussion}
 

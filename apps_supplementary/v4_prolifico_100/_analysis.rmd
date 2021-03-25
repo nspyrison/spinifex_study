@@ -449,8 +449,8 @@ mute <- lapply(seq_along(model_ls), function(i){
 })
 .perf_df <- dplyr::bind_rows(performance_ls)
 model_comp_tbl <- tibble(`Model name` = names(model_ls),
-                         `# of factors` = factors_vec,
-                         `# of fixed effects` = fixef_vec,
+                         `No. of factors` = factors_vec,
+                         `No. of fixed effects` = fixef_vec,
                          `AIC` = round(.perf_df[, 1]),
                          `BIC` = round(.perf_df[, 2]),
                          `R2 (conditional on RE)` = round(.perf_df[, 3], 3),
@@ -506,8 +506,8 @@ mute <- lapply(seq_along(model_ls2), function(i){
 
 .perf_df2 <- dplyr::bind_rows(performance_ls2)
 model_comp_tbl2 <- tibble(`Model name` = names(model_ls2),
-                          `# of factors` = factors_vec2,
-                          `# of fixed effects` = fixef_vec2,
+                          `No. of factors` = factors_vec2,
+                          `No. of fixed effects` = fixef_vec2,
                           `AIC` = round(.perf_df2[, 1]),
                           `BIC` = round(.perf_df2[, 2]),
                           `R2 (conditional on RE)` = round(.perf_df2[, 3], 3),
@@ -704,7 +704,12 @@ if(F){
   ## _Save model figure
   resim <- plotREsim(REsim(marks_f_re_partcipant.data))
   resid <- plot_residual(marks_f_re_partcipant.data)
-  (figModel <- cowplot::plot_grid(resid, resim, ncol = 2, rel_widths = c(2, 3)))
+  figModel_notitle <- cowplot::plot_grid(resid, resim, ncol = 2, rel_widths = c(3, 5)) 
+  title <- cowplot::ggdraw() +
+      cowplot::draw_label("marks^ = factor + effect(participant) + effect(simulation)",
+                          x = .5, y = .75, hjust = .5, vjust = 1)
+  (figModel <- cowplot::plot_grid(title, figModel_notitle,
+                                  ncol = 1, rel_heights = c(0.1, 1)))
   ggsave("figModels.png", plot = figModel, path = "./paper/figures",
          device = "png", width = 8, height = 4, unit = "in")
 }
