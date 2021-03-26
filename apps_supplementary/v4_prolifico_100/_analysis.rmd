@@ -33,10 +33,10 @@ rel_path <- function(rel_path = "."){
 if(F){
   ## Hash id of the google sheet
   ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" 
-  raw <- googlesheets4::read_sheet(ss_id, sheet = 1L)
+  raw <- googlesheets4::read_sheet(ss_id, sheet = 1)
   ## Remove dummy rows
-  raw <- raw %>% filter(!is.na(plot_active), ## dummy rows
-                        nchar(stringr::str_trim(prolific_id)) == 24L) ## trimmed nchar(prolifico_id) = 24L
+  raw <- raw %>% filter(!is.na(plot_active))
+  
   ## Format 
   # raw$full_perm_num = unlist(as.integer(raw$full_perm_num))
   # raw$prolific_id = unlist(as.character(raw$prolific_id))
@@ -49,8 +49,7 @@ if(F){
   raw <- readRDS(rel_path("data/raw_prolific_100.rds"))
   ## Only plot_active rows 
   ## AND Only participants (rows where nchar(participant) == 24 charcters long)
-  dat_active <- raw %>% filter(plot_active == TRUE,
-                               nchar(prolific_id) == 24L)
+  dat_active <- raw %>% filter(nchar(stringr::str_trim(prolific_id)) == 24) ## trimmed nchar(prolifico_id) = 24L
   source(file = rel_path("../../paper/R/clean_participant_data.r"),
          local = TRUE, echo = FALSE)
   ## pivot variables columns longer for task-grained aggregation.
@@ -66,7 +65,7 @@ if(F){
   ## Fix observeEvent() over count of radial input_inter.
   dat_task_agg <- dat_task_agg %>%
     mutate(task_input_inter = 
-             if_else(factor == "radial", task_input_inter -1L, task_input_inter))
+             if_else(factor == "radial", task_input_inter -1, task_input_inter))
   ## Plot friendly titles
   dat_task_agg <- dat_task_agg %>%
   mutate(instance_id = paste(sep = "_", participant_num, full_perm_num, prolific_id)) %>%
@@ -172,7 +171,7 @@ dat_qual <- dat_qual %>%
 ## Identify the final results to keep as prioritized with the first 3 evals of:
 #### arrange(`parameter permutation`, removal_priority, desc(write_dt))
 #### where removal_priority get 1 each for perm and partcipant being over evaled.
-perm_prolific_id_whitelist <- dat_qual %>%
+instance_id_whitelist <- dat_qual %>%
   filter(`is even instance` == TRUE) %>%
   arrange(`parameter permutation`, removal_priority, desc(write_dt)) %>%
   group_by(`parameter permutation`, instance_id) %>%
@@ -183,7 +182,7 @@ perm_prolific_id_whitelist <- dat_qual %>%
  
 ## Apply the final white list, the last 3 even evaluations of each perm
 dat_qual <- dat_qual %>%
-  filter(instance_id %in% perm_prolific_id_whitelist)
+  filter(instance_id %in% instance_id_whitelist)
 
 N <- length(unique(dat_qual$instance_id))
 print(N, " Unique instance_id")
@@ -237,40 +236,17 @@ perm_num_agg2 <- dat_qual %>%
 
 ## Last response time density
 
-I am concerned about the quality of the data, given that so many people experienced network issues. Let's explore.
+We are concerned about the quality of the data, given that so many people experienced network issues. Let's explore.
 
 ```{r}
-## Remove windsorizing
-# print(paste0("N_raw = ", length(unique(dat_qual$participant)), " unique prolific ids"))
-# lb <- quantile(dat_qual$`seconds to last response`, probs = .25) ## bottom 25 %
-# ub <- quantile(dat_qual$`seconds to last response`, probs = .95) ## top 5 %
-ann_offset <- 7
+.ann_offset <- 7
 ggplot() +
   geom_density(aes(`seconds to last response`, fill = ""), dat_qual, alpha = .5) +
   ggtitle("Seconds to respond density") +
   my_theme +
   lims(x = c(0, 100)) +
-  # geom_vline(xintercept = c(lb, ub), linetype = 2L) +
   geom_vline(xintercept = 60, linetype = 3L) +
-  geom_label(aes(x =  60 - ann_offset, #c(lb + ann_offset, 60 - ann_offset, ub - ann_offset), 
-                 y = .03, #c(.05, .045, .05), 
-                 label = "plot turns off"#c("25th percentile", "plot turns off" ,"95th percentile")
-  )) #+
-  # annotate("rect", xmin = -Inf, xmax = lb, ymin = -Inf, ymax = Inf,
-  #          alpha = 0.3, fill = "firebrick1") +
-  # annotate("rect", xmin = lb, xmax = ub, ymin = -Inf, ymax = Inf,
-  #          alpha = 0.3, fill = "aquamarine") +
-  # annotate("rect", xmin = ub, xmax = Inf, ymin = -Inf, ymax = Inf,
-  #          alpha = 0.3, fill = "firebrick1")
-
-# dat_qual <- dat_qual
-#%>% filter(`seconds to last response` > lb, `seconds to last response` < ub)
-## windsorized conflicts with the within participant evaluation.
-
-#print(paste0("N_windsorized = ", length(unique(dat_qual$participant)), " unique prolific ids"))
-# obs_percent <- round(100L * nrow(dat_qual) / nrow(dat_task_agg), 2)
-# paste0("Percent of original task evaluations in subset: ", obs_percent, "%")
-# print("NOTE: The rest of the analysis we will be looking at this middle ~70% of the evaluations.")
+  geom_label(aes(x =  60 - .ann_offset, y = .03, label = "plot turns off"))
 ```
 
 ```{r}
@@ -322,29 +298,29 @@ We create a number of base models for comparison We have:
   effect_{participant~n} + \epsilon \\
   
 \text{model FL: } ~~~~~ \widehat{marks}_{partcipant~n} = ~ &\beta_{0} +
-  \Sigma_{f = 1}^3(\Sigma_{l = 1}^3(\alpha_{factor~f*location~l} * \beta_{factor~f*location~l})) + \\
+  \Sigma_{f = 1}^3(\Sigma_{l = 1}^3(\alpha_{factor~f\*location~l} \* \beta_{factor~f*location~l})) + \\
   &effect_{participant~n} + \epsilon \\
 
 \text{model F+L+S+D+O: } ~~~~~ \widehat{marks}_{partcipant~n} = ~ &\beta_{0} +
-  \Sigma_{f = 1}^3(\alpha_{factor~f} * \beta_{factor~f}) + 
-  \Sigma_{l = 1}^3(\alpha_{location~l} * \beta_{location~l}) + \\
-  &\Sigma_{s = 1}^3(\alpha_{shape~s} * \beta_{shape~s}) +
-  \Sigma_{d = 1}^2(\alpha_{dim~d} * \beta_{dim~d}) + \\
-  &\Sigma_{o = 1}^6(\alpha_{order~o} * \beta_{order~o}) + 
+  \Sigma_{f = 1}^3(\alpha_{factor~f} \* \beta_{factor~f}) + 
+  \Sigma_{l = 1}^3(\alpha_{location~l} \* \beta_{location~l}) + \\
+  &\Sigma_{s = 1}^3(\alpha_{shape~s} \* \beta_{shape~s}) +
+  \Sigma_{d = 1}^2(\alpha_{dim~d} \* \beta_{dim~d}) + \\
+  &\Sigma_{o = 1}^6(\alpha_{order~o} \* \beta_{order~o}) + 
   effect_{participant~n} + \epsilon \\
 
 \text{model F*L+S+D+O: } ~~~~~ \widehat{marks}_{partcipant~n} = ~ &\beta_{0} +
-  \Sigma_{f = 1}^3(\Sigma_{l = 1}^3(\alpha_{factor~f*location~l} * \beta_{factor~f*location~l})) + \\
-  &\Sigma_{s = 1}^3(\alpha_{shape~s} * \beta_{shape~s}) +
-  \Sigma_{d = 1}^2(\alpha_{dim~d} * \beta_{dim~d}) + \\
-  &\Sigma_{o = 1}^6(\alpha_{order~o} * \beta_{order~o}) + 
+  \Sigma_{f = 1}^3(\Sigma_{l = 1}^3(\alpha_{factor~f\*location~l} * \beta_{factor~f\*location~l})) + \\
+  &\Sigma_{s = 1}^3(\alpha_{shape~s} \* \beta_{shape~s}) +
+  \Sigma_{d = 1}^2(\alpha_{dim~d} \* \beta_{dim~d}) + \\
+  &\Sigma_{o = 1}^6(\alpha_{order~o} \* \beta_{order~o}) + 
   effect_{participant~n} + \epsilon \\
 
 \text{model F*(L+S+D)+O: } ~~~~~ \widehat{marks}_{partcipant~n} = ~ &\beta_{0} +
-  \Sigma_{f = 1}^3(\Sigma_{l = 1}^3(\alpha_{factor~f*location~l} * \beta_{factor~f*location~l})) + \\
-  &\Sigma_{f = 1}^3(\Sigma_{s = 1}^3(\alpha_{factor~f*shape~s} * \beta_{factor~f*shape~s}) + \\
-  &\Sigma_{d = 1}^2(\Sigma_{s = 1}^2(\alpha_{factor~f*dim~d} * \beta_{factor~f*dim~d}) + \\
-  &\Sigma_{o = 1}^6(\alpha_{order~o} * \beta_{order~o}) + 
+  \Sigma_{f = 1}^3(\Sigma_{l = 1}^3(\alpha_{factor~f\*location~l} \* \beta_{factor~f\*location~l})) + \\
+  &\Sigma_{f = 1}^3(\Sigma_{s = 1}^3(\alpha_{factor~f\*shape~s} \* \beta_{factor~f\*shape~s}) + \\
+  &\Sigma_{d = 1}^2(\Sigma_{s = 1}^2(\alpha_{factor~f\*dim~d} \* \beta_{factor~f\*dim~d}) + \\
+  &\Sigma_{o = 1}^6(\alpha_{order~o} \* \beta_{order~o}) + 
   effect_{participant~n} + \epsilon \\
 \end{align*}
 
@@ -398,7 +374,7 @@ model_ls <- list(`F` = m_factor,
 )
 
 ## Local functions to abstract code complexity
-## A residual plot with marginal density, ggplot2 obj 
+## A residual plot with marginal density, ggplot2 obj
 plot_residual <- function(model){
   .df <- data.frame(predicted  = predict(model), 
                     residual = residuals(model),
@@ -412,7 +388,7 @@ plot_residual <- function(model){
   p <- ggExtra::ggMarginal(p, type = "density", fill = "grey80")
   return(p)
 }
-## A qq plot of the Random Effectssimulation
+## A qq plot of the Random Effect simulation
 plot_REsim_qq <- function(model){
   .df <- data.frame(y = REsim(model)$mean)
   ggplot(.df, aes(sample = y)) + 
@@ -482,11 +458,11 @@ Because factor uniquely performed so well, let's use it as a benchmark as compar
 ```{r}
 dat_qual_SIMNM <- dat_qual %>% mutate(simulation = sim_nm)
 marks_f_re_partcipant <- lmer(marks ~ factor + (1 | participant), data = dat_qual) ## Benchmark
-marks_f_re_partcipant.data <- ## RE on participant and data
+marks_f_re_partcipant.data <-
   lmer(marks ~ factor + (1 | participant) + (1 | simulation), data = dat_qual_SIMNM)
-time_f_re_partcipant <- ## regress angainst 
+time_f_re_partcipant <-
   lmer(`seconds to last response` ~ factor + (1 | participant), data = dat_qual)
-time_f_re_partcipant.data <-## RE on participant and data
+time_f_re_partcipant.data <-
   lmer(`seconds to last response` ~ factor + (1 | participant) + (1 | sim_nm), data = dat_qual)
 
 model_ls2 <- list(`marks~F+RE(participant)` = marks_f_re_partcipant,
@@ -616,8 +592,6 @@ my_ggplot(aes(x = factor, y = marks, color = factor, fill = factor),
   .data = dat_qual))
 ```
 
-
-
 ______
 
 ## Speed of response
@@ -688,12 +662,18 @@ my_ggplot(aes(x = location, y = `# response interactions`,
   ## Saving paper figures
 ```{r}
 if(F){
-  gg_eval_by_perm_num ## evenness of perm num 
+  gg_eval_by_perm_num ## evenness of perm num
   gg_marks_by_factor
   gg_marks_by_eval_order
   gg_marks_by_shape
   gg_marks_by_dim
   gg_marks_by_location
+  
+  
+  ## instance_id whitelist, the people kept for analysis. 
+  #### (instance_id is: participant_num "_" perm_num "_" prolific_id)
+  saveRDS(instance_id_whitelist,
+          file = "./apps_supplementary/v4_prolifico_100/instance_id_whitelist.rds")
   
   
   ## Model tables
