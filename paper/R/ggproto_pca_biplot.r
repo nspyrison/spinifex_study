@@ -9,7 +9,8 @@ ggproto_pca_biplot <- function(
   x_pc_num = 1L,
   y_pc_num = 2L,
   aes_clas,
-  brewer_pal = RColorBrewer::brewer.pal(8L, "Dark2")[c(1L, 2L, 3L, 6L, 8L)]
+  brewer_pal = RColorBrewer::brewer.pal(8L, "Dark2")[c(1L, 2L, 3L, 6L, 8L)],
+  text_size = 5L
 ){
   axes_position <- "left"
   pca_obj <- prcomp(as.matrix(dat))
@@ -58,7 +59,7 @@ ggproto_pca_biplot <- function(
     ## Axis label text
     ggplot2::geom_text(ggplot2::aes(x = x, y = y, label = colnames(dat)),
                        bas,
-                       size = 5L, colour = "grey50", fontface = "bold",
+                       size = text_size, colour = "grey50", #fontface = "bold",
                        vjust = "outward", hjust = "outward"),
     ## Circle path
     ggplot2::geom_path(ggplot2::aes(x = x, y = y),

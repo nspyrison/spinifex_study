@@ -109,10 +109,10 @@ For these reasons, it is important to use visualizations of data spaces and exte
 Using a linear combinations of variables will allow us to keep position in 2 display axes while peering into information not contained in any one dimension. The idea of using a combination of variables may appear daunting at first, however we do it almost exclusively in the spatial dimensions. That is to say we are rarely completely aligned with rectangular objects at any one point in time. Consider a book or a filing cabinet any orientation that isn't fully a 2D rectangle, you are seeing as a linear combination of its variables, height, width, and depth. Generalizing this to arbitrary data dimensions we can project or embed a 2D profile of $p$-dimensional data. Its worth noting that the number of these embedded profiles, and thus the time it takes to explore them, increase exponentially with the dimensionality of the data.
 
 <!-- Exclude non-linear embeddings -->
-Non-linear embeddings, the compliment of the linear embedding, have also been well received recently especially with the emergence of t-Distributed stochastic neighbor embedding [@van_der_maaten_visualizing_2008]. Such techniques distort the fully dimensionality on to a low, typically 2D plane. The issue with doing so is that unit of distance is not consistent with location in the embedded space, which severely hinders the interoperabilty of these embeddings. Additionally they often have hyperparameters that need tuning. Doing so results in completely different or contradicting embeddings. Suffice it to say we exclude their consideration for such broad application for multivariate EDA.
+Non-linear embeddings, the compliment of the linear embedding, have also been well received recently especially with the emergence of t-Distributed stochastic neighbor embedding [@van_der_maaten_visualizing_2008]. Such techniques distort the fully dimensionality on to a low, typically 2D plane. The issue with doing so is that unit of distance is not consistent with location in the embedded space, which severely hinders the interoperability of these embeddings. Additionally they often have hyperparameters that need tuning. Doing so results in completely different or contradicting embeddings. Suffice it to say we exclude their consideration for such broad application for multivariate EDA.
 
 <!-- <!-- nonlinear projections precluded --> 
-<!-- More recently there have been advances and fanfare in non-linear projections such as self-organizing maps [@kohonen_self-organizing_1990], and t-SNE [@maaten_visualizing_2008]. Because of the use of non-affine transformations, they offer arbitrary model spaces, without interoperabilty back to variable space. This precludes them as candidates for exploratory data analysis of the multivariate data in question. They can be useful for the rapid identification of possible candidates for outliers or classifications. However they can suffer from overfitting, and crucially cannot be interpreted in terms of the original variables.   -->
+<!-- More recently there have been advances and fanfare in non-linear projections such as self-organizing maps [@kohonen_self-organizing_1990], and t-SNE [@maaten_visualizing_2008]. Because of the use of non-affine transformations, they offer arbitrary model spaces, without interoperability back to variable space. This precludes them as candidates for exploratory data analysis of the multivariate data in question. They can be useful for the rapid identification of possible candidates for outliers or classifications. However they can suffer from overfitting, and crucially cannot be interpreted in terms of the original variables.   -->
 
 <!-- Exclude class supervised examples -->
 Additionally there are many methods suitable for data with known classes. Linear discriminant analysis [@fisher_use_1936] for instance also produces linear combinations of variables, based not in order of variation of the data, but rather on the separation of known classes. In this work we want to be fully agnostic of any such class supervision and preclude them from our comparison as well.
@@ -217,7 +217,7 @@ where
 \end{align*}
 
 
-We define weights, $W$ to be a vector explaining the variable-wise differnce between 2 clusters. Namely the difference of each variable between clusters, as a proportion of the total difference, less $1/p$ the amount of different each variable would hold if it were uniformly distributed.
+We define weights, $W$ to be a vector explaining the variable-wise difference between 2 clusters. Namely the difference of each variable between clusters, as a proportion of the total difference, less $1/p$ the amount of different each variable would hold if it were uniformly distributed.
 
 \begin{align*}
   W &=\frac
@@ -276,15 +276,15 @@ We test 2 levels of dimensionality, 4 dimensions containing 3 clusters and 6 dim
 <!-- Shape, vc matrix -->
 For choosing the shape of the clusters we follow the convention given in by the mclust [@scrucca_mclust_2016] who name and categorize 14 variants of distributions of data containing for 3-clustered. The name of the shaped is mapped to the initial for a model's volume, shape, and orientation. We use the EEE, EEV, and EVV, which is further modified by moving 4 fifths of the data out in an "V" or banana-like shape. Figure \ref{fig:figModelFamilies} shows the principal component bi-plot of the 3 three model variants applied here. The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty. The training data sets use the EEE model. The evaluation periods use EEE, EEV, and EVV-banana respectively in increasing order of difficulty.
 
-```{r figModelFamilies, echo = F, out.width = '100%',fig.cap = "Illustrate the shapes of the vc model families. TODO XXX NEEDS CAPTION"}
+```{r figModelFamilies, echo = F, out.width = '100%', fig.cap = "Ellipses of isodensity, for each of the variance-covariance model families viewed as. Family labels are are the abbreviation for the clusters volume, shape, and orientation respectively, which are either equal or variable. We futher change the EVV model by shifting fifths of the data in bannana or chevron arrow shape."}
 knitr::include_graphics("./figures/figModelFam.png")
 ```
 
 <!-- Location mixing -->
-The separation of any two target clusters is currently contained fully within 1 variable at this point. We mix this variable with a noise variable such that the difference in the clusters is mixed at the following respective percentages 100/0% (not mixed), 66/33%, 50/50% (signal evenly mixed). The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty. The training data does not mix separation. Location mixing within an evaluation period is held constant and rotated through the 6 permutations of their order. Randomizing the order of the location mixing is controlled by iterating once after each of the 6 factor order permutations are evaluated. This is illustrated in figure \ref{fig:figPermuationExample}.
+The separation of any two target clusters is currently contained fully within 1 variable at this point. We mix this variable with a noise variable such that the difference in the clusters is mixed at the following respective percentages 100/0% (not mixed), 66/33%, 50/50% (evenly mixed). The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty. The training data does not mix separation. Location mixing within an evaluation period is held constant and rotated through the 6 permutations of their order. Randomizing the order of the location mixing is controlled by iterating once after each of the 6 factor order permutations are evaluated. This is illustrated in figure \ref{fig:figParmeterizationExample}.
 
-```{r figPermuationExample, echo = F, out.width = '100%', fig.cap = "Example permuptaion selection. TODO XXX NEEDS CAPTION"}
-knitr::include_graphics("./figures/permutaion_example.png")
+```{r figParmeterizationExample, echo = F, out.width = '100%', fig.cap = "Illustration of how a hypothetical participant 63 is assigned factor and block parameterizations. Each of the 6 factor order permuations are exausted before going to the next location order permutation."}
+knitr::include_graphics("./figures/figParmeterizationExample.png")
 ```
 
 <!-- Eval evaluation -->
@@ -325,24 +325,16 @@ We recruited $N = 108$ via prolifico [@palan_prolific_2018]. We make the assumpt
 
 ## Evenness of block evaluation
 
-From pilot studies through a sample of conienvece (primarily PhD students) we predict that we wanted 3 even block evaluations to support differences in our factor and block parameterizations. Given that factor and location each have 6 permutations we targeted $N = 108 = 3 * (6 * 6)$ evaluations before data was collected. In data collection we experience a number of adverse conditions, primarly: limited control of application server network configuration, throughput thresholds on data read/write API, and repeat attempts from users when experiencing disconnects. To mitigate this we over collect survey trials, exclude all partial trials, and remove the oldest attempts (mostly likely to experience adverse network conditions) from over evaluated permutations until we have our desired 3 even evaluations under each permutation. The follow analysis was performed on only the remaining 108 trials.
+From pilot studies through a sample of convenience (primarily PhD students) we predict that we wanted 3 even block evaluations to support differences in our factor and block parameterizations. Given that factor and location each have 6 permutations we targeted $N = 108 = 3 * (6 * 6)$ evaluations before data was collected. In data collection we experience a number of adverse conditions, primarily: limited control of application server network configuration, throughput thresholds on data read/write API, and repeat attempts from users when experiencing disconnects. To mitigate this we over collect survey trials, exclude all partial trials, and remove the oldest attempts (mostly likely to experience adverse network conditions) from over evaluated permutations until we have our desired 3 even evaluations under each permutation. The follow analysis was performed on only the remaining 108 trials.
 
 # Results {#sec:results}
 
-
-
-
-
-## Random effects regression
-
-
-
-__TODO: XXX Need to run study and add results here.__
+_TODO: XXX add something here_
 
 ## Random effects regression model
 
 <!-- Explain fixed and random terms used -->
-In order to explore how the parameterizations of study we fix regression models, regressing against the marks as defined in secion XXX. The factors of our model with involve a number of  (visual *factor*, *dimension*ality of the data, variance-covariance *shape*, and noise/signal mixing *location*). We compare these against any potential learning effect by comparing against evaluation *order*. Lastly, all models include the a random effects term to account for the individual participants effect on the score, explaining the within-participant effect on the score.
+In order to explore how the parameterizations of study we fix regression models, regressing against the marks as defined in section \ref{sec:task}. The factors of our model with involve a number of  (visual *factor*, *dimension*ality of the data, variance-covariance *shape*, and noise/signal mixing *location*). We compare these against any potential learning effect by comparing against evaluation *order*. Lastly, all models include the a random effects term to account for the individual participants effect on the score, explaining the within-participant effect on the score.
 
 <!-- Measures of model comparison -->
 Evaluation of the models will include Akaike's Information Criterion (AIC), Bayesian information criterion (BIC). These are comparisons measures of models based on its maximized log-likelihood function and penalize over fitting models linearly with the number of fixed terms. Root mean square error (RMSE) is the standard deviation of the residuals is also included. For the above 3 measures, the lower the value the more accurate the model. We additionally include Nakagawa's R\^2 for mixed models
@@ -427,7 +419,7 @@ where
 
 \begin{align*}
 &effect_{simulation} \sim \mathcal{N}(0,~\pi_{simulation}) \\
-&time \text{ is the duartion of time on the page till the last response change} \\
+&time \text{ is the duration of time on the page till the last response change} \\
 \end{align*}
 
 
