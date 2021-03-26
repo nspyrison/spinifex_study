@@ -8,6 +8,8 @@ load(tgt_fp, envir = globalenv())
 dat <- EEV_p6_0_1_rep3
 clas <- attr(dat, "cluster")
 source("./paper/R/ggproto_pca_biplot.r")
+if(F)
+  file.edit("./paper/R/ggproto_pca_biplot.r")
 this_theme <- list(
   scale_color_brewer(palette = "Dark2"),
   theme_void(),
@@ -21,13 +23,13 @@ this_theme <- list(
   
 
 ### PCA
-pc_x <- 2:5
-pc_y <- 1
+pc_x <- c(2:4, 3)
+pc_y <- c(rep(1, 3), 2)
 for(i in 1:4){ ## creates P1:P4
   p <- ggplot() +
-  ggproto_pca_biplot(dat, aes_clas = clas, x_pc_num = pc_x[i], y_pc_num = pc_y) +
+  ggproto_pca_biplot(dat, aes_clas = clas, x_pc_num = pc_x[i], y_pc_num = pc_y[i]) +
   this_theme + labs(x = paste0("PC", pc_x[i]))
-  if(i == 1) p <- p + labs(y = paste0("PC", pc_y))
+  if(i %in% c(1, 4)) p <- p + labs(y = paste0("PC", pc_y[i]))
   assign(paste0("p", i), p, envir = globalenv())
 }
 
@@ -47,7 +49,7 @@ for(i in 1:4){ ## creates P1:P4
 .ang <- seq(0, pi, length.out = 7)[-7] ## p + 1
 .u_circ_p6 <- as.matrix(data.frame(x = sin(.ang), y = cos(.ang)))
 bas_p6 <- tourr::orthonormalise(.u_circ_p6)
-mv <- 4
+mv <- 6
 mt <- manual_tour(bas_p6, mv, ang = .29)
 if(F)
   for(i in 1:dim(mt)[3]){ ## creates P1:P4
@@ -66,23 +68,30 @@ require("ggpmisc")
 require("dplyr")
 
 ggplot() + geom_table(data = data.tb, aes(x,y,label = tb))
-text1 <- tibble(`PCA                                           ` = 
-                c("Inputs: x, y axes [PC1:PC4]", "Not animated, discrete jump to selected pair of PC"))
+text1 <- tibble(`PCA                                                               ` = 
+                c("- Inputs: x, y axes in [PC1, ... PC4]", 
+                  "- Not animated, discrete change",
+                  "- 4 of the 12 unique PC combinations"))
 tb1 <- tibble(x = 0, y = 0, text1 = list(text1))
 gt1 <- ggplot() + 
   geom_table(data = tb1, aes(x,y,label = text1),
              table.theme = ttheme_gtminimal, table.hjust = 0 ) + this_theme
 
-text2 <- tibble(`Grand                                           ` = 
-                  c("Inputs: none                 ", "Animated through randomly \n selected target bases"))
+text2 <- tibble(`Grand                                                               ` = 
+                  c("- Inputs: none", 
+                    "- Animated through randomly",
+                    "selected target bases",
+                    "- First 4 such target bases"))
 tb2 <- tibble(x=0, y=0, text2 = list(text2))
 gt2 <- ggplot() + 
   geom_table(data = tb2, aes(x,y,label = text2),
              table.theme = ttheme_gtminimal, table.hjust = 0 ) + this_theme
 text3 <- 
   tibble(`Radial                                                               ` = 
-           c("Inputs: mapipulation variable [1:6]", 
-             "Animates selected variable to \n norm=1, norm=0, then back to start."))
+           c("- Inputs: manipulation variable in [1, ... 6]", 
+             "- Animates selected variable to", 
+             "norm=1, norm=0, then back to start",
+             "- Target bases rotating variable 6"))
 tb3 <- tibble(x = 0, y = 0, text3 = list(text3))
 gt3 <- ggplot() + 
   geom_table(data = tb3, aes(x,y,label = text3),
