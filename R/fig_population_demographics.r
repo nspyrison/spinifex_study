@@ -35,6 +35,34 @@ if(F){
     summarise(`No. responses` = n()) %>%
     ungroup()
   
+  survey_wider <- survey_prolific %>% dplyr::select(!c(key, survey_num, sec_to_resp, write_dt, scope)) %>% 
+    pivot_wider(names_from = question, values_from = response)
+  str(survey_wider)
+  colnames(survey_wider)[5:22] <-
+    c("pronouns", "age", "education", "task_understanding", "data_viz_exp", "analysis_exp", 
+      "grand_familar", "grand_ease", "grand_confidence", "grand_like",
+      "pca_familar", "pca_ease", "pca_confidence", "pca_like",
+      "radial_familar", "radial_ease", "radial_confidence", "radial_like")
+  survey_wider <- survey_wider %>% 
+    mutate(participant_num = as.integer(participant_num),
+           participant_num = as.integer(full_perm_num),
+           task_understanding = as.integer(substr(task_understanding, 1, 1)),
+           data_viz_exp = as.integer(substr(data_viz_exp, 1, 1)),
+           analysis_exp = as.integer(substr(analysis_exp, 1, 1)),
+           grand_familar = as.integer(substr(grand_familar, 1, 1)),
+           grand_ease = as.integer(substr(grand_ease, 1, 1)),
+           grand_confidence = as.integer(substr(grand_confidence, 1, 1)),
+           grand_like = as.integer(substr(grand_like, 1, 1)),
+           pca_familar = as.integer(substr(pca_familar, 1, 1)),
+           pca_ease = as.integer(substr(pca_ease, 1, 1)),
+           pca_confidence = as.integer(substr(pca_confidence, 1, 1)),
+           pca_like = as.integer(substr(pca_like, 1, 1)),
+           radial_familar = as.integer(substr(radial_familar, 1, 1)),
+           radial_ease = as.integer(substr(radial_ease, 1, 1)),
+           radial_confidence = as.integer(substr(radial_confidence, 1, 1)),
+           radial_like = as.integer(substr(radial_like, 1, 1))
+    )
+  
   ## Save task aggregated data.
   saveRDS(survey_agg, "./apps_supplementary/survey/survey_agg.rds")
 }
@@ -42,3 +70,8 @@ if(F){
 survey_agg <- readRDS("./apps_supplementary/survey/survey_agg.rds")
 str(survey_agg)
 skimr::skim(survey_agg)
+
+## change character to factor, include counts in the levels of sex?
+demographic_heatmaps <- ggplot(survey_wider, aes(education, age)) + 
+  stat_bin2d(aes(fill = after_stat(count))) + 
+  facet_wrap(vars(pronouns)) + theme_minimal()

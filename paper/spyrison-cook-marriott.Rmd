@@ -283,7 +283,8 @@ knitr::include_graphics("./figures/figModelFam.png")
 <!-- Location mixing -->
 The separation of any two target clusters is currently contained fully within 1 variable at this point. We mix this variable with a noise variable such that the difference in the clusters is mixed at the following respective percentages 100/0% (not mixed), 66/33%, 50/50% (evenly mixed). The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty. The training data does not mix separation. Location mixing within an evaluation period is held constant and rotated through the 6 permutations of their order. Randomizing the order of the location mixing is controlled by iterating once after each of the 6 factor order permutations are evaluated. This is illustrated in figure \ref{fig:figParmeterizationExample}.
 
-```{r figParmeterizationExample, echo = F, out.width = '100%', fig.cap = "Illustration of how a hypothetical participant 63 is assigned factor and block parameterizations. Each of the 6 factor order permuations are exausted before going to the next location order permutation."}
+```{r 
+, echo = F, out.width = '100%', fig.cap = "Illustration of how a hypothetical participant 63 is assigned factor and block parameterizations. Each of the 6 factor order permuations are exausted before going to the next location order permutation."}
 knitr::include_graphics("./figures/figParmeterizationExample.png")
 ```
 
@@ -322,6 +323,10 @@ The code, response files, their analyses, and study application are made publicl
 ## Sampling population {#sec:population}
 
 We recruited $N = 108$ via prolifico [@palan_prolific_2018]. We make the assumption that interpretation of biplot displays used will not be commonly used for wide audience and apply a single filter; that participants have completed at least an undergraduate degree (some 58,700 of the 150,400 users). Participants were compensated for their time at \pounds 7.50 per hour, whereas the mean of survey was about 16 minutes. We can't preclude previous knowledge or experience with the factors, but instead try to control for this in the user study. Figure XXX shows distributions of age and preferred pronouns of the participants that completed the post-study survey who are relatively young and well educated.
+
+```{r, figPopulationDemographics}
+
+```
 
 ## Evenness of block evaluation
 
