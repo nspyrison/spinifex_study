@@ -322,10 +322,12 @@ The code, response files, their analyses, and study application are made publicl
 
 ## Sampling population {#sec:population}
 
-We recruited $N = 108$ via prolifico [@palan_prolific_2018]. We make the assumption that interpretation of biplot displays used will not be commonly used for wide audience and apply a single filter; that participants have completed at least an undergraduate degree (some 58,700 of the 150,400 users). Participants were compensated for their time at \pounds 7.50 per hour, whereas the mean of survey was about 16 minutes. We can't preclude previous knowledge or experience with the factors, but instead try to control for this in the user study. Figure XXX shows distributions of age and preferred pronouns of the participants that completed the post-study survey who are relatively young and well educated.
+We recruited $N = 108$ via prolifico [@palan_prolific_2018]. We make the assumption that interpretation of biplot displays used will not be commonly used for wide audience and apply a single filter; that participants have completed at least an undergraduate degree (some 58,700 of the 150,400 users). Participants were compensated for their time at \pounds 7.50 per hour, whereas the mean of survey was about 16 minutes. We can't preclude previous knowledge or experience with the factors, but instead try to control for this in the user study. Figure \ref{fig:figSurveyDemographics} shows distributions of age and preferred pronouns of the participants that completed the post-study survey who are relatively young and well educated.
 
-```{r, figPopulationDemographics}
-
+```{r, figSurveyDemographics, echo = F, out.width = '100%', fig.cap = "FIGURE CAPTION NEEDED. TODO XXX"}
+if(F) ## Creation and saving figure at:
+  file.edit("./paper/R/fig_population_demographics.r")
+knitr::include_graphics("./figures/figSurveyDemographics.png")
 ```
 
 ## Evenness of block evaluation
