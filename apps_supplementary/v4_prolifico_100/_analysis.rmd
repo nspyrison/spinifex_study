@@ -14,7 +14,9 @@ editor_options:
   chunk_output_type: console
 ---
 ```{r setup, include=FALSE}
-library(tidyverse)
+require(tidyverse)
+require("ggpubr") ## for tests on the plot
+require("cowplot") ## for aggregating plots
 require("lme4") ## Random Effects (RE) model creation
 require("merTools")
 require("performance") ## tidy model eval
@@ -86,6 +88,8 @@ dat_task_agg <- dat_task_agg %>% filter(`is training` == FALSE)
 ## Local functions -----
 ## For labeling n, mean on boxplots, following:
 #### https://medium.com/@gscheithauer/how-to-add-number-of-observations-to-a-ggplot2-boxplot-b22710f7ef80
+
+## direct ggplot2 helpers
 my_theme <- list(
   theme_minimal(),
   scale_color_brewer(palette = "Dark2"),
@@ -104,8 +108,41 @@ my_ggplot <- function(.aes = aes(x = order, y = marks,
     labs(title = .title) +
     my_theme +
     geom_point(
-      position = position_jitterdodge(jitter.width = .3, jitter.height = .05), alpha = .2) +
-    geom_boxplot(position = "dodge", alpha = .4)
+      position = position_jitterdodge(jitter.width = .3, jitter.height = .05), alpha = .3) +
+    geom_boxplot(position = "dodge", alpha = .6)
+}
+## indirect (via ggpubr/cowplot) ggplot2 helpers
+
+my_comparisons <- list( c("radial", "grand"), c("grand", "pca"), c("radial", "pca"))
+my_ggpubr <- function(df, x, y, color = "factor", fill = "factor", title = "Title missing"){
+  ggboxplot(df,  x = x, y = y, fill = fill, alpha = .6,
+            palette = "Dark2",
+            add = "jitter", add.params = list(color = color, alpha = .3, width = .2)) +
+    stat_compare_means(comparisons = my_comparisons, label = "p.format") +
+    stat_compare_means(label.y = 1.9) + 
+    theme_minimal() +
+    ggtitle(title)
+}
+legend_b_c <- get_legend(
+  ggplot(dat_task_agg, aes(factor, marks, fill = marks)) + geom_point() + 
+    theme_minimal() +
+    theme(legend.box.margin = margin(0, 12, 0, 12),
+          legend.position = "bottom",
+          legend.justification = "center")
+)
+my_plot_grid_titles <- function(plot_grid_obj, title_char, subtitle_char, legend = legend_b_c){
+  title <- ggdraw() + draw_label(title_char,fontface = 'bold', x = 0, hjust = 0)
+  if(missing(subtitle) == TRUE){
+      subtitle <- ggdraw() + 
+    draw_label("Participant subjective measures",
+               fontface = 'bold', x = 0, hjust = 0)
+      return(cowplot::plot_grid(title, plot_grid_obj, legend,
+                                ncol = 1,
+                                rel_heights = c(.1, 1, .1)))
+  }
+  return(cowplot::plot_grid(title, subtitle, plot_grid_obj, legend,
+                            ncol = 1,
+                            rel_heights = c(.1, .1, 1, .1)))
 }
 ```
 
@@ -185,7 +222,7 @@ dat_qual <- dat_qual %>%
   filter(instance_id %in% instance_id_whitelist)
 
 N <- length(unique(dat_qual$instance_id))
-print(N, " Unique instance_id")
+print(paste0("N = ", N, " unique instance_id."))
 
 
 #### Plot Evenness:
@@ -254,12 +291,15 @@ ggplot() +
 # dat_qual %>% 
 #   dplyr::select(factor, period, order, shape, dim, location, marks) %>% 
 #   data.matrix() %>% cor() %>% corrplot::corrplot(order = "AOE", type = "upper", tl.pos = "d")
-ggplot(dat_qual) + my_theme +
+marks_by_last_resp <- ggplot(dat_qual) + my_theme +
   geom_point(aes(`seconds to last response`, marks,
                  fill = factor, color = factor), alpha = .2) +
   geom_smooth(aes(`seconds to last response`, marks,
                   fill = factor, color = factor)) +
-  ggtitle("Mark by last response time", "Radial tends to score higher, and respond quickest")
+  ggtitle("Mark by last response time with marginal density")
+
+(marks_by_last_resp <- ggExtra::ggMarginal(marks_last_resp, type = "density", 
+                                           groupColour = TRUE, groupFill = TRUE))
 ```
 
 
@@ -511,15 +551,18 @@ tail(.resim_data)
 ### Factor
 
 ```{r}
-(gg_marks_by_factor <- my_ggplot(
-  .aes = aes(x = factor, y = marks, color = factor, fill = factor),
-  .title = "Marks by factor*location",
-  .data = dat_qual))
+
+(marks_by_factor <- my_ggpubr(dat_qual, "factor", "marks", title = "Marks by factor"))
+# (gg_marks_by_factor <- my_ggplot(
+#   .aes = aes(x = factor, y = marks, color = factor, fill = factor),
+#   .title = "Marks by factor",
+#   .data = dat_qual))
 ```
 
 #### ... faceted by location
 
 ```{r}
+(marks_by_factor <- my_ggpubr(dat_qual, "factor", "marks", title = "Marks by factor"))
 my_ggplot(
   aes(x = factor, y = marks, color = factor, fill = factor), 
   "Marks by factor, facet by location",
@@ -659,7 +702,7 @@ my_ggplot(aes(x = location, y = `# response interactions`,
 ```
 
 
-  ## Saving paper figures
+## Saving paper figures
 ```{r}
 if(F){
   gg_eval_by_perm_num ## evenness of perm num
@@ -669,6 +712,8 @@ if(F){
   gg_marks_by_dim
   gg_marks_by_location
   
+  ggsave("./paper/figures/marksByFactor.png", marks_by_factor, 
+         width = 3, height = 3, units = "in")
   
   ## instance_id whitelist, the people kept for analysis. 
   #### (instance_id is: participant_num "_" perm_num "_" prolific_id)

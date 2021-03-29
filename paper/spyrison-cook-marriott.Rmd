@@ -450,6 +450,31 @@ if(F) ## Creation and saving figure at:
 knitr::include_graphics("./figures/figModels.png")
 ```
 
+## Effect of demographics and prior experience
+
+
+## Marginal block parameters
+
+TODO: XXX
+- See https://rpkgs.datanovia.com/ggpubr/reference/facet.html use using ggpubr::facet rather than stitching together again with cowplot.
+
+```{r figMarksByFactor, out.width="100%", fig.show='asis', fig.cap='TODO: XXX caption needed.'}
+if(F) ## Creation and saving figure at:
+  file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
+knitr::include_graphics("./figures/MarksByFactor.png")
+```
+
+## Subjective measures of factors
+
+TODO: XXX
+-Some (see https://bookdown.org/Rmadillo/likert/) claim that boxplot and tests are inappropriate for Likert scale data. Convert to percentile stacked bar charts?
+
+```{r figSubjectiveMeasures, out.width="100%", fig.show='asis', fig.cap='TODO: XXX caption needed. Convert to percentile stacked bar charts?'}
+if(F) ## Creation and saving figure at:
+  file.edit("./paper/R/fig_population_demographics.rmd")
+knitr::include_graphics("./figures/figSubjectiveMeasures.png")
+```
+
 # Discussion {#sec:discussion}
 
 # Accompanying tool: spinifex application {#sec:spinifex}

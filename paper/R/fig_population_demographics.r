@@ -1,23 +1,25 @@
 ## Follow the loose setup of _analysis.rmd:
 if(F)
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
+library(tidyverse)
 
+#### MANUAL READ -----
 ## Read from gsheets API4 and save local
 if(F){
   ## Hash id of the google sheet
-  ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU" 
+  ss_id <- "1K9qkMVRkrNO0vufofQJKWIJUyTys_8uVtEBdJBL_DzU"
   raw <- googlesheets4::read_sheet(ss_id, sheet = 2L) ## the survey sheet
   dim(raw)
   saveRDS(raw, "./apps_supplementary/survey/raw.rds")
 }
-
-## Load load and clean, save cleaned
+##### Manual Load and format, pivot, format, save -----
+## Load and clean, save cleaned
 if(F){
   raw <- readRDS("./apps_supplementary/survey/raw.rds")
-  
+  instance_id_whitelist <- readRDS("./apps_supplementary/v4_prolifico_100/instance_id_whitelist.rds")
   ## Only Prolific participants that were in the 108 instance_ids in the analysis
   survey_prolific <- raw %>%
-    mutate(instance_id = 
+    mutate(instance_id =
              paste(participant_num, full_perm_num, prolific_id, sep = "_")) %>%
     filter(nchar(stringr::str_trim(prolific_id)) == 24,
            instance_id %in% instance_id_whitelist)
@@ -28,7 +30,7 @@ if(F){
   # survey_prolific %>% filter(survey_num == 2) %>% pull(response) %>% table()
   # survey_prolific %>% filter(survey_num == 3) %>% pull(response) %>% table()
   # message("Need to convert to aggreegated counts of each question level")
-  # #####
+  # ##### end preview
   
   ## !! this is question-grained, probably want pivoted survey obs:
   # survey_agg <- survey_prolific %>%
@@ -36,6 +38,7 @@ if(F){
   #   summarise(`No. responses` = n()) %>%
   #   ungroup()
   
+  ###### pivot wider, 1 row is 1 survey -----
   ## Pivot questions wider, 1 row is now a survey.
   survey_wider <- survey_prolific %>% dplyr::select(!c(key, survey_num, sec_to_resp, write_dt, scope)) %>% 
     pivot_wider(names_from = question, values_from = response)
@@ -86,8 +89,10 @@ if(F){
     to = "decline/default")
   
   ## Save task aggregated data.
-  saveRDS(survey_wider, "./apps_supplementary/survey/survey_wirder.rds")
+  saveRDS(survey_wider, "./apps_supplementary/survey/survey_wider.rds")
 }
+
+#### Load and plot as demographic heat map ----
 ## Load aggregated data. of the 108 in analysis
 survey_wider <- readRDS("./apps_supplementary/survey/survey_wider.rds")
 str(survey_wider)
@@ -103,3 +108,91 @@ skimr::skim(survey_wider)
 
 ggsave(filename = "./paper/figures/figSurveyDemographics.png", plot = demographic_heatmaps,
        width = 8, height = 3.4)
+
+
+## Subjective measures of factor -----
+survey_wider <- readRDS("./apps_supplementary/survey/survey_wider.rds")
+str(survey_wider)
+skimr::skim(survey_wider)
+
+## pivot_longer within factor
+radial_longer <- survey_wider %>%
+  select(instance_id, radial_familar:radial_like) %>%
+  pivot_longer(radial_familar:radial_like, 
+               names_to = "factor", values_to = "value")
+grand_longer <- survey_wider %>%
+  select(instance_id, grand_familar:grand_like) %>%
+  pivot_longer(grand_familar:grand_like, 
+               names_to = "factor", values_to = "value")
+pca_longer <- survey_wider %>%
+  select(instance_id, pca_familar:pca_like) %>%
+  pivot_longer(pca_familar:pca_like, 
+               names_to = "factor", values_to = "value")
+## Combine and split measure from factor
+subjective_longer <- rbind(radial_longer, grand_longer, pca_longer) %>%
+  separate(factor, c("factor", "measure"), sep = "_")
+
+
+## 4 panes with {ggpubr}, ggviolin or ggbowplot with tests
+my_comparisons <- list( c("radial", "grand"), c("grand", "pca"), c("radial", "pca"))
+my_ggpubr <- function(df, title = "missing"){
+  ggboxplot(df,  x = "factor", y = "value", fill = "factor", alpha = .6,
+            palette = "Dark2",
+            add = "jitter", add.params = list(color = "factor", alpha = .3, width = .2)) +
+    stat_compare_means(comparisons = my_comparisons, label = "p.format") +
+    stat_compare_means(label.y = 7, method = "anova") + 
+    theme_minimal() +
+    ggtitle(title)
+}
+
+(p_like <- my_ggpubr(subjective_longer %>% filter(measure == "like"), "Preference") +
+    theme(legend.position = "off"))
+(p_ease <-
+    my_ggpubr(subjective_longer %>% filter(measure == "ease"), "Ease of use") +
+    theme(legend.position = "off",
+          axis.title.y = element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank()))
+(p_confident <-
+    my_ggpubr(subjective_longer %>% filter(measure == "confidence"), "Confidence") +
+    theme(legend.position = "off",
+          axis.title.y = element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank()))
+(p_familar <-
+    my_ggpubr(subjective_longer %>% filter(measure == "familar"), "Familiarity") +
+    theme(legend.position = "off",
+          axis.title.y = element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank()))
+
+## Cowplot and bringing it together
+library(cowplot)
+comp <- cowplot::plot_grid(p_like, p_ease, p_confident, p_familar,
+                           nrow = 1, rel_widths = c(1, 1, 1, 1))
+legend <- get_legend(
+  p_like + theme(legend.box.margin = margin(0, 12, 0, 12),
+                 legend.position = "bottom",
+                 legend.justification = "center")
+)
+supertitle <- ggdraw() +
+  draw_label(
+    "Participant subjective measures",
+    fontface = 'bold',
+    x = 0,
+    hjust = 0
+  )
+subtitle <- ggdraw() +
+  draw_label(
+    "Likert [1-5], least to most",
+    x = 0,
+    hjust = 0
+  )
+(out <- plot_grid(
+  supertitle, subtitle, comp, legend,
+  ncol = 1,
+  rel_heights = c(.1, .1, 1, .1)
+))
+
+## Save
+ggsave("./paper/figures/figSubjectiveMeasures.png", out, width = 8, height = 4, units = "in")
