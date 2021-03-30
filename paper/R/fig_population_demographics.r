@@ -148,7 +148,7 @@ ggsave(filename = "./paper/figures/figSurveyDemographics.png",
        plot = demographic_heatmaps, width = 8, height = 3.4)
 
 
-# ## Subjective measures of factor -----
+# ## Subjective measures, BOXPLOTS -----
 # survey_wider <- readRDS("./apps_supplementary/survey/survey_wider.rds")
 # str(survey_wider)
 # skimr::skim(survey_wider)
@@ -234,3 +234,53 @@ ggsave(filename = "./paper/figures/figSurveyDemographics.png",
 # 
 # ## Save
 # ggsave("./paper/figures/figSubjectiveMeasures.png", out, width = 8, height = 4, units = "in")
+
+
+#### Subjective measures, LIKERT PLOTS -----
+survey_wider <- readRDS("./apps_supplementary/survey/survey_wider.rds")
+str(survey_wider)
+
+### Try to create my own likert barplots and signif tables: likert and this seem to want preaggregated format
+require(ggplot2)
+
+col_nms <- colnames(survey_wider[, 5:22])
+survey_agg <- tibble()
+mute <- sapply(col_nms, function(col_nm){
+  tmp <- survey_wider[col_nm] %>%
+    group_by_all() %>%
+    count() %>%
+    as.data.frame()
+  .this_agg <- data.frame(question = col_nm,
+                          response = tmp[, 1],
+                          n = tmp[, 2],
+                          percent = 100 * tmp[, 2] / sum(tmp[, 2]))
+  survey_agg <<- rbind(survey_agg, .this_agg)
+})
+str(survey_agg)
+
+likert_q_nms <- colnames(survey_wider[, 11:22])
+likert <- survey_agg %>% filter(question %in% likert_q_nms) %>% 
+  separate(question, c("factor", "question"), sep = "_")
+.l_lvls_rev <- rev(c("most negative", "negative", "neutral", "positive", "most positive"))
+likert$factor <- factor(likert$factor, levels = rev(c("pca", "grand", "radial")))
+likert$response <- factor(likert$response, levels = .l_lvls_rev)
+likert$question <-
+  plyr::mapvalues(likert$question,
+                  from = c("like", "ease", "confidence", "familar"),
+                  to = c("preference", "ease of use", "confidence", "familiarity"))
+
+# Stacked + percent
+ggplot(likert, aes(x = percent, y = factor, fill = response)) +
+  geom_bar(position = "fill", stat = "identity") + facet_grid(vars(question)) +
+  ggtitle("Subjective measures",
+          "Likert scale [1-5]") +
+  theme_bw() +
+  scale_fill_manual(values = rev(RColorBrewer::brewer.pal(5, "PRGn"))) +
+  # theme(legend.position = "bottom",
+  #       legend.direction = "horizontal") +
+  ## Reverse order that fill is displayed in legend.
+  guides(fill = guide_legend(reverse = TRUE)) +
+  ## x as % rather than rate.
+  scale_x_continuous(labels = scales::percent)
+
+ggsave("./paper/figures/figSubjectiveMeasures.png", last_plot(), width = 6, height = 4.1, units = "in")
