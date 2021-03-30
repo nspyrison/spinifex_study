@@ -143,7 +143,7 @@ survey_wider
           # legend.direction = "horizontal",
           legend.margin = margin(0,0,0,0))+ 
     scale_fill_gradient(low = "lightpink", high = "firebrick", na.value = NA) +
-    ggtitle("Survey demographics", "faceted on preffered pronouns"))
+    ggtitle("Participant demographics"))
 ggsave(filename = "./paper/figures/figSurveyDemographics.png",
        plot = demographic_heatmaps, width = 8, height = 3.4)
 
