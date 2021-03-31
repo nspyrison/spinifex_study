@@ -16,31 +16,13 @@ if(F){
 ## Load and clean, save cleaned
 if(F){
   raw <- readRDS("./apps_supplementary/survey/raw.rds")
-  instance_id_whitelist <- readRDS("./apps_supplementary/v4_prolifico_100/instance_id_whitelist.rds")
-  ## Only Prolific participants that were in the 108 instance_ids in the analysis
-  survey_prolific <- raw %>%
-    mutate(instance_id =
-             paste(participant_num, full_perm_num, prolific_id, sep = "_")) %>%
-    filter(nchar(stringr::str_trim(prolific_id)) == 24,
-           instance_id %in% instance_id_whitelist)
-  
-  # ##### preview
-  # hist(survey_prolific$sec_to_resp)
-  # survey_prolific %>% filter(survey_num == 1) %>% pull(response) %>% table()
-  # survey_prolific %>% filter(survey_num == 2) %>% pull(response) %>% table()
-  # survey_prolific %>% filter(survey_num == 3) %>% pull(response) %>% table()
-  # message("Need to convert to aggreegated counts of each question level")
-  # ##### end preview
-  
-  ## !! this is question-grained, probably want pivoted survey obs:
-  # survey_agg <- survey_prolific %>%
-  #   group_by(survey_num, question, response) %>%
-  #   summarise(`No. responses` = n()) %>%
-  #   ungroup()
   
   ###### pivot wider, 1 row is 1 survey -----
   ## Pivot questions wider, 1 row is now a survey.
-  survey_wider <- survey_prolific %>% dplyr::select(!c(key, survey_num, sec_to_resp, write_dt, scope)) %>% 
+  survey_wider <- raw %>%
+    mutate(prolific_id = stringr::str_trim(prolific_id),
+           instance_id = paste(participant_num, full_perm_num, prolific_id, sep = "_")) %>%
+    dplyr::select(!c(key, survey_num, sec_to_resp, write_dt, scope)) %>%
     pivot_wider(names_from = question, values_from = response)
   
   ## Decode question names.
@@ -78,60 +60,61 @@ if(F){
       radial_like = factor(substr(radial_like, 1, 1))
     )
   ## Rename the levels of the factors
-  survey_wider$pronouns <- plyr::mapvalues(
-    survey_wider$pronouns, from = levels(survey_wider$pronouns),
-    #table(survey_wider$pronouns)
-    to = c("he/him (n=44)", "she/her (n=31)", "they/them or other (n=5)", "decline/default (n=4)"))
-  survey_wider$education <- plyr::mapvalues(
-    survey_wider$education, from = levels(survey_wider$education),
-    #table(survey_wider$education)
-    to = c("undergraduate", "graduate", "doctorate", "decline/default"))
-  survey_wider$age <- plyr::mapvalues(
-    survey_wider$age, from = "decline to answer <default, blank, no change>",
-    to = "decline/default")
   .l_lvls <- c("most negative", "negative", "neutral", "positive", "most positive")
-  survey_wider$task_understanding <- plyr::mapvalues(survey_wider$task_understanding,
-                                                    from = 1:5, to = .l_lvls)
-  survey_wider$data_viz_exp <- plyr::mapvalues(survey_wider$data_viz_exp,
-                                               from = 1:5, to = .l_lvls)
-  survey_wider$analysis_exp <- plyr::mapvalues(survey_wider$analysis_exp,
-                                               from = 1:5, to = .l_lvls)
-  survey_wider$grand_familar <- plyr::mapvalues(survey_wider$grand_familar,
-                                                from = 1:5, to = .l_lvls)
-  survey_wider$grand_ease <- plyr::mapvalues(survey_wider$grand_ease ,
-                                             from = 1:5, to = .l_lvls)
-  survey_wider$grand_confidence <- plyr::mapvalues(survey_wider$grand_confidence,
-                                                   from = 1:5, to = .l_lvls)
-  survey_wider$grand_like <- plyr::mapvalues(survey_wider$grand_like,
-                                             from = 1:5, to = .l_lvls)
-  survey_wider$pca_familar <- plyr::mapvalues(survey_wider$pca_familar,
-                                              from = 1:5, to = .l_lvls)
-  survey_wider$pca_ease <- plyr::mapvalues(survey_wider$pca_ease,
-                                           from = 1:5, to = .l_lvls)
-  survey_wider$pca_confidence <- plyr::mapvalues(survey_wider$pca_confidence,
-                                                 from = 1:5, to = .l_lvls)
-  survey_wider$pca_like <- plyr::mapvalues(survey_wider$pca_like,
-                                           from = 1:5, to = .l_lvls)
-  survey_wider$radial_familar <- plyr::mapvalues(survey_wider$radial_familar,
-                                                 from = 1:5, to = .l_lvls)
-  survey_wider$radial_ease <- plyr::mapvalues(survey_wider$radial_ease,
-                                              from = 1:5, to = .l_lvls)
-  survey_wider$radial_confidence <- plyr::mapvalues(survey_wider$radial_confidence,
-                                                    from = 1:5, to = .l_lvls)
-  survey_wider$radial_like <- plyr::mapvalues(survey_wider$radial_like,
-                                              from = 1:5, to = .l_lvls)
-  
+  survey_wider <- survey_wider %>% 
+    mutate(
+      pronouns = plyr::mapvalues(
+        pronouns, from = levels(pronouns),
+        to = c("he/him (n=44)", "she/her (n=31)", "they/them or other (n=5)", "decline/default (n=4)")),
+      education = plyr::mapvalues(
+        education, from = levels(education),
+        to = c("undergraduate", "graduate", "doctorate", "decline/default")),
+      age = plyr::mapvalues(
+        age, from = "decline to answer <default, blank, no change>",
+        to = "decline/default"),
+      task_understanding = factor(plyr::mapvalues(task_understanding, from = 1:5, to = .l_lvls)),
+      data_viz_exp =
+        factor(plyr::mapvalues(data_viz_exp, from = 1:5, to = .l_lvls)),
+      analysis_exp =
+        factor(plyr::mapvalues(analysis_exp, from = 1:5, to = .l_lvls)),
+      grand_familar =
+        factor(plyr::mapvalues(grand_familar, from = 1:5, to = .l_lvls)),
+      grand_ease =
+        factor(plyr::mapvalues(grand_ease, from = 1:5, to = .l_lvls)),
+      grand_confidence =
+        factor(plyr::mapvalues(grand_confidence, from = 1:5, to = .l_lvls)),
+      grand_like =
+        factor(plyr::mapvalues(grand_like, from = 1:5, to = .l_lvls)),
+      pca_familar =
+        factor(plyr::mapvalues(pca_familar, from = 1:5, to = .l_lvls)),
+      pca_ease =
+        factor(plyr::mapvalues(pca_ease, from = 1:5, to = .l_lvls)),
+      pca_confidence =
+        factor(plyr::mapvalues(pca_confidence, from = 1:5, to = .l_lvls)),
+      pca_like =
+        factor(plyr::mapvalues(pca_like, from = 1:5, to = .l_lvls)),
+      radial_familar =
+        factor(plyr::mapvalues(radial_familar,from = 1:5, to = .l_lvls)),
+      radial_ease =
+        factor(plyr::mapvalues(radial_ease, from = 1:5, to = .l_lvls)),
+      radial_confidence =
+        factor(plyr::mapvalues(radial_confidence, from = 1:5, to = .l_lvls)),
+      radial_like =
+        factor(plyr::mapvalues(survey_wider$radial_like, from = 1:5, to = .l_lvls))
+    )
   ## Save task aggregated data.
   saveRDS(survey_wider, "./apps_supplementary/survey/survey_wider.rds")
 }
 
 #### Load and plot as demographic heat map ----
-## Load aggregated data. of the 108 in analysis
+## Load aggregated data. filter to only surveys in the 108 instances in the analysis
 survey_wider <- readRDS("./apps_supplementary/survey/survey_wider.rds")
+instance_id_whitelist <- readRDS("./apps_supplementary/v4_prolifico_100/instance_id_whitelist.rds")
+## Only Prolific participants that were in the 108 instance_ids in the analysis
+survey_wider <- survey_wider %>%
+  filter(nchar(as.character(prolific_id)) == 24,
+         instance_id %in% instance_id_whitelist)
 str(survey_wider)
-skimr::skim(survey_wider)
-
-survey_wider
 
 ## change character to factor, include counts in the levels of sex?
 (demographic_heatmaps <- ggplot(survey_wider, aes(education, age)) +
@@ -308,6 +291,7 @@ rstatix::wilcox_test(n~factor, data = examp_2way) ## W always in (7,9) p always 
 examp_global = filter(likert, question == "preference") %>%
   mutate(question = factor(question),
          dummy = factor(paste(factor, question))) %>% select(dummy, n)
+
 str(examp_global)
 coin::oneway_test(n~dummy, data = examp_global) ## chi squared always 0; p = 1 ...
 coin::independence_test(n~dummy, data = examp_global)

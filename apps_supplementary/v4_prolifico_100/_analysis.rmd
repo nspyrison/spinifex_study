@@ -70,12 +70,13 @@ if(F){
              if_else(factor == "radial", task_input_inter -1, task_input_inter))
   ## Plot friendly titles
   dat_task_agg <- dat_task_agg %>%
-  mutate(instance_id = paste(sep = "_", participant_num, full_perm_num, prolific_id)) %>%
-  rename(shape = vc, dim = p_dim, order = eval, participant = prolific_id,
-         `is training` = is_training, `# response interactions` = task_resp_inter,
-         `seconds to last response` = sec_to_resp, `seconds on page` = sec_on_pg,
-         `# of responses` = cnt_resp, marks = task_marks,
-         `parameter permutation` = full_perm_num)
+    mutate(prolific_id = stringr::str_trim(prolific_id), 
+           instance_id = paste(sep = "_", participant_num, full_perm_num, prolific_id)) %>%
+    rename(shape = vc, dim = p_dim, order = eval, participant = prolific_id,
+           `is training` = is_training, `# response interactions` = task_resp_inter,
+           `seconds to last response` = sec_to_resp, `seconds on page` = sec_on_pg,
+           `# of responses` = cnt_resp, marks = task_marks,
+           `parameter permutation` = full_perm_num)
   ## Save task aggregated data.
   saveRDS(dat_task_agg, rel_path("data/dat_task_agg_prolific_100.rds"))
 }
@@ -738,4 +739,10 @@ if(F){
   ggsave("figModels.png", plot = figModel, path = "./paper/figures",
          device = "png", width = 8, height = 4, unit = "in")
 }
+```
+
+## Join evaluations and survey data 
+
+```{r}
+
 ```
