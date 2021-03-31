@@ -243,44 +243,71 @@ str(survey_wider)
 ### Try to create my own likert barplots and signif tables: likert and this seem to want preaggregated format
 require(ggplot2)
 
-col_nms <- colnames(survey_wider[, 5:22])
-survey_agg <- tibble()
-mute <- sapply(col_nms, function(col_nm){
-  tmp <- survey_wider[col_nm] %>%
-    group_by_all() %>%
-    count() %>%
-    as.data.frame()
-  .this_agg <- data.frame(question = col_nm,
-                          response = tmp[, 1],
-                          n = tmp[, 2],
-                          percent = 100 * tmp[, 2] / sum(tmp[, 2]))
-  survey_agg <<- rbind(survey_agg, .this_agg)
-})
-str(survey_agg)
-
-likert_q_nms <- colnames(survey_wider[, 11:22])
-likert <- survey_agg %>% filter(question %in% likert_q_nms) %>% 
-  separate(question, c("factor", "question"), sep = "_")
-.l_lvls_rev <- rev(c("most negative", "negative", "neutral", "positive", "most positive"))
-likert$factor <- factor(likert$factor, levels = rev(c("pca", "grand", "radial")))
-likert$response <- factor(likert$response, levels = .l_lvls_rev)
-likert$question <-
-  plyr::mapvalues(likert$question,
-                  from = c("like", "ease", "confidence", "familar"),
-                  to = c("preference", "ease of use", "confidence", "familiarity"))
+## assumes df obj survey_wider
+## creates df obj survey_agg and likert, a subset
+script_survey_wider_to_survey_agg <- function(col_idx = 8:22){ 
+  col_nms <- colnames(survey_wider[, col_idx])
+  survey_agg <- tibble()
+  mute <- sapply(col_nms, function(col_nm){
+    tmp <- survey_wider[col_nm] %>%
+      group_by_all() %>%
+      count() %>%
+      as.data.frame()
+    .this_agg <- data.frame(question = col_nm,
+                            response = tmp[, 1],
+                            n = tmp[, 2],
+                            percent = 100 * tmp[, 2] / sum(tmp[, 2]))
+    survey_agg <<- rbind(survey_agg, .this_agg)
+  })
+  str(survey_agg)
+  
+  ## Format likert questions
+  likert_q_nms <- colnames(survey_wider[, 11:22])
+  .l_lvls_rev <- rev(c("most negative", "negative", "neutral", "positive", "most positive"))
+  likert <- survey_agg %>% filter(question %in% likert_q_nms) %>% 
+    separate(question, c("factor", "question"), sep = "_") %>% 
+    mutate(factor = factor(factor, levels = rev(c("pca", "grand", "radial"))),
+           response <- factor(response, levels = .l_lvls_rev))
+  likert$question <-
+    plyr::mapvalues(likert$question,
+                    from = c("like", "ease", "confidence", "familar"),
+                    to = c("preference", "ease of use", "confidence", "familiarity")) %>%
+    factor()
+  str(likert)
+}
+script_survey_wider_to_survey_agg()
 
 # Stacked + percent
-ggplot(likert, aes(x = percent, y = factor, fill = response)) +
-  geom_bar(position = "fill", stat = "identity") + facet_grid(vars(question)) +
-  ggtitle("Subjective measures",
-          "Likert scale [1-5]") +
-  theme_bw() +
-  scale_fill_manual(values = rev(RColorBrewer::brewer.pal(5, "PRGn"))) +
-  # theme(legend.position = "bottom",
-  #       legend.direction = "horizontal") +
-  ## Reverse order that fill is displayed in legend.
-  guides(fill = guide_legend(reverse = TRUE)) +
-  ## x as % rather than rate.
-  scale_x_continuous(labels = scales::percent)
+(subjectiveMeasures <- 
+    ggplot(likert, aes(x = percent, y = factor, fill = response)) +
+    geom_bar(position = "fill", stat = "identity") + facet_grid(vars(question)) +
+    ggtitle("Subjective measures",
+            "Likert scale [1-5]") +
+    theme_bw() +
+    scale_fill_manual(values = rev(RColorBrewer::brewer.pal(5, "PRGn"))) +
+    # theme(legend.position = "bottom",
+    #       legend.direction = "horizontal") +
+    ## Reverse order that fill is displayed in legend.
+    guides(fill = guide_legend(reverse = TRUE)) +
+    ## x as % rather than rate.
+    scale_x_continuous(labels = scales::percent)
+)
 
-ggsave("./paper/figures/figSubjectiveMeasures.png", last_plot(), width = 6, height = 4.1, units = "in")
+ggsave("./paper/figures/figSubjectiveMeasures.png", subjectiveMeasures,
+       width = 6, height = 4.1, units = "in")
+
+### Significance testing: ------
+if(F)
+  browseURL("https://bookdown.org/Rmadillo/likert/is-there-a-significant-difference.html#permutation-mann-whitney-tests")
+?wilcox.test(value ~ variable, data = ex_1_long_y12)
+?coin::oneway_test(value ~ variable, data = ex_1_long_y12, distribution = "exact")
+
+# Subset to years 1 and 2
+examp_2way = filter(likert, question == "preference" & factor %in% c("radial", "pca"))
+rstatix::wilcox_test(n~factor, data = examp_2way) ## W always in (7,9) p always .8 ...
+examp_global = filter(likert, question == "preference") %>%
+  mutate(question = factor(question),
+         dummy = factor(paste(factor, question))) %>% select(dummy, n)
+str(examp_global)
+coin::oneway_test(n~dummy, data = examp_global) ## chi squared always 0; p = 1 ...
+coin::independence_test(n~dummy, data = examp_global)
