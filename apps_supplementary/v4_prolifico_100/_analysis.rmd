@@ -72,7 +72,7 @@ if(F){
   dat_task_agg <- dat_task_agg %>%
     mutate(prolific_id = stringr::str_trim(prolific_id), 
            instance_id = paste(sep = "_", participant_num, full_perm_num, prolific_id)) %>%
-    rename(shape = vc, dim = p_dim, order = eval, participant = prolific_id,
+    rename(simulation = sim_nm, shape = vc, dim = p_dim, order = eval, participant = prolific_id,
            `is training` = is_training, `# response interactions` = task_resp_inter,
            `seconds to last response` = sec_to_resp, `seconds on page` = sec_on_pg,
            `# of responses` = cnt_resp, marks = task_marks,
@@ -221,6 +221,8 @@ instance_id_whitelist <- dat_qual %>%
 ## Apply the final white list, the last 3 even evaluations of each perm
 dat_qual <- dat_qual %>%
   filter(instance_id %in% instance_id_whitelist)
+if(interactive() == TRUE)
+  saveRDS(dat_qual, "./apps_supplementary/v4_prolifico_100/data/dat_qual.rds")
 
 N <- length(unique(dat_qual$instance_id))
 print(paste0("N = ", N, " unique instance_id."))
@@ -288,10 +290,6 @@ ggplot() +
 ```
 
 ```{r}
-# colnames(dat_qual)
-# dat_qual %>% 
-#   dplyr::select(factor, period, order, shape, dim, location, marks) %>% 
-#   data.matrix() %>% cor() %>% corrplot::corrplot(order = "AOE", type = "upper", tl.pos = "d")
 marks_by_last_resp <- ggplot(dat_qual) + my_theme +
   geom_point(aes(`seconds to last response`, marks,
                  fill = factor, color = factor), alpha = .2) +
@@ -299,7 +297,7 @@ marks_by_last_resp <- ggplot(dat_qual) + my_theme +
                   fill = factor, color = factor)) +
   ggtitle("Mark by last response time with marginal density")
 
-(marks_by_last_resp <- ggExtra::ggMarginal(marks_last_resp, type = "density", 
+(marks_by_last_resp <- ggExtra::ggMarginal(marks_by_last_resp, type = "density", 
                                            groupColour = TRUE, groupFill = TRUE))
 ```
 
@@ -319,7 +317,11 @@ ggplot(dat_qual, aes(x = factor, y = marks)) +
 
 ## Random effects regression models
 
-We create a number of base models for comparison We have:
+### Block paremeters 
+
+We create a number of base models for comparison:
+
+_Context: 108 evals; use block parameters to predict marks_
 
 \begin{align*}
 \text{model F: } ~~~~~ \widehat{marks}_{partcipant~n} = 
@@ -380,6 +382,7 @@ Where,
 \end{align*}
 
 
+
 ```{r}
 ## Mixed (fixed and random/variable) effects regression model,
 ### following along with:
@@ -429,6 +432,7 @@ plot_residual <- function(model){
   p <- ggExtra::ggMarginal(p, type = "density", fill = "grey80")
   return(p)
 }
+plot_residual(m_factor_location.shape.dim_.order)
 ## A qq plot of the Random Effect simulation
 plot_REsim_qq <- function(model){
   .df <- data.frame(y = REsim(model)$mean)
@@ -486,6 +490,118 @@ model_comp_tbl <- model_comp_tbl %>%
   format_column_extrema(8, min)
 ```
 
+### Parameters and survey
+
+But, not only do we have the block parameterization, we also have post study-survey. Joining in the survey data we'll look at the 84 that also have survey data; 
+
+_Context: 84 evaluations + surveys; use block parameters, demographics, and expertise to predict marks_
+
+
+```{r}
+## Save dat_qual, the df for the remaining 108 instance_id's.
+dat_qual <- readRDS(rel_path("data/dat_qual.rds"))
+## Load aggregated survey data. filter to only surveys in the 108 instances in the analysis
+survey_wider <- readRDS(rel_path("../survey/survey_wider.rds"))
+instance_id_whitelist <- readRDS(rel_path("instance_id_whitelist.rds"))
+## Only Prolific participants that were in the 108 instance_ids in the analysis
+survey_wider <- survey_wider %>%
+  filter(nchar(as.character(prolific_id)) == 24,
+         instance_id %in% instance_id_whitelist)
+
+print("Of the 84 that have filled out surveys, lets consider their evaluation data.")
+eval_survey <- dplyr::right_join(dat_qual, survey_wider, by = "instance_id")
+str(eval_survey)
+paste0("Length of unique instance_id's: ", length(unique(eval_survey$instance_id)))
+dim(eval_survey)
+
+print("goal: we want to regress; testing if demographic or subjective experience is important")
+
+m_f <- lmer(marks ~ factor + (1 | participant), data = eval_survey) ## Benchmark
+m_f.demo.exp <-
+  lmer(marks ~ factor + pronouns + age + education + task_understanding +
+         data_viz_exp + analysis_exp + (1 | participant), data = eval_survey)
+m_f.eval <-
+  lmer(marks ~ factor + location + shape + dim + order + (1 | participant), data = eval_survey)
+m_f.eval.demo.exp <-
+  lmer(marks ~ factor + location + shape + dim + order + pronouns + age +
+         education + task_understanding + data_viz_exp + analysis_exp +
+         (1 | participant), data = eval_survey)
+m_f_demo_exp <-
+  lmer(marks ~ factor * (pronouns + age +
+         education + task_understanding + data_viz_exp + analysis_exp) +
+         (1 | participant), data = eval_survey)
+m_f_eval_demo_exp <-
+  lmer(marks ~ factor * (location + shape + dim + order + pronouns + age +
+         education + task_understanding + data_viz_exp + analysis_exp) +
+         (1 | participant), data = eval_survey)
+m_sub.gt1 <-
+  lmer(marks ~ factor + (location + shape + analysis_exp) + 
+         dim + order + age + education + task_understanding +
+         (1 | participant), data = eval_survey)
+m_sub.gt2 <-
+  lmer(marks ~ factor + (location + shape) + 
+         dim + order + age + task_understanding +
+         (1 | participant), data = eval_survey)
+m_sub_gt1 <-
+  lmer(marks ~ factor * (location + shape + analysis_exp) + 
+         dim + order + age + education + task_understanding +
+         (1 | participant), data = eval_survey)
+m_sub_gt1.re_sim <-
+    lmer(marks ~ factor * (location + shape + analysis_exp) + 
+         dim + order + age + education + task_understanding +
+         (1 | participant)  + (1 | simulation), data = eval_survey)
+m_sub_gt2 <-
+  lmer(marks ~ factor * (location + shape) + 
+         dim + order + age + task_understanding +
+         (1 | participant), data = eval_survey)
+m_sub_gt2.re_sim <-
+  lmer(marks ~ factor * (location + shape) + 
+         dim + order + age + task_understanding +
+         (1 | participant) + (1 | simulation), data = eval_survey)
+
+
+.resim <- REsim(m_sub_gt2.re_sim)
+plotREsim(.resim)
+.resim %>%
+  filter(groupFctr == "simulation") %>% 
+  arrange(mean)
+
+model_ls3 <- list(`F` = m_f,
+                  `F+demo+exp` = m_f.demo.exp,
+                  `F+eval+demo+exp` = m_f.eval.demo.exp,
+                  `F*demo*exp` = m_f_demo_exp,
+                  `F*eval*demo*exp` = m_f_eval_demo_exp,
+                  m_sub.gt1 = m_sub.gt1,
+                  m_sub.gt2 = m_sub.gt2,
+                  m_sub_gt1 = m_sub_gt1,
+                  m_sub_gt2 = m_sub_gt2,
+                  m_sub_gt1.re_sim = m_sub_gt1.re_sim,
+                  m_sub_gt2.re_sim = m_sub_gt2.re_sim)
+
+performance_ls3 <- list()
+factors_vec3 <- fixef_vec3 <- vector()
+mute <- lapply(seq_along(model_ls3), function(i){
+  this_model <- model_ls3[[i]]
+  performance_ls3[[i]] <<- performance::model_performance(this_model)
+  factors_vec3[i] <<- ncol(attr(terms(this_model), "factors"))
+  fixef_vec3[i] <<- length(fixef(this_model))
+})
+
+.perf_df3 <- dplyr::bind_rows(performance_ls3)
+model_comp_tbl3 <- tibble(`Model name` = names(model_ls3),
+                          `No. of factors` = factors_vec3,
+                          `No. of fixed effects` = fixef_vec3,
+                          `AIC` = round(.perf_df3[, 1]),
+                          `BIC` = round(.perf_df3[, 2]),
+                          `R2 (conditional on RE)` = round(.perf_df3[, 3], 3),
+                          `R2 (marginal; w/o RE)` = round(.perf_df3[, 4], 3),
+                          `RMSE` = round(.perf_df3[, 6], 3)
+)
+
+knitr::kable(model_comp_tbl)
+knitr::kable(model_comp_tbl3)
+```
+
 
 ### Regressing against the time
 
@@ -497,14 +613,13 @@ Because factor uniquely performed so well, let's use it as a benchmark as compar
 - time ~ factor + RE_participant.data
 
 ```{r}
-dat_qual_SIMNM <- dat_qual %>% mutate(simulation = sim_nm)
 marks_f_re_partcipant <- lmer(marks ~ factor + (1 | participant), data = dat_qual) ## Benchmark
 marks_f_re_partcipant.data <-
-  lmer(marks ~ factor + (1 | participant) + (1 | simulation), data = dat_qual_SIMNM)
+  lmer(marks ~ factor + (1 | participant) + (1 | simulation), data = dat_qual)
 time_f_re_partcipant <-
   lmer(`seconds to last response` ~ factor + (1 | participant), data = dat_qual)
 time_f_re_partcipant.data <-
-  lmer(`seconds to last response` ~ factor + (1 | participant) + (1 | sim_nm), data = dat_qual)
+  lmer(`seconds to last response` ~ factor + (1 | participant) + (1 | simulation), data = dat_qual)
 
 model_ls2 <- list(`marks~F+RE(participant)` = marks_f_re_partcipant,
                   `marks~F+RE(participant+simulation)` = marks_f_re_partcipant.data,
@@ -540,7 +655,7 @@ summary(marks_f_re_partcipant.data)
 .resim <- REsim(marks_f_re_partcipant.data)
 plotREsim(.resim)
 .resim_data <- .resim %>%
-  filter(groupFctr == "sim_nm") %>% 
+  filter(groupFctr == "simulation") %>% 
   arrange(mean)
 print("Most difficult and easiest datasets:")
 head(.resim_data)
@@ -706,7 +821,10 @@ my_ggplot(aes(x = location, y = `# response interactions`,
 ## Saving paper figures
 ```{r}
 if(F){
-  gg_eval_by_perm_num ## evenness of perm num
+  ## Save dat_qual, the df for the remaining 108 instance_id's. 
+  ### NOW DONE IN LINE WITH if(interactive()) ###
+  # saveRDS(dat_qual, "./apps_supplementary/v4_prolifico_100/data/dat_qual.rds")
+  gg_eval_by_perm_num
   gg_marks_by_factor
   gg_marks_by_eval_order
   gg_marks_by_shape
@@ -741,8 +859,3 @@ if(F){
 }
 ```
 
-## Join evaluations and survey data 
-
-```{r}
-
-```
