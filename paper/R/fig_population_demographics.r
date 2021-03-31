@@ -220,13 +220,10 @@ ggsave(filename = "./paper/figures/figSurveyDemographics.png",
 
 
 #### Subjective measures, LIKERT PLOTS -----
-survey_wider <- readRDS("./apps_supplementary/survey/survey_wider.rds")
-str(survey_wider)
-
 ### Try to create my own likert barplots and signif tables: likert and this seem to want preaggregated format
-require(ggplot2)
+length(unique(survey_wider$instance_id))
 
-## assumes df obj survey_wider
+## assumes df obj survey_wider, already filtered to whitelisted 108.
 ## creates df obj survey_agg and likert, a subset
 script_survey_wider_to_survey_agg <- function(col_idx = 8:22){ 
   col_nms <- colnames(survey_wider[, col_idx])
@@ -247,7 +244,7 @@ script_survey_wider_to_survey_agg <- function(col_idx = 8:22){
   ## Format likert questions
   likert_q_nms <- colnames(survey_wider[, 11:22])
   .l_lvls_rev <- rev(c("most negative", "negative", "neutral", "positive", "most positive"))
-  likert <- survey_agg %>% filter(question %in% likert_q_nms) %>% 
+  likert <<- survey_agg %>% filter(question %in% likert_q_nms) %>% 
     separate(question, c("factor", "question"), sep = "_") %>% 
     mutate(factor = factor(factor, levels = rev(c("pca", "grand", "radial"))),
            response <- factor(response, levels = .l_lvls_rev))

@@ -198,17 +198,25 @@ perm_num_blacklist <- perm_num_agg %>%
   filter(`is even instance` == TRUE,
          `even evaluations` > 3) %>%
   pull(`parameter permutation`)
+## instance_id's in all surveys
+survey_wider <- readRDS(rel_path("../survey/survey_wider.rds"))
+instance_id_in_survey <- unique(survey_wider$instance_id)
 
 ## Decode the original dataset by evenness of instance_id.
 dat_qual <- dat_qual %>%
-  mutate(particiapnat_blacklisted = if_else(participant %in% participant_blacklist, TRUE, FALSE),
-         perm_num_blacklisted = if_else(`parameter permutation` %in% perm_num_blacklist, TRUE, FALSE),
-         removal_priority = particiapnat_blacklisted + perm_num_blacklisted,
+  mutate(is_particiapnat_blacklisted = 
+           if_else(participant %in% participant_blacklist, TRUE, FALSE),
+         is_perm_num_blacklisted = 
+           if_else(`parameter permutation` %in% perm_num_blacklist, TRUE, FALSE),
+         is_instance_id_in_survey =
+           if_else(instance_id %in% instance_id_in_survey, TRUE, FALSE),
+         removal_priority = if_else(is_instance_id_in_survey == TRUE, -1L,
+           is_particiapnat_blacklisted + is_perm_num_blacklisted),
          perm_prolific_id = paste(sep = "_", `parameter permutation`, participant))
 
 ## Identify the final results to keep as prioritized with the first 3 evals of:
 #### arrange(`parameter permutation`, removal_priority, desc(write_dt))
-#### where removal_priority get 1 each for perm and partcipant being over evaled.
+#### where removal_priority get 1 each for perm and participant being over evaled.
 instance_id_whitelist <- dat_qual %>%
   filter(`is even instance` == TRUE) %>%
   arrange(`parameter permutation`, removal_priority, desc(write_dt)) %>%
@@ -516,67 +524,40 @@ dim(eval_survey)
 
 print("goal: we want to regress; testing if demographic or subjective experience is important")
 
-m_f <- lmer(marks ~ factor + (1 | participant), data = eval_survey) ## Benchmark
-m_f.demo.exp <-
+f <- lmer(marks ~ factor + (1 | participant), data = eval_survey) ## Benchmark
+f.parameters <-
+  lmer(marks ~ factor + location + shape + dim + order + (1 | participant), data = eval_survey)
+f.survey <-
   lmer(marks ~ factor + pronouns + age + education + task_understanding +
          data_viz_exp + analysis_exp + (1 | participant), data = eval_survey)
-m_f.eval <-
-  lmer(marks ~ factor + location + shape + dim + order + (1 | participant), data = eval_survey)
-m_f.eval.demo.exp <-
+f_parameters <-
+  lmer(marks ~ factor * (location + shape + dim) + order +
+         (1 | participant), data = eval_survey)
+f_survey <-
+ lmer(marks ~ factor * (pronouns + age + education + task_understanding +
+         data_viz_exp + analysis_exp) + (1 | participant), data = eval_survey)
+f.parameters.survey <-
   lmer(marks ~ factor + location + shape + dim + order + pronouns + age +
          education + task_understanding + data_viz_exp + analysis_exp +
          (1 | participant), data = eval_survey)
-m_f_demo_exp <-
-  lmer(marks ~ factor * (pronouns + age +
-         education + task_understanding + data_viz_exp + analysis_exp) +
-         (1 | participant), data = eval_survey)
-m_f_eval_demo_exp <-
+f_parameters_survey <-
   lmer(marks ~ factor * (location + shape + dim + order + pronouns + age +
          education + task_understanding + data_viz_exp + analysis_exp) +
          (1 | participant), data = eval_survey)
-m_sub.gt1 <-
-  lmer(marks ~ factor + (location + shape + analysis_exp) + 
-         dim + order + age + education + task_understanding +
-         (1 | participant), data = eval_survey)
-m_sub.gt2 <-
-  lmer(marks ~ factor + (location + shape) + 
-         dim + order + age + task_understanding +
-         (1 | participant), data = eval_survey)
-m_sub_gt1 <-
-  lmer(marks ~ factor * (location + shape + analysis_exp) + 
-         dim + order + age + education + task_understanding +
-         (1 | participant), data = eval_survey)
-m_sub_gt1.re_sim <-
-    lmer(marks ~ factor * (location + shape + analysis_exp) + 
-         dim + order + age + education + task_understanding +
-         (1 | participant)  + (1 | simulation), data = eval_survey)
-m_sub_gt2 <-
-  lmer(marks ~ factor * (location + shape) + 
-         dim + order + age + task_understanding +
-         (1 | participant), data = eval_survey)
-m_sub_gt2.re_sim <-
-  lmer(marks ~ factor * (location + shape) + 
-         dim + order + age + task_understanding +
-         (1 | participant) + (1 | simulation), data = eval_survey)
 
 
-.resim <- REsim(m_sub_gt2.re_sim)
-plotREsim(.resim)
-.resim %>%
-  filter(groupFctr == "simulation") %>% 
-  arrange(mean)
+# 
+# .resim <- REsim(m_sub_gt2.re_sim)
+# plotREsim(.resim)
+# .resim %>%
+#   filter(groupFctr == "simulation") %>% 
+#   arrange(mean)
 
-model_ls3 <- list(`F` = m_f,
-                  `F+demo+exp` = m_f.demo.exp,
-                  `F+eval+demo+exp` = m_f.eval.demo.exp,
-                  `F*demo*exp` = m_f_demo_exp,
-                  `F*eval*demo*exp` = m_f_eval_demo_exp,
-                  m_sub.gt1 = m_sub.gt1,
-                  m_sub.gt2 = m_sub.gt2,
-                  m_sub_gt1 = m_sub_gt1,
-                  m_sub_gt2 = m_sub_gt2,
-                  m_sub_gt1.re_sim = m_sub_gt1.re_sim,
-                  m_sub_gt2.re_sim = m_sub_gt2.re_sim)
+model_ls3 <- list(`F` = f,
+                  `F+parameters` = f.parameters,
+                  `F+survey` = f.survey,
+                  `F*parameters` = f_parameters,
+                  `F*survey` = f_survey)
 
 performance_ls3 <- list()
 factors_vec3 <- fixef_vec3 <- vector()
@@ -600,6 +581,14 @@ model_comp_tbl3 <- tibble(`Model name` = names(model_ls3),
 
 knitr::kable(model_comp_tbl)
 knitr::kable(model_comp_tbl3)
+
+
+coef <- summary(f_survey)$coefficients %>% data.frame() ## tibble failed
+str(coef)
+
+#coef %>% arrange(desc(abs(t.value))) ## Too messy, filter instead.
+coef %>% filter(abs(t.value) > 1.5)
+##TODO: continue from here; what are the next less than full models; those with terms with an lvl of t> 1.5??
 ```
 
 
