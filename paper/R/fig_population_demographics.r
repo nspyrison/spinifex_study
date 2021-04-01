@@ -162,7 +162,7 @@ ggsave(filename = "./paper/figures/figSurveyDemographics.png",
 #             add = "jitter", add.params = list(color = "factor", alpha = .3, width = .2)) +
 #     stat_compare_means(comparisons = my_comparisons, label = "p.format") +
 #     stat_compare_means(label.y = 7, method = "anova") + 
-#     theme_minimal() +
+#     theme_bw() +
 #     ggtitle(title)
 # }
 # 

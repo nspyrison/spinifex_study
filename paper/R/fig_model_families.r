@@ -2,7 +2,7 @@ require("ggforce")
 require("ggplot2")
 palette(RColorBrewer::brewer.pal(8, "Dark2"))
 this_theme <- list(
-  theme_minimal(),
+  theme_bw(),
   scale_color_manual(values = palette()[1:8]),
   scale_fill_manual( values = palette()[1:8]),
   theme(axis.title = element_blank(),
@@ -35,3 +35,4 @@ ggplot(data = model_fam_df) +
   this_theme
   
 ggsave("./paper/figures/figModelFam.png", width = 8, height = 8/3, units = "in")
+
