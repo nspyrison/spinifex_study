@@ -26,7 +26,7 @@ source("./paper/R/clean_participant_data.r")
 sub_longer <- pivot_longer_resp_ans_tbl(dat = sub)
 
 source("./paper/R/ggproto_ans_plot.r")
-gg2 <- ggplot() + theme_minimal() +
+gg2 <- ggplot() + theme_bw() +
   ggproto_ans_plot(sub_longer) +
   theme(plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),) +

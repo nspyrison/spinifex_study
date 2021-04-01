@@ -100,56 +100,54 @@ my_theme <- list(
         legend.box = "vertical",
         legend.margin = margin(-6))
 )
-my_ggplot <- function(.aes = aes(x = order, y = marks,
-                                 color = `is even instance`, fill = `is even instance`),
-                      .title = "Default title",
-                      .data = dat_qual)
-{
-  ggplot(.data, .aes) +
-    labs(title = .title) +
-    my_theme +
-    geom_point(
-      position = position_jitterdodge(jitter.width = .3, jitter.height = .05), alpha = .3) +
-    geom_boxplot(position = "dodge", alpha = .6)
-}
 ## indirect (via ggpubr/cowplot) ggplot2 helpers
-my_ggpubr <- function(df, x, y, color = "factor", fill = "factor", title = "Title missing"){
+my_ggpubr <- function(df, x, y, title = "Title missing"){
   ## Create a list of comparison levels to test significance, all combinations.
-  .fill_lvls <- df %>% pull({{fill}}) %>% levels()
+  .fill_lvls <- df %>% pull({{x}}) %>% levels()
   .combn_mat <- t(combn(.fill_lvls, 2))
+  .combn_mat_ord <- t(combn(1:length(.fill_lvls), 2))
   my_comparisons <- lapply(1:nrow(.combn_mat), FUN = function(i){
     c(.combn_mat[i, 1], .combn_mat[i, 2])
   })
+  
+  ### doesn;'t seem to give all lvls...
+  # tgt_ord <- data.frame(.combn_mat_ord) %>% arrange(desc(X1), X2)
+  # my_comparisons <- data.frame(NA)
+  # for(i in 1:nrow(tgt_ord)){
+  #   for(j in 1:ncol(tgt_ord)){
+  #     my_comparisons[i, j] <- .fill_lvls[tgt_ord[i, j]]
+  #   }
+  # }
   ## Find height of global significance test text.
   .y_range <- diff(range(df[y]))
-  .lab.y <- .45 * .y_range + max(df[y])
+  .lab.y <- .05 * .y_range + max(df[y])
   ## Plot
-  ggboxplot(df,  x = x, y = y, fill = fill, alpha = .6,
-            palette = "Dark2",
-            add = "jitter", add.params = list(color = color, alpha = .3, width = .2)) +
-    stat_compare_means(comparisons = my_comparisons, label = "p.format") +
+  ggboxplot(df,  x = x, y = y, fill = x, alpha = .6,
+            palette = "Dark2", shape = x,
+            add = "jitter", add.params = list(color = x, alpha = .3, width = .2)) +
+    #stat_compare_means(comparisons = my_comparisons, label = "p.format") +
     stat_compare_means(label.y = .lab.y) + 
-    theme_bw() +
+    my_theme +
     ggtitle(title)
 }
-my_ggpubr_facet <- function(df, x, y, color = "factor", fill = "factor", 
+my_ggpubr_facet <- function(df, x, y,
                             title = "Title missing", facet = "location"){
   ## Create a list of comparison levels to test significance, all combinations.
-  .fill_lvls <- df %>% pull({{fill}}) %>% levels()
+  .fill_lvls <- df %>% pull({{x}}) %>% levels()
   .combn_mat <- t(combn(.fill_lvls, 2))
   my_comparisons <- lapply(1:nrow(.combn_mat), FUN = function(i){
     c(.combn_mat[i, 1], .combn_mat[i, 2])
   })
   ## Find height of global significance test text.
   .y_range <- diff(range(df[y]))
-  .lab.y <- .45 * .y_range + max(df[y])
+  .lab.y <- .05 * .y_range + max(df[y])
   ## Plot
-  p <- ggboxplot(df,  x = x, y = y, fill = fill, alpha = .6,
-                 palette = "Dark2",
-                 add = "jitter", add.params = list(color = color, alpha = .3, width = .2)) +
-    stat_compare_means(comparisons = my_comparisons, label = "p.format") +
+  p <- ggboxplot(df,  x = x, y = y, fill = x, alpha = .6,
+                 palette = "Dark2", shape = x,
+                 add = "jitter", add.params = list(color = x, alpha = .3, width = .2)) +
+    #stat_compare_means(comparisons = my_comparisons, label = "p.format") +
     stat_compare_means(label.y = .lab.y) + 
-    theme_bw() +
+    my_theme +
     ggtitle(title)
   facet(p, facet.by = facet)
 }
@@ -691,7 +689,6 @@ tail(.resim_data)
 (marks_by_factor <-
    my_ggpubr(dat_qual,
              x = "factor", y = "marks",
-             color = "factor", fill = "factor",
              title = "Marks by factor"))
 ```
 
@@ -701,7 +698,6 @@ tail(.resim_data)
 (marks_by_factor_facet_location <-
    my_ggpubr_facet(dat_qual,
                    x = "factor", y = "marks",
-                   color = "factor", fill = "factor",
                    facet = "location",
                    title = "Marks by factor, faceted on location"))
 ```
@@ -712,7 +708,6 @@ tail(.resim_data)
 (marks_by_factor_facet_shape <-
    my_ggpubr_facet(dat_qual,
                    x = "factor", y = "marks",
-                   color = "factor", fill = "factor",
                    facet = "shape",
                    title = "Marks by factor, faceted on shape"))
 ```
@@ -723,7 +718,6 @@ tail(.resim_data)
 (marks_by_factor_facet_order <-
    my_ggpubr_facet(dat_qual,
                    x = "factor", y = "marks",
-                   color = "factor", fill = "factor",
                    facet = "order",
                    title = "Marks by factor, faceted on order"))
 ```
@@ -734,7 +728,6 @@ tail(.resim_data)
 (marks_by_factor_facet_dim <-
    my_ggpubr_facet(dat_qual,
                    x = "factor", y = "marks",
-                   color = "factor", fill = "factor",
                    facet = "dim",
                    title = "Marks by factor, faceted on dimension"))
 ```
@@ -745,7 +738,6 @@ tail(.resim_data)
 (marks_by_location <-
    my_ggpubr(dat_qual,
              x = "location", y = "marks",
-             color = "location", fill = "location",
              title = "Marks by location"))
 ```
 
@@ -755,8 +747,11 @@ tail(.resim_data)
 (marks_by_order <-
    my_ggpubr(dat_qual,
              x = "order", y = "marks",
-             color = "order", fill = "order",
              title = "Marks by evaluation order"))
+### warning from: gg_pubr::stat_compare_means()
+# Warning message:
+# Computation failed in `stat_signif()`:
+# missing value where TRUE/FALSE needed 
 ```
 
 ### Shape, variance-covariance 
@@ -765,7 +760,6 @@ tail(.resim_data)
 (marks_by_shape <-
    my_ggpubr(dat_qual,
              x = "shape", y = "marks",
-             color = "shape", fill = "shape",
              title = "Marks by shape"))
 ```
 
@@ -775,7 +769,6 @@ tail(.resim_data)
 (marks_by_dim <- 
    my_ggpubr(dat_qual,
              x = "dim", y = "marks",
-             color = "factor", fill = "factor",
              title = "Marks by dimension"))
 ```
 
@@ -784,94 +777,53 @@ ______
 ## Speed of response
 
 ```{r}
-my_ggplot(aes(x = factor, y = `seconds to last response`,
-              color = factor, fill = factor),
-          "Seconds to last response by factor",
-          .data = dat_qual) +
-  coord_cartesian(ylim = c(0L, 70L))
+sec_last_resp_by_factor <-
+  my_ggpubr(dat_qual,
+            x = "factor", y = "seconds to last response",
+            title = "Seconds to last response by factor")
 
-   my_ggpubr(dat_qual,
-             x = "factor", y = "seconds to last response",
-             color = "factor", fill = "factor",
-             title = "Seconds to last response by factor")
-
-my_ggplot(aes(x = order, y = `seconds to last response`,
-              color = "", fill = ""),
-          "Seconds to last response by order",
-          .data = dat_qual) +
-  coord_cartesian(ylim = c(0L, 70L))
-
-my_ggplot(aes(x = location, y = `seconds to last response`,
-              color = "", fill = ""),
-          "Seconds to last response by factor",
-          .data = dat_qual) +
-  coord_cartesian(ylim = c(0L, 70L))
+sec_last_resp_by_location <-
+  my_ggpubr(dat_qual,
+            x = "location", y = "seconds to last response",
+            title = "Seconds to last response by location")
 ```
 
 ______
-
-## Input and response interactions
-
-```{r}
-## Factor
-my_ggplot(aes(x = factor, y = task_input_inter,
-              color = factor, fill = factor),
-          "Number of input interaction (throughness) by factor",
-          .data = dat_qual) +
-  coord_cartesian(ylim = c(0L, 30L))
-
-my_ggplot(aes(x = factor, y = `# response interactions`,
-              color = factor, fill = factor),
-          "Number of response interaction (inverse confidence) by factor",
-          .data = dat_qual)
-
-## Order
-my_ggplot(aes(x = order, y = task_input_inter,
-              color = "", fill = ""),
-          "Number of input interaction (throughness) by order",
-          .data = dat_qual) +
-  coord_cartesian(ylim = c(0L, 30L))
-
-my_ggplot(aes(x = order, y = `# response interactions`,
-              color = "", fill = ""),
-          "Number of response interaction (inverse confidence) by order",
-          .data = dat_qual)
-
-## Location
-my_ggplot(aes(x = location, y = task_input_inter,
-              color = "", fill = ""),
-          "Number of input interaction (throughness) by location",
-          .data = dat_qual) +
-  coord_cartesian(ylim = c(0L, 30L))
-
-my_ggplot(aes(x = location, y = `# response interactions`,
-              color = "", fill = ""),
-          "Number of response interaction (inverse confidence) by location",
-          .data = dat_qual)
-```
 
 
 ## Saving paper figures
 ```{r}
 if(F){
-  ## Save dat_qual, the df for the remaining 108 instance_id's. 
-  ### NOW DONE IN LINE WITH if(interactive()) ###
-  # saveRDS(dat_qual, "./apps_supplementary/v4_prolifico_100/data/dat_qual.rds")
-  gg_eval_by_perm_num
-  gg_marks_by_factor
-  gg_marks_by_eval_order
-  gg_marks_by_shape
-  gg_marks_by_dim
-  gg_marks_by_location
+  ### dat_qual now saved inline with if(interactive()) ###
   
-  ggsave("./paper/figures/marksByFactor.png", marks_by_factor, 
-         width = 3, height = 3, units = "in")
+  .remove_y <- theme(axis.title.y = element_blank(),
+                     axis.text.y = element_blank(), 
+                     axis.ticks.y = element_blank())
+  .no_legend <- list(theme(legend.position = "off"),
+                     ggtitle(""))
+  gc()
+  figMarksByCond_notitle <- 
+    cowplot::plot_grid(marks_by_factor + .no_legend + ggtitle(""),
+                       marks_by_location + .remove_y + .no_legend,
+                       marks_by_shape + .remove_y + .no_legend,
+                       marks_by_order + .remove_y + .no_legend,
+                       marks_by_dim + .remove_y + .no_legend,
+                       ncol = 5, rel_widths = c(4, rep(3, 4))) + margin(-5,0,0,0)
+  
+  title <- cowplot::ggdraw() +
+      cowplot::draw_label("Marks by conditional block parameter",
+                          x = .15, y = .6, hjust = .1, vjust = .5)
+  gc()
+  figMarksByCond <- cowplot::plot_grid(title, figMarksByCond_notitle,
+                                  ncol = 1, rel_heights = c(0.1, 1))
+  ggsave("figMarksByCond.png", plot = figMarksByCond, path = "./paper/figures",
+         device = "png", width = 8, height = 3, unit = "in")
+  gc()
   
   ## instance_id whitelist, the people kept for analysis. 
   #### (instance_id is: participant_num "_" perm_num "_" prolific_id)
   saveRDS(instance_id_whitelist,
           file = "./apps_supplementary/v4_prolifico_100/instance_id_whitelist.rds")
-  
   
   ## Model tables
   model_comp_tbl_ls <- list(model_comp_tbl, model_comp_tbl2, model_comp_tbl3)

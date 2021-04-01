@@ -468,7 +468,7 @@ TODO: XXX
 ```{r figMarksByFactor, out.width="100%", fig.show='asis', fig.cap='TODO: XXX caption needed.'}
 if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
-knitr::include_graphics("./figures/MarksByFactor.png")
+knitr::include_graphics("./figures/figMarksByCond.png")
 ```
 
 ## Subjective measures of factors
