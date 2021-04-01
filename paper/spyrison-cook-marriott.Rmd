@@ -432,12 +432,19 @@ where
 
 <!-- Tables don't render in landscape mode. -->
 <!-- \begin{landscape} -->
-```{r modelTable, fig.cap = "TEST caption. NOTE: use the caption arg in kable(), not this."}
+```{r modelTable, fig.cap = "Use the caption arg in kable(), not this."}
 model_comp_tbl_ls <- readRDS("./figures/model_comp_tbl_ls.rds")
-knitr::kable(model_comp_tbl_ls[[1]],# "latex",
-             booktabs = TRUE, linesep = "", caption = "Model comparison of our random effects models regressing marks. Each model includs a random effect term of the participant, which explains the individuals influence on their marks. Complex models perform better in terms of R2 and RMSE, yet AIC and BIC penialize their large number of fixed effect in favor of the much simpler model containing only factor.")
-knitr::kable(model_comp_tbl_ls[[2]],# "latex",
-             booktabs = TRUE, linesep = "", caption = "We select the simple facot model as our benchmark and compare the random effects from participants with the random effects of simulated data. The random effect of the data is small compared to the random effect of the data. The random effect of the participant is good at prediciting the time users take, its conditional R2 is much larger than the marginal R2 of the factor fixed term.")
+knitr::kable(model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
+             booktabs = TRUE, linesep = "", caption = "Model comparison of our random effects models regressing marks. Each model includs a random effect term of the participant, which explains the individuals influence on their marks. Complex models perform better in terms of R2 and RMSE, yet AIC and BIC penialize their large number of fixed effect in favor of the much simpler model containing only factor.") %>%
+  kableExtra::column_spec(column = 1, width = "3.2cm") %>%
+  kableExtra::column_spec(column = c(2:3, 6:7), width = "1.7cm") %>%
+  kableExtra::column_spec(column = c(4:5, 8), width = "1.1cm")
+
+knitr::kable(model_comp_tbl_ls[[2]], align = c("l", rep("r", 7)),
+             booktabs = TRUE, linesep = "", caption = "We select the simple facet model as our benchmark and compare the random effects from participants with the random effects of simulated data. The random effect of the data is small compared to the random effect of the data. The random effect of the participant is good at prediciting the time users take, its conditional R2 is much larger than the marginal R2 of the factor fixed term.") %>%
+  kableExtra::column_spec(column = 1, width = "3.2cm") %>%
+  kableExtra::column_spec(column = c(2:3, 6:7), width = "1.7cm") %>%
+  kableExtra::column_spec(column = c(4:5, 8), width = "1.1cm")
 ```
 <!-- \end{landscape} -->
 
