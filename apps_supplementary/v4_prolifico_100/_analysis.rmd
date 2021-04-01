@@ -92,7 +92,7 @@ dat_task_agg <- dat_task_agg %>% filter(`is training` == FALSE)
 
 ## direct ggplot2 helpers
 my_theme <- list(
-  theme_minimal(),
+  theme_bw(),
   scale_color_brewer(palette = "Dark2"),
   scale_fill_brewer(palette = "Dark2"),
   geom_hline(yintercept = 0L),
@@ -113,38 +113,47 @@ my_ggplot <- function(.aes = aes(x = order, y = marks,
     geom_boxplot(position = "dodge", alpha = .6)
 }
 ## indirect (via ggpubr/cowplot) ggplot2 helpers
-
-my_comparisons <- list( c("radial", "grand"), c("grand", "pca"), c("radial", "pca"))
 my_ggpubr <- function(df, x, y, color = "factor", fill = "factor", title = "Title missing"){
+  ## Create a list of comparison levels to test significance, all combinations.
+  .fill_lvls <- df %>% pull({{fill}}) %>% levels()
+  .combn_mat <- t(combn(.fill_lvls, 2))
+  my_comparisons <- lapply(1:nrow(.combn_mat), FUN = function(i){
+    c(.combn_mat[i, 1], .combn_mat[i, 2])
+  })
+  ## Find height of global significance test text.
+  .y_range <- diff(range(df[y]))
+  .lab.y <- .45 * .y_range + max(df[y])
+  ## Plot
   ggboxplot(df,  x = x, y = y, fill = fill, alpha = .6,
             palette = "Dark2",
             add = "jitter", add.params = list(color = color, alpha = .3, width = .2)) +
     stat_compare_means(comparisons = my_comparisons, label = "p.format") +
-    stat_compare_means(label.y = 1.9) + 
-    theme_minimal() +
+    stat_compare_means(label.y = .lab.y) + 
+    theme_bw() +
     ggtitle(title)
 }
-legend_b_c <- get_legend(
-  ggplot(dat_task_agg, aes(factor, marks, fill = marks)) + geom_point() + 
-    theme_minimal() +
-    theme(legend.box.margin = margin(0, 12, 0, 12),
-          legend.position = "bottom",
-          legend.justification = "center")
-)
-my_plot_grid_titles <- function(plot_grid_obj, title_char, subtitle_char, legend = legend_b_c){
-  title <- ggdraw() + draw_label(title_char,fontface = 'bold', x = 0, hjust = 0)
-  if(missing(subtitle) == TRUE){
-      subtitle <- ggdraw() + 
-    draw_label("Participant subjective measures",
-               fontface = 'bold', x = 0, hjust = 0)
-      return(cowplot::plot_grid(title, plot_grid_obj, legend,
-                                ncol = 1,
-                                rel_heights = c(.1, 1, .1)))
-  }
-  return(cowplot::plot_grid(title, subtitle, plot_grid_obj, legend,
-                            ncol = 1,
-                            rel_heights = c(.1, .1, 1, .1)))
+my_ggpubr_facet <- function(df, x, y, color = "factor", fill = "factor", 
+                            title = "Title missing", facet = "location"){
+  ## Create a list of comparison levels to test significance, all combinations.
+  .fill_lvls <- df %>% pull({{fill}}) %>% levels()
+  .combn_mat <- t(combn(.fill_lvls, 2))
+  my_comparisons <- lapply(1:nrow(.combn_mat), FUN = function(i){
+    c(.combn_mat[i, 1], .combn_mat[i, 2])
+  })
+  ## Find height of global significance test text.
+  .y_range <- diff(range(df[y]))
+  .lab.y <- .45 * .y_range + max(df[y])
+  ## Plot
+  p <- ggboxplot(df,  x = x, y = y, fill = fill, alpha = .6,
+                 palette = "Dark2",
+                 add = "jitter", add.params = list(color = color, alpha = .3, width = .2)) +
+    stat_compare_means(comparisons = my_comparisons, label = "p.format") +
+    stat_compare_means(label.y = .lab.y) + 
+    theme_bw() +
+    ggtitle(title)
+  facet(p, facet.by = facet)
 }
+
 ```
 
 ______
@@ -170,7 +179,8 @@ instance_id_is_even_whitelist <- instance_agg %>%
   pull(instance_id)
 ## Decode the original dataset by evenness of instance_id.
 dat_qual <- dat_task_agg %>%
-  mutate(`is even instance` = if_else(instance_id %in% instance_id_is_even_whitelist, TRUE, FALSE))
+  mutate(`is even instance` = 
+           if_else(instance_id %in% instance_id_is_even_whitelist, TRUE, FALSE))
   
 ## participant aggregate table
 participant_agg <- dat_qual %>%
@@ -678,87 +688,95 @@ tail(.resim_data)
 ### Factor
 
 ```{r}
-(marks_by_factor <- my_ggpubr(dat_qual, "factor", "marks", title = "Marks by factor"))
-# (gg_marks_by_factor <- my_ggplot(
-#   .aes = aes(x = factor, y = marks, color = factor, fill = factor),
-#   .title = "Marks by factor",
-#   .data = dat_qual))
+(marks_by_factor <-
+   my_ggpubr(dat_qual,
+             x = "factor", y = "marks",
+             color = "factor", fill = "factor",
+             title = "Marks by factor"))
 ```
 
 #### ... faceted by location
 
 ```{r}
-(marks_by_factor <- my_ggpubr(dat_qual, "factor", "marks", title = "Marks by factor"))
-my_ggplot(
-  aes(x = factor, y = marks, color = factor, fill = factor), 
-  "Marks by factor, facet by location",
-  .data = dat_qual) + 
-  facet_wrap(vars(location))
+(marks_by_factor_facet_location <-
+   my_ggpubr_facet(dat_qual,
+                   x = "factor", y = "marks",
+                   color = "factor", fill = "factor",
+                   facet = "location",
+                   title = "Marks by factor, faceted on location"))
 ```
 
 #### ... faceted by shape
 
 ```{r}
-my_ggplot(
-  aes(x = factor, y = marks, color = factor, fill = factor),
-  "Marks by factor, faceted by shape",
-  .data = dat_qual) + 
-  facet_wrap(vars(shape))
+(marks_by_factor_facet_shape <-
+   my_ggpubr_facet(dat_qual,
+                   x = "factor", y = "marks",
+                   color = "factor", fill = "factor",
+                   facet = "shape",
+                   title = "Marks by factor, faceted on shape"))
 ```
 
 #### ... facet by order
 
 ```{r}
-my_ggplot(aes(x = factor, y = marks,
-              color = factor, fill = factor),
-          "Marks by factor, faceted by order",
-          .data = dat_qual) + 
-  facet_wrap(vars(order))
+(marks_by_factor_facet_order <-
+   my_ggpubr_facet(dat_qual,
+                   x = "factor", y = "marks",
+                   color = "factor", fill = "factor",
+                   facet = "order",
+                   title = "Marks by factor, faceted on order"))
 ```
 
 #### ... facet by dimension
 
 ```{r}
-my_ggplot(aes(x = factor, y = marks, color = factor, fill = factor),
-          "Marks by factor, faceted by dimension",
-          .data = dat_qual) + 
-  facet_wrap(vars(dim))
+(marks_by_factor_facet_dim <-
+   my_ggpubr_facet(dat_qual,
+                   x = "factor", y = "marks",
+                   color = "factor", fill = "factor",
+                   facet = "dim",
+                   title = "Marks by factor, faceted on dimension"))
 ```
 
 ### Location, of signal mixing
 
 ```{r}
-(gg_marks_by_location <- my_ggplot(
-  aes(x = location, y = marks, color = factor, fill = factor),
-  "Marks by location",
-  .data = dat_qual))
+(marks_by_location <-
+   my_ggpubr(dat_qual,
+             x = "location", y = "marks",
+             color = "location", fill = "location",
+             title = "Marks by location"))
 ```
 
 ### Order, of evaluation
 
 ```{r}
-(gg_marks_by_eval_order <- my_ggplot(
-  .aes = aes(x = order, y = marks, color = factor, fill = factor),
-  .title = "Marks by evaluation order",
-  .data = dat_qual))
+(marks_by_order <-
+   my_ggpubr(dat_qual,
+             x = "order", y = "marks",
+             color = "order", fill = "order",
+             title = "Marks by evaluation order"))
 ```
 
-### Shape,  variance-covariance 
+### Shape, variance-covariance 
 
 ```{r} 
-(gg_marks_by_shape <- my_ggplot(
-  aes(x = shape, y = marks, color = factor, fill = factor),
-  "Marks by var-covariance",
-  .data = dat_qual))
+(marks_by_shape <-
+   my_ggpubr(dat_qual,
+             x = "shape", y = "marks",
+             color = "shape", fill = "shape",
+             title = "Marks by shape"))
 ```
 
 ### Dimension
 
 ```{r}
-(gg_marks_by_dim <- my_ggplot(
-  aes(x = dim, y = marks, color = factor, fill = factor),
-  "Marks by dimension",
-  .data = dat_qual))
+(marks_by_dim <- 
+   my_ggpubr(dat_qual,
+             x = "dim", y = "marks",
+             color = "factor", fill = "factor",
+             title = "Marks by dimension"))
 ```
 
 ______
@@ -771,6 +789,11 @@ my_ggplot(aes(x = factor, y = `seconds to last response`,
           "Seconds to last response by factor",
           .data = dat_qual) +
   coord_cartesian(ylim = c(0L, 70L))
+
+   my_ggpubr(dat_qual,
+             x = "factor", y = "seconds to last response",
+             color = "factor", fill = "factor",
+             title = "Seconds to last response by factor")
 
 my_ggplot(aes(x = order, y = `seconds to last response`,
               color = "", fill = ""),
