@@ -539,20 +539,20 @@ f.parameters <-
   lmer(marks ~ factor + location + shape + dim + order +
          (1 | participant), data = eval_survey)
 f.survey <-
-  lmer(marks ~ factor + pronouns + age + education + task_understanding +
+  lmer(marks ~ factor + pronoun + age + education + task_understanding +
          data_viz_exp + analysis_exp + (1 | participant), data = eval_survey)
 f_parameters <-
   lmer(marks ~ factor * (location + shape + dim) + order +
          (1 | participant), data = eval_survey)
 f_survey <-
- lmer(marks ~ factor * (pronouns + age + education + task_understanding +
+ lmer(marks ~ factor * (pronoun + age + education + task_understanding +
          data_viz_exp + analysis_exp) + (1 | participant), data = eval_survey)
 f.parameters.survey <-
-  lmer(marks ~ factor + location + shape + dim + order + pronouns + age +
+  lmer(marks ~ factor + location + shape + dim + order + pronoun + age +
          education + task_understanding + data_viz_exp + analysis_exp +
          (1 | participant), data = eval_survey)
 f_parameters_survey <-
-  lmer(marks ~ factor * (location + shape + dim + order + pronouns + age +
+  lmer(marks ~ factor * (location + shape + dim + order + pronoun + age +
          education + task_understanding + data_viz_exp + analysis_exp) +
          (1 | participant), data = eval_survey)
 if(interactive())
@@ -768,20 +768,59 @@ tail(.resim_data)
              title = "Marks by dimension"))
 ```
 
-______
+<!-- ## Speed of response -->
 
-## Speed of response
+<!-- ```{r} -->
+<!-- (sec_last_resp_by_factor <- -->
+<!--   my_ggpubr(dat_qual, -->
+<!--             x = "factor", y = "seconds to last response", -->
+<!--             title = "Seconds to last response by factor")) -->
+<!-- (sec_last_resp_by_location <- -->
+<!--   my_ggpubr(dat_qual, -->
+<!--             x = "location", y = "seconds to last response", -->
+<!--             title = "Seconds to last response by location")) -->
+<!-- ``` -->
+
+## Marginal effects of Survey variables
+
+### Demographics
 
 ```{r}
-(sec_last_resp_by_factor <-
-  my_ggpubr(dat_qual,
-            x = "factor", y = "seconds to last response",
-            title = "Seconds to last response by factor"))
-(sec_last_resp_by_location <-
-  my_ggpubr(dat_qual,
-            x = "location", y = "seconds to last response",
-            title = "Seconds to last response by location"))
+# eval_survey
+# skimr::skim(eval_survey)
+
+# ## Not significant ##
+# my_ggpubr(eval_survey,
+#           x = "pronoun", y = "marks",
+#           title = "Marks by pronoun")
+
+## narrowly significant
+my_ggpubr(eval_survey,
+          x = "age", y = "marks",
+          title = "Marks by age")
+## narrowly not significant
+my_ggpubr(eval_survey,
+          x = "education", y = "marks",
+          title = "Marks by education")
 ```
+
+
+### Experience
+
+```{r}
+## Significant
+my_ggpubr(eval_survey,
+          x = "task_understanding", y = "marks",
+          title = "Marks by task_understanding")
+## Not significant ##
+# my_ggpubr(eval_survey,
+#           x = "data_viz_exp", y = "marks",
+#           title = "Marks by data_viz_exp")
+# my_ggpubr(eval_survey,
+#           x = "analysis_exp", y = "marks",
+#           title = "Marks by analysis_exp")
+```
+
 
 ______
 

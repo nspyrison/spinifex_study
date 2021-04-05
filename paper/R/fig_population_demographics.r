@@ -27,7 +27,7 @@ if(F){
   
   ## Decode question names.
   colnames(survey_wider)[5:22] <-
-    c("pronouns", "age", "education", "task_understanding", "data_viz_exp", "analysis_exp", 
+    c("pronoun", "age", "education", "task_understanding", "data_viz_exp", "analysis_exp", 
       "grand_familar", "grand_ease", "grand_confidence", "grand_like",
       "pca_familar", "pca_ease", "pca_confidence", "pca_like",
       "radial_familar", "radial_ease", "radial_confidence", "radial_like")
@@ -37,7 +37,7 @@ if(F){
       full_perm_num = factor(full_perm_num),
       prolific_id = factor(prolific_id),
       instance_id = factor(instance_id),
-      pronouns = factor(pronouns, levels = c("he/him", "she/her", "thy/them or other", 
+      pronoun = factor(pronoun, levels = c("he/him", "she/her", "thy/them or other", 
                                              "decline to answer <default, blank, no change>")),
       age = as.factor(age), ## order already correct.
       education = factor(education, levels = 
@@ -63,8 +63,8 @@ if(F){
   .l_lvls <- c("most negative", "negative", "neutral", "positive", "most positive")
   survey_wider <- survey_wider %>% 
     mutate(
-      pronouns = plyr::mapvalues(
-        pronouns, from = levels(pronouns),
+      pronoun = plyr::mapvalues(
+        pronoun, from = levels(pronoun),
         to = c("he/him (n=44)", "she/her (n=31)", "they/them or other (n=5)", "decline/default (n=4)")),
       education = plyr::mapvalues(
         education, from = levels(education),
@@ -120,11 +120,11 @@ str(survey_wider)
 (demographic_heatmaps <- ggplot(survey_wider, aes(education, age)) +
     stat_bin2d(aes(fill = after_stat(count))) +
     geom_text(aes(label = after_stat(count)), stat = "bin2d") +
-    facet_grid(cols = vars(pronouns)) + theme_bw() +
+    facet_grid(cols = vars(pronoun)) + theme_bw() +
     theme(axis.text.x = element_text(angle = 90, hjust = 1),
-          # legend.position = "bottom", 
+          # legend.position = "bottom",
           # legend.direction = "horizontal",
-          legend.margin = margin(0,0,0,0))+ 
+          legend.margin = margin(0, 0, 0, 0)) +
     scale_fill_gradient(low = "lightpink", high = "firebrick", na.value = NA) +
     ggtitle("Participant demographics"))
 ggsave(filename = "./paper/figures/figSurveyDemographics.png",
@@ -258,7 +258,7 @@ script_survey_wider_to_survey_agg <- function(col_idx = 8:22){
 script_survey_wider_to_survey_agg()
 
 # Stacked + percent
-(subjectiveMeasures <- 
+(subjectiveMeasures <-
     ggplot(likert, aes(x = percent, y = factor, fill = response)) +
     geom_bar(position = "fill", stat = "identity") + facet_grid(vars(question)) +
     ggtitle("Subjective measures",

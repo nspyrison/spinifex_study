@@ -283,8 +283,7 @@ knitr::include_graphics("./figures/figModelFam.png")
 <!-- Location mixing -->
 The separation of any two target clusters is currently contained fully within 1 variable at this point. We mix this variable with a noise variable such that the difference in the clusters is mixed at the following respective percentages 100/0% (not mixed), 66/33%, 50/50% (evenly mixed). The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty. The training data does not mix separation. Location mixing within an evaluation period is held constant and rotated through the 6 permutations of their order. Randomizing the order of the location mixing is controlled by iterating once after each of the 6 factor order permutations are evaluated. This is illustrated in figure \ref{fig:figParmeterizationExample}.
 
-```{r 
-, echo = F, out.width = '100%', fig.cap = "Illustration of how a hypothetical participant 63 is assigned factor and block parameterizations. Each of the 6 factor order permuations are exausted before going to the next location order permutation."}
+```{r , echo = F, out.width = '100%', fig.cap = "Illustration of how a hypothetical participant 63 is assigned factor and block parameterizations. Each of the 6 factor order permuations are exausted before going to the next location order permutation."}
 knitr::include_graphics("./figures/figParmeterizationExample.png")
 ```
 
@@ -322,7 +321,7 @@ The code, response files, their analyses, and study application are made publicl
 
 ## Sampling population {#sec:population}
 
-We recruited $N = 108$ via prolifico [@palan_prolific_2018]. We make the assumption that interpretation of biplot displays used will not be commonly used for wide audience and apply a single filter; that participants have completed at least an undergraduate degree (some 58,700 of the 150,400 users). Participants were compensated for their time at \pounds 7.50 per hour, whereas the mean of survey was about 16 minutes. We can't preclude previous knowledge or experience with the factors, but instead try to control for this in the user study. Figure \ref{fig:figSurveyDemographics} shows distributions of age and preferred pronouns of the participants that completed the post-study survey who are relatively young and well educated.
+We recruited $N = 108$ via prolifico [@palan_prolific_2018]. We make the assumption that interpretation of biplot displays used will not be commonly used for wide audience and apply a single filter; that participants have completed at least an undergraduate degree (some 58,700 of the 150,400 users at the time). Participants were compensated for their time at \pounds 7.50 per hour, whereas the mean of survey was about 16 minutes. We can't preclude previous knowledge or experience with the factors, but instead try to control for this in the user study. Figure \ref{fig:figSurveyDemographics} shows distributions of age and preferred pronouns of the participants that completed the post-study survey who are relatively young and well educated.
 
 ```{r, figSurveyDemographics, echo = F, out.width = '100%', fig.cap = "FIGURE CAPTION NEEDED. TODO XXX"}
 if(F) ## Creation and saving figure at:
@@ -332,11 +331,28 @@ knitr::include_graphics("./figures/figSurveyDemographics.png")
 
 ## Evenness of block evaluation
 
-From pilot studies through a sample of convenience (primarily PhD students) we predict that we wanted 3 even block evaluations to support differences in our factor and block parameterizations. Given that factor and location each have 6 permutations we targeted $N = 108 = 3 * (6 * 6)$ evaluations before data was collected. In data collection we experience a number of adverse conditions, primarily: limited control of application server network configuration, throughput thresholds on data read/write API, and repeat attempts from users when experiencing disconnects. To mitigate this we over collect survey trials, exclude all partial trials, and remove the oldest attempts (mostly likely to experience adverse network conditions) from over evaluated permutations until we have our desired 3 even evaluations under each permutation. The follow analysis was performed on only the remaining 108 trials.
+From pilot studies through a sample of convenience (primarily PhD students) we predict that we wanted 3 even block evaluations to support differences in our factor and block parameterizations. Given that factor and location each have 6 permutations we targeted $N = 108 = 3 * (6 * 6)$ evaluations before data was collected. In data collection we experience a number of adverse conditions, primarily: limited control of application server network configuration, throughput thresholds on data read/write API, and repeat attempts from users when experiencing disconnects. To mitigate this we over collect survey trials, exclude all partial trials, and remove the oldest attempts (mostly likely to experience adverse network conditions) from over evaluated permutations until we have our desired 3 even evaluations under each permutation.
 
 # Results {#sec:results}
 
-_TODO: XXX add something here_
+To recap, we have 2 primary data sets; the user study evaluations and post study survey. The former is contains the 108 trials. It's explainatory variables are marks as defined in section \ref{sec:} of the . While only 84 of these have the corresponding survey data filled out; the analysis of any survey variables is scoped accordingly.
+
+_TODO: XXX add here_
+
+
+## Marginal block parameters
+
+TODO: XXX write up here.
+
+```{r figMarksByFactor, out.width="100%", fig.show='asis', fig.cap='TODO: XXX caption needed.'}
+if(F) ## Creation and saving figure at:
+  file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
+knitr::include_graphics("./figures/figMarksByCond.png")
+```
+
+## Marginal survey parameters
+
+TODO: XXX write up here. AND FIGURE.
 
 ## Random effects regression model
 
@@ -344,12 +360,11 @@ _TODO: XXX add something here_
 In order to explore how the parameterizations of study we fix regression models, regressing against the marks as defined in section \ref{sec:task}. The factors of our model with involve a number of  (visual *factor*, *dimension*ality of the data, variance-covariance *shape*, and noise/signal mixing *location*). We compare these against any potential learning effect by comparing against evaluation *order*. Lastly, all models include the a random effects term to account for the individual participants effect on the score, explaining the within-participant effect on the score.
 
 <!-- Measures of model comparison -->
-Evaluation of the models will include Akaike's Information Criterion (AIC), Bayesian information criterion (BIC). These are comparisons measures of models based on its maximized log-likelihood function and penalize over fitting models linearly with the number of fixed terms. Root mean square error (RMSE) is the standard deviation of the residuals is also included. For the above 3 measures, the lower the value the more accurate the model. We additionally include Nakagawa's R\^2 for mixed models
-[@nakagawa_coefficient_2017], which has conditional and marginal measures with respect to the random effect terms, but doesn't penalize overfitting.
+Evaluation of the models will include Akaike's Information Criterion (AIC), Bayesian information criterion (BIC). These are comparisons measures of models based on its maximized log-likelihood function and penalize over fitting models linearly with the number of fixed terms. Root mean square error (RMSE) is the standard deviation of the residuals is also included. For the above 3 measures, the lower the value the more accurate the model. We additionally include Nakagawa's R\^2 for mixed models[@nakagawa_coefficient_2017], which has conditional and marginal measures with respect to the random effect terms, and doesn't penalize overfitting.
 <!-- Add ICC?? see ?performance::icc -->
 
 <!-- Building a battery of models -->
-In building a set of models to test we include all single term models, a model with all independent terms. We also include an interaction term of factor by location, allowing for the slope of each location to change across each level of the factor, which is feasible. For comparison an overly complex model with many interaction terms is included.
+In building a set of models to test we include all single term models, a model with all independent terms. We also include an interaction term of factor by location, allowing for the slope of each location to change across each level of the factor, which is feasible. For comparison an overly complex model with many interaction terms is included. Regarding the 3 models with all terms, their model matrix is rank deficient 
 
 \begin{align*}
 \text{model F: } ~~~~~ \widehat{marks} = 
@@ -449,7 +464,7 @@ knitr::kable(model_comp_tbl_ls[[2]], align = c("l", rep("r", 7)),
 <!-- \end{landscape} -->
 
 <!-- Residuals and random effects simulation -->
-Residual plots had no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \ref{fig:figModel} illustrates a typically residual plot (left), while the right compares 95\% confidence interval of the effect ranges for participant and simulation. The effect ranges are estimated from simulations of the posterior distribution. The effect size of participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha$ = .95, while none the of the simulations significantly deviate from the null of having no effect size on the marks.
+Residual plots had no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \ref{fig:figModel} illustrates a typically residual plot (left), while the right compares 95\% confidence interval of the effect ranges for participant and simulation. The effect ranges are estimated from simulations of the posterior distribution. The effect size of participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha$ = .95, while none of the simulation effects significantly deviate from the null of having no effect size on the marks.
 
 ```{r figModel, out.width="100%", fig.show='asis', fig.cap='Residual plot and estimated effect ranges for factor regressing on marks with random effects for both partitcipant and data simulation. The effect size of participant is relatively large, with several significant extrema (alpha = .95). None of the simulations deviate significantly.'}
 if(F) ## Creation and saving figure at:
@@ -457,21 +472,7 @@ if(F) ## Creation and saving figure at:
 knitr::include_graphics("./figures/figModels.png")
 ```
 
-## Effect of demographics and prior experience
-
-
-## Marginal block parameters
-
-TODO: XXX
-- See https://rpkgs.datanovia.com/ggpubr/reference/facet.html use using ggpubr::facet rather than stitching together again with cowplot.
-
-```{r figMarksByFactor, out.width="100%", fig.show='asis', fig.cap='TODO: XXX caption needed.'}
-if(F) ## Creation and saving figure at:
-  file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
-knitr::include_graphics("./figures/figMarksByCond.png")
-```
-
-## Subjective measures of factors
+## Subjective measures
 
 TODO: XXX
 -Some (see https://bookdown.org/Rmadillo/likert/) claim that boxplot and tests are inappropriate for Likert scale data. Convert to percentile stacked bar charts?
