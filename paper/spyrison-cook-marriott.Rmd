@@ -349,7 +349,7 @@ TODO: XXX write up here.
 
 _Will have to figure out a more elegant solution for this. consider: size of text, global test, two-way test. n=x within bars. May need to go manually run test and/or place values._
 
-Figure \ref{fig:figMarksByMarg} compares the effect of the study block parameters. Location is the inverse of what is expected, though perhaps mixing the signal diversifies the marks in that its easier to choose at least one of the correct answers of two dimensions with signal rather than the higher risk of selecting the only correct answer for all marks. EEV slightly outperforms EEE, perhaps the different shape helps distinguish the cluster or stick out from one another. Evaluation order does not have a monotonic increase. Every odd evaluation beats the next evaluation whihc have 4 and 6 dimensions respectively.
+Figure \ref{fig:figMarksByMarg} compares the effect of the study block parameters. Location is the inverse of what is expected, though perhaps mixing the signal diversifies the marks in that its easier to choose at least one of the correct answers of two dimensions with signal rather than the higher risk of selecting the only correct answer for all marks. EEV slightly outperforms EEE, perhaps the different shape helps distinguish the cluster or stick out from one another. Evaluation order does not have a monotonic increase. Every odd evaluation beats the next evaluation which have 4 and 6 dimensions respectively.
 
 ```{r figMarksByMarg, out.width="100%", fig.show='asis', fig.cap='TODO: Marginal effect of the block parameterizations. Factor supports the hypothesis that radial tours outperform the discrete benchmark, pca, and animated benchmark, grand tour, for this task. '}
 if(F) ## Creation and saving figure at:
@@ -359,7 +359,7 @@ knitr::include_graphics("./figures/figMarksByMarg.png")
 
 ## Marginal survey responses
 
-TODO: XXX write up here. AND FIGURE.
+We also test the demographic and experience question from the survey to see if they they effect marks. Figure \ref{figMarksByMargSurvey} show the variables with strongest evidence to explain marks. Keep in mind that some of the x groups have low counts any likely may not reflect the true distribution of their demographic. Perhaps unsurprisingly, participants that rated their task comprehension higher, averaged higher marks. Age group was narrowly significant, with the lowest, highest, and default groups scoring low. The explanatory power of age is more likely more of a proxy for attention and thoroughness rather than a true effect of age. Education correlates with marks, though is narrowly not significant at $\alpha = .95$, it is also be slight correlated with age and understanding which explain marks better then education alone. Decline/default groups received lower marks unanimously across survey questions; care should be taken to ensure or evaluate the level of effort of participants.
 
 ```{r figMarksByMargSurvey, out.width="100%", fig.show='asis', fig.cap='TODO: Marginal effect of the survey variables. TODO: XXX COMPLETE CAPTION'}
 if(F) ## Creation and saving figure at:
@@ -369,15 +369,17 @@ knitr::include_graphics("./figures/figMarksByMargSurvey.png")
 
 ## Random effects regression model
 
-<!-- Explain fixed and random terms used -->
-In order to explore how the parameterizations of study we fix regression models, regressing against the marks as defined in section \ref{sec:task}. The factors of our model with involve a number of (visual *factor*, *dim*ensionality of the data, variance-covariance *shape*, and noise/signal mixing *location*). We compare these against any potential learning effect by comparing against evaluation *order*. Lastly, all models include the a random effects term to account for the individual participants effect on the score, explaining the within-participant effect on the score.
+<!-- <!-- Explain fixed and random terms used --> -->
+<!-- In order to explore how the parameterizations of study we fix regression models, regressing against the marks as defined in section \ref{sec:task}. The factors of our model with involve a number of (visual *factor*, *dim*ensionality of the data, variance-covariance *shape*, and noise/signal mixing *location*). We compare these against any potential learning effect by comparing against evaluation *order*. Lastly, all models include the a random effects term to account for the individual participants effect on the score, explaining the within-participant effect on the score. -->
+
+To more thoroughly examine explanatory variables we regress against marks. All models have a random effect term on the participant, which captures the effect of the individual participant. After we look at models of the block parmeters we extend to compare against survey variables. Last, we compare how adding a random effect for data and regressing against time till last response fares against benchmark models. Models with most terms become rank deficent 
 
 <!-- Measures of model comparison -->
 Evaluation of the models will include Akaike's Information Criterion (AIC), Bayesian information criterion (BIC). These are comparisons measures of models based on its maximized log-likelihood function and penalize over fitting models linearly with the number of fixed terms. Root mean square error (RMSE) is the standard deviation of the residuals is also included. For the above 3 measures, the lower the value the more accurate the model. We additionally include Nakagawa's R\^2 for mixed models[@nakagawa_coefficient_2017], which has conditional and marginal measures with respect to the random effect terms, and doesn't penalize overfitting.
 <!-- Add ICC?? see ?performance::icc -->
 
 <!-- Building a battery of models -->
-In building a set of models to test we include all single term models, a model with all independent terms. We also include an interaction term of factor by location, allowing for the slope of each location to change across each level of the factor, which is feasible. For comparison an overly complex model with many interaction terms is included. Regarding the 3 models with all terms, their model matrix is rank deficient 
+In building a set of models to test we include all single term models, a model with all independent terms. We also include an interaction term of factor by location, allowing for the slope of each location to change across each level of the factor, which is feasible. For comparison an overly complex model with many interaction terms is included.
 
 \begin{align*}
 \text{model F: } ~~~~~ \widehat{marks} = 
