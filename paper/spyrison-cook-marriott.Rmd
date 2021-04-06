@@ -292,7 +292,7 @@ With this setup we test the parameter space $p \in (4,~ 6),~shape \in(EEE,~ EEV,
 
 _TODO: XXX CONTINUE WRITING HERE_
 
-## Post study survey
+## Post study survey {#sec:survey}
 
 <!-- placement and Likert scale -->
 After the evaluation section of the study, participants were given a short survey containing questions gauging demographics, experience, and subjective evaluation of each factor on a 5-point Likert scale. The questions and possible responses are as follows:
@@ -321,7 +321,7 @@ The code, response files, their analyses, and study application are made publicl
 
 ## Sampling population {#sec:population}
 
-We recruited $N = 108$ via prolifico [@palan_prolific_2018]. We make the assumption that interpretation of biplot displays used will not be commonly used for wide audience and apply a single filter; that participants have completed at least an undergraduate degree (some 58,700 of the 150,400 users at the time). Participants were compensated for their time at \pounds 7.50 per hour, whereas the mean of survey was about 16 minutes. We can't preclude previous knowledge or experience with the factors, but instead try to control for this in the user study. Figure \ref{fig:figSurveyDemographics} shows distributions of age and preferred pronouns of the participants that completed the post-study survey who are relatively young and well educated.
+We recruited $N = 108$ via prolifico [@palan_prolific_2018]. We make the assumption that interpretation of biplot displays used will not be commonly used for wide audience and apply a single filter; that participants have completed at least an undergraduate degree (some 58,700 of the 150,400 users at the time). Participants were compensated for their time at \pounds 7.50 per hour, whereas the mean duration of survey was about 16 minutes. We can't preclude previous knowledge or experience with the factors, but instead try to control for this in the user study. Figure \ref{fig:figSurveyDemographics} shows distributions of age and preferred pronouns of the participants that completed the post-study survey who are relatively young and well educated.
 
 ```{r, figSurveyDemographics, echo = F, out.width = '100%', fig.cap = "FIGURE CAPTION NEEDED. TODO XXX"}
 if(F) ## Creation and saving figure at:
@@ -333,31 +333,44 @@ knitr::include_graphics("./figures/figSurveyDemographics.png")
 
 From pilot studies through a sample of convenience (primarily PhD students) we predict that we wanted 3 even block evaluations to support differences in our factor and block parameterizations. Given that factor and location each have 6 permutations we targeted $N = 108 = 3 * (6 * 6)$ evaluations before data was collected. In data collection we experience a number of adverse conditions, primarily: limited control of application server network configuration, throughput thresholds on data read/write API, and repeat attempts from users when experiencing disconnects. To mitigate this we over collect survey trials, exclude all partial trials, and remove the oldest attempts (mostly likely to experience adverse network conditions) from over evaluated permutations until we have our desired 3 even evaluations under each permutation.
 
+
 # Results {#sec:results}
 
-To recap, we have 2 primary data sets; the user study evaluations and post study survey. The former is contains the 108 trials. It's explainatory variables are marks as defined in section \ref{sec:} of the . While only 84 of these have the corresponding survey data filled out; the analysis of any survey variables is scoped accordingly.
+To recap, the primary response variable are marks as defined in section \ref{sec:task}, while time till last response will be used as a secondary response variable. We have 2 primary data sets; the user study evaluations and post study survey. The former is contains the 108 trials with explanatory variables: _factor_, _location_ of the cluster separation signal, _shape_ of variance-covariance matrix, _dim_-ensionality of the data, and _order_ of evaluation within the participant. Block parameterization and randomization was discussed in section \ref{#sec:blocks}. The survey was completed for 84 of these 108 trials and contains demographic information (*pronoun*, _age_, and _education_), explanatory variables (*task understanding*, *visualization experience*, and *analysis experience*), and subjective measures for each of the factors (*preference*, *familiarity*, *ease of use*, and *confidence*). The survey was covered in more detail in \ref{sec:survey}.
 
-_TODO: XXX add here_
+Below we look at the marginal performance of the block parameters and survey responses. After that we build a battery of regression models to explore the variables and their interactions. Lastly we look at the subjective measures between the factors.
 
 
 ## Marginal block parameters
 
+Consider the 108 trials and their associate block parameterizations, We apply the Kruskal-Wallis H test (or one-way anova), a non-parametric method for testing if the x-levels are from the same distribution.
+
 TODO: XXX write up here.
 
-```{r figMarksByFactor, out.width="100%", fig.show='asis', fig.cap='TODO: XXX caption needed.'}
+_Will have to figure out a more elegant solution for this. consider: size of text, global test, two-way test. n=x within bars. May need to go manually run test and/or place values._
+
+Figure \ref{fig:figMarksByMarg} compares the effect of the study block parameters. Location is the inverse of what is expected, though perhaps mixing the signal diversifies the marks in that its easier to choose at least one of the correct answers of two dimensions with signal rather than the higher risk of selecting the only correct answer for all marks. EEV slightly outperforms EEE, perhaps the different shape helps distinguish the cluster or stick out from one another. Evaluation order does not have a monotonic increase. Every odd evaluation beats the next evaluation whihc have 4 and 6 dimensions respectively.
+
+```{r figMarksByMarg, out.width="100%", fig.show='asis', fig.cap='TODO: Marginal effect of the block parameterizations. Factor supports the hypothesis that radial tours outperform the discrete benchmark, pca, and animated benchmark, grand tour, for this task. '}
 if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
-knitr::include_graphics("./figures/figMarksByCond.png")
+knitr::include_graphics("./figures/figMarksByMarg.png")
 ```
 
-## Marginal survey parameters
+## Marginal survey responses
 
 TODO: XXX write up here. AND FIGURE.
+
+```{r figMarksByMargSurvey, out.width="100%", fig.show='asis', fig.cap='TODO: Marginal effect of the survey variables. TODO: XXX COMPLETE CAPTION'}
+if(F) ## Creation and saving figure at:
+  file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
+knitr::include_graphics("./figures/figMarksByMargSurvey.png")
+```
 
 ## Random effects regression model
 
 <!-- Explain fixed and random terms used -->
-In order to explore how the parameterizations of study we fix regression models, regressing against the marks as defined in section \ref{sec:task}. The factors of our model with involve a number of  (visual *factor*, *dimension*ality of the data, variance-covariance *shape*, and noise/signal mixing *location*). We compare these against any potential learning effect by comparing against evaluation *order*. Lastly, all models include the a random effects term to account for the individual participants effect on the score, explaining the within-participant effect on the score.
+In order to explore how the parameterizations of study we fix regression models, regressing against the marks as defined in section \ref{sec:task}. The factors of our model with involve a number of (visual *factor*, *dim*ensionality of the data, variance-covariance *shape*, and noise/signal mixing *location*). We compare these against any potential learning effect by comparing against evaluation *order*. Lastly, all models include the a random effects term to account for the individual participants effect on the score, explaining the within-participant effect on the score.
 
 <!-- Measures of model comparison -->
 Evaluation of the models will include Akaike's Information Criterion (AIC), Bayesian information criterion (BIC). These are comparisons measures of models based on its maximized log-likelihood function and penalize over fitting models linearly with the number of fixed terms. Root mean square error (RMSE) is the standard deviation of the residuals is also included. For the above 3 measures, the lower the value the more accurate the model. We additionally include Nakagawa's R\^2 for mixed models[@nakagawa_coefficient_2017], which has conditional and marginal measures with respect to the random effect terms, and doesn't penalize overfitting.

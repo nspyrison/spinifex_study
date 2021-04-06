@@ -795,13 +795,15 @@ tail(.resim_data)
 #           title = "Marks by pronoun")
 
 ## narrowly significant
-my_ggpubr(eval_survey,
-          x = "age", y = "marks",
-          title = "Marks by age")
+marks_by_age <-
+  my_ggpubr(eval_survey,
+            x = "age", y = "marks",
+            title = "Marks by age")
 ## narrowly not significant
-my_ggpubr(eval_survey,
-          x = "education", y = "marks",
-          title = "Marks by education")
+marks_by_education <-
+  my_ggpubr(eval_survey,
+            x = "education", y = "marks",
+            title = "Marks by education")
 ```
 
 
@@ -809,9 +811,9 @@ my_ggpubr(eval_survey,
 
 ```{r}
 ## Significant
-my_ggpubr(eval_survey,
-          x = "task_understanding", y = "marks",
-          title = "Marks by task_understanding")
+marks_by_task_understanding <- eval_survey %>% rename(`task understanding` = task_understanding) %>% 
+  my_ggpubr( = "task understanding", y = "marks",
+            title = "Marks by task understanding")
 ## Not significant ##
 # my_ggpubr(eval_survey,
 #           x = "data_viz_exp", y = "marks",
@@ -827,36 +829,56 @@ ______
 ## Saving paper figures
 ```{r}
 if(F){
+  ## instance_id whitelist, the people kept for analysis. 
+  #### (instance_id is: participant_num "_" perm_num "_" prolific_id)
+  saveRDS(instance_id_whitelist,
+          file = "./apps_supplementary/v4_prolifico_100/instance_id_whitelist.rds")
+  
+  
   ### dat_qual now saved inline with if(interactive()) ###
   .remove_y <- theme(axis.title.y = element_blank(),
                      axis.text.y = element_blank(),
                      axis.ticks.y = element_blank())
   .no_legend <- list(theme(legend.position = "off"),
-                     ggtitle(""))
+                     ggtitle(NULL))
   gc()
-  figMarksByCond_notitle <- 
-    cowplot::plot_grid(marks_by_factor + .no_legend + ggtitle(""),
+  figMarksByMarg_notitle <- 
+    cowplot::plot_grid(marks_by_factor + .no_legend + ggtitle(NULL),
                        marks_by_location + .remove_y + .no_legend,
                        marks_by_shape + .remove_y + .no_legend,
                        marks_by_order + .remove_y + .no_legend,
                        marks_by_dim + .remove_y + .no_legend,
-                       ncol = 5, rel_widths = c(4, rep(3, 4))) +
-    margin(-5, 0, 0, 0)
-  
+                       ncol = 5, rel_widths = c(4, rep(3, 4)))
   title <- cowplot::ggdraw() +
-      cowplot::draw_label("Marks by conditional block parameter",
-                          x = .15, y = .6, hjust = .1, vjust = .5)
+    cowplot::draw_label("Marks by conditional block parameter",
+                        x = .15, y = .6, hjust = .1, vjust = .5)
   gc()
-  figMarksByCond <- cowplot::plot_grid(title, figMarksByCond_notitle,
+  figMarksByMarg <- cowplot::plot_grid(title, figMarksByMarg_notitle,
                                        ncol = 1, rel_heights = c(0.1, 1))
-  ggsave("figMarksByCond.png", plot = figMarksByCond, path = "./paper/figures",
+  ggsave("figMarksByMarg.png", plot = figMarksByMarg, path = "./paper/figures",
          device = "png", width = 8, height = 3, unit = "in")
   gc()
   
-  ## instance_id whitelist, the people kept for analysis. 
-  #### (instance_id is: participant_num "_" perm_num "_" prolific_id)
-  saveRDS(instance_id_whitelist,
-          file = "./apps_supplementary/v4_prolifico_100/instance_id_whitelist.rds")
+  .no_legend <- list(theme(legend.position = "off",
+                           axis.text.x = element_text(angle = 60, vjust = 1, hjust=1)),
+                     ggtitle(NULL))
+  ## Marginal survey data
+  figMarksByMargSurvey_notitle <-
+    cowplot::plot_grid(marks_by_age + .no_legend + ggtitle(waiver()),
+                       marks_by_education + .remove_y + .no_legend,
+                       marks_by_task_understanding + .remove_y + .no_legend,
+                       ncol = 3, rel_widths = c(6, 4, 5))
+  title <- cowplot::ggdraw() +
+    cowplot::draw_label("Marks by conditional significant survey variable",
+                        x = .15, y = .6, hjust = .1, vjust = .5)
+  gc()
+  figMarksByMargSurvey <-
+    cowplot::plot_grid(title, figMarksByMargSurvey_notitle,
+                       ncol = 1, rel_heights = c(0.1, 1))
+  ggsave("figMarksByMargSurvey.png", plot = figMarksByMargSurvey, path = "./paper/figures",
+         device = "png", width = 6, height = 3, unit = "in")
+  gc()
+
   
   ## Model tables
   model_comp_tbl_ls <- list(model_comp_tbl, model_comp_tbl2, model_comp_tbl3)
