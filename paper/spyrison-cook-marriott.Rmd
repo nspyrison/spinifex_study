@@ -381,27 +381,28 @@ Evaluation of the models will include Akaike's Information Criterion (AIC), Baye
 <!-- Building a battery of models -->
 In building a set of models to test we include all single term models, a model with all independent terms. We also include an interaction term of factor by location, allowing for the slope of each location to change across each level of the factor, which is feasible. For comparison an overly complex model with many interaction terms is included.
 
+<!-- 1) Eval parameters -->
 \begin{align*}
 \textbf{Abbreviation:}&&    \textbf{Model:~~} & \\
 \text{F: }&&    \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) +
-  effect_{participant} + \epsilon \\
-\text{L: }&&    \widehat{marks} =& \beta_{0} + \Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + effect_{participant} + \epsilon \\
-\text{L: }&&     \widehat{marks} =& \beta_{0} + \Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + effect_{participant} + \epsilon \\
-\text{S: }&&     \widehat{marks} =& \beta_{0} + \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s}) + effect_{participant} + \epsilon \\
-\text{D: }&&     \widehat{marks} =& \beta_{0} + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) effect_{participant} + \epsilon \\
-\text{O: }&&     \widehat{marks} =& \beta_{0} + \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o}) + effect_{participant} + \epsilon \\
+  \text{effect}_{participant} + \epsilon \\
+\text{L: }&&    \widehat{marks} =& \beta_{0} + \Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + \text{effect}_{participant} + \epsilon \\
+\text{L: }&&     \widehat{marks} =& \beta_{0} + \Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + \text{effect}_{participant} + \epsilon \\
+\text{S: }&&     \widehat{marks} =& \beta_{0} + \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s}) + \text{effect}_{participant} + \epsilon \\
+\text{D: }&&     \widehat{marks} =& \beta_{0} + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) \text{effect}_{participant} + \epsilon \\
+\text{O: }&&     \widehat{marks} =& \beta_{0} + \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o}) + \text{effect}_{participant} + \epsilon \\
 \text{F+L+S+D+O: }&&     \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + \\
 && & \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s}) + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) + \\
-&& & \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o}) + effect_{participant} + \epsilon \\
+&& & \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o}) + \text{effect}_{participant} + \epsilon \\
 \text{F\*L: }&&     \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\Sigma_{l = 1}^3(\alpha_{f\*l} \* \beta_{f\*l})) + \\
-&&  & effect_{participant} + \epsilon \\
+&&  & \text{effect}_{participant} + \epsilon \\
 \text{F\*L+S+D+O: }&&     \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\Sigma_{l = 1}^3(\alpha_{f\*l} \* \beta_{f\*l})) + \\
 && & \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s}) + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) + \\
-&& & \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o}) + effect_{participant} + \epsilon \\
+&& & \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o}) + \text{effect}_{participant} + \epsilon \\
 \text{F\*(L+S+D)+O: }&&     \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\Sigma_{l = 1}^3(\alpha_{f\*l} \* \beta_{f\*l})) + \\
 && & \Sigma_{f = 1}^3(\Sigma_{s = 1}^3(\alpha_{f\*s} \* \beta_{f\*s}) + \\
 && & \Sigma_{d = 1}^2(\Sigma_{s = 1}^2(\alpha_{f\*d} \* \beta_{f\*d}) + \\
-&& & \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o}) + effect_{participant} + \epsilon
+&& & \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o}) + \text{effect}_{participant} + \epsilon
 \end{align*}
 
 where
@@ -409,12 +410,12 @@ where
 \begin{align*}
 &\beta_0 \text{ is the sum of the intercept and the mean of the participant random effect} \\
 &\epsilon \sim \mathcal{N}(0,~\sigma) \\
-&effect_{participant} \sim \mathcal{N}(0,~\tau_{participant}) \\
-&factor~f \in (pca,~grand,~radial) \\
-&l \in (0/100,~33/66,~50/50) \text{ percent mixing of a noise and signal variable respectively} \\
-&shape~s \in (EEE,~EEV,~EVV~banana) \\
-&dim~d \in (4,~6) \text{ variables, dimensions of the data with 3 \& 4 clusters respectively} \\
-&order~o \in (1,~... ~6) \text{, order of evaluation within participant, as a factor rather than numeric variable}
+&\text{effect}_{participant} \sim \mathcal{N}(0,~\tau_{participant}) \\
+&\text{factor}~f \in (\text{pca, grand, radial}) \\
+&\text{location}~l \in (0/100,~33/66,~50/50) \text{ percent mixing of a noise and signal variable respectively} \\
+&\text{shape}~s \in (\text{EEE, EEV, EVV banana}) \\
+&\text{dim}~d \in (4,~6) \text{ variables, dimensions of the data with 3 \& 4 clusters respectively} \\
+&\text{order}~o \in (1,~... ~6) \text{, order of evaluation within participant, as a factor rather than numeric variable}
 \end{align*}
 
 
@@ -422,24 +423,36 @@ where
 We want to see how survey variables fare in comparison. Holding the factor model as a comparison benchmark we fit another battery of similarly increasing complexity. Keep in mind that the scope has changed a bit from the 108 evaluations to only the 84 studies that have available survey data.
 
 
-
-
-_TODO: XXX NEED survey models listed. vvv_
+<!-- 2) Survey parameters -->
 \begin{align*}
 \textbf{Abbreviation:}&&    \textbf{Model:~~} & \\
-\text{marks=F+RE(participant):}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{} \* \beta_{f}) + effect_{participant} + \epsilon \\
-\text{marks=F+RE(participant+simulation):}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + effect_{participant} + effect_{simulation} + \epsilon \\
-\text{model time=F+RE(participant):}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + effect_{participant} + \epsilon \\
-\text{model time=F+RE(participant+simulation):}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + effect_{participant} + effect_{simulation} + \epsilon \\
+\text{F:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \text{effect}_{participant} + \epsilon \\
+\text{F + else $|$ study:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s}) + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) + \\
+&& & \Sigma_{o = 1}^6(\alpha_{o} \*  \beta_{o}) + \text{effect}_{participant} + \epsilon \\
+\text{F + else $|$ survey:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \Sigma_{p = 1}^4(\alpha_{p} \* \beta_{p}) + \Sigma_{1 = 1}^5(\alpha_{a} \* \beta_{a}) + \Sigma_{e = 1}^4(\alpha_{e} \* \beta_{e}) + \\
+&& & \Sigma_{v = 1}^5(\alpha_{v} \* \beta_{v}) + \Sigma_{ae = 1}^5(\alpha_{ae} \* \beta_{ae}) + \text{effect}_{participant} + \epsilon \\
+\text{F \* else $|$ study:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) \* (\Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s} + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) + \\
+&& & \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o})) + \text{effect}_{participant} + \epsilon \\
+\text{F \* else $|$ survey:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) \* (\Sigma_{p = 1}^4(\alpha_{p} \* \beta_{p}) + \Sigma_{1 = 1}^5(\alpha_{a} \* \beta_{a}) + \Sigma_{e = 1}^4(\alpha_{e} \* \beta_{e}) + \\
+&& & \Sigma_{v = 1}^5(\alpha_{v} \* \beta_{v}) + \Sigma_{ae = 1}^5(\alpha_{ae} \* \beta_{ae})) + \text{effect}_{participant} + \epsilon \\
+\text{F + else $|$ study\&survey:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s} + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) + \\
+&& & \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o}) + (\Sigma_{p = 1}^4(\alpha_{p} \* \beta_{p}) + \Sigma_{1 = 1}^5(\alpha_{a} \* \beta_{a}) + \Sigma_{e = 1}^4(\alpha_{e} \* \beta_{e}) + \\
+&& & \Sigma_{v = 1}^5(\alpha_{v} \* \beta_{v}) + \Sigma_{ae = 1}^5(\alpha_{ae} \* \beta_{ae}) + \text{effect}_{participant} + \epsilon \\
+\text{F \* else $|$ study\&survey:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) \* (\Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s} + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) + \\
+&& & \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o}) + (\Sigma_{p = 1}^4(\alpha_{p} \* \beta_{p}) + \Sigma_{1 = 1}^5(\alpha_{a} \* \beta_{a}) + \Sigma_{e = 1}^4(\alpha_{e} \* \beta_{e}) + \\
+&& & \Sigma_{v = 1}^5(\alpha_{v} \* \beta_{v}) + \Sigma_{ae = 1}^5(\alpha_{ae} \* \beta_{ae})) + \text{effect}_{participant} + \epsilon \\
 \end{align*}
 
 where
 
 \begin{align*}
-&effect_{simulation} \sim \mathcal{N}(0,~\pi_{simulation}) \\
-&time \text{ is the duration of time on the page till the last response change} \\
+&\text{pronoun}~p \in (\text{he/him, she/her, they/them or other, default/decline}) \\
+&text{age}~a \in (\text{18 to 24, 25 to 35, 36 to 45, 45 to 60, default/decline}) \\
+&text{education}~e \in (\text{Undergraduate degree (BA/BSc/other), Graduate degree (MA/MSc/MPhil/other), Doctorate degree (PhD/other), default/decline}) \\
+&text{task Understanding}~u \in (\text{Likert scale [1-5]: I understand the how to perform the task.}) \\
+&text{data Visualization experience}~v \in (\text{Likert scale [1-5]: I am experienced with data visualization.}) \\
+&\text{Analysis Experience}~ae \in (\text{Likert scale [1-5]: I am educated in multivariate statistical analysis.}) 
 \end{align*}
-_TODO: XXX NEED survey models listed.  ^^^_
 
 
 
@@ -447,25 +460,19 @@ _TODO: XXX NEED survey models listed.  ^^^_
 <!-- Extend models, eval and survey -->
 Among the above models, the simple factor model performs best in terms of AIC and BIC, and is thus included as a benchmark model of comparison going forward. In see the a particular simulation effect on the score an additional random effect term based on the simulation data is used. We also want to see how well the time till response can be explained by the single factor model; consider:
 
+<!--  3) extending to RE(data), and regressing against time for eval and survey.  -->
 \begin{align*}
-\text{model marks\~F+RE(participant): } ~~~~~ \widehat{marks} = 
-  ~ &\beta_{0} + \Sigma_{f = 1}^3(\alpha_{factor~f} * \beta_{factor~f}) +
-  effect_{participant} + \epsilon \\
-\text{marks\~F+RE(participant+simulation): } ~~~~~ \widehat{marks} = 
-  ~ &\beta_{0} + \Sigma_{f = 1}^3(\alpha_{factor~f} * \beta_{factor~f}) +
-  effect_{participant} + effect_{simulation} + \epsilon \\
-\text{model time\~F+RE(participant): } ~~~~~ \widehat{marks} = 
-  ~ &\beta_{0} + \Sigma_{f = 1}^3(\alpha_{factor~f} * \beta_{factor~f}) +
-  effect_{participant} + \epsilon \\
-\text{model time\~F+RE(participant+simulation): } ~~~~~ \widehat{marks} = 
-  ~ &\beta_{0} + \Sigma_{f = 1}^3(\alpha_{factor~f} * \beta_{factor~f}) +
-  effect_{participant} + effect_{simulation} + \epsilon \\
+\textbf{Abbreviation:}&&    \textbf{Model:~~} & \\
+\text{marks=F+RE(participant):}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{} \* \beta_{f}) + \text{effect}_{participant} + \epsilon \\
+\text{marks=F+RE(participant+simulation):}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \text{effect}_{participant} + \text{effect}_{simulation} + \epsilon \\
+\text{time=F+RE(participant):}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \text{effect}_{participant} + \epsilon \\
+\text{time=F+RE(participant+simulation):}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \text{effect}_{participant} + \text{effect}_{simulation} + \epsilon \\
 \end{align*}
 
 where
 
 \begin{align*}
-&effect_{simulation} \sim \mathcal{N}(0,~\pi_{simulation}) \\
+&\text{effect}_{simulation} \sim \mathcal{N}(0,~\pi_{simulation}) \\
 &time \text{ is the duration of time on the page till the last response change} \\
 \end{align*}
 
