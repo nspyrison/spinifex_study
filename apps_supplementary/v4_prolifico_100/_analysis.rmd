@@ -574,7 +574,7 @@ f_gt1.5 <-
 #   filter(groupFctr == "simulation") %>%
 #   arrange(mean)
 
-model_ls3 <- list(`F` = f,
+model_ls2 <- list(`F` = f,
                   `F+parameters` = f.parameters,
                   `F+survey` = f.survey,
                   `F+parameters+survey` = f.parameters.survey,
@@ -584,28 +584,28 @@ model_ls3 <- list(`F` = f,
                   `F+:t_val>1.5` = f.gt1.5,
                   `F*:t_val>1.5` = f_gt1.5)
 
-performance_ls3 <- list()
-factors_vec3 <- fixef_vec3 <- vector()
-mute <- lapply(seq_along(model_ls3), function(i){
-  this_model <- model_ls3[[i]]
-  performance_ls3[[i]] <<- performance::model_performance(this_model)
-  factors_vec3[i] <<- ncol(attr(terms(this_model), "factors"))
-  fixef_vec3[i] <<- length(fixef(this_model))
+performance_ls2 <- list()
+factors_vec2 <- fixef_vec2 <- vector()
+mute <- lapply(seq_along(model_ls2), function(i){
+  this_model <- model_ls2[[i]]
+  performance_ls2[[i]] <<- performance::model_performance(this_model)
+  factors_vec2[i] <<- ncol(attr(terms(this_model), "factors"))
+  fixef_vec2[i] <<- length(fixef(this_model))
 })
 
-.perf_df3 <- dplyr::bind_rows(performance_ls3)
-model_comp_tbl3 <- tibble(names(model_ls3),
-                          factors_vec3,
-                          fixef_vec3,
-                          round(.perf_df3[, 1]),
-                          round(.perf_df3[, 2]),
-                          round(.perf_df3[, 3], 3),
-                          round(.perf_df3[, 4], 3),
-                          round(.perf_df3[, 6], 3))
-colnames(model_comp_tbl3) <- .model_comp_colnms
+.perf_df2 <- dplyr::bind_rows(performance_ls2)
+model_comp_tbl2 <- tibble(names(model_ls2),
+                          factors_vec2,
+                          fixef_vec2,
+                          round(.perf_df2[, 1]),
+                          round(.perf_df2[, 2]),
+                          round(.perf_df2[, 3], 2),
+                          round(.perf_df2[, 4], 2),
+                          round(.perf_df2[, 6], 2))
+colnames(model_comp_tbl2) <- .model_comp_colnms
 
 ## Latex formatting
-model_comp_tbl3 <- model_comp_tbl3 %>%
+model_comp_tbl2 <- model_comp_tbl2 %>%
   format_column_extrema(4, min) %>%
   format_column_extrema(5, min) %>%
   format_column_extrema(6, max) %>%
@@ -614,7 +614,7 @@ model_comp_tbl3 <- model_comp_tbl3 %>%
 
 ## print tables
 knitr::kable(model_comp_tbl)
-knitr::kable(model_comp_tbl3)
+knitr::kable(model_comp_tbl2)
 ```
 
 
@@ -636,34 +636,34 @@ time_f_re_partcipant <-
 time_f_re_partcipant.data <-
   lmer(`seconds to last response` ~ factor + (1 | participant) + (1 | simulation), data = dat_qual)
 
-model_ls2 <- list(`marks~F+RE(parti.)` = marks_f_re_partcipant,
+model_ls3 <- list(`marks~F+RE(parti.)` = marks_f_re_partcipant,
                   `marks~F+RE(parti.+sim)` = marks_f_re_partcipant.data,
                   `time~F+RE(parti.)` = time_f_re_partcipant,
                   `time~F+RE(parti.+sim)` = time_f_re_partcipant.data
 )
 
-performance_ls2 <- list()
-factors_vec2 <- fixef_vec2 <- vector()
-mute <- lapply(seq_along(model_ls2), function(i){
-  this_model <- model_ls2[[i]]
-  performance_ls2[[i]] <<- performance::model_performance(this_model)
-  factors_vec2[i] <<- ncol(attr(terms(this_model), "factors"))
-  fixef_vec2[i] <<- length(fixef(this_model))
+performance_ls3 <- list()
+factors_vec3 <- fixef_vec3 <- vector()
+mute <- lapply(seq_along(model_ls3), function(i){
+  this_model <- model_ls3[[i]]
+  performance_ls3[[i]] <<- performance::model_performance(this_model)
+  factors_vec3[i] <<- ncol(attr(terms(this_model), "factors"))
+  fixef_vec3[i] <<- length(fixef(this_model))
 })
 
-.perf_df2 <- dplyr::bind_rows(performance_ls2)
-model_comp_tbl2 <- tibble(names(model_ls2),
-                          factors_vec2,
-                          fixef_vec2,
-                          round(.perf_df2[, 1]),
-                          round(.perf_df2[, 2]),
-                          round(.perf_df2[, 3], 3),
-                          round(.perf_df2[, 4], 3),
-                          round(.perf_df2[, 6], 3))
-colnames(model_comp_tbl2) <- .model_comp_colnms
+.perf_df3 <- dplyr::bind_rows(performance_ls3)
+model_comp_tbl3 <- tibble(names(model_ls3),
+                          factors_vec3,
+                          fixef_vec3,
+                          round(.perf_df3[, 1]),
+                          round(.perf_df3[, 2]),
+                          round(.perf_df3[, 3], 2),
+                          round(.perf_df3[, 4], 2),
+                          round(.perf_df3[, 6], 2))
+colnames(model_comp_tbl3) <- .model_comp_colnms
 
 knitr::kable(model_comp_tbl)
-knitr::kable(model_comp_tbl2)
+knitr::kable(model_comp_tbl3)
 
 print("Random effect of the dataset as compared to that of the participant:")
 summary(marks_f_re_partcipant.data)
@@ -812,7 +812,7 @@ marks_by_education <-
 ```{r}
 ## Significant
 marks_by_task_understanding <- eval_survey %>% rename(`task understanding` = task_understanding) %>% 
-  my_ggpubr( = "task understanding", y = "marks",
+  my_ggpubr(x = "task understanding", y = "marks",
             title = "Marks by task understanding")
 ## Not significant ##
 # my_ggpubr(eval_survey,
@@ -859,15 +859,16 @@ if(F){
          device = "png", width = 8, height = 3, unit = "in")
   gc()
   
-  .no_legend <- list(theme(legend.position = "off",
-                           axis.text.x = element_text(angle = 60, vjust = 1, hjust=1)),
-                     ggtitle(NULL))
+  .no_legend <- 
+    list(theme(legend.position = "off",
+               axis.text.x = element_text(angle = 60, vjust = 1, hjust = 1)),
+         ggtitle(NULL))
   ## Marginal survey data
   figMarksByMargSurvey_notitle <-
-    cowplot::plot_grid(marks_by_age + .no_legend + ggtitle(waiver()),
+    cowplot::plot_grid(marks_by_task_understanding + .no_legend + ggtitle(waiver()),
+                       marks_by_age + .remove_y + .no_legend,
                        marks_by_education + .remove_y + .no_legend,
-                       marks_by_task_understanding + .remove_y + .no_legend,
-                       ncol = 3, rel_widths = c(6, 4, 5))
+                       ncol = 3, rel_widths = c(6, 5, 4))
   title <- cowplot::ggdraw() +
     cowplot::draw_label("Marks by conditional significant survey variable",
                         x = .15, y = .6, hjust = .1, vjust = .5)
@@ -876,12 +877,14 @@ if(F){
     cowplot::plot_grid(title, figMarksByMargSurvey_notitle,
                        ncol = 1, rel_heights = c(0.1, 1))
   ggsave("figMarksByMargSurvey.png", plot = figMarksByMargSurvey, path = "./paper/figures",
-         device = "png", width = 6, height = 3, unit = "in")
+         device = "png", width = 8, height = 4, unit = "in")
   gc()
 
   
   ## Model tables
-  model_comp_tbl_ls <- list(model_comp_tbl, model_comp_tbl2, model_comp_tbl3)
+  model_comp_tbl_ls <- list(models_eval = model_comp_tbl, 
+                            models_survey = model_comp_tbl2, 
+                            ext_models_eval.survey = model_comp_tbl3)
   saveRDS(model_comp_tbl_ls,
           file = "./paper/figures/model_comp_tbl_ls.rds")
   
