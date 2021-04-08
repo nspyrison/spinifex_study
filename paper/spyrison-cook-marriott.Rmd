@@ -4,13 +4,13 @@ header-includes:
   - \usepackage{graphicx}
   - \usepackage{pdflscape}
   - \usepackage{lmodern} ## \pounds symbol
-output: pdf_document
+output: bookdown::pdf_document2
 title: >
   The effect of user interaction for understanding variable contributions to structure in linear projections 
 author:
   Nicholas Spyrison, Dianne Cook, Kimbal Marriott
 abstract: >
-  Viewing data in its original variable space is foundamental to the exploratory data analysis. For multivariate data this is an complex task. We perform a between-participant user study to evaluate 3 types of linear embeddings, namely, biplots of principal componts, grand tours, and radial tours. Crowdsourced participants (N = 108, via prolific.co) were asked to identify which variable(s) explain the difference between 2 clusters of data. We find radial tours score higher and respond slightly faster than alternative. Factor visual is significantly more important than block parameterizations (location, shape, dimension) or the evaluation order
+  Viewing data in its original variable space is foundamental to the exploratory data analysis. For multivariate data this is an complex task. We perform a between-participant user study to evaluate 3 types of linear embeddings, namely, biplots of principal componts, grand tours, and radial tours. Crowdsourced participants (N = 108) were asked to identify which variable(s) explain the difference between a pair of clusters within the data as the factor of visualization is changed within participant. Principal componants and grand tour are the discrete and animated benchmarks to beat. We find radial tours score higher and respond slightly faster than alternatives. Visual factor is significantly more important than the other block parameterizations (location, shape, dimension) or learning effects from the order of evaluation. Demographics, prior experience, and parameter values vary in significance, while the size of their coeffecients all relatively small as compared with visual and the random effect of the participants.
 keywords: multivariate data, exploratory data analysis, high dimensional data, data visualization, cluster analysis, dimension reduction, data science, user study, between users, linear projections, linear embeddings
 bibliography: spyrison-cook-marriott.bib
 editor_options: 
@@ -92,7 +92,7 @@ require(dplyr)
 ```{r figExamp, echo = F, out.width = '100%',fig.cap = "Example case. Person 'A' is assigned to group 2, where they will use factor 2 (grand tour) for the first period. They perform 3 block difficulties of task 1 on simulations of increasing difficulty. Then 3 block difficulties of task 2 on unique simulations sampled from the same distributions of increasing difficulty. After this, they proceed to period 2, where they are use factor 3 (manual tour) to perform 3 block difficulties of each task. Lastly, in the third period, they use factor 1 (PCA) to perform the tasks.", eval = F}
 #knitr::include_graphics("./figures/experimental_design_personA.PNG")
 ```
-<!-- Figure \ref{fig:figExamp} is an example of referencing a the example figure. -->
+<!-- Figure \@ref(fig:figExamp) is an example of referencing a the example figure. -->
 
 
 # Introduction
@@ -106,7 +106,7 @@ Multivariate data is ubiquitous. Yet exploratory data analysis (EDA) [@tukey_exp
 For these reasons, it is important to use visualizations of data spaces and extend the diversity of its application. However, visualizing data containing more than a handful of variables is not trivial. Scatterplot matrices or small multiples [@chambers_graphical_1983] looks at all permutation pairs of variables, but quickly becomes to vast a number of images to consider. On the other extreme, parallel coordinates plot [@ocagne_coordonnees_1885] and its radial variants, plot observations as lines varying across scaled variables as displayed in a line or circle. This scales well with dimensionality, while suffering from couple issues. The larger issue, being the loss of mapping multiple variables to graphic position, which is perhaps the most important visual cue for human perception [@munzner_visualization_2014]. The lesser being that they suffer from asymmetry, as their interpretation is dependent on variable ordering.
 
 <!-- linear combinations of dimensions -->
-Using a linear combinations of variables will allow us to keep position in 2 display axes while peering into information not contained in any one dimension. The idea of using a combination of variables may appear daunting at first, however we do it almost exclusively in the spatial dimensions. That is to say we are rarely completely aligned with rectangular objects at any one point in time. Consider a book or a filing cabinet any orientation that isn't fully a 2D rectangle, you are seeing as a linear combination of its variables, height, width, and depth. Generalizing this to arbitrary data dimensions we can project or embed a 2D profile of $p$-dimensional data. Its worth noting that the number of these embedded profiles, and thus the time it takes to explore them, increase exponentially with the dimensionality of the data.
+Using a linear combinations of variables will allow us to keep position in 2 display axes while peering into information not contained in any one dimension. The idea of using a combination of variables may appear daunting at first, however we do it almost exclusively in the spatial dimensions. That is to say we are rarely completely aligned with rectangular objects at any one point in time. Consider a book or a filing cabinet any orientation that isn't fully a 2D rectangle, you are seeing as a linear combination of its variables, height, width, and depth. Generalizing this to arbitrary dimensionality we can project or embed a 2D profile of $p$-dimensional data. Its worth noting that the number of these embedded profiles, and consequently the time it takes to explore them, increase exponentially with the dimensionality of the data.
 
 <!-- Exclude non-linear embeddings -->
 Non-linear embeddings, the compliment of the linear embedding, have also been well received recently especially with the emergence of t-Distributed stochastic neighbor embedding [@van_der_maaten_visualizing_2008]. Such techniques distort the fully dimensionality on to a low, typically 2D plane. The issue with doing so is that unit of distance is not consistent with location in the embedded space, which severely hinders the interoperability of these embeddings. Additionally they often have hyperparameters that need tuning. Doing so results in completely different or contradicting embeddings. Suffice it to say we exclude their consideration for such broad application for multivariate EDA.
@@ -115,13 +115,13 @@ Non-linear embeddings, the compliment of the linear embedding, have also been we
 <!-- More recently there have been advances and fanfare in non-linear projections such as self-organizing maps [@kohonen_self-organizing_1990], and t-SNE [@maaten_visualizing_2008]. Because of the use of non-affine transformations, they offer arbitrary model spaces, without interoperability back to variable space. This precludes them as candidates for exploratory data analysis of the multivariate data in question. They can be useful for the rapid identification of possible candidates for outliers or classifications. However they can suffer from overfitting, and crucially cannot be interpreted in terms of the original variables.   -->
 
 <!-- Exclude class supervised examples -->
-Additionally there are many methods suitable for data with known classes. Linear discriminant analysis [@fisher_use_1936] for instance also produces linear combinations of variables, based not in order of variation of the data, but rather on the separation of known classes. In this work we want to be fully agnostic of any such class supervision and preclude them from our comparison as well.
+Additionally there are many methods for supervised data, that is, with observation classes known a priori. Linear discriminant analysis [@fisher_use_1936], for instance, is an example of linear projection, which creates it's components based on the mean separation and covariance shape between known classes. Because we which to extrapolate to generalized EDA of multivariate space we will not use any such supervised techniques to initialize components in the study.
 
 <!-- Motivation statement and overview of this study -->
-In multivariate spaces, performance measures and computational complexity are regularly compare to like algorithms and models. Human perception and inference from visuals is notably missing. We perform a within-participant, crowd sourced user study exploring the efficacy of 3 methods of linear embedding visualizations.
+In multivariate spaces, performance measures, and computational complexity are regularly compare to analogous algorithms and models. Human perception and inference from visuals is notably missing. We perform a within-participant, crowd sourced user study exploring the efficacy of 3 methods of linear embedding visualizations.
 
 <!-- structure of the paper -->
-Section \ref{sec:background} discusses the visualization methods. Section \ref{sec:userstudy} goes into the user study. The subsection \ref{sec:task} digs into the task and its evaluation. The results of the study are in section \ref{sec:results}.Discussion is covered in section \ref{sec:discussion}. An accompanying tool is discussed in section \ref{sec:spinifex}.
+Section \@ref(sec:background) discusses the visualization methods. Section \@ref(sec:userstudy) goes into the user study. The subsection \@ref(sec:task) digs into the task and its evaluation. The results of the study are in section \@ref(sec:results). Discussion is covered in section \@ref(sec:discussion). An accompanying tool is discussed in section \@ref(sec:spinifex).
 
 
 # Background, visual methods {#sec:background}
@@ -132,20 +132,20 @@ Consider a numeric data matrix with $n$ observations of $p$ variables,
 
 
 \begin{gather*}
-  \textbf{X}_{[n, p]} = (\textbf{x}_{1},~...,~\textbf{x}_{p}) \\
-  \textbf{x}_{i} = (x_{1i},~...,~ x_{ni})~|~i \in [1, p] 
+  \textbf{X}_{[n, p]} = (\textbf{x}_{1},~...~\textbf{x}_{p}) \\
+  \textbf{x}_{i} = (x_{1i},~...~ x_{ni})~|~i \in [1, p] 
 \end{gather*}
 
 Let $Y_{[n, d]}$ be the $d$-dimensional projection or embedding of $\textbf{X}_{[n, p]}$ via matrix multiplication of a particular orthonormal basis matrix $\textbf{B}_{[p, d]}$.
 
 
 \begin{gather*}
-  \textbf{Y}_{[n, d]} = \textbf{X}_{[n, p]} \textbf{B}_{[p, d]}~|~\textbf{B}~is~orthonormal \\
+  \textbf{Y}_{[n, d]} = \textbf{X}_{[n, p]} \textbf{B}_{[p, d]}~|~\textbf{B}\text{ is orthonormal} \\
   \textbf{y}_{j} = (y_{1j},~...~ y_{nj})~|~j \in [i, d] 
 \end{gather*}
 
 
-A matrix is said to be orthonormal if and only if they are 1) orthogonal, that is all column pairs are independent, having a cross product of 0, and 2) normal, each columns has a norm distance of 1.
+A matrix is said to be orthonormal if and only if they are 1) orthogonal, that is all column pairs are independent, having a cross product of 0, and 2) normal, each columns has a norm - Eucledian distance - of 1.
 
 <!-- note on interchangeably, probably better to make consistent afterward -->
 <!-- A quick note on terminology we use the terms projection & embedding and variable & dimension interchangeably. -->
@@ -204,16 +204,16 @@ The evaluation measure of this task was designed to have a few of features: 1) t
 Let a dataset $\textbf{X}$ be a simulation containing clusters of observations of different distributions. Let $\textbf{X}_k$ be the subset of observations in cluster $k$ containing the $p$ variables.
 
 \begin{align*}
-  &\textbf{X}_{[n,~p]} = (x_1, ~....,~ x_p) \\
-  &\textbf{X}_{[n_k,~p]k} = (x_1, ~....,~ x_p)
-    ~|~ n_k \in [1, n], \text{ an observation subset of } \textbf{X}
+  &\textbf{X}_{[n,~p]} = (x_1,~...~x_p) \\
+  &\textbf{X}_{[n_k,~p]k} = (x_1,~...~x_p)
+    ~|~ n_k \in [1, n], \text{ is an observation subset of } \textbf{X}
 \end{align*}
 
 where
 
 \begin{align*}
-  x_{i, j, k} \text{ is scalar; observation } i \in (1, ... n),
-    \text{ variable } j \in (1, ... p), \text{ cluster } k \in (1, ... K)
+  x_{i, j, k} \text{ is scalar; the observation } i \in (1,~...~n),
+    \text{ of variable } j \in (1,~...~p), \text{ of cluster } k \in (1,~...~K)
 \end{align*}
 
 
@@ -225,7 +225,7 @@ We define weights, $W$ to be a vector explaining the variable-wise difference be
     (\overline{X_{j=p, k=1}} - \overline{X_{j=p, k=2}})}
   {\sum_{j=1}^{p}(|\overline{X_{j,k=1}} - \overline{X_{j,k=2}}|)}
   - \frac{1}{p} \\
-  &= (w_1, ~...,~ w_p)
+  &= (w_1,~...~ w_p)
 \end{align*}
 
 
@@ -234,7 +234,7 @@ Participant responses, $R$ are a vector of logical values, whether or not partic
 
 \begin{align*}
   M &= I(r_i) * sign(w_i) * \sqrt{|w_i|} \\
-  &= (m_1, ~...,~ m_p)
+  &= (m_1, ~...~ m_p)
 \end{align*}
 
 
@@ -245,12 +245,12 @@ knitr::include_graphics("./figures/figBiplotScoring.png")
 ```
 
 <!--Period order: Training, eval, eval -->
-Each of the 3 periods introduced a new factor, where participants were first able to explore an untimed task with data under the simplest parameterization. The training allows the participant to become familiar with the inputs and visual specific to the factor. Upon clicking the proceed button text containing the correct answer displays with visual still intact to explore further. After the training, participant performed 2 evaluation trials. After 60 second the display was removed, though few participants spent 60 second on any particular task. These evaluation trials where performed under different parameterizations as explained in section \ref{sec:blocks}.
+Each of the 3 periods introduced a new factor, where participants were first able to explore an untimed task with data under the simplest parameterization. The training allows the participant to become familiar with the inputs and visual specific to the factor. Upon clicking the proceed button text containing the correct answer displays with visual still intact to explore further. After the training, participant performed 2 evaluation trials. After 60 second the display was removed, though few participants spent 60 second on any particular task. These evaluation trials where performed under different parameterizations as explained in section \@ref(sec:blocks).
 
 ## Factor application {#sec:factors}
 
 <!-- Background for methodology, application here -->
-Section \ref{sec:background} gives the sources and a description of the visual factors PCA, grand tours, and radial manual tours. Below we cover the aesthetic standardization, as well the unique input and display within each factor.
+Section \@ref(sec:background) gives the sources and a description of the visual factors PCA, grand tours, and radial manual tours. Below we cover the aesthetic standardization, as well the unique input and display within each factor.
 
 <!-- aesthetic standardization -->
 The visualization methods were selected to standardized wherever possible. All aesthetic values (colors, shapes, sizes, absence of legend, and absence axis titles) were held consistent. Variable contributions where always shown left of the scatterplot embeddings with their aesthetic values consistent as well.
@@ -271,17 +271,17 @@ Radial tours were also displayed at 5 frames per second with in interpolation st
 The volume the parameter-space increase more than exponentially with the dimensionality of the data. Care must be taken to select realistic parameter values. We vary the values for 3 aspects of the simulated data including 1) The dimensionality of the data. 2) the shapes of the clusters, by changing the variance-covariance of the clusters. 3) The location of the difference between clusters, by mixing a signal and a noise variable at different ratio.
 
 <!-- Dimensionality -->
-We test 2 levels of dimensionality, 4 dimensions containing 3 clusters and 6 dimensions with 4 clusters. Each cluster samples 140 observations. Each dimension is originally distributed as $\mathcal{N}(2 * I(signal), 1)~|~covariances~\Sigma$ (before signal mixing and standardizing by standard deviation). Signal variables have correlation 0.9 when they have equal orientation and -0.9 when their orientations vary. Noise variables were restricted to 0 correlation. The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty.
+We test 2 levels of dimensionality, 4 dimensions containing 3 clusters and 6 dimensions with 4 clusters. Each cluster samples 140 observations. Each dimension is originally distributed as $\mathcal{N}(2 * I(signal), 1)~|~\text{covariance}~\Sigma$ (before signal mixing and standardizing by standard deviation). Signal variables have correlation 0.9 when they have equal orientation and -0.9 when their orientations vary. Noise variables were restricted to 0 correlation. The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty.
 
 <!-- Shape, vc matrix -->
-For choosing the shape of the clusters we follow the convention given in by the mclust [@scrucca_mclust_2016] who name and categorize 14 variants of distributions of data containing for 3-clustered. The name of the shaped is mapped to the initial for a model's volume, shape, and orientation. We use the EEE, EEV, and EVV, which is further modified by moving 4 fifths of the data out in an "V" or banana-like shape. Figure \ref{fig:figModelFamilies} shows the principal component bi-plot of the 3 three model variants applied here. The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty. The training data sets use the EEE model. The evaluation periods use EEE, EEV, and EVV-banana respectively in increasing order of difficulty.
+For choosing the shape of the clusters we follow the convention given in by the mclust [@scrucca_mclust_2016] who name and categorize 14 variants of distributions of data containing for 3-clustered. The name of the shaped is mapped to the initial for a model's volume, shape, and orientation. We use the EEE, EEV, and EVV, which is further modified by moving 4 fifths of the data out in an "V" or banana-like shape. Figure \@ref(fig:figModelFamilies) shows the principal component bi-plot of the 3 three model variants applied here. The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty. The training data sets use the EEE model. The evaluation periods use EEE, EEV, and EVV-banana respectively in increasing order of difficulty.
 
 ```{r figModelFamilies, echo = F, out.width = '100%', fig.cap = "Ellipses of isodensity, for each of the variance-covariance model families viewed as. Family labels are are the abbreviation for the clusters volume, shape, and orientation respectively, which are either equal or variable. We futher change the EVV model by shifting fifths of the data in bannana or chevron arrow shape."}
 knitr::include_graphics("./figures/figModelFam.png")
 ```
 
 <!-- Location mixing -->
-The separation of any two target clusters is currently contained fully within 1 variable at this point. We mix this variable with a noise variable such that the difference in the clusters is mixed at the following respective percentages 100/0% (not mixed), 66/33%, 50/50% (evenly mixed). The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty. The training data does not mix separation. Location mixing within an evaluation period is held constant and rotated through the 6 permutations of their order. Randomizing the order of the location mixing is controlled by iterating once after each of the 6 factor order permutations are evaluated. This is illustrated in figure \ref{fig:figParmeterizationExample}.
+The separation of any two target clusters is currently contained fully within 1 variable at this point. We mix this variable with a noise variable such that the difference in the clusters is mixed at the following respective percentages 100/0% (not mixed), 66/33%, 50/50% (evenly mixed). The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty. The training data does not mix separation. Location mixing within an evaluation period is held constant and rotated through the 6 permutations of their order. Randomizing the order of the location mixing is controlled by iterating once after each of the 6 factor order permutations are evaluated. This is illustrated in Figure \@ref(fig:figParmeterizationExample).
 
 ```{r , echo = F, out.width = '100%', fig.cap = "Illustration of how a hypothetical participant 63 is assigned factor and block parameterizations. Each of the 6 factor order permuations are exausted before going to the next location order permutation."}
 knitr::include_graphics("./figures/figParmeterizationExample.png")
@@ -321,7 +321,7 @@ The code, response files, their analyses, and study application are made publicl
 
 ## Sampling population {#sec:population}
 
-We recruited $N = 108$ via prolifico [@palan_prolific_2018]. We make the assumption that interpretation of biplot displays used will not be commonly used for wide audience and apply a single filter; that participants have completed at least an undergraduate degree (some 58,700 of the 150,400 users at the time). Participants were compensated for their time at \pounds 7.50 per hour, whereas the mean duration of survey was about 16 minutes. We can't preclude previous knowledge or experience with the factors, but instead try to control for this in the user study. Figure \ref{fig:figSurveyDemographics} shows distributions of age and preferred pronouns of the participants that completed the post-study survey who are relatively young and well educated.
+We recruited $N = 108$ via prolifico [@palan_prolific_2018]. We make the assumption that interpretation of biplot displays used will not be commonly used for wide audience and apply a single filter; that participants have completed at least an undergraduate degree (some 58,700 of the 150,400 users at the time). Participants were compensated for their time at \pounds 7.50 per hour, whereas the mean duration of survey was about 16 minutes. We can't preclude previous knowledge or experience with the factors, but instead try to control for this in the user study. Figure \@ref(fig:figSurveyDemographics) shows distributions of age and preferred pronouns of the participants that completed the post-study survey who are relatively young and well educated.
 
 ```{r, figSurveyDemographics, echo = F, out.width = '100%', fig.cap = "FIGURE CAPTION NEEDED. TODO XXX"}
 if(F) ## Creation and saving figure at:
@@ -336,7 +336,7 @@ From pilot studies through a sample of convenience (primarily PhD students) we p
 
 # Results {#sec:results}
 
-To recap, the primary response variable are marks as defined in section \ref{sec:task}, while time till last response will be used as a secondary response variable. We have 2 primary data sets; the user study evaluations and post study survey. The former is contains the 108 trials with explanatory variables: _factor_, _location_ of the cluster separation signal, _shape_ of variance-covariance matrix, _dim_-ensionality of the data, and _order_ of evaluation within the participant. Block parameterization and randomization was discussed in section \ref{#sec:blocks}. The survey was completed for 84 of these 108 trials and contains demographic information (*pronoun*, _age_, and _education_), explanatory variables (*task understanding*, *visualization experience*, and *analysis experience*), and subjective measures for each of the factors (*preference*, *familiarity*, *ease of use*, and *confidence*). The survey was covered in more detail in \ref{sec:survey}.
+To recap, the primary response variable are marks as defined in section \@ref(sec:task), while time till last response will be used as a secondary response variable. We have 2 primary data sets; the user study evaluations and post study survey. The former is contains the 108 trials with explanatory variables: _factor_, _location_ of the cluster separation signal, _shape_ of variance-covariance matrix, _dim_-ensionality of the data, and _order_ of evaluation within the participant. Block parameterization and randomization was discussed in section \@ref(#sec:blocks). The survey was completed for 84 of these 108 trials and contains demographic information (*pronoun*, _age_, and _education_), explanatory variables (*task understanding*, *visualization experience*, and *analysis experience*), and subjective measures for each of the factors (*preference*, *familiarity*, *ease of use*, and *confidence*). The survey was covered in more detail in \@ref(sec:survey).
 
 Below we look at the marginal performance of the block parameters and survey responses. After that we build a battery of regression models to explore the variables and their interactions. Lastly we look at the subjective measures between the factors.
 
@@ -349,7 +349,7 @@ TODO: XXX write up here.
 
 _Will have to figure out a more elegant solution for this. consider: size of text, global test, two-way test. n=x within bars. May need to go manually run test and/or place values._
 
-Figure \ref{fig:figMarksByMarg} compares the effect of the study block parameters. Location is the inverse of what is expected, though perhaps mixing the signal diversifies the marks in that its easier to choose at least one of the correct answers of two dimensions with signal rather than the higher risk of selecting the only correct answer for all marks. EEV slightly outperforms EEE, perhaps the different shape helps distinguish the cluster or stick out from one another. Evaluation order does not have a monotonic increase. Every odd evaluation beats the next evaluation which have 4 and 6 dimensions respectively.
+Figure \@ref(fig:figMarksByMarg) compares the effect of the study block parameters. Location is the inverse of what is expected, though perhaps mixing the signal diversifies the marks in that its easier to choose at least one of the correct answers of two dimensions with signal rather than the higher risk of selecting the only correct answer for all marks. EEV slightly outperforms EEE, perhaps the different shape helps distinguish the cluster or stick out from one another. Evaluation order does not have a monotonic increase. Every odd evaluation beats the next evaluation which have 4 and 6 dimensions respectively.
 
 ```{r figMarksByMarg, out.width="100%", fig.show='asis', fig.cap='TODO: Marginal effect of the block parameterizations. Factor supports the hypothesis that radial tours outperform the discrete benchmark, pca, and animated benchmark, grand tour, for this task. '}
 if(F) ## Creation and saving figure at:
@@ -359,7 +359,7 @@ knitr::include_graphics("./figures/figMarksByMarg.png")
 
 ## Marginal survey responses
 
-We also test the demographic and experience question from the survey to see if they they effect marks. Figure \ref{figMarksByMargSurvey} show the variables with strongest evidence to explain marks. Keep in mind that some of the x groups have low counts any likely may not reflect the true distribution of their demographic. Perhaps unsurprisingly, participants that rated their task comprehension higher, averaged higher marks. Age group was narrowly significant, with the lowest, highest, and default groups scoring low. The explanatory power of age is more likely more of a proxy for attention and thoroughness rather than a true effect of age. Education correlates with marks, though is narrowly not significant at $\alpha = .95$, it is also be slight correlated with age and understanding which explain marks better then education alone. Decline/default groups received lower marks unanimously across survey questions; care should be taken to ensure or evaluate the level of effort of participants.
+We also test the demographic and experience question from the survey to see if they they effect marks. Figure \@ref(figMarksByMargSurvey) show the variables with strongest evidence to explain marks. Keep in mind that some of the x groups have low counts any likely may not reflect the true distribution of their demographic. Perhaps unsurprisingly, participants that rated their task comprehension higher, averaged higher marks. Age group was narrowly significant, with the lowest, highest, and default groups scoring low. The explanatory power of age is more likely more of a proxy for attention and thoroughness rather than a true effect of age. Education correlates with marks, though is narrowly not significant at $\alpha = .95$, it is also be slight correlated with age and understanding which explain marks better then education alone. Decline/default groups received lower marks unanimously across survey questions; care should be taken to ensure or evaluate the level of effort of participants.
 
 ```{r figMarksByMargSurvey, out.width="100%", fig.show='asis', fig.cap='TODO: Marginal effect of the survey variables. TODO: XXX COMPLETE CAPTION'}
 if(F) ## Creation and saving figure at:
@@ -370,7 +370,7 @@ knitr::include_graphics("./figures/figMarksByMargSurvey.png")
 ## Random effects regression model
 
 <!-- <!-- Explain fixed and random terms used --> -->
-<!-- In order to explore how the parameterizations of study we fix regression models, regressing against the marks as defined in section \ref{sec:task}. The factors of our model with involve a number of (visual *factor*, *dim*ensionality of the data, variance-covariance *shape*, and noise/signal mixing *location*). We compare these against any potential learning effect by comparing against evaluation *order*. Lastly, all models include the a random effects term to account for the individual participants effect on the score, explaining the within-participant effect on the score. -->
+<!-- In order to explore how the parameterizations of study we fix regression models, regressing against the marks as defined in section \@ref(sec:task). The factors of our model with involve a number of (visual *factor*, *dim*ensionality of the data, variance-covariance *shape*, and noise/signal mixing *location*). We compare these against any potential learning effect by comparing against evaluation *order*. Lastly, all models include the a random effects term to account for the individual participants effect on the score, explaining the within-participant effect on the score. -->
 
 To more thoroughly examine explanatory variables we regress against marks. All models have a random effect term on the participant, which captures the effect of the individual participant. After we look at models of the block parameters we extend to compare against survey variables. Last, we compare how adding a random effect for data and regressing against time till last response fares against benchmark models. The matrices for models with more than a few terms quickly become rank deficient; there is not enough information in the data to explain all of the effect terms. In which case the least impactful terms are dropped. 
 
@@ -505,7 +505,7 @@ knitr::kable(model_comp_tbl_ls[[3]], align = c("l", rep("r", 7)),
 <!-- \end{landscape} -->
 
 <!-- Residuals and random effects simulation -->
-Residual plots had no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \ref{fig:figModel} illustrates a typically residual plot (left), while the right compares 95\% confidence interval of the effect ranges for participant and simulation. The effect ranges are estimated from simulations of the posterior distribution. The effect size of participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha$ = .95, while none of the simulation effects significantly deviate from the null of having no effect size on the marks.
+Residual plots had no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figModel) illustrates a typically residual plot (left), while the right compares 95\% confidence interval of the effect ranges for participant and simulation. The effect ranges are estimated from simulations of the posterior distribution. The effect size of participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha$ = .95, while none of the simulation effects significantly deviate from the null of having no effect size on the marks.
 
 ```{r figModel, out.width="100%", fig.show='asis', fig.cap='Residual plot and estimated effect ranges for factor regressing on marks with random effects for both partitcipant and data simulation. The effect size of participant is relatively large, with several significant extrema (alpha = .95). None of the simulations deviate significantly.'}
 if(F) ## Creation and saving figure at:
