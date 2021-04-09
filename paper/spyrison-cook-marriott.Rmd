@@ -245,15 +245,15 @@ knitr::include_graphics("./figures/figBiplotScoring.png")
 ```
 
 <!--Period order: Training, eval, eval -->
-Each of the 3 periods introduced a new factor, where participants were first able to explore an untimed task with data under the simplest parameterization. The training allows the participant to become familiar with the inputs and visual specific to the factor. Upon clicking a button to proceed text containing the correct answer displays with visual still intact to explore further. After the training, participant performed 2 evaluation trials. After 60 second the display was removed, though in application, few participants elapsed this time. These evaluation trials where performed under different parameterizations as explained in section \@ref(sec:blocks).
+Each of the 3 periods introduced a new factor, where participants were first able to explore an untimed task with data under the simplest parameterizations of block. The training allows the participant to become familiar with the inputs and visual specific to the factor. Upon clicking a button to proceed text containing the correct answer displays with visual still intact to explore further. After the training, participant performed 2 evaluation trials. After 60 second the display was removed, though in application, few participants elapsed this time. These evaluation trials where performed under different parameterizations as explained in section \@ref(sec:blocks).
 
 ## Factor application {#sec:factors}
 
 <!-- Background for methodology, application here -->
-Section \@ref(sec:background) gives the sources and a description of the visual factors PCA, grand tours, and radial manual tours. Below we cover the aesthetic standardization, as well the unique input and display within each factor.
+Section \@ref(sec:background) gives the sources and a description of the visual factors PCA, grand tours, and radial manual tours. The factors are tested within participant, with each factor being evaluated by each participant. The order that factors are experienced in is controlled with the block assignment as illustrated below in Figure \ref(fig:figParmeterizationExample). Below we cover the aesthetic standardization, as well the unique input and display within each factor.
 
 <!-- aesthetic standardization -->
-The visualization methods were standardized wherever possible. each factor was shown as a biplot, with variable contributions displayed on a unit circle. All aesthetic values (colors, shapes, sizes, absence of legend, and absence axis titles) were held consistent. Variable contributions where always shown left of the scatterplot embeddings with their aesthetic values consistent as well. What did vary between factors were their inputs which caused a discrete jump to another pair or principal components, were absent for the grand tour with target bases to animate through selected at random, or for radial tour which variable should have its contribution animated. Key frames have of each factor have been illustrated above in Figure \@ref(fig:figFactor) 
+The visualization methods were standardized wherever possible. each factor was shown as a biplot, with variable contributions displayed on a unit circle. All aesthetic values (colors, shapes, sizes, absence of legend, and absence axis titles) were held consistent. Variable contributions where always shown left of the scatterplot embeddings with their aesthetic values consistent as well. What did vary between factors were their inputs which caused a discrete jump to another pair or principal components, were absent for the grand tour with target bases to animate through selected at random, or for radial tour which variable should have its contribution animated. Key frames have of each factor have been illustrated above in Figure \@ref(fig:figFactor).
 
 <!-- PCA -->
 PCA inputs allowed for users to select between the top 4 principal components for both the x and y axis regardless of the data dimensionality (either 4 or 6). <!-- Grand tours -->There were no user input for grand tour, users were instead shown a 15 second animation of the same randomly selected path. Users were able to view the same clip up to 4 times within the time limit. <!-- Radial tours -->Radial tours were also displayed at 5 frames per second with in interpolation step size of 0.1 radians. Users where able to swap between variables, upon which the display would change the the start of radially increasing the contribution of the selected variable till it was full, zeroed, and then back to its initial contribution. The complete animation of any variable takes about 20 seconds, and is almost fully in the projection frame at around 6 second. The starting basis of each is initialized to a half-clock design, where the variables were evenly distributed in half of the circle which is then orthonormalized. This design was created to be variable agnostic while maximizing the independence of the variables.
@@ -262,29 +262,31 @@ PCA inputs allowed for users to select between the top 4 principal components fo
 ## Blocks and parameterization {#sec:blocks}
 
 <!-- volume of parameter space -->
-The volume the parameter-space increase more than exponentially with the dimensionality of the data. Care must be taken to select realistic parameter values. We vary the values for 3 aspects of the simulated data including 1) The dimensionality of the data. 2) the shapes of the clusters, by changing the variance-covariance of the clusters. 3) The location of the difference between clusters, by mixing a signal and a noise variable at different ratio.
+In addition to factor we vary the data across 3 aspects: 1) The dimensionality of the data. 2) the shapes of the clusters, by changing the variance-covariance of the clusters. 3) The location of the difference between clusters, by mixing a signal and a noise variable at different ratio we control which variables contain cluster separation.
 
 <!-- Dimensionality -->
-We test 2 levels of dimensionality, 4 dimensions containing 3 clusters and 6 dimensions with 4 clusters. Each cluster samples 140 observations. Each dimension is originally distributed as $\mathcal{N}(2 * I(signal), 1)~|~\text{covariance}~\Sigma$, before applying location mixing and standardizing by standard deviation). Signal variables have correlation 0.9 when they have equal orientation and -0.9 when their orientations vary. Noise variables were restricted to 0 correlation. The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty.
+Dimensionality is tested at 2 modest levels, namely, in 4 dimensions containing 3 clusters and 6 dimensions with 4 clusters. Each cluster samples 140 observations. Each dimension is originally distributed as $\mathcal{N}(2 * I(signal), 1)~|~\text{covariance}~\Sigma$, before applying location mixing and standardizing by standard deviation). Signal variables have correlation 0.9 when they have equal orientation and -0.9 when their orientations vary. Noise variables were restricted to 0 correlation. Within each factor-period dimension is fixed with increasing difficulty, 4 then 6.
 
 <!-- Shape, vc matrix -->
-For choosing the shape of the clusters we follow the convention given by scrucca, [@scrucca_mclust_2016] who named and categorize 14 variants of model families containing for 3 clusters. The name of the model family is the abbreviation of its respective volume, shape, and orientation, which are either equal or vary. We use the models EEE, EEV, and EVV, the latter is further modified by moving 4 fifths of the data out in an "V" or banana-like shape. Figure \@ref(fig:figModelFamilies) shows the principal component biplot of the 3 model variants applied here. The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty. The training data sets use the EEE model. The evaluation periods use EEE, EEV, and EVV-banana respectively in increasing order of difficulty.
+For choosing the shape of the clusters we follow the convention given by scrucca, [@scrucca_mclust_2016] who named and categorize 14 variants of model families containing for 3 clusters. The name of the model family is the abbreviation of its respective volume, shape, and orientation, which are either equal or vary. We use the models EEE, EEV, and EVV, the latter is further modified by moving 4 fifths of the data out in an "V" or banana-like shape. Figure \@ref(fig:figModelFamilies) shows the principal component biplot of the 3 model variants applied here. The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty. The evaluation periods use EEE, EEV, and EVV-banana respectively in increasing order of difficulty.
 
 ```{r figModelFamilies, echo = F, out.width = '100%', fig.cap = "Ellipses of the isodensities of the model families used. Family labels are are the abbreviation for the clusters volume, shape, and orientation respectively, which are either equal or vary. We futher change the EVV model by shifting fifths of the data in banana or chevron arrow shape."}
 knitr::include_graphics("./figures/figModelFam.png")
 ```
 
 <!-- Location mixing -->
-The separation of any two target clusters is currently contained fully within a single variable at this point. In order to test the sensitivity to this we mix a noise variable with the signal-containing variable such that the difference in the clusters is mixed at the following percentages: 0/100 (not mixed), 33/66, 50/50 (evenly mixed). The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty. The training data does not mix signal Location mixing within an evaluation period is held constant and rotated through the 6 permutations of their order. Randomizing the order of the location mixing is controlled by iterating once after each of the 6 factor order permutations are evaluated. This is illustrated in Figure \@ref(fig:figParmeterizationExample).
+The separation of any pair of clusters is currently contained fully within a single variable at this point. In order to test the sensitivity to this we mix a noise variable with the signal-containing variable such that the difference in the clusters is mixed at the following percentages: 0/100 (not mixed), 33/66, 50/50 (evenly mixed). The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty. The training data does not mix signal Location mixing within an evaluation period is held constant and rotated through the 6 permutations of their order. Randomizing the order of the location mixing is controlled by iterating once after each of the 6 factor order permutations are evaluated. This is illustrated in Figure \@ref(fig:figParmeterizationExample).
 
 ```{r figParmeterizationExample, echo = F, out.width = '100%', fig.cap = "Illustration of how a hypothetical participant 63 is assigned factor and block parameterizations. Each of the 6 factor order permuations are exausted before iterating to the next permutation of location order."}
 knitr::include_graphics("./figures/figParmeterizationExample.png")
 ```
 
-<!-- Eval evaluation -->
+<!-- Eval evaluation, selection of size -->
 With this setup we test the parameter space $dimension \in (4,~ 6),~shape \in(EEE,~ EEV,~ EVV-banana),~location ~\in~ (0/100,~ 33/66,~ 50/50)$ percent noise/signal mixing in order to evaluate the graphic display across the $factors~\in~(PCA,~grand,~radial)$. As we iterate though the possible permutations of these factors and location we perform an even evaluation of the full parameter space every 36 participants. Via pilot studies we estimate that 3 even block evaluations should be sufficient to identify difference between the factors; we targeted for $N = 108$ participants.
 
-_TODO: XXX CONTINUE WRITING HERE_
+<!-- Learning effect -->
+In addition to the explicitly controlled block parameters we will also be discussing each participants evaluation order regardless of factor or location experiences. This will expose an learning effect from the repetition of being expose to this data or problem. Keep in my that the fixed blocks shape and location are always experienced in order of increasing difficulty.
+
 
 ## Post study survey {#sec:survey}
 
@@ -292,6 +294,7 @@ _TODO: XXX CONTINUE WRITING HERE_
 After the evaluation section of the study, participants were given a short survey containing questions gauging demographics, experience, and subjective evaluation of each factor on a 5-point Likert scale. The questions and possible responses are as follows:
 
 __Demographic:__
+
 - What are your preferred pronouns? [decline to answer, he/him, she/her, they/them or other]
 - Which age group do you belong to? [decline to answer, 18 to 24, 25 to 35, 36 to 45, 45 to 60, 60 and up]
 - What is your highest completed education? [decline to answer, Undergraduate degree (BA/BSc/other), Graduate degree (MA/MSc/MPhil/other), Doctorate degree (PhD/other); prolific.co participants were filtered to those stating they had an least an undergraduate degree]
@@ -315,9 +318,9 @@ The code, response files, their analyses, and study application are made publicl
 
 ## Sampling population {#sec:population}
 
-We recruited $N = 108$ via prolifico [@palan_prolific_2018]. We make the assumption that interpretation of biplot displays used will not be commonly used for wide audience and apply a single filter; that participants have completed at least an undergraduate degree (some 58,700 of the 150,400 users at the time). Participants were compensated for their time at \pounds 7.50 per hour, whereas the mean duration of survey was about 16 minutes. We can't preclude previous knowledge or experience with the factors, but instead try to control for this in the user study. Figure \@ref(fig:figSurveyDemographics) shows distributions of age and preferred pronouns of the participants that completed the post-study survey who are relatively young and well educated.
+We recruited $N = 108$ via prolific.co [@palan_prolific_2018]. We make the assumption that interpretation of biplot displays used will not be commonly used for consumption by the general population and apply a single filter on education; that participants have completed at least an undergraduate degree (some 58,700 of the 150,400 users at the time). There is also the implicit filter that Prolific participants must be at least 18 years of age. Participants were compensated for their time at \pounds 7.50 per hour, whereas the mean duration of survey was about 16 minutes. We can't preclude previous knowledge or experience with the factors, but instead try to control for this in the user study. Figure \@ref(fig:figSurveyDemographics) shows distributions of age and preferred pronouns of the participants that completed the post-study survey who are relatively young and well educated.
 
-```{r, figSurveyDemographics, echo = F, out.width = '100%', fig.cap = "FIGURE CAPTION NEEDED. TODO XXX"}
+```{r, figSurveyDemographics, echo = F, out.width = '100%', fig.cap = "Heatmaps of participant demopgraphics, counts of age group by completed eduation as faceted across prefered pronoun. The average parcipant was a young adult with an undergraduate or graduate degree."}
 if(F) ## Creation and saving figure at:
   file.edit("./paper/R/fig_population_demographics.r")
 knitr::include_graphics("./figures/figSurveyDemographics.png")
@@ -337,15 +340,17 @@ Below we look at the marginal performance of the block parameters and survey res
 
 ## Marginal block parameters
 
+<!-- Test: Kruskal-Wallis H test (or one-way anova) -->
 Consider the 108 trials and their associate block parameterizations, We apply the Kruskal-Wallis H test (or one-way anova), a non-parametric method for testing if the x-levels are from the same distribution.
 
-TODO: XXX write up here.
+__TODO: XXX write up here.__
 
 _Will have to figure out a more elegant solution for this. consider: size of text, global test, two-way test. n=x within bars. May need to go manually run test and/or place values._
 
+<!-- Interpreting what marginal effects -->
 Figure \@ref(fig:figMarksByMarg) compares the effect of the study block parameters. Location is the inverse of what is expected, though perhaps mixing the signal diversifies the marks in that its easier to choose at least one of the correct answers of two dimensions with signal rather than the higher risk of selecting the only correct answer for all marks. EEV slightly outperforms EEE, perhaps the different shape helps distinguish the cluster or stick out from one another. Evaluation order does not have a monotonic increase. Every odd evaluation beats the next evaluation which have 4 and 6 dimensions respectively.
 
-```{r figMarksByMarg, out.width="100%", fig.show='asis', fig.cap='TODO: Marginal effect of the block parameterizations. Factor supports the hypothesis that radial tours outperform the discrete benchmark, pca, and animated benchmark, grand tour, for this task. '}
+```{r figMarksByMarg, out.width="100%", fig.show='asis', fig.cap='TODO: Marginal effect of the block parameterizations. Factor supports the hypothesis that radial tours outperform the discrete benchmark, pca, and animated benchmark, grand tour, for this task. Location interestingly shows the oposite behavior than expected, as the signal is mixed more then scores tend to be higher. There is no obvious learning effect given the increasing difficulty of the fixed blocks.'}
 if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 knitr::include_graphics("./figures/figMarksByMarg.png")
@@ -353,6 +358,7 @@ knitr::include_graphics("./figures/figMarksByMarg.png")
 
 ## Marginal survey responses
 
+<!-- Interpreting the effects of the marginal survey responses -->
 We also test the demographic and experience question from the survey to see if they they effect marks. Figure \@ref(figMarksByMargSurvey) show the variables with strongest evidence to explain marks. Keep in mind that some of the x groups have low counts any likely may not reflect the true distribution of their demographic. Perhaps unsurprisingly, participants that rated their task comprehension higher, averaged higher marks. Age group was narrowly significant, with the lowest, highest, and default groups scoring low. The explanatory power of age is more likely more of a proxy for attention and thoroughness rather than a true effect of age. Education correlates with marks, though is narrowly not significant at $\alpha = .95$, it is also be slight correlated with age and understanding which explain marks better then education alone. Decline/default groups received lower marks unanimously across survey questions; care should be taken to ensure or evaluate the level of effort of participants.
 
 ```{r figMarksByMargSurvey, out.width="100%", fig.show='asis', fig.cap='TODO: Marginal effect of the survey variables. TODO: XXX COMPLETE CAPTION'}
@@ -363,10 +369,10 @@ knitr::include_graphics("./figures/figMarksByMargSurvey.png")
 
 ## Random effects regression model
 
-<!-- <!-- Explain fixed and random terms used --> -->
-<!-- In order to explore how the parameterizations of study we fix regression models, regressing against the marks as defined in section \@ref(sec:task). The factors of our model with involve a number of (visual *factor*, *dim*ensionality of the data, variance-covariance *shape*, and noise/signal mixing *location*). We compare these against any potential learning effect by comparing against evaluation *order*. Lastly, all models include the a random effects term to account for the individual participants effect on the score, explaining the within-participant effect on the score. -->
+<!-- Note that we list the measures at the top of the Results section -->
 
-To more thoroughly examine explanatory variables we regress against marks. All models have a random effect term on the participant, which captures the effect of the individual participant. After we look at models of the block parameters we extend to compare against survey variables. Last, we compare how adding a random effect for data and regressing against time till last response fares against benchmark models. The matrices for models with more than a few terms quickly become rank deficient; there is not enough information in the data to explain all of the effect terms. In which case the least impactful terms are dropped. 
+<!-- Introduce regression model explaining marks, and the random effect term  -->
+To more thoroughly examine explanatory variables we regress against marks. All models have a random effect term on the participant, which captures the effect of the individual participant. After we look at models of the block parameters we extend to compare against survey variables. Last, we compare how adding a random effect for data and regressing against time till last response fares against benchmark models. The matrices for models with more than a few terms quickly become rank deficient; there is not enough information in the data to explain all of the effect terms. In which case the least impactful terms are dropped.
 
 <!-- Measures of model comparison -->
 Evaluation of the models will include Akaike's Information Criterion (AIC), Bayesian information criterion (BIC). These are comparisons measures of models based on its maximized log-likelihood function and penalize over fitting models linearly with the number of fixed terms. Root mean square error (RMSE) is the standard deviation of the residuals is also included. For the above 3 measures, the lower the value the more accurate the model. We additionally include Nakagawa's R\^2 for mixed models[@nakagawa_coefficient_2017], which has conditional and marginal measures with respect to the random effect terms, and doesn't penalize overfitting.
@@ -416,7 +422,6 @@ where
 <!-- Look at survey variables survey -->
 We want to see how survey variables fare in comparison. Holding the factor model as a comparison benchmark we fit another battery of similarly increasing complexity. Keep in mind that the scope has changed a bit from the 108 evaluations to only the 84 studies that have available survey data.
 
-
 <!-- 2) Survey parameters -->
 \begin{align*}
 \textbf{Abbreviation:}&&    \textbf{Model:~~} & \\
@@ -447,8 +452,6 @@ where
 &text{data Visualization experience}~v \in (\text{Likert scale [1-5]: I am experienced with data visualization.}) \\
 &\text{Analysis Experience}~ae \in (\text{Likert scale [1-5]: I am educated in multivariate statistical analysis.}) 
 \end{align*}
-
-
 
 
 <!-- Extend models, eval and survey -->
@@ -509,8 +512,9 @@ knitr::include_graphics("./figures/figModels.png")
 
 ## Subjective measures
 
-TODO: XXX
+__TODO: XXX__
 -Some (see https://bookdown.org/Rmadillo/likert/) claim that boxplot and tests are inappropriate for Likert scale data. Convert to percentile stacked bar charts?
+-significance testing?
 
 ```{r figSubjectiveMeasures, out.width="100%", fig.show='asis', fig.cap='TODO: XXX caption needed. Convert to percentile stacked bar charts?'}
 if(F) ## Creation and saving figure at:
@@ -535,20 +539,3 @@ spinifex::run_app("primary")
 This research was supported by an Australian Government Research Training Program (RTP) Scholarship. This article was created in R [@r_core_team_r:_2020], using `knitr` [@stodden_knitr:_2014] and `rmarkdown` [@xie_r_2018]. The source files for this article, application, data, and analysis can be found at [github.com/nspyrison/spinifex_study/](https://github.com/nspyrison/spinifex_study/). The source code for the `spinifex` package and accompanying shiny application can be found at [github.com/nspyrison/spinifex/](https://github.com/nspyrison/spinifex/).
 
 # Bibliography {#sec:bib}
-
-
-# Supplemental material
-<!-- Loose collection of overly detailed content. -->
-
-<!-- About factors: -->
-## Factor parameterizations
-
-<!-- simplified for crowdsourcing -->
-differences in the application and parameterization applied in the user study. Due to physically distancing from COVID-19 what was originally intended to be run in person with study invigilator had to be simplified to be understood and usable in a crowdsourcing application. We opted for precomputed images and animations in order to simplify input interactions and improve user experience.
-
-<!-- PCA -->
-Display of the same component on both axes simultaneously was prohibited. This results in 12 combinations of valid inputs. Half of which are homomorphic visuals, in that they mirrored on the x = y line and show no new information.
-
-<!-- Grand tours -->
-
-<!-- Radial tours -->
