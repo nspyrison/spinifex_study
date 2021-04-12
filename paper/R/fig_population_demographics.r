@@ -3,6 +3,10 @@ require(tidyverse)
 if(F)
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 
+.u = "in"
+.w = 6.25
+.h = 9
+
 #### MANUAL READ -----
 ## Read from gsheets API4 and save local
 if(F){
@@ -128,7 +132,7 @@ str(survey_wider)
     scale_fill_gradient(low = "lightpink", high = "firebrick", na.value = NA) +
     ggtitle("Participant demographics"))
 ggsave(filename = "./paper/figures/figSurveyDemographics.png",
-       plot = demographic_heatmaps, width = 8, height = 3.4)
+       plot = demographic_heatmaps, width = .w, height = .w/2)
 
 
 # ## Subjective measures, BOXPLOTS -----
@@ -273,8 +277,9 @@ script_survey_wider_to_survey_agg()
     scale_x_continuous(labels = scales::percent)
 )
 
+
 ggsave("./paper/figures/figSubjectiveMeasures.png", subjectiveMeasures,
-       width = 6, height = 4.1, units = "in")
+       width = .w, height = .w * .66, units = "in")
 
 ### Significance testing: ------
 if(F)
@@ -283,11 +288,12 @@ if(F)
 ?coin::oneway_test(value ~ variable, data = ex_1_long_y12, distribution = "exact")
 
 # Subset to years 1 and 2
-examp_2way = filter(likert, question == "preference" & factor %in% c("radial", "pca"))
+examp_2way <- likert %>% filter(question == "ease" & factor %in% c("radial", "pca"))
 rstatix::wilcox_test(n~factor, data = examp_2way) ## W always in (7,9) p always .8 ...
-examp_global = filter(likert, question == "preference") %>%
+examp_global <- likert %>% 
+  filter(question == "ease" & factor %in% c("radial", "pca")) %>%
   mutate(question = factor(question),
-         dummy = factor(paste(factor, question))) %>% select(dummy, n)
+         dummy = factor(paste(factor, question))) %>% dplyr::select(dummy, n)
 
 str(examp_global)
 coin::oneway_test(n~dummy, data = examp_global) ## chi squared always 0; p = 1 ...

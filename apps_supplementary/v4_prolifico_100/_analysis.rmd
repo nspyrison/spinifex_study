@@ -100,56 +100,38 @@ my_theme <- list(
         legend.box = "vertical",
         legend.margin = margin(-6))
 )
+
 ## indirect (via ggpubr/cowplot) ggplot2 helpers
 my_ggpubr <- function(df, x, y, title = "Title missing"){
   ## Create a list of comparison levels to test significance, all combinations.
   .fill_lvls <- df %>% pull({{x}}) %>% levels()
-  .combn_mat <- t(combn(.fill_lvls, 2))
-  .combn_mat_ord <- t(combn(1:length(.fill_lvls), 2))
-  my_comparisons <- lapply(1:nrow(.combn_mat), FUN = function(i){
-    c(.combn_mat[i, 1], .combn_mat[i, 2])
-  })
-  
-  ### doesn;'t seem to give all lvls...
-  # tgt_ord <- data.frame(.combn_mat_ord) %>% arrange(desc(X1), X2)
-  # my_comparisons <- data.frame(NA)
-  # for(i in 1:nrow(tgt_ord)){
-  #   for(j in 1:ncol(tgt_ord)){
-  #     my_comparisons[i, j] <- .fill_lvls[tgt_ord[i, j]]
-  #   }
-  # }
+  # .combn_mat <- t(combn(.fill_lvls, 2))
+  # .combn_mat_ord <- t(combn(1:length(.fill_lvls), 2))
+  # my_comparisons <- lapply(1:nrow(.combn_mat), FUN = function(i){
+  #   c(.combn_mat[i, 1], .combn_mat[i, 2])
+  # })
+   
+
   ## Find height of global significance test text.
   .y_range <- diff(range(df[y]))
-  .lab.y <- .05 * .y_range + max(df[y])
+   #.y_offset_frac <- .1 * (length(my_comparisons) + 1)
+  .y_offset_frac <-  .1 * (length(.fill_lvls) + 1)
+  if(x=="order") .y_offset_frac <- .1
+  .lab.y <- 1.25#.y_offset_frac * .y_range + max(df[y])
+
   ## Plot
-  ggboxplot(df,  x = x, y = y, fill = x, alpha = .6,
+  ggboxplot(df, x = x, y = y, fill = x, alpha = .6,
             palette = "Dark2", shape = x,
             add = "jitter", add.params = list(color = x, alpha = .3, width = .2)) +
-    #stat_compare_means(comparisons = my_comparisons, label = "p.format") +
-    stat_compare_means(label.y = .lab.y) +
+    #stat_compare_means(comparisons = my_comparisons, label = "p.format") + ## pairwise test
+    stat_compare_means(label = "p.signif", ref.group = .fill_lvls[1]) + ## Test each lvl w.r.t. first level.
+    stat_compare_means(method = "anova", label.y = .lab.y, ## Global test
+                       aes(label = paste0("", ..p.format..))) + # Add global anova p-value
     my_theme +
     ggtitle(title)
 }
-my_ggpubr_facet <- function(df, x, y,
-                            title = "Title missing", facet = "location"){
-  ## Create a list of comparison levels to test significance, all combinations.
-  .fill_lvls <- df %>% pull({{x}}) %>% levels()
-  .combn_mat <- t(combn(.fill_lvls, 2))
-  my_comparisons <- lapply(1:nrow(.combn_mat), FUN = function(i){
-    c(.combn_mat[i, 1], .combn_mat[i, 2])
-  })
-  ## Find height of global significance test text.
-  .y_range <- diff(range(df[y]))
-  .lab.y <- .05 * .y_range + max(df[y])
-  ## Plot
-  p <- ggboxplot(df,  x = x, y = y, fill = x, alpha = .6,
-                 palette = "Dark2", shape = x,
-                 add = "jitter", add.params = list(color = x, alpha = .3, width = .2)) +
-    #stat_compare_means(comparisons = my_comparisons, label = "p.format") +
-    stat_compare_means(label.y = .lab.y) +
-    my_theme +
-    ggtitle(title)
-  facet(p, facet.by = facet)
+my_ggpubr_facet <- function(..., facet = "location"){
+  facet(my_ggpubr(...), facet.by = facet)
 }
 ```
 
@@ -459,7 +441,7 @@ plot_REsim_qq <- function(model){
     ggtitle("qq plot of the mean of random effects simulation")
 }
 ## Adds kable markup to bold the max/min of a column.
-format_column_extrema <- function(df, col, extrema = max, markup = "**"){ 
+format_column_extrema <- function(df, col, extrema = max, markup = "*"){
   ## c("*", "**", "~~"), c("italics", "bold", "strikethrough")
   v <- as.data.frame(df[, col])[, 1]
   ## Make sure values are not factors
@@ -578,10 +560,10 @@ model_ls2 <- list(`F` = f,
                   `F+parameters` = f.parameters,
                   `F+survey` = f.survey,
                   `F+parameters+survey` = f.parameters.survey,
+                  `F+:t_val>1.5` = f.gt1.5,
                   `F*parameters` = f_parameters,
                   `F*survey` = f_survey,
                   `F*parameters*survey` = f_parameters_survey,
-                  `F+:t_val>1.5` = f.gt1.5,
                   `F*:t_val>1.5` = f_gt1.5)
 
 performance_ls2 <- list()
@@ -735,6 +717,8 @@ tail(.resim_data)
    my_ggpubr(dat_qual,
              x = "location", y = "marks",
              title = "Marks by location"))
+if(interactive())
+  compare_means(marks~location, data =dat_qual) ##seems large
 ```
 
 ### Order, of evaluation
@@ -752,7 +736,7 @@ tail(.resim_data)
 
 ### Shape, variance-covariance 
 
-```{r} 
+```{r}
 (marks_by_shape <-
    my_ggpubr(dat_qual,
              x = "shape", y = "marks",
@@ -795,15 +779,15 @@ tail(.resim_data)
 #           title = "Marks by pronoun")
 
 ## narrowly significant
-marks_by_age <-
+(marks_by_age <-
   my_ggpubr(eval_survey,
             x = "age", y = "marks",
-            title = "Marks by age")
+            title = "Marks by age"))
 ## narrowly not significant
-marks_by_education <-
+(marks_by_education <-
   my_ggpubr(eval_survey,
             x = "education", y = "marks",
-            title = "Marks by education")
+            title = "Marks by education"))
 ```
 
 
@@ -811,13 +795,15 @@ marks_by_education <-
 
 ```{r}
 ## Significant
-marks_by_task_understanding <- eval_survey %>% rename(`task understanding` = task_understanding) %>% 
+(marks_by_task_understanding <- eval_survey %>% rename(`task understanding` = task_understanding) %>% 
   my_ggpubr(x = "task understanding", y = "marks",
-            title = "Marks by task understanding")
+            title = "Marks by task understanding"))
 ## Not significant ##
-# my_ggpubr(eval_survey,
-#           x = "data_viz_exp", y = "marks",
-#           title = "Marks by data_viz_exp")
+(marks_by_data_viz_exp <- eval_survey %>% 
+    rename(`data viz exp` = "data_viz_exp") %>% 
+    my_ggpubr(
+          x = "data viz exp", y = "marks",
+          title = "Marks by data viz exp"))
 # my_ggpubr(eval_survey,
 #           x = "analysis_exp", y = "marks",
 #           title = "Marks by analysis_exp")
@@ -834,52 +820,49 @@ if(F){
   saveRDS(instance_id_whitelist,
           file = "./apps_supplementary/v4_prolifico_100/instance_id_whitelist.rds")
   
+  ## Portrait dim, inside margin
+  .u = "in"
+  .w = 6.25
+  .h = 9
   
   ### dat_qual now saved inline with if(interactive()) ###
   .remove_y <- theme(axis.title.y = element_blank(),
                      axis.text.y = element_blank(),
                      axis.ticks.y = element_blank())
-  .no_legend <- list(theme(legend.position = "off"),
-                     ggtitle(NULL))
-  gc()
-  figMarksByMarg_notitle <- 
-    cowplot::plot_grid(marks_by_factor + .no_legend + ggtitle(NULL),
-                       marks_by_location + .remove_y + .no_legend,
-                       marks_by_shape + .remove_y + .no_legend,
-                       marks_by_order + .remove_y + .no_legend,
-                       marks_by_dim + .remove_y + .no_legend,
-                       ncol = 5, rel_widths = c(4, rep(3, 4)))
-  title <- cowplot::ggdraw() +
-    cowplot::draw_label("Marks by conditional block parameter",
-                        x = .15, y = .6, hjust = .1, vjust = .5)
-  gc()
-  figMarksByMarg <- cowplot::plot_grid(title, figMarksByMarg_notitle,
-                                       ncol = 1, rel_heights = c(0.1, 1))
-  ggsave("figMarksByMarg.png", plot = figMarksByMarg, path = "./paper/figures",
-         device = "png", width = 8, height = 3, unit = "in")
-  gc()
-  
   .no_legend <- 
     list(theme(legend.position = "off",
-               axis.text.x = element_text(angle = 60, vjust = 1, hjust = 1)),
+               axis.text.x = element_text(angle = 30, vjust = 1, hjust = 1)),
          ggtitle(NULL))
-  ## Marginal survey data
-  figMarksByMargSurvey_notitle <-
-    cowplot::plot_grid(marks_by_task_understanding + .no_legend + ggtitle(waiver()),
-                       marks_by_age + .remove_y + .no_legend,
-                       marks_by_education + .remove_y + .no_legend,
-                       ncol = 3, rel_widths = c(6, 5, 4))
-  title <- cowplot::ggdraw() +
-    cowplot::draw_label("Marks by conditional significant survey variable",
+  gc()
+  (MargEval_notitle <- 
+    cowplot::plot_grid(marks_by_factor + .no_legend + ggtitle(NULL),
+                       marks_by_order + .remove_y + .no_legend,
+                       marks_by_dim + .remove_y + .no_legend,
+                       marks_by_shape + .remove_y + .no_legend,
+                       ## marks_by_dim + .remove_y + .no_legend, # p only .6.
+                       ncol = 4, rel_widths = c(3, 7, 1, 3)+5))
+  title1 <- cowplot::ggdraw() +
+    cowplot::draw_label("Marks by marginal block parameter",
                         x = .15, y = .6, hjust = .1, vjust = .5)
   gc()
-  figMarksByMargSurvey <-
-    cowplot::plot_grid(title, figMarksByMargSurvey_notitle,
-                       ncol = 1, rel_heights = c(0.1, 1))
-  ggsave("figMarksByMargSurvey.png", plot = figMarksByMargSurvey, path = "./paper/figures",
-         device = "png", width = 8, height = 4, unit = "in")
-  gc()
 
+  ## Marginal survey data
+  (MargSurvey_notitle <-
+    cowplot::plot_grid(marks_by_task_understanding + .no_legend + ggtitle(waiver()),
+                       marks_by_age + .remove_y + .no_legend,
+                       marks_by_data_viz_exp + .remove_y + .no_legend,
+                       marks_by_education + .remove_y + .no_legend,
+                       ncol = 4, rel_widths = c(7, 6, 6, 5)))
+  title2 <- cowplot::ggdraw() +
+    cowplot::draw_label("Marks by marginal survey variable",
+                        x = .15, y = .6, hjust = .1, vjust = .5)
+  gc()
+  (figMarksByMarg <-
+    cowplot::plot_grid(title1, MargEval_notitle, title2, MargSurvey_notitle,
+                       nrow = 4, rel_heights = c(0.1, 1, .1, 1)))
+  gc()
+  ggsave("figMarksByMarg.png", plot = figMarksByMarg, path = "./paper/figures",
+         device = "png", width = .w, height = .h * .8, unit = .u)
   
   ## Model tables
   model_comp_tbl_ls <- list(models_eval = model_comp_tbl, 

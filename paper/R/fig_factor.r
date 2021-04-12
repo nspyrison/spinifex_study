@@ -1,6 +1,10 @@
 require("ggplot2")
 require("spinifex")
 
+.u = "in"
+.w = 6.25
+.h = 9
+
 tgt_sim_nm <- "EEV_p6_0_1_rep3"
 tgt_fp <- paste0("./apps_supplementary/data/", tgt_sim_nm, ".rda") 
 ## Make data plot
@@ -69,29 +73,30 @@ require("dplyr")
 
 ggplot() + geom_table(data = data.tb, aes(x,y,label = tb))
 text1 <- tibble(`PCA                                                               ` = 
-                c("- Inputs: x, y axes in [PC1, ... PC4]", 
-                  "- Not animated, discrete change",
-                  "- 4 of the 12 unique PC combinations"))
+                c("- Inputs: x, y axes in [PC1, ... PC4]",
+                  "- Differce: not animated, discrete change",
+                  "- Illustrated: 3 of the 12 unique",
+                  "     PC combinations"))
 tb1 <- tibble(x = 0, y = 0, text1 = list(text1))
 gt1 <- ggplot() + 
   geom_table(data = tb1, aes(x,y,label = text1),
              table.theme = ttheme_gtminimal, table.hjust = 0 ) + this_theme
 
 text2 <- tibble(`Grand                                                               ` = 
-                  c("- Inputs: none", 
-                    "- Animated through randomly",
-                    "selected target bases",
-                    "- First 4 such target bases"))
+                  c("- Inputs: none",
+                    "- Differce: animated through randomly",
+                    "     selected target bases",
+                    "- Illustrated: first 3 such target bases"))
 tb2 <- tibble(x=0, y=0, text2 = list(text2))
 gt2 <- ggplot() + 
   geom_table(data = tb2, aes(x,y,label = text2),
              table.theme = ttheme_gtminimal, table.hjust = 0 ) + this_theme
 text3 <- 
   tibble(`Radial                                                               ` = 
-           c("- Inputs: manipulation variable in [1, ... 6]", 
-             "- Animates selected variable to", 
-             "norm=1, norm=0, then back to start",
-             "- Target bases rotating variable 6"))
+           c("- Inputs: manipulation variable in [1, ... 6]",
+             "- Differce: animates selected variable to",
+             "     norm=1, norm=0, then back to start",
+             "- Illustrated: target bases rotating variable 6"))
 tb3 <- tibble(x = 0, y = 0, text3 = list(text3))
 gt3 <- ggplot() + 
   geom_table(data = tb3, aes(x,y,label = text3),
@@ -99,10 +104,11 @@ gt3 <- ggplot() +
 ### Bring it together
 ## a littel finachy, may need to restart and clear envirnment to get it to work.
 gc()
-fig <- cowplot::plot_grid(gt1, p1, p2, p3, p4, ## pca
-                          gt2, p5, p6, p7, p8, ## grand
-                          gt3, p9, p10, p11, p12, ## radial
-                          nrow = 3, ncol = 5)
+fig <- cowplot::plot_grid(gt1, p1, p2, p3, #p4, ## pca
+                          gt2, p5, p6, p7, #p8, ## grand
+                          gt3, p9, p10, p11, #p12, ## radial
+                          nrow = 3, ncol = 4, rel_widths = c(3, 2,2,2))
 
-ggsave("./paper/figures/figFactor.png", fig,  width = 11, height = 3/5*11, units = "in")
+ggsave("./paper/figures/figFactor.png", fig,
+       width = .h, height = 3/5*.h, units = .u)
 

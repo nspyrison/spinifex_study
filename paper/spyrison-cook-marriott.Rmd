@@ -4,7 +4,9 @@ header-includes:
   - \usepackage{graphicx}
   - \usepackage{pdflscape}
   - \usepackage{lmodern} ## \pounds symbol
-output: bookdown::pdf_document2
+output: 
+  bookdown::pdf_document2:
+    toc: false
 title: >
   The effect of user interaction for understanding variable contributions to structure in linear projections 
 author:
@@ -250,7 +252,7 @@ Each of the 3 periods introduced a new factor, where participants were first abl
 ## Factor application {#sec:factors}
 
 <!-- Background for methodology, application here -->
-Section \@ref(sec:background) gives the sources and a description of the visual factors PCA, grand tours, and radial manual tours. The factors are tested within participant, with each factor being evaluated by each participant. The order that factors are experienced in is controlled with the block assignment as illustrated below in Figure \ref(fig:figParmeterizationExample). Below we cover the aesthetic standardization, as well the unique input and display within each factor.
+Section \@ref(sec:background) gives the sources and a description of the visual factors PCA, grand tours, and radial manual tours. The factors are tested within participant, with each factor being evaluated by each participant. The order that factors are experienced in is controlled with the block assignment as illustrated below in Figure \@ref(fig:figParmeterizationExample). Below we cover the aesthetic standardization, as well the unique input and display within each factor.
 
 <!-- aesthetic standardization -->
 The visualization methods were standardized wherever possible. each factor was shown as a biplot, with variable contributions displayed on a unit circle. All aesthetic values (colors, shapes, sizes, absence of legend, and absence axis titles) were held consistent. Variable contributions where always shown left of the scatterplot embeddings with their aesthetic values consistent as well. What did vary between factors were their inputs which caused a discrete jump to another pair or principal components, were absent for the grand tour with target bases to animate through selected at random, or for radial tour which variable should have its contribution animated. Key frames have of each factor have been illustrated above in Figure \@ref(fig:figFactor).
@@ -333,12 +335,12 @@ From pilot studies through a sample of convenience (primarily PhD students) we p
 
 # Results {#sec:results}
 
-To recap, the primary response variable are marks as defined in section \@ref(sec:task), while time till last response will be used as a secondary response variable. We have 2 primary data sets; the user study evaluations and post study survey. The former is contains the 108 trials with explanatory variables: _factor_, _location_ of the cluster separation signal, _shape_ of variance-covariance matrix, _dim_-ensionality of the data, and _order_ of evaluation within the participant. Block parameterization and randomization was discussed in section \@ref(#sec:blocks). The survey was completed for 84 of these 108 trials and contains demographic information (*pronoun*, _age_, and _education_), explanatory variables (*task understanding*, *visualization experience*, and *analysis experience*), and subjective measures for each of the factors (*preference*, *familiarity*, *ease of use*, and *confidence*). The survey was covered in more detail in \@ref(sec:survey).
+To recap, the primary response variable are marks as defined in section \@ref(sec:task), while time till last response will be used as a secondary response variable. We have 2 primary data sets; the user study evaluations and post study survey. The former is contains the 108 trials with explanatory variables: _factor_, _location_ of the cluster separation signal, _shape_ of variance-covariance matrix, _dim_-ensionality of the data, and _order_ of evaluation within the participant. Block parameterization and randomization was discussed in section \@ref(sec:blocks). The survey was completed for 84 of these 108 trials and contains demographic information (*pronoun*, _age_, and _education_), explanatory variables (*task understanding*, *visualization experience*, and *analysis experience*), and subjective measures for each of the factors (*preference*, *familiarity*, *ease of use*, and *confidence*). The survey was covered in more detail in \@ref(sec:survey).
 
 Below we look at the marginal performance of the block parameters and survey responses. After that we build a battery of regression models to explore the variables and their interactions. Lastly we look at the subjective measures between the factors.
 
 
-## Marginal block parameters
+## Marginal block parameters and survey variables
 
 <!-- Test: Kruskal-Wallis H test (or one-way anova) -->
 Consider the 108 trials and their associate block parameterizations, We apply the Kruskal-Wallis H test (or one-way anova), a non-parametric method for testing if the x-levels are from the same distribution.
@@ -348,24 +350,18 @@ __TODO: XXX write up here.__
 _Will have to figure out a more elegant solution for this. consider: size of text, global test, two-way test. n=x within bars. May need to go manually run test and/or place values._
 
 <!-- Interpreting what marginal effects -->
-Figure \@ref(fig:figMarksByMarg) compares the effect of the study block parameters. Location is the inverse of what is expected, though perhaps mixing the signal diversifies the marks in that its easier to choose at least one of the correct answers of two dimensions with signal rather than the higher risk of selecting the only correct answer for all marks. EEV slightly outperforms EEE, perhaps the different shape helps distinguish the cluster or stick out from one another. Evaluation order does not have a monotonic increase. Every odd evaluation beats the next evaluation which have 4 and 6 dimensions respectively.
+Figure \@ref(fig:figMarksByMarg) (top) compares the effect of the study block parameters. Location is the inverse of what is expected, though perhaps mixing the signal diversifies the marks in that its easier to choose at least one of the correct answers of two dimensions with signal rather than the higher risk of selecting the only correct answer for all marks. EEV slightly outperforms EEE, perhaps the different shape helps distinguish the cluster or stick out from one another. Evaluation order does not have a monotonic increase. Every odd evaluation beats the next evaluation which have 4 and 6 dimensions respectively.
 
-```{r figMarksByMarg, out.width="100%", fig.show='asis', fig.cap='TODO: Marginal effect of the block parameterizations. Factor supports the hypothesis that radial tours outperform the discrete benchmark, pca, and animated benchmark, grand tour, for this task. Location interestingly shows the oposite behavior than expected, as the signal is mixed more then scores tend to be higher. There is no obvious learning effect given the increasing difficulty of the fixed blocks.'}
+```{r figMarksByMarg, out.width="100%", fig.show='asis', fig.cap='Marks by the marginal effect of the block parameterizations (top) and survey variables (bottom), for the 4 variables with most support. Factor has a large degree of support for the alternative hypothesis, that use of the radial tour outperforms both the discrete benchmark, pca, and animated benchmark, grand tour for this task. The other block parameterizations quickly drop off in support. While order is near significant it is not monotonically increasing marks, the increasing difficulty of fixed block parameterization appear to have a stronger effect than any oberservable learning effect. Of the survey variables (bottom), note that the boxplots have an uneven number of observations, those with low numbers may not aproximate the true population well. Task understanding is hugely significant, though it may be conflated with latent attenion and effort of participants. Participants that default/decline recieved unanimously low marks.'}
 if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 knitr::include_graphics("./figures/figMarksByMarg.png")
 ```
 
-## Marginal survey responses
+<!-- Interpreting the effects of the marginal survey variables -->
+We also test the demographic and experience question from the survey to see if they they effect marks. Figure \@ref(fig:figMarksByMarg) (bottom) show the variables with strongest evidence to explain marks. Keep in mind that some of the x groups have low counts any likely may not reflect the true distribution of their demographic. Perhaps unsurprisingly, participants that rated their task comprehension higher, averaged higher marks. Age group was narrowly significant, with the lowest, highest, and default groups scoring low. The explanatory power of age is more likely more of a proxy for attention and thoroughness rather than a true effect of age. Education correlates with marks, though is narrowly not significant at $\alpha = .95$, it is also be slight correlated with age and understanding which explain marks better then education alone. Decline/default groups received lower marks unanimously across survey questions; care should be taken to ensure or evaluate the level of effort of participants.
 
-<!-- Interpreting the effects of the marginal survey responses -->
-We also test the demographic and experience question from the survey to see if they they effect marks. Figure \@ref(figMarksByMargSurvey) show the variables with strongest evidence to explain marks. Keep in mind that some of the x groups have low counts any likely may not reflect the true distribution of their demographic. Perhaps unsurprisingly, participants that rated their task comprehension higher, averaged higher marks. Age group was narrowly significant, with the lowest, highest, and default groups scoring low. The explanatory power of age is more likely more of a proxy for attention and thoroughness rather than a true effect of age. Education correlates with marks, though is narrowly not significant at $\alpha = .95$, it is also be slight correlated with age and understanding which explain marks better then education alone. Decline/default groups received lower marks unanimously across survey questions; care should be taken to ensure or evaluate the level of effort of participants.
 
-```{r figMarksByMargSurvey, out.width="100%", fig.show='asis', fig.cap='TODO: Marginal effect of the survey variables. TODO: XXX COMPLETE CAPTION'}
-if(F) ## Creation and saving figure at:
-  file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
-knitr::include_graphics("./figures/figMarksByMargSurvey.png")
-```
 
 ## Random effects regression model
 
@@ -478,23 +474,42 @@ where
 <!-- \begin{landscape} -->
 ```{r modelTable, fig.cap = "Use the caption arg in kable(), not this."}
 model_comp_tbl_ls <- readRDS("./figures/model_comp_tbl_ls.rds")
+bold_column_extrema <- function(df, col, extrema = max){ 
+  ## c("*", "**", "~~"), c("italics", "bold", "strikethrough")
+  v <- as.data.frame(df[, col])[, 1]
+  ## Make sure values are not factors
+  r_idx <- which(v == extrema(v))
+  ## Update formatting
+  kableExtra::column_spec(df, column = c(r_idx, col), bold = T)
+}
+# .v <- model_comp_tbl_ls[[1]][,4]
+# model_comp_tbl_ls[[1]][,4] = kableExtra::cell_spec(.v, bold = ifelse(.v == min(.v), T, F))
+
 ## 1) Eval parameters
-knitr::kable(model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
+kableExtra::kbl(model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
              booktabs = TRUE, linesep = "", caption = "Model comparison of our random effects models regressing marks. Each model includs a random effect term of the participant, which explains the individuals influence on their marks. Complex models perform better in terms of R2 and RMSE, yet AIC and BIC penialize their large number of fixed effect in favor of the much simpler model containing only factor.") %>%
   kableExtra::column_spec(column = 1, width = "3.2cm") %>%
   kableExtra::column_spec(column = c(2:3, 6:7), width = "1.7cm") %>%
+  kableExtra::column_spec(column = c(4:5, 8), width = "1.1cm") %>% 
   kableExtra::column_spec(column = c(4:5, 8), width = "1.1cm")
+  # 
+  # bold_column_extrema(4, min) %>% 
+  # bold_column_extrema(5, min) %>%
+  # bold_column_extrema(6, max) %>%
+  # bold_column_extrema(7, max) %>%
+  # bold_column_extrema(8, max)
+
 
 ## 2) Survey parameters
-knitr::kable(model_comp_tbl_ls[[2]], align = c("l", rep("r", 7)),
+knitr::kable(model_comp_tbl_ls[[2]], align = c("l", rep("r", 7)), format="latex",
              booktabs = TRUE, linesep = "", caption = "TODO: XXX CAP NEEDED") %>%
   kableExtra::column_spec(column = 1, width = "3.2cm") %>%
   kableExtra::column_spec(column = c(2:3, 6:7), width = "1.7cm") %>%
   kableExtra::column_spec(column = c(4:5, 8), width = "1.1cm")
 
 ## 3) extending to RE(data), and regressing against time for eval and survey.
-knitr::kable(model_comp_tbl_ls[[3]], align = c("l", rep("r", 7)),
-             booktabs = TRUE, linesep = "", caption = "We select the simple facet model as our benchmark and compare the random effects from participants with the random effects of simulated data. The random effect of the data is small compared to the random effect of the data. The random effect of the participant is good at prediciting the time users take, its conditional R2 is much larger than the marginal R2 of the factor fixed term.") %>%
+knitr::kable(model_comp_tbl_ls[[3]], align = c("l", rep("r", 7)), format="latex",
+             booktabs = TRUE, linesep = "", caption = "We select the simple facet model as our benchmark and compare the random effects from participants with the random effects of simulated data. The random effect of the data is small compared to the random effect of the data. The random effect of the participant is good at prediciting the time users take, its conditional R2 is much larger than the marginal R2 of the factor fixed term. TODO: XXX, scale time to be between [-1, 1] for better comparison of RMSE? would be desirable or confusing?") %>%
   kableExtra::column_spec(column = 1, width = "3.2cm") %>%
   kableExtra::column_spec(column = c(2:3, 6:7), width = "1.7cm") %>%
   kableExtra::column_spec(column = c(4:5, 8), width = "1.1cm")
@@ -513,10 +528,11 @@ knitr::include_graphics("./figures/figModels.png")
 ## Subjective measures
 
 __TODO: XXX__
--Some (see https://bookdown.org/Rmadillo/likert/) claim that boxplot and tests are inappropriate for Likert scale data. Convert to percentile stacked bar charts?
--significance testing?
 
-```{r figSubjectiveMeasures, out.width="100%", fig.show='asis', fig.cap='TODO: XXX caption needed. Convert to percentile stacked bar charts?'}
+```{r figSubjectiveMeasures, out.width="100%", fig.show='asis', fig.cap='TODO: XXX caption needed. need significance test; Nothing is significiant using {coin}... go to permutation tests next?'}
+if(F)
+  browseURL("https://bookdown.org/Rmadillo/likert/is-there-a-significant-difference.html#permutation-mann-whitney-tests")
+
 if(F) ## Creation and saving figure at:
   file.edit("./paper/R/fig_population_demographics.rmd")
 knitr::include_graphics("./figures/figSubjectiveMeasures.png")
