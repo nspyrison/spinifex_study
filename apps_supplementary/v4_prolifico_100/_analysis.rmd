@@ -315,68 +315,30 @@ ggplot(dat_qual, aes(x = factor, y = marks)) +
 
 ### Block paremeters 
 
-We create a number of base models for comparison:
-
 _Context: 108 evals; use block parameters to predict marks_
 
+<!-- 1) Eval parameters -->
 \begin{align*}
-\text{model F: } ~~~~~ \widehat{marks}_{partcipant~n} = 
-  ~ &\beta_{0} + \Sigma_{f = 1}^3(\alpha_{factor~f} * \beta_{factor~f}) + 
-  effect_{participant~n} + \epsilon \\
-\text{model L: } ~~~~~ \widehat{marks}_{partcipant~n} =
-  ~ &\beta_{0} + \Sigma_{l = 1}^3(\alpha_{location~l} * \beta_{location~l}) +
-  effect_{participant~n} + \epsilon \\
-\text{model S: } ~~~~~ \widehat{marks}_{partcipant~n} =
-  ~ &\beta_{0} + \Sigma_{s = 1}^3(\alpha_{shape~s} * \beta_{shape~s}) +
-  effect_{participant~n} + \epsilon \\
-\text{model D: } ~~~~~ \widehat{marks}_{partcipant~n} =
-  ~ &\beta_{0} + \Sigma_{d = 1}^2(\alpha_{dim~d} * \beta_{dim~d}) +
-  effect_{participant~n} + \epsilon \\
-\text{model O: } ~~~~~ \widehat{marks}_{partcipant~n} =
-  ~ &\beta_{0} + \Sigma_{o = 1}^6(\alpha_{order~o} * \beta_{order~o}) +
-  effect_{participant~n} + \epsilon \\
-  
-\text{model FL: } ~~~~~ \widehat{marks}_{partcipant~n} = ~ &\beta_{0} +
-  \Sigma_{f = 1}^3(\Sigma_{l = 1}^3(\alpha_{factor~f\*location~l} \* \beta_{factor~f*location~l})) + \\
-  &effect_{participant~n} + \epsilon \\
-
-\text{model F+L+S+D+O: } ~~~~~ \widehat{marks}_{partcipant~n} = ~ &\beta_{0} +
-  \Sigma_{f = 1}^3(\alpha_{factor~f} \* \beta_{factor~f}) + 
-  \Sigma_{l = 1}^3(\alpha_{location~l} \* \beta_{location~l}) + \\
-  &\Sigma_{s = 1}^3(\alpha_{shape~s} \* \beta_{shape~s}) +
-  \Sigma_{d = 1}^2(\alpha_{dim~d} \* \beta_{dim~d}) + \\
-  &\Sigma_{o = 1}^6(\alpha_{order~o} \* \beta_{order~o}) + 
-  effect_{participant~n} + \epsilon \\
-
-\text{model F*L+S+D+O: } ~~~~~ \widehat{marks}_{partcipant~n} = ~ &\beta_{0} +
-  \Sigma_{f = 1}^3(\Sigma_{l = 1}^3(\alpha_{factor~f\*location~l} * \beta_{factor~f\*location~l})) + \\
-  &\Sigma_{s = 1}^3(\alpha_{shape~s} \* \beta_{shape~s}) +
-  \Sigma_{d = 1}^2(\alpha_{dim~d} \* \beta_{dim~d}) + \\
-  &\Sigma_{o = 1}^6(\alpha_{order~o} \* \beta_{order~o}) + 
-  effect_{participant~n} + \epsilon \\
-
-\text{model F*(L+S+D)+O: } ~~~~~ \widehat{marks}_{partcipant~n} = ~ &\beta_{0} +
-  \Sigma_{f = 1}^3(\Sigma_{l = 1}^3(\alpha_{factor~f\*location~l} \* \beta_{factor~f\*location~l})) + \\
-  &\Sigma_{f = 1}^3(\Sigma_{s = 1}^3(\alpha_{factor~f\*shape~s} \* \beta_{factor~f\*shape~s}) + \\
-  &\Sigma_{d = 1}^2(\Sigma_{s = 1}^2(\alpha_{factor~f\*dim~d} \* \beta_{factor~f\*dim~d}) + \\
-  &\Sigma_{o = 1}^6(\alpha_{order~o} \* \beta_{order~o}) + 
-  effect_{participant~n} + \epsilon \\
+\text{base model:}&&    \widehat{\textbf{Y}} =& \textbf{Z} \* \mu + \textbf{X} \* \Beta + \epsilon \\
+\textbf{Terms:}&&    \textbf{Expanded Model:~~} & \\
+\alpha&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \epsilon \\
+\alpha + \beta&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \beta_j + \epsilon \\
+\alpha + \gamma&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \gamma_k + \epsilon \\
+\alpha + \delta&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \delta_l + \epsilon \\
+\alpha + \zeta&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \zeta_m + \epsilon \\
 \end{align*}
 
-
-Where,
+where
 
 \begin{align*}
-&\beta_0 \text{ is the sum of the marginal intercept and the mean of the participant effect} \\
-&\epsilon \sim \mathcal{N}(0,~\sigma) \\
-&effect_{participant~n} \sim \mathcal{N}(0,~\tau_{participant~n}) ~|~ n \in (1,~... ~N) \\
-&factor~f \in (pca,~grand,~radial) \\
-&location~l \in (0/100,~33/66,~50/50) \text{ percent mixing of a noise and signal variable respectively} \\
-&shape~s \in (EEE,~EEV,~EVV~banana) \\
-&dim~d \in (4,~6) \text{ variables with 3 \& 4 clusters respectively} \\
-&order~o \in (1,~... ~6) \text{, treated as a factor variable rather than numeric variable}
+&\mu \text{ is the intercept of the model} \\
+&\epsilon \sim \mathcal{N}(0,~\sigma), the error of the model \\
+&\textbf{Z} \sim \mathcal{N}(0,~\tau), \text{ the random effect of participant} \\
+&\alpha_i \text{, fixed term for factor}~|~i\in (\text{pca, grand, radial}) \\
+&\beta_j \text{, fixed term for location}~|~j\in (\text{0_1, 33_66, 50_50}) \text{ percent noise mixing of a noise and signal variable respectively} \\
+&\gamma_k \text{, fixed term for shape}~|~k\in (\text{EEE, EEV, EVV banana}) \text{ mclust model family shapes described above} \\
+&\delta_l \text{, fixed term for dim}~|~dim\in (\text{4 variables with 3 cluster, 6 variables with 4 clusters}) \\
 \end{align*}
-
 
 
 ```{r}
@@ -387,43 +349,59 @@ if(F)
 
 ## Print coef of the model that are greater than selected t_val
 mod_coef_gt_t <- function(mod, gt_t = 1.5){
-  coef <- summary(mod)$coefficients %>% data.frame() ## tibble failed
-  coef %>% filter(abs(t.value) > gt_t)
+  .coef <- summary(mod)$coefficients %>% data.frame() ## tibble failed
+  .coef %>% filter(abs(t.value) > gt_t)
+}
+mod_anova_gt_f <- function(mod, gt_f = 1){
+  .anova <- anova(mod) %>% data.frame() ## tibble failed
+  .anova %>% filter(abs(F.value) > gt_f)
 }
 
 ## The Models:
-m_factor <- lmer(marks ~ factor + (1 | participant), data = dat_qual)
-m_location <- lmer(marks ~ location + (1 | participant), data = dat_qual)
-m_shape <- lmer(marks ~ shape + (1 | participant), data = dat_qual)
-m_dim <- lmer(marks ~ dim + (1 | participant), data = dat_qual)
-m_order <- lmer(marks ~ order + (1 | participant), data = dat_qual)
-m_param <- lmer(marks ~ `parameter permutation` + (1 | participant), data = dat_qual)
-m_factorLocation <- 
-  lmer(marks ~ factor * location + (1 | participant), data = dat_qual)
-m_factor.location.shape.dim.order <- 
-  lmer(marks ~ factor + location + shape + dim + order + (1 | participant), data = dat_qual)
-m_factorLocation.shape.dim.order <- 
-  lmer(marks ~ factor * location + shape + dim + order + (1 | participant), data = dat_qual)
-m_factor_location.shape.dim_.order <- lmer(
-  marks ~ factor * (shape + dim + location) + order + (1 | participant), data = dat_qual)
+a <- lmer(marks ~ factor + (1 | participant), data = dat_qual)
+ab <- lmer(marks ~ factor + location + (1 | participant), data = dat_qual)
+ac <- lmer(marks ~ factor + shape + (1 | participant), data = dat_qual)
+ad <- lmer(marks ~ factor + dim + (1 | participant), data = dat_qual)
+abc <- lmer(marks ~ factor + location + shape + (1 | participant), data = dat_qual)
+abd <- lmer(marks ~ factor + location + dim + (1 | participant), data = dat_qual)
+acd <- lmer(marks ~ factor + shape + dim + (1 | participant), data = dat_qual)
+abcd <- lmer(marks ~ factor + location + shape + dim + (1 | participant), data = dat_qual)
+AB <- lmer(marks ~ factor * location + (1 | participant), data = dat_qual)
+AC <- lmer(marks ~ factor * shape + (1 | participant), data = dat_qual)
+AD <- lmer(marks ~ factor * dim + (1 | participant), data = dat_qual)
+ABC <- lmer(marks ~ factor * location * shape + (1 | participant), data = dat_qual)
+ABD <- lmer(marks ~ factor * location * dim + (1 | participant), data = dat_qual)
+ACD <- lmer(marks ~ factor * shape * dim + (1 | participant), data = dat_qual)
+ABCD <- lmer(marks ~ factor * location * shape * dim + (1 | participant), data = dat_qual)
 
-model_ls <- list(`F` = m_factor,
-                 `L` = m_location,
-                 `S` = m_shape,
-                 `D` = m_dim,
-                 `O` = m_order,
-                 `F*L` = m_factorLocation,
-                 `F+L+S+D+O` = m_factor.location.shape.dim.order,
-                 `F*L+S+D+O` = m_factorLocation.shape.dim.order,
-                 `F*(L+S+D)+O` = m_factor_location.shape.dim_.order)
+model_ls <- list(`alpha` = a,
+                 `alpha + beta` = ab,
+                 `alpha + gamma` = ac,
+                 `alpha + delta` = ad,
+                 `alpha + beta + gamma` = abc, 
+                 `alpha + beta + delta` = abd,
+                 `alpha + gamma + delta` = acd,
+                 `alpha + beta + gamma + delta` = abcd,
+                 `alpha * beta` = AB,
+                 `alpha * gamma` = AC,
+                 `alpha * delta` = AD,
+                 `alpha * beta * gamma` = ABC, 
+                 `alpha * beta * delta` = ABD,
+                 `alpha * gamma * delta` = ACD,
+                 `alpha * beta * gamma * delta` = ABCD)
+
+# mod_anova_gt_f(ABCD, gt_f = 2)
+#ABCD_f.gt2 <- lmer(marks ~ factor * location * shape * dim + (1 | participant), data = dat_qual)
+# z <- lmer(marks ~ factor * location * shape * dim + (1 | participant), data = dat_qual)
+# drop1(z)
+
 
 ## Local functions to abstract code complexity
 ## A residual plot with marginal density, ggplot2 obj
 plot_residual <- function(model){
   .df <- data.frame(predicted  = predict(model),
                     residual = residuals(model),
-                    factor = dat_qual$factor
-  )
+                    factor = dat_qual$factor)
   p <- ggplot(.df, aes(x = predicted, y = residual, color = factor, shape = factor)) +
     geom_point(alpha = .33) + my_theme + ggtitle("Residual plot") +
     theme(legend.position = "bottom",
@@ -469,8 +447,9 @@ mute <- lapply(seq_along(model_ls), function(i){
   # annova_ls[[i]] <<- anova(this_model)
 })
 .perf_df <- dplyr::bind_rows(performance_ls)
-.model_comp_colnms <- c("Model name", "No. factors", "No. fixed effects", "AIC", 
-                        "BIC", "R2 cond. (on RE)", "R2 marg. (w/o RE)", "RMSE")
+.model_comp_colnms <- c("Model name", "No. factors", "No. fixed terms", "AIC", 
+                        "BIC", "R2 cond. (on RE)", "R2 marg. (w/o RE)", "RMSE", 
+                        "AIC / R2 marg.")
 model_comp_tbl <- tibble(names(model_ls),
                          factors_vec,
                          fixef_vec,
@@ -478,7 +457,8 @@ model_comp_tbl <- tibble(names(model_ls),
                          round(.perf_df[, 2]),
                          round(.perf_df[, 3], 3),
                          round(.perf_df[, 4], 3),
-                         round(.perf_df[, 6], 3))
+                         round(.perf_df[, 6], 3),
+                         round(.perf_df[, 3], 3) / round(.perf_df[, 4], 3))
 colnames(model_comp_tbl) <- .model_comp_colnms
 
 ## Latex formatting
@@ -488,119 +468,17 @@ model_comp_tbl <- model_comp_tbl %>%
   format_column_extrema(6, max) %>%
   format_column_extrema(7, max) %>%
   format_column_extrema(8, min)
-```
 
-### Parameters and survey
+model_comp_tbl <- model_comp_tbl[c(1, 12, 15), 1:8]
 
-But, not only do we have the block parameterization, we also have post study-survey. Joining in the survey data we'll look at the 84 that also have survey data;
-
-_Context: 84 evaluations + surveys; use block parameters, demographics, and expertise to predict marks_
-
-
-```{r}
-## Save dat_qual, the df for the remaining 108 instance_id's.
-dat_qual <- readRDS(rel_path("data/dat_qual.rds"))
-## Load aggregated survey data. filter to only surveys in the 108 instances in the analysis
-survey_wider <- readRDS(rel_path("../survey/survey_wider.rds"))
-instance_id_whitelist <- readRDS(rel_path("instance_id_whitelist.rds"))
-## Only Prolific participants that were in the 108 instance_ids in the analysis
-survey_wider <- survey_wider %>%
-  filter(nchar(as.character(prolific_id)) == 24,
-         instance_id %in% instance_id_whitelist)
-
-print("Of the 84 that have filled out surveys, lets consider their evaluation data.")
-eval_survey <- dplyr::right_join(dat_qual, survey_wider, by = "instance_id")
-str(eval_survey)
-paste0("Length of unique instance_id's: ", length(unique(eval_survey$instance_id)))
-dim(eval_survey)
-
-print("goal: we want to regress; testing if demographic or subjective experience is important")
-
-f <- lmer(marks ~ factor + (1 | participant), data = eval_survey) ## Benchmark
-f.parameters <- 
-  lmer(marks ~ factor + location + shape + dim + order +
-         (1 | participant), data = eval_survey)
-f.survey <-
-  lmer(marks ~ factor + pronoun + age + education + task_understanding +
-         data_viz_exp + analysis_exp + (1 | participant), data = eval_survey)
-f_parameters <-
-  lmer(marks ~ factor * (location + shape + dim) + order +
-         (1 | participant), data = eval_survey)
-f_survey <-
- lmer(marks ~ factor * (pronoun + age + education + task_understanding +
-         data_viz_exp + analysis_exp) + (1 | participant), data = eval_survey)
-f.parameters.survey <-
-  lmer(marks ~ factor + location + shape + dim + order + pronoun + age +
-         education + task_understanding + data_viz_exp + analysis_exp +
-         (1 | participant), data = eval_survey)
-f_parameters_survey <-
-  lmer(marks ~ factor * (location + shape + dim + order + pronoun + age +
-         education + task_understanding + data_viz_exp + analysis_exp) +
-         (1 | participant), data = eval_survey)
-if(interactive())
-  mod_coef_gt_t(f.parameters.survey, 1.5)
-f.gt1.5 <-
-  lmer(marks ~ factor + order + age + task_understanding + analysis_exp +
-         (1 | participant), data = eval_survey)
-if(interactive())
-  mod_coef_gt_t(f_parameters_survey, 1.5)
-f_gt1.5 <-
-  lmer(marks ~ factor * (location + age + education + task_understanding +
-                           data_viz_exp + analysis_exp) +
-         (1 | participant), data = eval_survey)
-
-### why is sim_
-# .resim <- REsim(m_sub_gt2.re_sim)
-# plotREsim(.resim)
-# .resim %>%
-#   filter(groupFctr == "simulation") %>%
-#   arrange(mean)
-
-model_ls2 <- list(`F` = f,
-                  `F+parameters` = f.parameters,
-                  `F+survey` = f.survey,
-                  `F+parameters+survey` = f.parameters.survey,
-                  `F+:t_val>1.5` = f.gt1.5,
-                  `F*parameters` = f_parameters,
-                  `F*survey` = f_survey,
-                  `F*parameters*survey` = f_parameters_survey,
-                  `F*:t_val>1.5` = f_gt1.5)
-
-performance_ls2 <- list()
-factors_vec2 <- fixef_vec2 <- vector()
-mute <- lapply(seq_along(model_ls2), function(i){
-  this_model <- model_ls2[[i]]
-  performance_ls2[[i]] <<- performance::model_performance(this_model)
-  factors_vec2[i] <<- ncol(attr(terms(this_model), "factors"))
-  fixef_vec2[i] <<- length(fixef(this_model))
-})
-
-.perf_df2 <- dplyr::bind_rows(performance_ls2)
-model_comp_tbl2 <- tibble(names(model_ls2),
-                          factors_vec2,
-                          fixef_vec2,
-                          round(.perf_df2[, 1]),
-                          round(.perf_df2[, 2]),
-                          round(.perf_df2[, 3], 2),
-                          round(.perf_df2[, 4], 2),
-                          round(.perf_df2[, 6], 2))
-colnames(model_comp_tbl2) <- .model_comp_colnms
-
-## Latex formatting
-model_comp_tbl2 <- model_comp_tbl2 %>%
-  format_column_extrema(4, min) %>%
-  format_column_extrema(5, min) %>%
-  format_column_extrema(6, max) %>%
-  format_column_extrema(7, max) %>%
-  format_column_extrema(8, min)
-
-## print tables
+## print table
 knitr::kable(model_comp_tbl)
-knitr::kable(model_comp_tbl2)
 ```
 
 
 ### Regressing against the time
+
+_#TODO: XXX continue rework here_
 
 Because factor uniquely performed so well, let's use it as a benchmark as compared to models:
 
@@ -885,3 +763,115 @@ if(F){
 }
 ```
 
+
+
+# Supplemental material
+
+## Random effects regression
+
+### Parameters and survey
+
+But, not only do we have the block parameterization, we also have post study-survey. Joining in the survey data we'll look at the 84 that also have survey data;
+
+_Context: 84 evaluations + surveys; use block parameters, demographics, and expertise to predict marks_
+
+
+```{r, eval = F}
+## Save dat_qual, the df for the remaining 108 instance_id's.
+dat_qual <- readRDS(rel_path("data/dat_qual.rds"))
+## Load aggregated survey data. filter to only surveys in the 108 instances in the analysis
+survey_wider <- readRDS(rel_path("../survey/survey_wider.rds"))
+instance_id_whitelist <- readRDS(rel_path("instance_id_whitelist.rds"))
+## Only Prolific participants that were in the 108 instance_ids in the analysis
+survey_wider <- survey_wider %>%
+  filter(nchar(as.character(prolific_id)) == 24,
+         instance_id %in% instance_id_whitelist)
+
+print("Of the 84 that have filled out surveys, lets consider their evaluation data.")
+eval_survey <- dplyr::right_join(dat_qual, survey_wider, by = "instance_id")
+str(eval_survey)
+paste0("Length of unique instance_id's: ", length(unique(eval_survey$instance_id)))
+dim(eval_survey)
+
+print("goal: we want to regress; testing if demographic or subjective experience is important")
+
+f <- lmer(marks ~ factor + (1 | participant), data = eval_survey) ## Benchmark
+f.parameters <- 
+  lmer(marks ~ factor + location + shape + dim + order +
+         (1 | participant), data = eval_survey)
+f.survey <-
+  lmer(marks ~ factor + pronoun + age + education + task_understanding +
+         data_viz_exp + analysis_exp + (1 | participant), data = eval_survey)
+f_parameters <-
+  lmer(marks ~ factor * (location + shape + dim) + order +
+         (1 | participant), data = eval_survey)
+f_survey <-
+ lmer(marks ~ factor * (pronoun + age + education + task_understanding +
+         data_viz_exp + analysis_exp) + (1 | participant), data = eval_survey)
+f.parameters.survey <-
+  lmer(marks ~ factor + location + shape + dim + order + pronoun + age +
+         education + task_understanding + data_viz_exp + analysis_exp +
+         (1 | participant), data = eval_survey)
+f_parameters_survey <-
+  lmer(marks ~ factor * (location + shape + dim + order + pronoun + age +
+         education + task_understanding + data_viz_exp + analysis_exp) +
+         (1 | participant), data = eval_survey)
+if(interactive())
+  mod_coef_gt_t(f.parameters.survey, 1.5)
+f.gt1.5 <-
+  lmer(marks ~ factor + order + age + task_understanding + analysis_exp +
+         (1 | participant), data = eval_survey)
+if(interactive())
+  mod_coef_gt_t(f_parameters_survey, 1.5)
+f_gt1.5 <-
+  lmer(marks ~ factor * (location + age + education + task_understanding +
+                           data_viz_exp + analysis_exp) +
+         (1 | participant), data = eval_survey)
+
+### why is sim_
+# .resim <- REsim(m_sub_gt2.re_sim)
+# plotREsim(.resim)
+# .resim %>%
+#   filter(groupFctr == "simulation") %>%
+#   arrange(mean)
+
+model_ls2 <- list(`F` = f,
+                  `F+parameters` = f.parameters,
+                  `F+survey` = f.survey,
+                  `F+parameters+survey` = f.parameters.survey,
+                  `F+:t_val>1.5` = f.gt1.5,
+                  `F*parameters` = f_parameters,
+                  `F*survey` = f_survey,
+                  `F*parameters*survey` = f_parameters_survey,
+                  `F*:t_val>1.5` = f_gt1.5)
+
+performance_ls2 <- list()
+factors_vec2 <- fixef_vec2 <- vector()
+mute <- lapply(seq_along(model_ls2), function(i){
+  this_model <- model_ls2[[i]]
+  performance_ls2[[i]] <<- performance::model_performance(this_model)
+  factors_vec2[i] <<- ncol(attr(terms(this_model), "factors"))
+  fixef_vec2[i] <<- length(fixef(this_model))
+})
+
+.perf_df2 <- dplyr::bind_rows(performance_ls2)
+model_comp_tbl2 <- tibble(names(model_ls2),
+                          factors_vec2,
+                          fixef_vec2,
+                          round(.perf_df2[, 1]),
+                          round(.perf_df2[, 2]),
+                          round(.perf_df2[, 3], 2),
+                          round(.perf_df2[, 4], 2),
+                          round(.perf_df2[, 6], 2))
+colnames(model_comp_tbl2) <- .model_comp_colnms
+
+## Latex formatting
+model_comp_tbl2 <- model_comp_tbl2 %>%
+  format_column_extrema(4, min) %>%
+  format_column_extrema(5, min) %>%
+  format_column_extrema(6, max) %>%
+  format_column_extrema(7, max) %>%
+  format_column_extrema(8, min)
+
+
+```

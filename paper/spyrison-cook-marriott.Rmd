@@ -135,7 +135,7 @@ Consider a numeric data matrix with $n$ observations of $p$ variables,
 
 \begin{gather*}
   \textbf{X}_{[n, p]} = (\textbf{x}_{1},~...~\textbf{x}_{p}) \\
-  \textbf{x}_{i} = (x_{1i},~...~ x_{ni})~|~i \in [1, p] 
+  \textbf{x}_{i} = (x_{1i},~...~ x_{ni})~|~i \in [1, p]
 \end{gather*}
 
 Let $Y_{[n, d]}$ be the $d$-dimensional projection or embedding of $\textbf{X}_{[n, p]}$ via matrix multiplication of a particular orthonormal basis matrix $\textbf{B}_{[p, d]}$.
@@ -143,7 +143,7 @@ Let $Y_{[n, d]}$ be the $d$-dimensional projection or embedding of $\textbf{X}_{
 
 \begin{gather*}
   \textbf{Y}_{[n, d]} = \textbf{X}_{[n, p]} \textbf{B}_{[p, d]}~|~\textbf{B}\text{ is orthonormal} \\
-  \textbf{y}_{j} = (y_{1j},~...~ y_{nj})~|~j \in [i, d] 
+  \textbf{y}_{j} = (y_{1j},~...~ y_{nj})~|~j \in [i, d]
 \end{gather*}
 
 
@@ -340,26 +340,7 @@ To recap, the primary response variable are marks as defined in section \@ref(se
 Below we look at the marginal performance of the block parameters and survey responses. After that we build a battery of regression models to explore the variables and their interactions. Lastly we look at the subjective measures between the factors.
 
 
-## Marginal block parameters and survey variables
 
-<!-- Test: Kruskal-Wallis H test (or one-way anova) -->
-Consider the 108 trials and their associate block parameterizations, We apply the Kruskal-Wallis H test (or one-way anova), a non-parametric method for testing if the x-levels are from the same distribution.
-
-__TODO: XXX write up here.__
-
-_Will have to figure out a more elegant solution for this. consider: size of text, global test, two-way test. n=x within bars. May need to go manually run test and/or place values._
-
-<!-- Interpreting what marginal effects -->
-Figure \@ref(fig:figMarksByMarg) (top) compares the effect of the study block parameters. Location is the inverse of what is expected, though perhaps mixing the signal diversifies the marks in that its easier to choose at least one of the correct answers of two dimensions with signal rather than the higher risk of selecting the only correct answer for all marks. EEV slightly outperforms EEE, perhaps the different shape helps distinguish the cluster or stick out from one another. Evaluation order does not have a monotonic increase. Every odd evaluation beats the next evaluation which have 4 and 6 dimensions respectively.
-
-```{r figMarksByMarg, out.width="100%", fig.show='asis', fig.cap='Marks by the marginal effect of the block parameterizations (top) and survey variables (bottom), for the 4 variables with most support. Factor has a large degree of support for the alternative hypothesis, that use of the radial tour outperforms both the discrete benchmark, pca, and animated benchmark, grand tour for this task. The other block parameterizations quickly drop off in support. While order is near significant it is not monotonically increasing marks, the increasing difficulty of fixed block parameterization appear to have a stronger effect than any oberservable learning effect. Of the survey variables (bottom), note that the boxplots have an uneven number of observations, those with low numbers may not aproximate the true population well. Task understanding is hugely significant, though it may be conflated with latent attenion and effort of participants. Participants that default/decline recieved unanimously low marks.'}
-if(F) ## Creation and saving figure at:
-  file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
-knitr::include_graphics("./figures/figMarksByMarg.png")
-```
-
-<!-- Interpreting the effects of the marginal survey variables -->
-We also test the demographic and experience question from the survey to see if they they effect marks. Figure \@ref(fig:figMarksByMarg) (bottom) show the variables with strongest evidence to explain marks. Keep in mind that some of the x groups have low counts any likely may not reflect the true distribution of their demographic. Perhaps unsurprisingly, participants that rated their task comprehension higher, averaged higher marks. Age group was narrowly significant, with the lowest, highest, and default groups scoring low. The explanatory power of age is more likely more of a proxy for attention and thoroughness rather than a true effect of age. Education correlates with marks, though is narrowly not significant at $\alpha = .95$, it is also be slight correlated with age and understanding which explain marks better then education alone. Decline/default groups received lower marks unanimously across survey questions; care should be taken to ensure or evaluate the level of effort of participants.
 
 
 
@@ -379,99 +360,30 @@ In building a set of models to test we include all single term models, a model w
 
 <!-- 1) Eval parameters -->
 \begin{align*}
-\textbf{Abbreviation:}&&    \textbf{Model:~~} & \\
-\text{F: }&&    \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) +
-  \text{effect}_{participant} + \epsilon \\
-\text{L: }&&    \widehat{marks} =& \beta_{0} + \Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + \text{effect}_{participant} + \epsilon \\
-\text{L: }&&     \widehat{marks} =& \beta_{0} + \Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + \text{effect}_{participant} + \epsilon \\
-\text{S: }&&     \widehat{marks} =& \beta_{0} + \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s}) + \text{effect}_{participant} + \epsilon \\
-\text{D: }&&     \widehat{marks} =& \beta_{0} + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) \text{effect}_{participant} + \epsilon \\
-\text{O: }&&     \widehat{marks} =& \beta_{0} + \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o}) + \text{effect}_{participant} + \epsilon \\
-\text{F+L+S+D+O: }&&     \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + \\
-&& & \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s}) + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) + \\
-&& & \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o}) + \text{effect}_{participant} + \epsilon \\
-\text{F\*L: }&&     \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\Sigma_{l = 1}^3(\alpha_{f\*l} \* \beta_{f\*l})) + \\
-&&  & \text{effect}_{participant} + \epsilon \\
-\text{F\*L+S+D+O: }&&     \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\Sigma_{l = 1}^3(\alpha_{f\*l} \* \beta_{f\*l})) + \\
-&& & \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s}) + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) + \\
-&& & \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o}) + \text{effect}_{participant} + \epsilon \\
-\text{F\*(L+S+D)+O: }&&     \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\Sigma_{l = 1}^3(\alpha_{f\*l} \* \beta_{f\*l})) + \\
-&& & \Sigma_{f = 1}^3(\Sigma_{s = 1}^3(\alpha_{f\*s} \* \beta_{f\*s}) + \\
-&& & \Sigma_{d = 1}^2(\Sigma_{s = 1}^2(\alpha_{f\*d} \* \beta_{f\*d}) + \\
-&& & \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o}) + \text{effect}_{participant} + \epsilon
+\text{base model:}&&    \widehat{\textbf{Y}} =& \textbf{Z} \* \mu + \textbf{X} \* \Beta + \epsilon \\
+\textbf{Terms:}&&    \textbf{Expanded Model:~~} & \\
+\alpha&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \epsilon \\
+\alpha + \beta&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \beta_j + \epsilon \\
+\alpha + \gamma&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \gamma_k + \epsilon \\
+\alpha + \delta&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \delta_l + \epsilon \\
+\alpha + \zeta&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \zeta_m + \epsilon \\
 \end{align*}
 
 where
 
 \begin{align*}
-&\beta_0 \text{ is the sum of the intercept and the mean of the participant random effect} \\
-&\epsilon \sim \mathcal{N}(0,~\sigma) \\
-&\text{effect}_{participant} \sim \mathcal{N}(0,~\tau_{participant}) \\
-&\text{factor}~f \in (\text{pca, grand, radial}) \\
-&\text{location}~l \in (0/100,~33/66,~50/50) \text{ percent mixing of a noise and signal variable respectively} \\
-&\text{shape}~s \in (\text{EEE, EEV, EVV banana}) \\
-&\text{dim}~d \in (4,~6) \text{ variables, dimensions of the data with 3 \& 4 clusters respectively} \\
-&\text{order}~o \in (1,~... ~6) \text{, order of evaluation within participant, as a factor rather than numeric variable}
+&\mu \text{ is the intercept of the model} \\
+&\epsilon \sim \mathcal{N}(0,~\sigma), the error of the model \\
+&\textbf{Z} \sim \mathcal{N}(0,~\tau), \text{ the random effect of participant} \\
+&\alpha_i \text{, fixed term for factor}~|~i\in (\text{pca, grand, radial}) \\
+&\beta_j \text{, fixed term for location}~|~j\in (\text{0_1, 33_66, 50_50}) \text{ percent noise mixing of a noise and signal variable respectively} \\
+&\gamma_k \text{, fixed term for shape}~|~k\in (\text{EEE, EEV, EVV banana}) \text{ mclust model family shapes described above} \\
+&\delta_l \text{, fixed term for dim}~|~dim\in (\text{4 variables with 3 cluster, 6 variables with 4 clusters}) \\
 \end{align*}
 
 
-<!-- Look at survey variables survey -->
-We want to see how survey variables fare in comparison. Holding the factor model as a comparison benchmark we fit another battery of similarly increasing complexity. Keep in mind that the scope has changed a bit from the 108 evaluations to only the 84 studies that have available survey data.
-
-<!-- 2) Survey parameters -->
-\begin{align*}
-\textbf{Abbreviation:}&&    \textbf{Model:~~} & \\
-\text{F:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \text{effect}_{participant} + \epsilon \\
-\text{F + else $|$ study:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s}) + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) + \\
-&& & \Sigma_{o = 1}^6(\alpha_{o} \*  \beta_{o}) + \text{effect}_{participant} + \epsilon \\
-\text{F + else $|$ survey:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \Sigma_{p = 1}^4(\alpha_{p} \* \beta_{p}) + \Sigma_{1 = 1}^5(\alpha_{a} \* \beta_{a}) + \Sigma_{e = 1}^4(\alpha_{e} \* \beta_{e}) + \\
-&& & \Sigma_{v = 1}^5(\alpha_{v} \* \beta_{v}) + \Sigma_{ae = 1}^5(\alpha_{ae} \* \beta_{ae}) + \text{effect}_{participant} + \epsilon \\
-\text{F \* else $|$ study:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) \* (\Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s} + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) + \\
-&& & \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o})) + \text{effect}_{participant} + \epsilon \\
-\text{F \* else $|$ survey:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) \* (\Sigma_{p = 1}^4(\alpha_{p} \* \beta_{p}) + \Sigma_{1 = 1}^5(\alpha_{a} \* \beta_{a}) + \Sigma_{e = 1}^4(\alpha_{e} \* \beta_{e}) + \\
-&& & \Sigma_{v = 1}^5(\alpha_{v} \* \beta_{v}) + \Sigma_{ae = 1}^5(\alpha_{ae} \* \beta_{ae})) + \text{effect}_{participant} + \epsilon \\
-\text{F + else $|$ study\&survey:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s} + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) + \\
-&& & \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o}) + (\Sigma_{p = 1}^4(\alpha_{p} \* \beta_{p}) + \Sigma_{1 = 1}^5(\alpha_{a} \* \beta_{a}) + \Sigma_{e = 1}^4(\alpha_{e} \* \beta_{e}) + \\
-&& & \Sigma_{v = 1}^5(\alpha_{v} \* \beta_{v}) + \Sigma_{ae = 1}^5(\alpha_{ae} \* \beta_{ae}) + \text{effect}_{participant} + \epsilon \\
-\text{F \* else $|$ study\&survey:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) \* (\Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s} + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) + \\
-&& & \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o}) + (\Sigma_{p = 1}^4(\alpha_{p} \* \beta_{p}) + \Sigma_{1 = 1}^5(\alpha_{a} \* \beta_{a}) + \Sigma_{e = 1}^4(\alpha_{e} \* \beta_{e}) + \\
-&& & \Sigma_{v = 1}^5(\alpha_{v} \* \beta_{v}) + \Sigma_{ae = 1}^5(\alpha_{ae} \* \beta_{ae})) + \text{effect}_{participant} + \epsilon \\
-\end{align*}
-
-where
-
-\begin{align*}
-&\text{pronoun}~p \in (\text{he/him, she/her, they/them or other, default/decline}) \\
-&text{age}~a \in (\text{18 to 24, 25 to 35, 36 to 45, 45 to 60, default/decline}) \\
-&text{education}~e \in (\text{Undergraduate degree (BA/BSc/other), Graduate degree (MA/MSc/MPhil/other), Doctorate degree (PhD/other), default/decline}) \\
-&text{task Understanding}~u \in (\text{Likert scale [1-5]: I understand the how to perform the task.}) \\
-&text{data Visualization experience}~v \in (\text{Likert scale [1-5]: I am experienced with data visualization.}) \\
-&\text{Analysis Experience}~ae \in (\text{Likert scale [1-5]: I am educated in multivariate statistical analysis.}) 
-\end{align*}
 
 
-<!-- Extend models, eval and survey -->
-Among the above models, the simple factor model performs best in terms of AIC and BIC, and is thus included as a benchmark model of comparison going forward. In see the a particular simulation effect on the score an additional random effect term based on the simulation data is used. We also want to see how well the time till response can be explained by the single factor model; consider:
-
-<!--  3) extending to RE(data), and regressing against time for eval and survey.  -->
-\begin{align*}
-\textbf{Abbreviation:}&&    \textbf{Model:~~} & \\
-\text{marks=F+RE(participant):}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{} \* \beta_{f}) + \text{effect}_{participant} + \epsilon \\
-\text{marks=F+RE(participant+simulation):}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \text{effect}_{participant} + \text{effect}_{simulation} + \epsilon \\
-\text{time=F+RE(participant):}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \text{effect}_{participant} + \epsilon \\
-\text{time=F+RE(participant+simulation):}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \text{effect}_{participant} + \text{effect}_{simulation} + \epsilon \\
-\end{align*}
-
-where
-
-\begin{align*}
-&\text{effect}_{simulation} \sim \mathcal{N}(0,~\pi_{simulation}) \\
-&time \text{ is the duration of time on the page till the last response change} \\
-\end{align*}
-
-
-<!-- Tables don't render in landscape mode. -->
-<!-- \begin{landscape} -->
 ```{r modelTable, fig.cap = "Use the caption arg in kable(), not this."}
 model_comp_tbl_ls <- readRDS("./figures/model_comp_tbl_ls.rds")
 bold_column_extrema <- function(df, col, extrema = max){ 
@@ -492,12 +404,6 @@ kableExtra::kbl(model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
   kableExtra::column_spec(column = c(2:3, 6:7), width = "1.7cm") %>%
   kableExtra::column_spec(column = c(4:5, 8), width = "1.1cm") %>% 
   kableExtra::column_spec(column = c(4:5, 8), width = "1.1cm")
-  # 
-  # bold_column_extrema(4, min) %>% 
-  # bold_column_extrema(5, min) %>%
-  # bold_column_extrema(6, max) %>%
-  # bold_column_extrema(7, max) %>%
-  # bold_column_extrema(8, max)
 
 
 ## 2) Survey parameters
@@ -555,3 +461,82 @@ spinifex::run_app("primary")
 This research was supported by an Australian Government Research Training Program (RTP) Scholarship. This article was created in R [@r_core_team_r:_2020], using `knitr` [@stodden_knitr:_2014] and `rmarkdown` [@xie_r_2018]. The source files for this article, application, data, and analysis can be found at [github.com/nspyrison/spinifex_study/](https://github.com/nspyrison/spinifex_study/). The source code for the `spinifex` package and accompanying shiny application can be found at [github.com/nspyrison/spinifex/](https://github.com/nspyrison/spinifex/).
 
 # Bibliography {#sec:bib}
+
+# Supplemental matterial
+
+<!-- after 5the 12-4 meeting with Di, going to a regression oriented approach with only only violin plot of final terms in the model; boxplots scraped. -->
+## Marginal block parameters and survey variables
+
+<!-- Test: Kruskal-Wallis H test (or one-way anova) -->
+Consider the 108 trials and their associate block parameterizations, We apply the Kruskal-Wallis H test (or one-way anova), a non-parametric method for testing if the x-levels are from the same distribution.
+
+
+<!-- Interpreting what marginal effects -->
+Figure \@ref(fig:figMarksByMarg) (top) compares the effect of the study block parameters. Location is the inverse of what is expected, though perhaps mixing the signal diversifies the marks in that its easier to choose at least one of the correct answers of two dimensions with signal rather than the higher risk of selecting the only correct answer for all marks. EEV slightly outperforms EEE, perhaps the different shape helps distinguish the cluster or stick out from one another. Evaluation order does not have a monotonic increase. Every odd evaluation beats the next evaluation which have 4 and 6 dimensions respectively.
+
+```{r figMarksByMarg, out.width="100%", fig.show='asis', fig.cap='Marks by the marginal effect of the block parameterizations (top) and survey variables (bottom), for the 4 variables with most support. Factor has a large degree of support for the alternative hypothesis, that use of the radial tour outperforms both the discrete benchmark, pca, and animated benchmark, grand tour for this task. The other block parameterizations quickly drop off in support. While order is near significant it is not monotonically increasing marks, the increasing difficulty of fixed block parameterization appear to have a stronger effect than any oberservable learning effect. Of the survey variables (bottom), note that the boxplots have an uneven number of observations, those with low numbers may not aproximate the true population well. Task understanding is hugely significant, though it may be conflated with latent attenion and effort of participants. Participants that default/decline recieved unanimously low marks.'}
+if(F) ## Creation and saving figure at:
+  file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
+knitr::include_graphics("./figures/figMarksByMarg.png")
+```
+
+<!-- Interpreting the effects of the marginal survey variables -->
+We also test the demographic and experience question from the survey to see if they they effect marks. Figure \@ref(fig:figMarksByMarg) (bottom) show the variables with strongest evidence to explain marks. Keep in mind that some of the x groups have low counts any likely may not reflect the true distribution of their demographic. Perhaps unsurprisingly, participants that rated their task comprehension higher, averaged higher marks. Age group was narrowly significant, with the lowest, highest, and default groups scoring low. The explanatory power of age is more likely more of a proxy for attention and thoroughness rather than a true effect of age. Education correlates with marks, though is narrowly not significant at $\alpha = .95$, it is also be slight correlated with age and understanding which explain marks better then education alone. Decline/default groups received lower marks unanimously across survey questions; care should be taken to ensure or evaluate the level of effort of participants.
+
+## Random effects regression
+
+
+
+<!-- Look at survey variables survey -->
+We want to see how survey variables fare in comparison. Holding the factor model as a comparison benchmark we fit another battery of similarly increasing complexity. Keep in mind that the scope has changed a bit from the 108 evaluations to only the 84 studies that have available survey data.
+
+<!-- 2) Survey parameters -->
+\begin{align*}
+\textbf{Abbreviation:}&&    \textbf{Model:~~} & \\
+\text{F:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \text{effect}_{participant} + \epsilon \\
+\text{F + else $|$ study:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s}) + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) + \\
+&& & \Sigma_{o = 1}^6(\alpha_{o} \*  \beta_{o}) + \text{effect}_{participant} + \epsilon \\
+\text{F + else $|$ survey:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \Sigma_{p = 1}^4(\alpha_{p} \* \beta_{p}) + \Sigma_{1 = 1}^5(\alpha_{a} \* \beta_{a}) + \Sigma_{e = 1}^4(\alpha_{e} \* \beta_{e}) + \\
+&& & \Sigma_{v = 1}^5(\alpha_{v} \* \beta_{v}) + \Sigma_{ae = 1}^5(\alpha_{ae} \* \beta_{ae}) + \text{effect}_{participant} + \epsilon \\
+\text{F \* else $|$ study:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) \* (\Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s} + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) + \\
+&& & \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o})) + \text{effect}_{participant} + \epsilon \\
+\text{F \* else $|$ survey:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) \* (\Sigma_{p = 1}^4(\alpha_{p} \* \beta_{p}) + \Sigma_{1 = 1}^5(\alpha_{a} \* \beta_{a}) + \Sigma_{e = 1}^4(\alpha_{e} \* \beta_{e}) + \\
+&& & \Sigma_{v = 1}^5(\alpha_{v} \* \beta_{v}) + \Sigma_{ae = 1}^5(\alpha_{ae} \* \beta_{ae})) + \text{effect}_{participant} + \epsilon \\
+\text{F + else $|$ study\&survey:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s} + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) + \\
+&& & \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o}) + (\Sigma_{p = 1}^4(\alpha_{p} \* \beta_{p}) + \Sigma_{1 = 1}^5(\alpha_{a} \* \beta_{a}) + \Sigma_{e = 1}^4(\alpha_{e} \* \beta_{e}) + \\
+&& & \Sigma_{v = 1}^5(\alpha_{v} \* \beta_{v}) + \Sigma_{ae = 1}^5(\alpha_{ae} \* \beta_{ae}) + \text{effect}_{participant} + \epsilon \\
+\text{F \* else $|$ study\&survey:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) \* (\Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s} + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) + \\
+&& & \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o}) + (\Sigma_{p = 1}^4(\alpha_{p} \* \beta_{p}) + \Sigma_{1 = 1}^5(\alpha_{a} \* \beta_{a}) + \Sigma_{e = 1}^4(\alpha_{e} \* \beta_{e}) + \\
+&& & \Sigma_{v = 1}^5(\alpha_{v} \* \beta_{v}) + \Sigma_{ae = 1}^5(\alpha_{ae} \* \beta_{ae})) + \text{effect}_{participant} + \epsilon \\
+\end{align*}
+
+where
+
+\begin{align*}
+&\text{pronoun}~p \in (\text{he/him, she/her, they/them or other, default/decline}) \\
+&text{age}~a \in (\text{18 to 24, 25 to 35, 36 to 45, 45 to 60, default/decline}) \\
+&text{education}~e \in (\text{Undergraduate degree (BA/BSc/other), Graduate degree (MA/MSc/MPhil/other), Doctorate degree (PhD/other), default/decline}) \\
+&text{task Understanding}~u \in (\text{Likert scale [1-5]: I understand the how to perform the task.}) \\
+&text{data Visualization experience}~v \in (\text{Likert scale [1-5]: I am experienced with data visualization.}) \\
+&\text{Analysis Experience}~ae \in (\text{Likert scale [1-5]: I am educated in multivariate statistical analysis.}) 
+\end{align*}
+
+
+<!-- Extend models, eval and survey -->
+Among the above models, the simple factor model performs best in terms of AIC and BIC, and is thus included as a benchmark model of comparison going forward. In see the a particular simulation effect on the score an additional random effect term based on the simulation data is used. We also want to see how well the time till response can be explained by the single factor model; consider:
+
+<!--  3) extending to RE(data), and regressing against time for eval and survey.  -->
+\begin{align*}
+\textbf{Abbreviation:}&&    \textbf{Model:~~} & \\
+\text{marks=F+RE(participant):}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{} \* \beta_{f}) + \text{effect}_{participant} + \epsilon \\
+\text{marks=F+RE(participant+simulation):}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \text{effect}_{participant} + \text{effect}_{simulation} + \epsilon \\
+\text{time=F+RE(participant):}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \text{effect}_{participant} + \epsilon \\
+\text{time=F+RE(participant+simulation):}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \text{effect}_{participant} + \text{effect}_{simulation} + \epsilon \\
+\end{align*}
+
+where
+
+\begin{align*}
+&\text{effect}_{simulation} \sim \mathcal{N}(0,~\pi_{simulation}) \\
+&time \text{ is the duration of time on the page till the last response change} \\
+\end{align*}
