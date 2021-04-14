@@ -242,7 +242,7 @@ Participant responses, $R$ are a vector of logical values, whether or not partic
 
 where $I$ is the indicator function. Then the total marks for this task is the sum of this marks vector.
 
-```{r, figBiplotScoring, echo = F, out.width = '100%', fig.cap = "(L), PCA biplot of the components showing the most cluster separation with (R) Illustration of how much of the cluster separation is for each variable (wide bar) and the weight of the marks given if a variable is selected (red/green line). The horizontal dashed line is 1 / dimensionality, the ammount of separation each variable would have if evenly detributed. The weights equal the signed square of the differce between each variable value and the dashed line."}
+```{r, figBiplotScoring, echo = F, out.width = '100%', fig.cap = "(L), PCA biplot of the components showing the most cluster separation with (R) illustration of the magnitude of cluster separation is for each variable (wide bar) and the weight of the marks given if a variable is selected (red/green line). The horizontal dashed line is 1 / dimensionality, the ammount of separation each variable would have if evenly detributed. The weights equal the signed square of the differce between each variable value and the dashed line."}
 knitr::include_graphics("./figures/figBiplotScoring.png")
 ```
 
@@ -360,7 +360,6 @@ In building a set of models to test we include all single term models, a model w
 
 <!-- 1) Eval parameters -->
 \begin{align*}
-\text{base model:}&&    \widehat{\textbf{Y}} =& \textbf{Z} \* \mu + \textbf{X} \* \Beta + \epsilon \\
 \textbf{Terms:}&&    \textbf{Expanded Model:~~} & \\
 \alpha&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \epsilon \\
 \alpha + \beta&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \beta_j + \epsilon \\
@@ -373,10 +372,10 @@ where
 
 \begin{align*}
 &\mu \text{ is the intercept of the model} \\
-&\epsilon \sim \mathcal{N}(0,~\sigma), the error of the model \\
+&\epsilon \sim \mathcal{N}(0,~\sigma), \text{ the error of the model} \\
 &\textbf{Z} \sim \mathcal{N}(0,~\tau), \text{ the random effect of participant} \\
-&\alpha_i \text{, fixed term for factor}~|~i\in (\text{pca, grand, radial}) \\
-&\beta_j \text{, fixed term for location}~|~j\in (\text{0_1, 33_66, 50_50}) \text{ percent noise mixing of a noise and signal variable respectively} \\
+&\alpha_i \text{, fixed term for factor}~|~i \in(\text{pca, grand, radial}) \\
+&\beta_j \text{, fixed term for location}~|~j \in(\text{0/1, 33/66, 50/50}) \text{ percent noise mixing of a noise and signal variable respectively} \\
 &\gamma_k \text{, fixed term for shape}~|~k\in (\text{EEE, EEV, EVV banana}) \text{ mclust model family shapes described above} \\
 &\delta_l \text{, fixed term for dim}~|~dim\in (\text{4 variables with 3 cluster, 6 variables with 4 clusters}) \\
 \end{align*}
@@ -386,16 +385,6 @@ where
 
 ```{r modelTable, fig.cap = "Use the caption arg in kable(), not this."}
 model_comp_tbl_ls <- readRDS("./figures/model_comp_tbl_ls.rds")
-bold_column_extrema <- function(df, col, extrema = max){ 
-  ## c("*", "**", "~~"), c("italics", "bold", "strikethrough")
-  v <- as.data.frame(df[, col])[, 1]
-  ## Make sure values are not factors
-  r_idx <- which(v == extrema(v))
-  ## Update formatting
-  kableExtra::column_spec(df, column = c(r_idx, col), bold = T)
-}
-# .v <- model_comp_tbl_ls[[1]][,4]
-# model_comp_tbl_ls[[1]][,4] = kableExtra::cell_spec(.v, bold = ifelse(.v == min(.v), T, F))
 
 ## 1) Eval parameters
 kableExtra::kbl(model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
@@ -405,30 +394,16 @@ kableExtra::kbl(model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
   kableExtra::column_spec(column = c(4:5, 8), width = "1.1cm") %>% 
   kableExtra::column_spec(column = c(4:5, 8), width = "1.1cm")
 
-
-## 2) Survey parameters
-knitr::kable(model_comp_tbl_ls[[2]], align = c("l", rep("r", 7)), format="latex",
-             booktabs = TRUE, linesep = "", caption = "TODO: XXX CAP NEEDED") %>%
-  kableExtra::column_spec(column = 1, width = "3.2cm") %>%
-  kableExtra::column_spec(column = c(2:3, 6:7), width = "1.7cm") %>%
-  kableExtra::column_spec(column = c(4:5, 8), width = "1.1cm")
-
-## 3) extending to RE(data), and regressing against time for eval and survey.
-knitr::kable(model_comp_tbl_ls[[3]], align = c("l", rep("r", 7)), format="latex",
-             booktabs = TRUE, linesep = "", caption = "We select the simple facet model as our benchmark and compare the random effects from participants with the random effects of simulated data. The random effect of the data is small compared to the random effect of the data. The random effect of the participant is good at prediciting the time users take, its conditional R2 is much larger than the marginal R2 of the factor fixed term. TODO: XXX, scale time to be between [-1, 1] for better comparison of RMSE? would be desirable or confusing?") %>%
-  kableExtra::column_spec(column = 1, width = "3.2cm") %>%
-  kableExtra::column_spec(column = c(2:3, 6:7), width = "1.7cm") %>%
-  kableExtra::column_spec(column = c(4:5, 8), width = "1.1cm")
 ```
 <!-- \end{landscape} -->
 
 <!-- Residuals and random effects simulation -->
 Residual plots had no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figModel) illustrates a typically residual plot (left), while the right compares 95\% confidence interval of the effect ranges for participant and simulation. The effect ranges are estimated from simulations of the posterior distribution. The effect size of participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha$ = .95, while none of the simulation effects significantly deviate from the null of having no effect size on the marks.
 
-```{r figModel, out.width="100%", fig.show='asis', fig.cap='Residual plot and estimated effect ranges for factor regressing on marks with random effects for both partitcipant and data simulation. The effect size of participant is relatively large, with several significant extrema (alpha = .95). None of the simulations deviate significantly.'}
+```{r figEffectRange, out.width="100%", fig.show='asis', fig.cap='(T) Estimated effect ranges of the random effect terms partitcipant and data simulation of the alpha * beta * gamma model. Confidence intervals are created via Gelman simulation on the effect posterior distributions. The effect size of participant is relatively large, with several significant extrema (alpha = .95). None of the simulations deviate significantly. (B) The ordered distributions of the marks for the '}
 if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
-knitr::include_graphics("./figures/figModels.png")
+knitr::include_graphics("./figures/figEffectRange.png")
 ```
 
 ## Subjective measures
@@ -441,7 +416,7 @@ if(F)
 
 if(F) ## Creation and saving figure at:
   file.edit("./paper/R/fig_population_demographics.rmd")
-knitr::include_graphics("./figures/figSubjectiveMeasures.png")
+knitr::include_graphics("./figures/figSubjectiveMeasures_hori.png") ## alternatively use the suffix *_vert
 ```
 
 # Discussion {#sec:discussion}
@@ -462,9 +437,11 @@ This research was supported by an Australian Government Research Training Progra
 
 # Bibliography {#sec:bib}
 
+\newpage
+
 # Supplemental matterial
 
-<!-- after 5the 12-4 meeting with Di, going to a regression oriented approach with only only violin plot of final terms in the model; boxplots scraped. -->
+<!-- after the 12-4 meeting with Di, going to a regression oriented approach with only only violin plot of final terms in the model; boxplots scraped. -->
 ## Marginal block parameters and survey variables
 
 <!-- Test: Kruskal-Wallis H test (or one-way anova) -->
@@ -484,8 +461,6 @@ knitr::include_graphics("./figures/figMarksByMarg.png")
 We also test the demographic and experience question from the survey to see if they they effect marks. Figure \@ref(fig:figMarksByMarg) (bottom) show the variables with strongest evidence to explain marks. Keep in mind that some of the x groups have low counts any likely may not reflect the true distribution of their demographic. Perhaps unsurprisingly, participants that rated their task comprehension higher, averaged higher marks. Age group was narrowly significant, with the lowest, highest, and default groups scoring low. The explanatory power of age is more likely more of a proxy for attention and thoroughness rather than a true effect of age. Education correlates with marks, though is narrowly not significant at $\alpha = .95$, it is also be slight correlated with age and understanding which explain marks better then education alone. Decline/default groups received lower marks unanimously across survey questions; care should be taken to ensure or evaluate the level of effort of participants.
 
 ## Random effects regression
-
-
 
 <!-- Look at survey variables survey -->
 We want to see how survey variables fare in comparison. Holding the factor model as a comparison benchmark we fit another battery of similarly increasing complexity. Keep in mind that the scope has changed a bit from the 108 evaluations to only the 84 studies that have available survey data.
@@ -540,3 +515,32 @@ where
 &\text{effect}_{simulation} \sim \mathcal{N}(0,~\pi_{simulation}) \\
 &time \text{ is the duration of time on the page till the last response change} \\
 \end{align*}
+
+
+```{r modelTableSupp, fig.cap = "Use the caption arg in kable(), not this."}
+model_comp_tbl_ls <- readRDS("./figures/model_comp_tbl_ls.rds")
+
+## 2) Survey parameters
+knitr::kable(model_comp_tbl_ls[[2]], align = c("l", rep("r", 7)), format="latex",
+             booktabs = TRUE, linesep = "", caption = "TODO: XXX CAP NEEDED") %>%
+  kableExtra::column_spec(column = 1, width = "3.2cm") %>%
+  kableExtra::column_spec(column = c(2:3, 6:7), width = "1.7cm") %>%
+  kableExtra::column_spec(column = c(4:5, 8), width = "1.1cm")
+
+## 3) extending to RE(data), and regressing against time for eval and survey.
+knitr::kable(model_comp_tbl_ls[[3]], align = c("l", rep("r", 7)), format="latex",
+             booktabs = TRUE, linesep = "", caption = "We select the simple facet model as our benchmark and compare the random effects from participants with the random effects of simulated data. The random effect of the data is small compared to the random effect of the data. The random effect of the participant is good at prediciting the time users take, its conditional R2 is much larger than the marginal R2 of the factor fixed term. TODO: XXX, scale time to be between [-1, 1] for better comparison of RMSE? would be desirable or confusing?") %>%
+  kableExtra::column_spec(column = 1, width = "3.2cm") %>%
+  kableExtra::column_spec(column = c(2:3, 6:7), width = "1.7cm") %>%
+  kableExtra::column_spec(column = c(4:5, 8), width = "1.1cm")
+```
+
+
+<!-- Residuals and random effects simulation -->
+Residual plots had no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figModel) illustrates a typically residual plot (left), while the right compares 95\% confidence interval of the effect ranges for participant and simulation. The effect ranges are estimated from simulations of the posterior distribution. The effect size of participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha$ = .95, while none of the simulation effects significantly deviate from the null of having no effect size on the marks.
+
+```{r figModelSupp, out.width="100%", fig.show='asis', fig.cap='Residual plot and estimated effect ranges for factor regressing on marks with random effects for both partitcipant and data simulation. The effect size of participant is relatively large, with several significant extrema (alpha = .95). None of the simulations deviate significantly.'}
+if(F) ## Creation and saving figure at:
+  file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
+knitr::include_graphics("./figures/figModels.png")
+```

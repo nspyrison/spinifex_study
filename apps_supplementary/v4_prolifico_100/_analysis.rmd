@@ -272,15 +272,13 @@ perm_num_agg2 <- dat_qual %>%
 ```
 
 
-## Random effects regression models
-
-
+## Mixed regression
 
 _Context: 108 evals; use block parameters to predict marks_
 
 <!-- 1) Eval parameters -->
 \begin{align*}
-\text{base model:}&&    \widehat{\textbf{Y}} =& \textbf{Z} \* \mu + \textbf{X} \* \Beta + \epsilon \\
+\text{base model:}&&    \widehat{\textbf{Y}} =& \textbf{Z} \* \mu + \textbf{X} \* \beta + \epsilon \\
 \textbf{Terms:}&&    \textbf{Expanded Model:~~} & \\
 \alpha&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \epsilon \\
 \alpha + \beta&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \beta_j + \epsilon \\
@@ -442,54 +440,88 @@ ABC_re_parti_sim <- lmer(marks ~ factor * location * shape + (1 | participant)
                           + (1 | simulation), data = dat_qual)
 print("MODEL: ABC + re(participant + simulation)")
 ggEffectRanges <- plotREsim(REsim(ABC_re_parti_sim)) +
-  ggtitle("Effect range vs mark quantiles", "Effect range for the model alpha * beta * gamma") +
+  ggtitle("Effect range vs mean marks for participants and simulations", "Effect range for the model alpha * beta * gamma") +
   theme(axis.title.x = element_blank()) +
   ylab("effect range (CI of Gelman sim)")
 
+  if(F)
+    browseURL("http://www.cookbook-r.com/Manipulating_data/Summarizing_data/")
+## Summarizes data.
+## Gives count, mean, standard deviation, standard error of the mean, and confidence interval (default 95%).
+##   data: a data frame.
+##   measurevar: the name of a column that contains the variable to be summariezed
+##   groupvars: a vector containing names of columns that contain grouping variables
+##   na.rm: a boolean that indicates whether to ignore NA's
+##   conf.interval: the percent range of the confidence interval (default is 95%)
+summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
+                      conf.interval=.95, .drop=TRUE) {
+
+  require(plyr)
+  
+  # New version of length which can handle NA's: if na.rm==T, don't count them
+  length2 <- function (x, na.rm=FALSE) {
+    if (na.rm) sum(!is.na(x))
+    else       length(x)
+  }
+  
+  # This does the summary. For each group's data frame, return a vector with
+  # N, mean, and sd
+  datac <- ddply(data, groupvars, .drop=.drop,
+                 .fun = function(xx, col) {
+                   c(N    = length2(xx[[col]], na.rm=na.rm),
+                     mean = mean   (xx[[col]], na.rm=na.rm),
+                     sd   = sd     (xx[[col]], na.rm=na.rm)
+                   )
+                 },
+                 measurevar
+  )
+  
+  # Rename the "mean" column    
+  datac <- rename(datac, c("mean" = measurevar))
+  
+  datac$se <- datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
+  
+  # Confidence interval multiplier for standard error
+  # Calculate t-statistic for confidence interval: 
+  # e.g., if conf.interval is .95, use .975 (above/below), and use df=N-1
+  ciMult <- qt(conf.interval/2 + .5, datac$N-1)
+  datac$ci <- datac$se * ciMult
+  
+  return(datac)
+}
+
 #### If you eant to show boxplots cannot aggregate over evaluation, 
 ## By participant
-participant_agg <- dat_qual %>%
-  dplyr::select(participant, marks) %>%
-  group_by(participant) %>%
-  summarise(y25 = quantile(marks, .25),
-            y50 = quantile(marks, .5),
-            y75 = quantile(marks, .75)) %>%
-  ungroup() %>%
-  mutate(participant = forcats::fct_reorder(participant, y50))
+participant_agg <- summarySE(dat_qual, "marks", "participant") %>% 
+  mutate(participant = forcats::fct_reorder(participant, marks))
 ggParticipantRanges <- ggplot(participant_agg) +
-    geom_point(aes(participant, y50)) +
-    geom_linerange(aes(participant, ymin = y25, ymax = y75)) +
-    my_theme +
-    theme(axis.text.x = element_blank(),
-          axis.ticks.x = element_blank()) +
-    coord_cartesian(ylim = c(-.75, .75)) +
-    xlab("participant (n=6 every line)") +
-    ylab("mark quantiles (25, 50, 75)")
+  geom_point(aes(participant, marks), alpha = .2, size = 2) +
+  geom_linerange(aes(participant, ymin = marks - ci, ymax = marks + ci), alpha = .3) +
+  my_theme +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank()) +
+  coord_cartesian(ylim = c(-.75, .75)) +
+  xlab("participant (n=6 every line)") +
+  ylab("CI mean marks (alpha=.95)")
 ggParticipantRanges <- ggExtra::ggMarginal(ggParticipantRanges, 
-                                      type = "density", fill = "grey80")
+                                           type = "density", fill = "grey80")
 ## By simulation
-simulation_agg <- dat_qual %>%
-  dplyr::select(simulation, marks) %>%
-  group_by(simulation) %>%
-  summarise(y25 = quantile(marks, .25),
-            y50 = quantile(marks, .5),
-            y75 = quantile(marks, .75)) %>%
-  ungroup() %>% 
-  mutate(simulation = forcats::fct_reorder(simulation, y50))
+simulation_agg <- summarySE(dat_qual, "marks", "simulation") %>% 
+  mutate(simulation = forcats::fct_reorder(simulation, marks))
 ggSimulationRanges <- ggplot(simulation_agg) +
-    geom_point(aes(simulation, y50)) +
-    geom_linerange(aes(simulation, ymin = y25, ymax = y75)) +
-    my_theme + 
-    theme(axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          axis.title.y = element_blank()) +
-    coord_cartesian(ylim = c(-.75, .75)) +
-    xlab("simulation (n=36 every line)")
+  geom_point(aes(simulation, marks), alpha = .2, size = 2) +
+  geom_linerange(aes(simulation, ymin = marks - ci, ymax = marks + ci), alpha = .3) +
+  my_theme + 
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title.y = element_blank()) +
+  coord_cartesian(ylim = c(-.75, .75)) +
+  xlab("simulation (n=36 every line)")
 ggSimulationRanges <-
   ggExtra::ggMarginal(ggSimulationRanges, 
                       type = "density", fill = "grey80")
 botRanges <-
-  cowplot::plot_grid(ggParticipantRanges, ggSimulationRanges, 
+  cowplot::plot_grid(ggParticipantRanges, ggSimulationRanges,
                      ncol = 2, rel_widths = c(1.07, 1))
 (figEffectRange <- cowplot::plot_grid(ggEffectRanges, botRanges, nrow = 2))
 ```
@@ -697,6 +729,7 @@ if(F){
          device = "png", width = .w, height = .h * .8, unit = .u)
   
   ## Model tables
+  warning("OLD NAMES")
   model_comp_tbl_ls <- list(models_eval = model_comp_tbl, 
                             models_survey = model_comp_tbl2, 
                             ext_models_eval.survey = model_comp_tbl3)

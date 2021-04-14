@@ -281,6 +281,7 @@ length(unique(survey_wider$instance_id))
 )
 
 if(F){
+  message("show side by side with boxplots?")
   ggsave("./paper/figures/figSubjectiveMeasures_vert.png", subjectiveMeasures,
          width = .w, height = .w * .66, units = "in")
   ggsave("./paper/figures/figSubjectiveMeasures_hori.png", subjectiveMeasures + coord_flip(),
