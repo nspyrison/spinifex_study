@@ -6,6 +6,7 @@ if(F)
 .u = "in"
 .w = 6.25
 .h = 9
+.l_lvls <- c("most disagree", "disagree", "neutral", "agree", "most agree")
 
 #### MANUAL READ -----
 ## Read from gsheets API4 and save local
@@ -64,7 +65,7 @@ if(F){
       radial_like = factor(substr(radial_like, 1, 1))
     )
   ## Rename the levels of the factors
-  .l_lvls <- c("most negative", "negative", "neutral", "positive", "most positive")
+  
   survey_wider <- survey_wider %>% 
     mutate(
       pronoun = plyr::mapvalues(
@@ -131,8 +132,9 @@ str(survey_wider)
           legend.margin = margin(0, 0, 0, 0)) +
     scale_fill_gradient(low = "lightpink", high = "firebrick", na.value = NA) +
     ggtitle("Participant demographics"))
-ggsave(filename = "./paper/figures/figSurveyDemographics.png",
-       plot = demographic_heatmaps, width = .w, height = .w/2)
+if(F)
+  ggsave(filename = "./paper/figures/figSurveyDemographics.png",
+         plot = demographic_heatmaps, width = .w, height = .w/2)
 
 
 # ## Subjective measures, BOXPLOTS -----
@@ -229,7 +231,9 @@ length(unique(survey_wider$instance_id))
 
 ## assumes df obj survey_wider, already filtered to whitelisted 108.
 ## creates df obj survey_agg and likert, a subset
-script_survey_wider_to_survey_agg <- function(col_idx = 8:22){ 
+# script_survey_wider_to_survey_agg <- function(col_idx = 8:22){ 
+{
+  col_idx <- 8:22
   col_nms <- colnames(survey_wider[, col_idx])
   survey_agg <- tibble()
   mute <- sapply(col_nms, function(col_nm){
@@ -247,11 +251,10 @@ script_survey_wider_to_survey_agg <- function(col_idx = 8:22){
   
   ## Format likert questions
   likert_q_nms <- colnames(survey_wider[, 11:22])
-  .l_lvls_rev <- rev(c("most negative", "negative", "neutral", "positive", "most positive"))
   likert <<- survey_agg %>% filter(question %in% likert_q_nms) %>% 
     separate(question, c("factor", "question"), sep = "_") %>% 
     mutate(factor = factor(factor, levels = rev(c("pca", "grand", "radial"))),
-           response <- factor(response, levels = .l_lvls_rev))
+           response = factor(response, levels = rev(.l_lvls)))
   likert$question <-
     plyr::mapvalues(likert$question,
                     from = c("like", "ease", "confidence", "familar"),
@@ -259,7 +262,7 @@ script_survey_wider_to_survey_agg <- function(col_idx = 8:22){
     factor()
   str(likert)
 }
-script_survey_wider_to_survey_agg()
+# script_survey_wider_to_survey_agg()
 
 # Stacked + percent
 (subjectiveMeasures <-
@@ -272,14 +275,17 @@ script_survey_wider_to_survey_agg()
     # theme(legend.position = "bottom",
     #       legend.direction = "horizontal") +
     ## Reverse order that fill is displayed in legend.
-    guides(fill = guide_legend(reverse = TRUE)) +
+    #guides(fill = guide_legend(reverse = TRUE)) +
     ## x as % rather than rate.
     scale_x_continuous(labels = scales::percent)
 )
 
-
-ggsave("./paper/figures/figSubjectiveMeasures.png", subjectiveMeasures,
-       width = .w, height = .w * .66, units = "in")
+if(F){
+  ggsave("./paper/figures/figSubjectiveMeasures_vert.png", subjectiveMeasures,
+         width = .w, height = .w * .66, units = "in")
+  ggsave("./paper/figures/figSubjectiveMeasures_hori.png", subjectiveMeasures + coord_flip(),
+         width = .w, height = .w * 1.33, units = "in")
+}
 
 ### Significance testing: ------
 if(F)
@@ -295,6 +301,6 @@ examp_global <- likert %>%
   mutate(question = factor(question),
          dummy = factor(paste(factor, question))) %>% dplyr::select(dummy, n)
 
-str(examp_global)
-coin::oneway_test(n~dummy, data = examp_global) ## chi squared always 0; p = 1 ...
-coin::independence_test(n~dummy, data = examp_global)
+# str(examp_global)
+# coin::oneway_test(n~dummy, data = examp_global) ## chi squared always 0; p = 1 ...
+# coin::independence_test(n~dummy, data = examp_global)

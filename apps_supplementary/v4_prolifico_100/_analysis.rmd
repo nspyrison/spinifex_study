@@ -14,7 +14,8 @@ editor_options:
   chunk_output_type: console
 ---
 ```{r setup, include=FALSE}
-require(tidyverse)
+require("tidyverse")
+require("dplyr")
 require("ggpubr") ## for tests on the plot
 require("cowplot") ## for aggregating plots
 require("lme4") ## Random Effects (RE) model creation
@@ -30,7 +31,7 @@ rel_path <- function(rel_path = "."){
 ```
 
 
-```{r}
+```{r LOAD_FORMAT_LOCAL_FUNCS}
 ## Read from gsheets API4 and save local
 if(F){
   ## Hash id of the google sheet
@@ -102,33 +103,32 @@ my_theme <- list(
 )
 
 ## indirect (via ggpubr/cowplot) ggplot2 helpers
-my_ggpubr <- function(df, x, y, title = "Title missing"){
-  ## Create a list of comparison levels to test significance, all combinations.
-  .fill_lvls <- df %>% pull({{x}}) %>% levels()
-  # .combn_mat <- t(combn(.fill_lvls, 2))
-  # .combn_mat_ord <- t(combn(1:length(.fill_lvls), 2))
-  # my_comparisons <- lapply(1:nrow(.combn_mat), FUN = function(i){
-  #   c(.combn_mat[i, 1], .combn_mat[i, 2])
-  # })
-   
-
+my_ggpubr <- function(df, x = "factor", y = "marks", title = "Title missing", subtitle = waiver()){
   ## Find height of global significance test text.
+  .x_lvls <- df %>% pull({{x}}) %>% levels()
   .y_range <- diff(range(df[y]))
-   #.y_offset_frac <- .1 * (length(my_comparisons) + 1)
-  .y_offset_frac <-  .1 * (length(.fill_lvls) + 1)
-  if(x=="order") .y_offset_frac <- .1
-  .lab.y <- 1.25#.y_offset_frac * .y_range + max(df[y])
+  .n_lvls <- length(.x_lvls)
+  .lab.y <- .15 * (1 + .n_lvls) * .y_range + max(df[y])
+  my_comparisons <- list(c("pca", "grand"), 
+                         c("grand", "radial"), 
+                         c("pca", "radial"))
 
   ## Plot
-  ggboxplot(df, x = x, y = y, fill = x, alpha = .6,
-            palette = "Dark2", shape = x,
-            add = "jitter", add.params = list(color = x, alpha = .3, width = .2)) +
-    #stat_compare_means(comparisons = my_comparisons, label = "p.format") + ## pairwise test
-    stat_compare_means(label = "p.signif", ref.group = .fill_lvls[1]) + ## Test each lvl w.r.t. first level.
-    stat_compare_means(method = "anova", label.y = .lab.y, ## Global test
-                       aes(label = paste0("", ..p.format..))) + # Add global anova p-value
+  ggviolin(df, x = x, y = y, fill = x, alpha = .6,
+           palette = "Dark2", shape = x,
+           add = c("mean"), ## Black circle, can change size, but not shape or alpha?
+           draw_quantiles = c(.25, .5, .75)) +
+    stat_compare_means(method = "wilcox.test", 
+                       comparisons = my_comparisons, 
+                       label = "p.signif") + ## pairwise test
+    # stat_compare_means(label = "p.signif", label.y = .lab.y - .4,
+    #                    method = "wilcox.test", ref.group = .x_lvls[1]) + ## Test each lvl w.r.t. first level.
+    stat_compare_means( ## Global test
+                       label.y = .lab.y,
+                       aes(label = paste0("Krusal-p=", ..p.format..))
+                       ) + ## custom label
     my_theme +
-    ggtitle(title)
+    ggtitle(title, subtitle)
 }
 my_ggpubr_facet <- function(..., facet = "location"){
   facet(my_ggpubr(...), facet.by = facet)
@@ -137,6 +137,7 @@ my_ggpubr_facet <- function(..., facet = "location"){
 
 ______
 
+# Results
 
 ## Even-ness of evaluation
 
@@ -226,27 +227,27 @@ print(paste0("N = ", N, " unique instance_id."))
 
 #### Plot Evenness:
 ## Evaluations by participant
-ggplot(participant_agg, aes(x = participant, y = `even evaluations`,
-                            color = `is even instance`, fill = `is even instance`)) +
-  labs(title = "Evaluations by participant") +
-  my_theme +
-  geom_bar(stat = "identity", position = "dodge") + geom_hline(yintercept = 1) +
-  geom_text(aes(x = .95 * max(length(unique(participant))), y = 1.2,
-                label = "ideal"), color = "black")
+# ggplot(participant_agg, aes(x = participant, y = `even evaluations`,
+#                             color = `is even instance`, fill = `is even instance`)) +
+#   labs(title = "Evaluations by participant") +
+#   my_theme +
+#   geom_bar(stat = "identity", position = "dodge") + geom_hline(yintercept = 1) +
+#   geom_text(aes(x = .95 * max(length(unique(participant))), y = 1.2,
+#                 label = "ideal"), color = "black")
 
 ## Evaluations by parameter permutation
 .mn_val <- sum(perm_num_agg$`even evaluations`[perm_num_agg$`is even instance` == TRUE], na.rm = TRUE) / 36
-(gg_eval_by_perm_num <- perm_num_agg %>%
-    ggplot(aes(x = `parameter permutation`, y = `even evaluations`,
-               color = `is even instance`, fill = `is even instance`)) +
-  labs(title = "Evaluations by parameter permutaion") +
-  my_theme + 
-  geom_bar(stat = "identity", position = "dodge") +
-  geom_hline(yintercept = .mn_val, linetype = 2) +
-  geom_hline(yintercept = 3, linetype = 1) +
-  geom_text(aes(x = 33, y = 3.2, label = "target"), color = "black") +
-  geom_text(aes(x = 26, y = .mn_val + .2, label = "mean of even evaluations"), color = "black")
-)
+# (gg_eval_by_perm_num <- perm_num_agg %>%
+#     ggplot(aes(x = `parameter permutation`, y = `even evaluations`,
+#                color = `is even instance`, fill = `is even instance`)) +
+#   labs(title = "Evaluations by parameter permutaion") +
+#   my_theme + 
+#   geom_bar(stat = "identity", position = "dodge") +
+#   geom_hline(yintercept = .mn_val, linetype = 2) +
+#   geom_hline(yintercept = 3, linetype = 1) +
+#   geom_text(aes(x = 33, y = 3.2, label = "target"), color = "black") +
+#   geom_text(aes(x = 26, y = .mn_val + .2, label = "mean of even evaluations"), color = "black")
+# )
 
 ## Evaluation by parameter permutations with candidates removed
 print("After evaluating the evenness of participants, permutations, the probability of adverse network interactions we have selected 3 evaluations of each block permutation to perfom the analysis on:")
@@ -270,50 +271,10 @@ perm_num_agg2 <- dat_qual %>%
 )
 ```
 
-## Last response time density
-
-We are concerned about the quality of the data, given that so many people experienced network issues. Let's explore.
-
-```{r}
-.ann_offset <- 7
-ggplot() +
-  geom_density(aes(`seconds to last response`, fill = ""), dat_qual, alpha = .5) +
-  ggtitle("Seconds to respond density") +
-  my_theme +
-  lims(x = c(0, 100)) +
-  geom_vline(xintercept = 60, linetype = 3L) +
-  geom_label(aes(x =  60 - .ann_offset, y = .03, label = "plot turns off"))
-```
-
-```{r}
-marks_by_last_resp <- ggplot(dat_qual) + my_theme +
-  geom_point(aes(`seconds to last response`, marks,
-                 fill = factor, color = factor), alpha = .2) +
-  geom_smooth(aes(`seconds to last response`, marks,
-                  fill = factor, color = factor)) +
-  ggtitle("Mark by last response time with marginal density")
-
-(marks_by_last_resp <- ggExtra::ggMarginal(marks_by_last_resp, type = "density",
-                                           groupColour = TRUE, groupFill = TRUE))
-```
-
-
-## Within-participants -- Marks by Evaluation order
-
-```{r}
-ggplot(dat_qual, aes(x = factor, y = marks)) +
-  geom_boxplot(alpha = .05) +
-  labs(title = "Within Participants, Marks by factor") +
-  scale_color_brewer(palette = "Dark2") +
-  scale_fill_brewer(palette = "Dark2") +
-  geom_line(aes(frame = participant, group = participant),
-            alpha = .2)
-```
-
 
 ## Random effects regression models
 
-### Block paremeters 
+
 
 _Context: 108 evals; use block parameters to predict marks_
 
@@ -410,7 +371,7 @@ plot_residual <- function(model){
   p <- ggExtra::ggMarginal(p, type = "density", fill = "grey80")
   return(p)
 }
-plot_residual(m_factor_location.shape.dim_.order)
+
 ## A qq plot of the Random Effect simulation
 plot_REsim_qq <- function(model){
   .df <- data.frame(y = REsim(model)$mean)
@@ -447,8 +408,8 @@ mute <- lapply(seq_along(model_ls), function(i){
   # annova_ls[[i]] <<- anova(this_model)
 })
 .perf_df <- dplyr::bind_rows(performance_ls)
-.model_comp_colnms <- c("Model name", "No. factors", "No. fixed terms", "AIC", 
-                        "BIC", "R2 cond. (on RE)", "R2 marg. (w/o RE)", "RMSE", 
+.model_comp_colnms <- c("Fixed effects", "No. levels", "No. terms", "AIC", 
+                        "BIC", "R2 cond. (on RE)", "R2 marg. (w/o RE)", "RMSE",
                         "AIC / R2 marg.")
 model_comp_tbl <- tibble(names(model_ls),
                          factors_vec,
@@ -473,6 +434,134 @@ model_comp_tbl <- model_comp_tbl[c(1, 12, 15), 1:8]
 
 ## print table
 knitr::kable(model_comp_tbl)
+#`Model name`                   | Terms
+#1 alpha                        | Factor
+#2 alpha * beta * gamma         | Factor * Location * Shape
+#3 alpha * beta * gamma * delta | Factor * Location * Shape * Dim
+ABC_re_parti_sim <- lmer(marks ~ factor * location * shape + (1 | participant) 
+                          + (1 | simulation), data = dat_qual)
+print("MODEL: ABC + re(participant + simulation)")
+ggEffectRanges <- plotREsim(REsim(ABC_re_parti_sim)) +
+  ggtitle("Effect range vs mark quantiles", "Effect range for the model alpha * beta * gamma") +
+  theme(axis.title.x = element_blank()) +
+  ylab("effect range (CI of Gelman sim)")
+
+#### If you eant to show boxplots cannot aggregate over evaluation, 
+## By participant
+participant_agg <- dat_qual %>%
+  dplyr::select(participant, marks) %>%
+  group_by(participant) %>%
+  summarise(y25 = quantile(marks, .25),
+            y50 = quantile(marks, .5),
+            y75 = quantile(marks, .75)) %>%
+  ungroup() %>%
+  mutate(participant = forcats::fct_reorder(participant, y50))
+ggParticipantRanges <- ggplot(participant_agg) +
+    geom_point(aes(participant, y50)) +
+    geom_linerange(aes(participant, ymin = y25, ymax = y75)) +
+    my_theme +
+    theme(axis.text.x = element_blank(),
+          axis.ticks.x = element_blank()) +
+    coord_cartesian(ylim = c(-.75, .75)) +
+    xlab("participant (n=6 every line)") +
+    ylab("mark quantiles (25, 50, 75)")
+ggParticipantRanges <- ggExtra::ggMarginal(ggParticipantRanges, 
+                                      type = "density", fill = "grey80")
+## By simulation
+simulation_agg <- dat_qual %>%
+  dplyr::select(simulation, marks) %>%
+  group_by(simulation) %>%
+  summarise(y25 = quantile(marks, .25),
+            y50 = quantile(marks, .5),
+            y75 = quantile(marks, .75)) %>%
+  ungroup() %>% 
+  mutate(simulation = forcats::fct_reorder(simulation, y50))
+ggSimulationRanges <- ggplot(simulation_agg) +
+    geom_point(aes(simulation, y50)) +
+    geom_linerange(aes(simulation, ymin = y25, ymax = y75)) +
+    my_theme + 
+    theme(axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title.y = element_blank()) +
+    coord_cartesian(ylim = c(-.75, .75)) +
+    xlab("simulation (n=36 every line)")
+ggSimulationRanges <-
+  ggExtra::ggMarginal(ggSimulationRanges, 
+                      type = "density", fill = "grey80")
+botRanges <-
+  cowplot::plot_grid(ggParticipantRanges, ggSimulationRanges, 
+                     ncol = 2, rel_widths = c(1.07, 1))
+(figEffectRange <- cowplot::plot_grid(ggEffectRanges, botRanges, nrow = 2))
+```
+
+## Violin plot of models
+
+### Model alpha
+
+```{r}
+(marks_by_factor <-
+   my_ggpubr(dat_qual,
+             x = "factor", y = "marks",
+             title = "Marks by factor"))
+```
+
+### Model alpha * beta * gamma
+
+```{r}
+(marks_by_factor_facet_location_shape <-
+   my_ggpubr_facet(dat_qual,
+                   x = "factor", y = "marks",
+                   title = "Marks by factor, faceting on location and shape",
+                   subtitle = "The fixed terms of model alpha * beta * gamma",
+                   facet = c("location", "shape")))
+```
+
+<!-- ### Model alpha * beta * gamma * delta -->
+
+<!-- ```{r} -->
+<!-- (marks_by_factor_facet_location_shape) -->
+<!-- (marks_by_factor_facet_location_dim <- -->
+<!--     my_ggpubr_facet(dat_qual, -->
+<!--                     x = "factor", y = "marks", -->
+<!--                     title = "Marks by factor, faceting on location and dim", -->
+<!--                     facet = c("location", "dim"))) -->
+<!-- (marks_by_factor_facet_shape_dim <- -->
+<!--     my_ggpubr_facet(dat_qual, -->
+<!--                     x = "factor", y = "marks", -->
+<!--                     title = "Marks by factor, faceting on location and dim", -->
+<!--                     facet = c("shape", "dim"))) -->
+<!-- ``` -->
+
+
+
+
+# Supplemental material
+
+## Last response time density
+
+We are concerned about the quality of the data, given that so many people experienced network issues. Let's explore.
+
+```{r}
+.ann_offset <- 7
+ggplot() +
+  geom_density(aes(`seconds to last response`, fill = ""), dat_qual, alpha = .5) +
+  ggtitle("Seconds to respond density") +
+  my_theme +
+  lims(x = c(0, 100)) +
+  geom_vline(xintercept = 60, linetype = 3L) +
+  geom_label(aes(x =  60 - .ann_offset, y = .03, label = "plot turns off"))
+```
+
+```{r}
+marks_by_last_resp <- ggplot(dat_qual) + my_theme +
+  geom_point(aes(`seconds to last response`, marks,
+                 fill = factor, color = factor), alpha = .2) +
+  geom_smooth(aes(`seconds to last response`, marks,
+                  fill = factor, color = factor)) +
+  ggtitle("Mark by last response time with marginal density")
+
+(marks_by_last_resp <- ggExtra::ggMarginal(marks_by_last_resp, type = "density",
+                                           groupColour = TRUE, groupFill = TRUE))
 ```
 
 
@@ -537,157 +626,6 @@ head(.resim_data)
 tail(.resim_data)
 ```
 
-## Marks by ... 
-
-### Factor
-
-```{r}
-(marks_by_factor <-
-   my_ggpubr(dat_qual,
-             x = "factor", y = "marks",
-             title = "Marks by factor"))
-```
-
-#### ... faceted by location
-
-```{r}
-(marks_by_factor_facet_location <-
-   my_ggpubr_facet(dat_qual,
-                   x = "factor", y = "marks",
-                   facet = "location",
-                   title = "Marks by factor, faceted on location"))
-```
-
-#### ... faceted by shape
-
-```{r}
-(marks_by_factor_facet_shape <-
-   my_ggpubr_facet(dat_qual,
-                   x = "factor", y = "marks",
-                   facet = "shape",
-                   title = "Marks by factor, faceted on shape"))
-```
-
-#### ... facet by order
-
-```{r}
-(marks_by_factor_facet_order <-
-   my_ggpubr_facet(dat_qual,
-                   x = "factor", y = "marks",
-                   facet = "order",
-                   title = "Marks by factor, faceted on order"))
-```
-
-#### ... facet by dimension
-
-```{r}
-(marks_by_factor_facet_dim <-
-   my_ggpubr_facet(dat_qual,
-                   x = "factor", y = "marks",
-                   facet = "dim",
-                   title = "Marks by factor, faceted on dimension"))
-```
-
-### Location, of signal mixing
-
-```{r}
-(marks_by_location <-
-   my_ggpubr(dat_qual,
-             x = "location", y = "marks",
-             title = "Marks by location"))
-if(interactive())
-  compare_means(marks~location, data =dat_qual) ##seems large
-```
-
-### Order, of evaluation
-
-```{r}
-(marks_by_order <-
-   my_ggpubr(dat_qual,
-             x = "order", y = "marks",
-             title = "Marks by evaluation order"))
-# ## warning from: gg_pubr::stat_compare_means()
-# Warning message:
-# Computation failed in `stat_signif()`:
-# missing value where TRUE/FALSE needed 
-```
-
-### Shape, variance-covariance 
-
-```{r}
-(marks_by_shape <-
-   my_ggpubr(dat_qual,
-             x = "shape", y = "marks",
-             title = "Marks by shape"))
-```
-
-### Dimension
-
-```{r}
-(marks_by_dim <-
-   my_ggpubr(dat_qual,
-             x = "dim", y = "marks",
-             title = "Marks by dimension"))
-```
-
-<!-- ## Speed of response -->
-
-<!-- ```{r} -->
-<!-- (sec_last_resp_by_factor <- -->
-<!--   my_ggpubr(dat_qual, -->
-<!--             x = "factor", y = "seconds to last response", -->
-<!--             title = "Seconds to last response by factor")) -->
-<!-- (sec_last_resp_by_location <- -->
-<!--   my_ggpubr(dat_qual, -->
-<!--             x = "location", y = "seconds to last response", -->
-<!--             title = "Seconds to last response by location")) -->
-<!-- ``` -->
-
-## Marginal effects of Survey variables
-
-### Demographics
-
-```{r}
-# eval_survey
-# skimr::skim(eval_survey)
-
-# ## Not significant ##
-# my_ggpubr(eval_survey,
-#           x = "pronoun", y = "marks",
-#           title = "Marks by pronoun")
-
-## narrowly significant
-(marks_by_age <-
-  my_ggpubr(eval_survey,
-            x = "age", y = "marks",
-            title = "Marks by age"))
-## narrowly not significant
-(marks_by_education <-
-  my_ggpubr(eval_survey,
-            x = "education", y = "marks",
-            title = "Marks by education"))
-```
-
-
-### Experience
-
-```{r}
-## Significant
-(marks_by_task_understanding <- eval_survey %>% rename(`task understanding` = task_understanding) %>% 
-  my_ggpubr(x = "task understanding", y = "marks",
-            title = "Marks by task understanding"))
-## Not significant ##
-(marks_by_data_viz_exp <- eval_survey %>% 
-    rename(`data viz exp` = "data_viz_exp") %>% 
-    my_ggpubr(
-          x = "data viz exp", y = "marks",
-          title = "Marks by data viz exp"))
-# my_ggpubr(eval_survey,
-#           x = "analysis_exp", y = "marks",
-#           title = "Marks by analysis_exp")
-```
-
-
 ______
 
 ## Saving paper figures
@@ -703,6 +641,22 @@ if(F){
   .w = 6.25
   .h = 9
   
+  ## RE Effect ranges by mark quantiles
+  ggsave("figEffectRange.png", plot = figEffectRange, path = "./paper/figures",
+         device = "png", width = .w, height = .w, unit = .u)
+  
+  ## Marks by violin of factor faceting on location and shape
+  ggsave("figMarksFactorLoctionShape.png", marks_by_factor_facet_location_shape,
+         device = "png", width = .w, height = .w, unit = .u)
+  
+}
+```
+
+
+## Saving supplemental material figures
+
+```{r}
+if(F){
   ### dat_qual now saved inline with if(interactive()) ###
   .remove_y <- theme(axis.title.y = element_blank(),
                      axis.text.y = element_blank(),
@@ -713,31 +667,31 @@ if(F){
          ggtitle(NULL))
   gc()
   (MargEval_notitle <- 
-    cowplot::plot_grid(marks_by_factor + .no_legend + ggtitle(NULL),
-                       marks_by_order + .remove_y + .no_legend,
-                       marks_by_dim + .remove_y + .no_legend,
-                       marks_by_shape + .remove_y + .no_legend,
-                       ## marks_by_dim + .remove_y + .no_legend, # p only .6.
-                       ncol = 4, rel_widths = c(3, 7, 1, 3)+5))
+      cowplot::plot_grid(marks_by_factor + .no_legend + ggtitle(NULL),
+                         marks_by_order + .remove_y + .no_legend,
+                         marks_by_dim + .remove_y + .no_legend,
+                         marks_by_shape + .remove_y + .no_legend,
+                         ## marks_by_dim + .remove_y + .no_legend, # p only .6.
+                         ncol = 4, rel_widths = c(3, 7, 1, 3)+5))
   title1 <- cowplot::ggdraw() +
     cowplot::draw_label("Marks by marginal block parameter",
                         x = .15, y = .6, hjust = .1, vjust = .5)
   gc()
-
+  
   ## Marginal survey data
   (MargSurvey_notitle <-
-    cowplot::plot_grid(marks_by_task_understanding + .no_legend + ggtitle(waiver()),
-                       marks_by_age + .remove_y + .no_legend,
-                       marks_by_data_viz_exp + .remove_y + .no_legend,
-                       marks_by_education + .remove_y + .no_legend,
-                       ncol = 4, rel_widths = c(7, 6, 6, 5)))
+      cowplot::plot_grid(marks_by_task_understanding + .no_legend + ggtitle(waiver()),
+                         marks_by_age + .remove_y + .no_legend,
+                         marks_by_data_viz_exp + .remove_y + .no_legend,
+                         marks_by_education + .remove_y + .no_legend,
+                         ncol = 4, rel_widths = c(7, 6, 6, 5)))
   title2 <- cowplot::ggdraw() +
     cowplot::draw_label("Marks by marginal survey variable",
                         x = .15, y = .6, hjust = .1, vjust = .5)
   gc()
   (figMarksByMarg <-
-    cowplot::plot_grid(title1, MargEval_notitle, title2, MargSurvey_notitle,
-                       nrow = 4, rel_heights = c(0.1, 1, .1, 1)))
+      cowplot::plot_grid(title1, MargEval_notitle, title2, MargSurvey_notitle,
+                         nrow = 4, rel_heights = c(0.1, 1, .1, 1)))
   gc()
   ggsave("figMarksByMarg.png", plot = figMarksByMarg, path = "./paper/figures",
          device = "png", width = .w, height = .h * .8, unit = .u)
@@ -750,128 +704,15 @@ if(F){
           file = "./paper/figures/model_comp_tbl_ls.rds")
   
   ## _Save model figure
-  resim <- plotREsim(REsim(marks_f_re_partcipant.data))
+  resim <- plotREsim(REsim(ABCD))
   resid <- plot_residual(marks_f_re_partcipant.data)
   figModel_notitle <- cowplot::plot_grid(resid, resim, ncol = 2, rel_widths = c(3, 5))
   title <- cowplot::ggdraw() +
-      cowplot::draw_label("marks^ = factor + effect(participant) + effect(simulation)",
-                          x = .5, y = .75, hjust = .5, vjust = 1)
+    cowplot::draw_label("marks^ = factor + effect(participant) + effect(simulation)",
+                        x = .5, y = .75, hjust = .5, vjust = 1)
   (figModel <- cowplot::plot_grid(title, figModel_notitle,
                                   ncol = 1, rel_heights = c(0.1, 1)))
   ggsave("figModels.png", plot = figModel, path = "./paper/figures",
          device = "png", width = 8, height = 4, unit = "in")
 }
-```
-
-
-
-# Supplemental material
-
-## Random effects regression
-
-### Parameters and survey
-
-But, not only do we have the block parameterization, we also have post study-survey. Joining in the survey data we'll look at the 84 that also have survey data;
-
-_Context: 84 evaluations + surveys; use block parameters, demographics, and expertise to predict marks_
-
-
-```{r, eval = F}
-## Save dat_qual, the df for the remaining 108 instance_id's.
-dat_qual <- readRDS(rel_path("data/dat_qual.rds"))
-## Load aggregated survey data. filter to only surveys in the 108 instances in the analysis
-survey_wider <- readRDS(rel_path("../survey/survey_wider.rds"))
-instance_id_whitelist <- readRDS(rel_path("instance_id_whitelist.rds"))
-## Only Prolific participants that were in the 108 instance_ids in the analysis
-survey_wider <- survey_wider %>%
-  filter(nchar(as.character(prolific_id)) == 24,
-         instance_id %in% instance_id_whitelist)
-
-print("Of the 84 that have filled out surveys, lets consider their evaluation data.")
-eval_survey <- dplyr::right_join(dat_qual, survey_wider, by = "instance_id")
-str(eval_survey)
-paste0("Length of unique instance_id's: ", length(unique(eval_survey$instance_id)))
-dim(eval_survey)
-
-print("goal: we want to regress; testing if demographic or subjective experience is important")
-
-f <- lmer(marks ~ factor + (1 | participant), data = eval_survey) ## Benchmark
-f.parameters <- 
-  lmer(marks ~ factor + location + shape + dim + order +
-         (1 | participant), data = eval_survey)
-f.survey <-
-  lmer(marks ~ factor + pronoun + age + education + task_understanding +
-         data_viz_exp + analysis_exp + (1 | participant), data = eval_survey)
-f_parameters <-
-  lmer(marks ~ factor * (location + shape + dim) + order +
-         (1 | participant), data = eval_survey)
-f_survey <-
- lmer(marks ~ factor * (pronoun + age + education + task_understanding +
-         data_viz_exp + analysis_exp) + (1 | participant), data = eval_survey)
-f.parameters.survey <-
-  lmer(marks ~ factor + location + shape + dim + order + pronoun + age +
-         education + task_understanding + data_viz_exp + analysis_exp +
-         (1 | participant), data = eval_survey)
-f_parameters_survey <-
-  lmer(marks ~ factor * (location + shape + dim + order + pronoun + age +
-         education + task_understanding + data_viz_exp + analysis_exp) +
-         (1 | participant), data = eval_survey)
-if(interactive())
-  mod_coef_gt_t(f.parameters.survey, 1.5)
-f.gt1.5 <-
-  lmer(marks ~ factor + order + age + task_understanding + analysis_exp +
-         (1 | participant), data = eval_survey)
-if(interactive())
-  mod_coef_gt_t(f_parameters_survey, 1.5)
-f_gt1.5 <-
-  lmer(marks ~ factor * (location + age + education + task_understanding +
-                           data_viz_exp + analysis_exp) +
-         (1 | participant), data = eval_survey)
-
-### why is sim_
-# .resim <- REsim(m_sub_gt2.re_sim)
-# plotREsim(.resim)
-# .resim %>%
-#   filter(groupFctr == "simulation") %>%
-#   arrange(mean)
-
-model_ls2 <- list(`F` = f,
-                  `F+parameters` = f.parameters,
-                  `F+survey` = f.survey,
-                  `F+parameters+survey` = f.parameters.survey,
-                  `F+:t_val>1.5` = f.gt1.5,
-                  `F*parameters` = f_parameters,
-                  `F*survey` = f_survey,
-                  `F*parameters*survey` = f_parameters_survey,
-                  `F*:t_val>1.5` = f_gt1.5)
-
-performance_ls2 <- list()
-factors_vec2 <- fixef_vec2 <- vector()
-mute <- lapply(seq_along(model_ls2), function(i){
-  this_model <- model_ls2[[i]]
-  performance_ls2[[i]] <<- performance::model_performance(this_model)
-  factors_vec2[i] <<- ncol(attr(terms(this_model), "factors"))
-  fixef_vec2[i] <<- length(fixef(this_model))
-})
-
-.perf_df2 <- dplyr::bind_rows(performance_ls2)
-model_comp_tbl2 <- tibble(names(model_ls2),
-                          factors_vec2,
-                          fixef_vec2,
-                          round(.perf_df2[, 1]),
-                          round(.perf_df2[, 2]),
-                          round(.perf_df2[, 3], 2),
-                          round(.perf_df2[, 4], 2),
-                          round(.perf_df2[, 6], 2))
-colnames(model_comp_tbl2) <- .model_comp_colnms
-
-## Latex formatting
-model_comp_tbl2 <- model_comp_tbl2 %>%
-  format_column_extrema(4, min) %>%
-  format_column_extrema(5, min) %>%
-  format_column_extrema(6, max) %>%
-  format_column_extrema(7, max) %>%
-  format_column_extrema(8, min)
-
-
 ```
