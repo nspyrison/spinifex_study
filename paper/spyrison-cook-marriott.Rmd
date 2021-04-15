@@ -364,10 +364,10 @@ In building a set of models to test we include all single term models, a model w
 <!-- _Context: 648 task evaluations from 108 studies; we regress against marks using block parameters_ -->
 <!-- 1) Eval parameters -->
 \begin{align*}
-\textbf{Terms:}&&    \textbf{Expanded Model:~~} & \\
+\textbf{Terms:}&& \textbf{Expand}&\textbf{ed Model:~~}  \\
 \alpha&& \widehat{marks} =& \mu + \alpha_i + \textbf{Z} + \textbf{W} + \epsilon \\
-\alpha \* \beta \* \gamma&& \widehat{marks} =& \mu + \alpha_i * \beta_j * \gamma_k + \textbf{Z} + \textbf{W} + \epsilon \\
-\alpha \* \beta \* \gamma \* \delta&& \widehat{marks} =& \mu + \alpha_i + \beta_j \* \gamma_k \* \delta_l + \textbf{Z} + \textbf{W} + \epsilon \\
+\alpha * \beta * \gamma&& \widehat{marks} =& \mu + \alpha_i * \beta_j * \gamma_k + \textbf{Z} + \textbf{W} + \epsilon \\
+\alpha * \beta * \gamma * \delta&& \widehat{marks} =& \mu + \alpha_i + \beta_j * \gamma_k * \delta_l + \textbf{Z} + \textbf{W} + \epsilon \\
 \end{align*}
 
 where
@@ -396,7 +396,7 @@ kableExtra::kbl(model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
   column_spec(column = c(4:5, 8), width = "1.1cm") %>%
   column_spec(column = c(4:5, 8), width = "1.1cm")
 ```
-<!-- \end{landscape} -->
+
 
 <!-- Coefficients of the selected model, ABC -->
 ```{r modelSummaryTable, fig.cap = "Use the caption arg in kable(), not this."}
@@ -407,11 +407,11 @@ ABC_coef["df"] <- round(ABC_coef["df"], 1)
 ## For grouping rows see:
 if(F)
   browseURL("https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html#Group_rows_via_labeling")
-kableExtra::kbl(ABC_coef) %>%
-  kableExtra::column_spec(column = 1, width = "4cm") %>%
-  kableExtra::column_spec(column = c(2:3), width = "2.2cm") %>%
-  kableExtra::column_spec(column = c(4,6), width = "1.6cm") %>%
-  kableExtra::column_spec(column = 5, width = "2cm") %>% 
+kableExtra::kbl(ABC_coef, booktabs = TRUE, linesep = "", caption = "TODO: XXX FILL IN.") %>%
+  kableExtra::column_spec(column = 1, width = "6.6cm") %>%
+  kableExtra::column_spec(column = c(2:3), width = "1.8cm") %>%
+  kableExtra::column_spec(column = c(4,6), width = "1.2cm") %>%
+  kableExtra::column_spec(column = 5, width = "1.6cm") %>% 
   kableExtra::pack_rows("factor", 2, 3) %>%
   pack_rows("main effects", 4, 7) %>%
   pack_rows("interactions", 8, nrow(ABC_coef))
@@ -420,7 +420,7 @@ kableExtra::kbl(ABC_coef) %>%
 
 
 <!-- Residuals and random effects simulation -->
-Residual plots had no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figModel) illustrates a typically residual plot (left), while the right compares 95\% confidence interval of the effect ranges for participant and simulation. The effect ranges are estimated from simulations of the posterior distribution. The effect size of participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha$ = .95, while none of the simulation effects significantly deviate from the null of having no effect size on the marks.
+Residual plots have no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figEffectRange) illustrates (T) the effect size of the random terms participant and simulation, or more accurately, the 95\% CI from Gelman simulation of their postirior distribution. The effect size of participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha$ = .95, while none of the simulation effects significantly deviate from the null of having no effect size on the marks. In comparison, (B) 95\% confidence intervals of the mean marks for participation and simulation respectively. 
 
 ```{r figEffectRange, out.width="100%", fig.show='asis', fig.cap='(T) Estimated effect ranges of the random effect terms partitcipant and data simulation of the alpha * beta * gamma model. Confidence intervals are created via Gelman simulation on the effect posterior distributions. The effect size of participant is relatively large, with several significant extrema (alpha = .95). None of the simulations deviate significantly. (B) The ordered distributions of the marks for the '}
 if(F) ## Creation and saving figure at:
@@ -563,7 +563,7 @@ knitr::kable(model_comp_tbl_ls[[3]], align = c("l", rep("r", 7)), format="latex"
 
 
 <!-- Residuals and random effects simulation -->
-Residual plots had no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figModel) illustrates a typically residual plot (left), while the right compares 95\% confidence interval of the effect ranges for participant and simulation. The effect ranges are estimated from simulations of the posterior distribution. The effect size of participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha$ = .95, while none of the simulation effects significantly deviate from the null of having no effect size on the marks.
+Residual plots had no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figModelSupp) illustrates a typically residual plot (left), while the right compares 95\% confidence interval of the effect ranges for participant and simulation. The effect ranges are estimated from simulations of the posterior distribution. The effect size of participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha$ = .95, while none of the simulation effects significantly deviate from the null of having no effect size on the marks.
 
 ```{r figModelSupp, out.width="100%", fig.show='asis', fig.cap='Residual plot and estimated effect ranges for factor regressing on marks with random effects for both partitcipant and data simulation. The effect size of participant is relatively large, with several significant extrema (alpha = .95). None of the simulations deviate significantly.'}
 if(F) ## Creation and saving figure at:

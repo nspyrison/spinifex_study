@@ -279,11 +279,12 @@ _Context: 648 task evaluations from 108 studies; we regress against marks using 
 
 <!-- 1) Eval parameters -->
 \begin{align*}
-\textbf{Terms:}&&    \textbf{Expanded Model:~~} & \\
-\alpha&& \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \epsilon \\
-\alpha \* \beta \* \gamma&& \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i * \beta_j * \gamma_k + \epsilon \\
-\alpha \* \beta \* \gamma \* \delta&& \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \beta_j \* \gamma_k \* \delta_l + \epsilon \\
+&&\textbf{Terms:} \textbf{Expand}&\textbf{ed Model:~~}  \\
+&&\alpha \widehat{marks} =& \mu + \alpha_i + \textbf{Z} + \textbf{W} + \epsilon \\
+&&\alpha * \beta * \gamma \widehat{marks} =& \mu + \alpha_i * \beta_j * \gamma_k + \textbf{Z} + \textbf{W} + \epsilon \\
+&&\alpha * \beta * \gamma * \delta \widehat{marks} =& \mu + \alpha_i + \beta_j * \gamma_k * \delta_l + \textbf{Z} + \textbf{W} + \epsilon \\
 \end{align*}
+
 
 where
 
@@ -514,7 +515,7 @@ ggParticipantRanges <- ggplot(participant_agg) +
   my_theme +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank()) +
-  coord_cartesian(ylim = c(-.75, .75)) +
+  coord_cartesian(ylim = c(-1, 1)) +
   xlab("participant (n=6 every line)") +
   ylab("CI mean marks (alpha=.95)")
 ggParticipantRanges <- ggExtra::ggMarginal(ggParticipantRanges, 
@@ -529,7 +530,7 @@ ggSimulationRanges <- ggplot(simulation_agg) +
   theme(axis.text = element_blank(),
         axis.ticks = element_blank(),
         axis.title.y = element_blank()) +
-  coord_cartesian(ylim = c(-.75, .75)) +
+  coord_cartesian(ylim = c(-1, 1)) +
   xlab("simulation (n=36 every line)")
 ggSimulationRanges <-
   ggExtra::ggMarginal(ggSimulationRanges, 
