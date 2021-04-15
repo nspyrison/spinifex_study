@@ -259,12 +259,11 @@ length(unique(survey_wider$instance_id))
 
 
 
-### SAVEING ------
+### SAVING ------
 ## Cowplot and bringing it together
 require("cowplot")
-figSubjectiveMeasures <- 
+figSubjectiveMeasures <-
   cowplot::plot_grid(subjectiveMeasures, measure_violins, ncol = 2)
-
 
 if(F){
   message("show side by side with boxplots?")

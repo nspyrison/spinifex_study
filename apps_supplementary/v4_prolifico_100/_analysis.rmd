@@ -19,6 +19,7 @@ require("dplyr")
 require("ggpubr") ## for tests on the plot
 require("cowplot") ## for aggregating plots
 require("lme4") ## Random Effects (RE) model creation
+require("lmerTest") ## p val interpretation of lme4 tests
 require("merTools")
 require("performance") ## tidy model eval
 
@@ -110,7 +111,7 @@ my_ggpubr <- function(df, x = "factor", y = "marks", title = "Title missing", su
   .n_lvls <- length(.x_lvls)
   .lab.y <- (.05 * .y_range) * (1 + .n_lvls) * .y_range + max(df[y])
   my_comparisons <- list(c("pca", "grand"), 
-                         c("grand", "radial"), 
+                         c("grand", "radial"),
                          c("pca", "radial"))
 
   ## Plot
@@ -272,27 +273,25 @@ perm_num_agg2 <- dat_qual %>%
 ```
 
 
-## Mixed regression
+## Mixed, random effect regression
 
-_Context: 108 evals; use block parameters to predict marks_
+_Context: 648 task evaluations from 108 studies; we regress against marks using block parameters_
 
 <!-- 1) Eval parameters -->
 \begin{align*}
-\text{base model:}&&    \widehat{\textbf{Y}} =& \textbf{Z} \* \mu + \textbf{X} \* \beta + \epsilon \\
 \textbf{Terms:}&&    \textbf{Expanded Model:~~} & \\
-\alpha&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \epsilon \\
-\alpha + \beta&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \beta_j + \epsilon \\
-\alpha + \gamma&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \gamma_k + \epsilon \\
-\alpha + \delta&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \delta_l + \epsilon \\
-\alpha + \zeta&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \zeta_m + \epsilon \\
+\alpha&& \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \epsilon \\
+\alpha \* \beta \* \gamma&& \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i * \beta_j * \gamma_k + \epsilon \\
+\alpha \* \beta \* \gamma \* \delta&& \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \beta_j \* \gamma_k \* \delta_l + \epsilon \\
 \end{align*}
 
 where
 
 \begin{align*}
-&\mu \text{ is the intercept of the model} \\
-&\epsilon \sim \mathcal{N}(0,~\sigma), the error of the model \\
+&\mu \text{ is the intercept of the model including the mean of random effects} \\
+&\epsilon \sim \mathcal{N}(0,~\sigma), \text{ the error of the model} \\
 &\textbf{Z} \sim \mathcal{N}(0,~\tau), \text{ the random effect of participant} \\
+&\textbf{W} \sim \mathcal{N}(0,~\upsilon), \text{ the random effect of simulation} \\
 &\alpha_i \text{, fixed term for factor}~|~i\in (\text{pca, grand, radial}) \\
 &\beta_j \text{, fixed term for location}~|~j\in (\text{0_1, 33_66, 50_50}) \text{ percent noise mixing of a noise and signal variable respectively} \\
 &\gamma_k \text{, fixed term for shape}~|~k\in (\text{EEE, EEV, EVV banana}) \text{ mclust model family shapes described above} \\
@@ -316,22 +315,25 @@ mod_anova_gt_f <- function(mod, gt_f = 1){
   .anova %>% filter(abs(F.value) > gt_f)
 }
 
+############################
+#### CREATE -----
+############################
 ## The Models:
-a <- lmer(marks ~ factor + (1 | participant), data = dat_qual)
-ab <- lmer(marks ~ factor + location + (1 | participant), data = dat_qual)
-ac <- lmer(marks ~ factor + shape + (1 | participant), data = dat_qual)
-ad <- lmer(marks ~ factor + dim + (1 | participant), data = dat_qual)
-abc <- lmer(marks ~ factor + location + shape + (1 | participant), data = dat_qual)
-abd <- lmer(marks ~ factor + location + dim + (1 | participant), data = dat_qual)
-acd <- lmer(marks ~ factor + shape + dim + (1 | participant), data = dat_qual)
-abcd <- lmer(marks ~ factor + location + shape + dim + (1 | participant), data = dat_qual)
-AB <- lmer(marks ~ factor * location + (1 | participant), data = dat_qual)
-AC <- lmer(marks ~ factor * shape + (1 | participant), data = dat_qual)
-AD <- lmer(marks ~ factor * dim + (1 | participant), data = dat_qual)
-ABC <- lmer(marks ~ factor * location * shape + (1 | participant), data = dat_qual)
-ABD <- lmer(marks ~ factor * location * dim + (1 | participant), data = dat_qual)
-ACD <- lmer(marks ~ factor * shape * dim + (1 | participant), data = dat_qual)
-ABCD <- lmer(marks ~ factor * location * shape * dim + (1 | participant), data = dat_qual)
+a <- lmer(marks ~ factor + (1 | participant) + (1 | simulation), data = dat_qual)
+ab <- lmer(marks ~ factor + location + (1 | participant) + (1 | simulation), data = dat_qual)
+ac <- lmer(marks ~ factor + shape + (1 | participant) + (1 | simulation), data = dat_qual)
+ad <- lmer(marks ~ factor + dim + (1 | participant) + (1 | simulation), data = dat_qual)
+abc <- lmer(marks ~ factor + location + shape + (1 | participant) + (1 | simulation), data = dat_qual)
+abd <- lmer(marks ~ factor + location + dim + (1 | participant) + (1 | simulation), data = dat_qual)
+acd <- lmer(marks ~ factor + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
+abcd <- lmer(marks ~ factor + location + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
+AB <- lmer(marks ~ factor * location + (1 | participant) + (1 | simulation), data = dat_qual)
+AC <- lmer(marks ~ factor * shape + (1 | participant) + (1 | simulation), data = dat_qual)
+AD <- lmer(marks ~ factor * dim + (1 | participant) + (1 | simulation), data = dat_qual)
+ABC <- lmer(marks ~ factor * location * shape + (1 | participant) + (1 | simulation), data = dat_qual)
+ABD <- lmer(marks ~ factor * location * dim + (1 | participant) + (1 | simulation), data = dat_qual)
+ACD <- lmer(marks ~ factor * shape * dim + (1 | participant) + (1 | simulation), data = dat_qual)
+ABCD <- lmer(marks ~ factor * location * shape * dim + (1 | participant) + (1 | simulation), data = dat_qual)
 
 model_ls <- list(`alpha` = a,
                  `alpha + beta` = ab,
@@ -389,6 +391,9 @@ format_column_extrema <- function(df, col, extrema = max, markup = "*"){
   return(df)
 }
 
+############################
+#### COMPARE -----
+############################
 ## lapply over models
 performance_ls <- aic_ls <- bic_ls <- summary_ls <- plotREsim_ls <-
   plot_REsim_qq_ls <- plot_residual_ls <- annova_ls <- list()
@@ -430,16 +435,25 @@ model_comp_tbl <- model_comp_tbl %>%
 
 model_comp_tbl <- model_comp_tbl[c(1, 12, 15), 1:8]
 
+
 ## print table
 knitr::kable(model_comp_tbl)
 #`Model name`                   | Terms
 #1 alpha                        | Factor
 #2 alpha * beta * gamma         | Factor * Location * Shape
 #3 alpha * beta * gamma * delta | Factor * Location * Shape * Dim
-ABC_re_parti_sim <- lmer(marks ~ factor * location * shape + (1 | participant) 
-                          + (1 | simulation), data = dat_qual)
-print("MODEL: ABC + re(participant + simulation)")
-ggEffectRanges <- plotREsim(REsim(ABC_re_parti_sim)) +
+
+
+############################
+#### EXPLORE ----
+############################
+ABC_coef <- summary(ABC)$coefficients %>% data.frame(check.names = F) %>% 
+  mutate(ABC_coef, " " = case_when(`Pr(>|t|)` < .001 ~ "***",
+                                   `Pr(>|t|)` < .01 ~ "**",
+                                   `Pr(>|t|)` < .05 ~ "*",
+                                   TRUE ~ ""))
+
+ggEffectRanges <- plotREsim(REsim(ABC)) +
   ggtitle("Effect range vs mean marks for participants and simulations", "Effect range for the model alpha * beta * gamma") +
   theme(axis.title.x = element_blank()) +
   ylab("effect range (CI of Gelman sim)")
@@ -672,6 +686,12 @@ if(F){
   .u = "in"
   .w = 6.25
   .h = 9
+  
+  ## Model table
+  model_comp_tbl_ls <- list(model_comp_eval = model_comp_tbl)
+  saveRDS(model_comp_tbl_ls, file = "./paper/figures/tblModelCompLs.rds")
+  ## Selected model: ABC 
+  saveRDS(ABC_coef, file = "./paper/figures/tblModelABCcoef.rds")
   
   ## RE Effect ranges by mark quantiles
   ggsave("figEffectRange.png", plot = figEffectRange, path = "./paper/figures",

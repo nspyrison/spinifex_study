@@ -152,11 +152,11 @@ A matrix is said to be orthonormal if and only if they are 1) orthogonal, that i
 <!-- note on interchangeably, probably better to make consistent afterward -->
 <!-- A quick note on terminology we use the terms projection & embedding and variable & dimension interchangeably. -->
 
-## Principal Component Analysis
+## Principal component analysis
 
 Considering that we want to explore multivariate data space, while maintaining position mapping of points. Linear combinations of variables becomes an ideal candidate. Principal component analysis (PCA) [@pearson_liii._1901] creates new components that are linear combinations of the original variables. The creation of these variables is ordered by decreasing variation which is orthogonally constrained to all previous components. while the full dimensionality is in tact the benefit comes from the ordered nature of the components. For instance if nearly all of the variation in a data-space can be explained in the first half of its components than the complexity of viewing such a space is exponentially simplified.
 
-## Grand Tours
+## Grand tours
 
 <!-- tours intro -->
 Later, Asimov [@asimov_grand_1985], coined data visualization _tour_, an animation of many linear projections across local changes in the basis. One of key features of the tour is the object permanence of the data points. That is to say by watching near by, orthogonally-interpolated frames one can track the relative changes of observations as variable contributions change.
@@ -185,22 +185,28 @@ knitr::include_graphics("./figures/figFactor.png")
 
 ## Hypothesis {#sec:hypothesis}
 
-<!-- hypothesis statement -->
+<!-- Research question -->
 _Does the animated removal of single variables via the radial tour improve the ability of the analyst to understand the importance of variables contribution to the separation of clusters?_
 
-<!-- rational for standards of comparison -->
+<!-- Hypothesis: null and alternative -->
+$$
+H_o: \text{visualization factor does not impact task performance} \\
+H_a: \text{visualization factor does impact task performance} \\
+$$
+
+<!-- Rational for standards of comparison -->
 PCA will be used as a baseline for compared as it is the most common linear embedding. The grand tour will act as a secondary control that will help evaluate the benefit of animation, where the object permanence of the data points, but without the ability influence it's path. Lastly the radial tour should perform best as it benefits both from animation and being able to select an individual variable to change the contribution of. 
 
 
 ## Task and evaluation {#sec:task}
 
-<!-- geom, clusters, explicit task -->
+<!-- Geom, clusters, explicit task -->
 The display was a 2D scatterplot with observations supervised. Cluster membership was mapped to shape and color. There were either 3 or 4 clusters each with the number of observations within each cluster. Participants were asked to 'check any/all variables that contribute more than average to the cluster separation green circles and orange triangles', which was further explained in the explanatory video as 'mark and and all variable that carry more than their fair share of the weight, or 1 quarter in the case of 4 variables'.
 
 <!-- Instruction and video -->
 The instructions iterated several times in the video was: 1) Use the input controls to find a frame that contains separation between the clusters of green circles and orange triangles, 2) look at the orientation of the variable contributions in the gray circle, a visual depiction of basis, and 3) select all variables that contribute more than average in the direction of the separation in the scatterplot. Regardless of factor and block values participants were limited to 60 seconds for each evaluation of this task.
 
-<!-- evaluating measure -->
+<!-- Evaluating measure -->
 The evaluation measure of this task was designed to have a few of features: 1) the sum of squares of the individual variable marks should be 1, and 2) symmetric about 0. With these in mind we define the following measure for evaluating the task:
 
 Let a dataset $\textbf{X}$ be a simulation containing clusters of observations of different distributions. Let $\textbf{X}_k$ be the subset of observations in cluster $k$ containing the $p$ variables.
@@ -341,9 +347,6 @@ Below we look at the marginal performance of the block parameters and survey res
 
 
 
-
-
-
 ## Random effects regression model
 
 <!-- Note that we list the measures at the top of the Results section -->
@@ -358,44 +361,63 @@ Evaluation of the models will include Akaike's Information Criterion (AIC), Baye
 <!-- Building a battery of models -->
 In building a set of models to test we include all single term models, a model with all independent terms. We also include an interaction term of factor by location, allowing for the slope of each location to change across each level of the factor, which is feasible. For comparison an overly complex model with many interaction terms is included.
 
+<!-- _Context: 648 task evaluations from 108 studies; we regress against marks using block parameters_ -->
 <!-- 1) Eval parameters -->
 \begin{align*}
 \textbf{Terms:}&&    \textbf{Expanded Model:~~} & \\
-\alpha&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \epsilon \\
-\alpha + \beta&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \beta_j + \epsilon \\
-\alpha + \gamma&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \gamma_k + \epsilon \\
-\alpha + \delta&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \delta_l + \epsilon \\
-\alpha + \zeta&&    \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \zeta_m + \epsilon \\
+\alpha&& \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \epsilon \\
+\alpha \* \beta \* \gamma&& \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i * \beta_j * \gamma_k + \epsilon \\
+\alpha \* \beta \* \gamma \* \delta&& \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \beta_j \* \gamma_k \* \delta_l + \epsilon \\
 \end{align*}
 
 where
 
 \begin{align*}
-&\mu \text{ is the intercept of the model} \\
+&\mu \text{ is the intercept of the model including the mean of random effects} \\
 &\epsilon \sim \mathcal{N}(0,~\sigma), \text{ the error of the model} \\
 &\textbf{Z} \sim \mathcal{N}(0,~\tau), \text{ the random effect of participant} \\
-&\alpha_i \text{, fixed term for factor}~|~i \in(\text{pca, grand, radial}) \\
-&\beta_j \text{, fixed term for location}~|~j \in(\text{0/1, 33/66, 50/50}) \text{ percent noise mixing of a noise and signal variable respectively} \\
+&\textbf{W} \sim \mathcal{N}(0,~\upsilon), \text{ the random effect of simulation} \\
+&\alpha_i \text{, fixed term for factor}~|~i\in (\text{pca, grand, radial}) \\
+&\beta_j \text{, fixed term for location}~|~j\in (\text{0_1, 33_66, 50_50}) \text{ percent noise mixing of a noise and signal variable respectively} \\
 &\gamma_k \text{, fixed term for shape}~|~k\in (\text{EEE, EEV, EVV banana}) \text{ mclust model family shapes described above} \\
 &\delta_l \text{, fixed term for dim}~|~dim\in (\text{4 variables with 3 cluster, 6 variables with 4 clusters}) \\
 \end{align*}
 
 
-
-
 ```{r modelTable, fig.cap = "Use the caption arg in kable(), not this."}
-model_comp_tbl_ls <- readRDS("./figures/model_comp_tbl_ls.rds")
+model_comp_tbl_ls <- readRDS("./figures/tblModelCompLs.rds")
+require(kableExtra)
 
 ## 1) Eval parameters
 kableExtra::kbl(model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
              booktabs = TRUE, linesep = "", caption = "Model comparison of our random effects models regressing marks. Each model includs a random effect term of the participant, which explains the individuals influence on their marks. Complex models perform better in terms of R2 and RMSE, yet AIC and BIC penialize their large number of fixed effect in favor of the much simpler model containing only factor.") %>%
   kableExtra::column_spec(column = 1, width = "3.2cm") %>%
-  kableExtra::column_spec(column = c(2:3, 6:7), width = "1.7cm") %>%
-  kableExtra::column_spec(column = c(4:5, 8), width = "1.1cm") %>% 
-  kableExtra::column_spec(column = c(4:5, 8), width = "1.1cm")
-
+  column_spec(column = c(2:3, 6:7), width = "1.7cm") %>%
+  column_spec(column = c(4:5, 8), width = "1.1cm") %>%
+  column_spec(column = c(4:5, 8), width = "1.1cm")
 ```
 <!-- \end{landscape} -->
+
+<!-- Coefficients of the selected model, ABC -->
+```{r modelTable, fig.cap = "Use the caption arg in kable(), not this."}
+ABC_coef <- readRDS("./figures/tblModelABCcoef.rds")
+ABC_coef[, -6] <- round(ABC_coef[, -6], 2)
+ABC_coef["df"] <- round(ABC_coef["df"], 1)
+
+## For grouping rows see:
+if(F)
+  browseURL("https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html#Group_rows_via_labeling")
+kableExtra::kbl(ABC_coef) %>%
+  kableExtra::column_spec(column = 1, width = "4cm") %>%
+  kableExtra::column_spec(column = c(2:3), width = "2.2cm") %>%
+  kableExtra::column_spec(column = c(4,6), width = "1.6cm") %>%
+  kableExtra::column_spec(column = 5, width = "2cm") %>% 
+  kableExtra::pack_rows("factor", 2, 3) %>%
+  pack_rows("main effects", 4, 7) %>%
+  pack_rows("interactions", 8, nrow(ABC_coef))
+```
+
+
 
 <!-- Residuals and random effects simulation -->
 Residual plots had no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figModel) illustrates a typically residual plot (left), while the right compares 95\% confidence interval of the effect ranges for participant and simulation. The effect ranges are estimated from simulations of the posterior distribution. The effect size of participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha$ = .95, while none of the simulation effects significantly deviate from the null of having no effect size on the marks.
@@ -416,7 +438,7 @@ if(F)
 
 if(F) ## Creation and saving figure at:
   file.edit("./paper/R/fig_population_demographics.rmd")
-knitr::include_graphics("./figures/figSubjectiveMeasures_w.violins_hori.png") ## alternatively use the suffix *_vert
+knitr::include_graphics("./figures/figSubjectiveMeasures_w.violins_hori.png") ## Alternatively use the suffix *_vert
 # figSubjectiveMeasures_vert.png
 # figSubjectiveMeasures_hori.png
 # figSubjectiveMeasures_w.violins_vert.png
