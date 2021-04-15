@@ -416,7 +416,11 @@ if(F)
 
 if(F) ## Creation and saving figure at:
   file.edit("./paper/R/fig_population_demographics.rmd")
-knitr::include_graphics("./figures/figSubjectiveMeasures_hori.png") ## alternatively use the suffix *_vert
+knitr::include_graphics("./figures/figSubjectiveMeasures_w.violins_hori.png") ## alternatively use the suffix *_vert
+# figSubjectiveMeasures_vert.png
+# figSubjectiveMeasures_hori.png
+# figSubjectiveMeasures_w.violins_vert.png
+# figSubjectiveMeasures_w.violins_hori.png
 ```
 
 # Discussion {#sec:discussion}

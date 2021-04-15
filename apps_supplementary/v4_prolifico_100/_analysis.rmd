@@ -108,7 +108,7 @@ my_ggpubr <- function(df, x = "factor", y = "marks", title = "Title missing", su
   .x_lvls <- df %>% pull({{x}}) %>% levels()
   .y_range <- diff(range(df[y]))
   .n_lvls <- length(.x_lvls)
-  .lab.y <- .15 * (1 + .n_lvls) * .y_range + max(df[y])
+  .lab.y <- (.05 * .y_range) * (1 + .n_lvls) * .y_range + max(df[y])
   my_comparisons <- list(c("pca", "grand"), 
                          c("grand", "radial"), 
                          c("pca", "radial"))

@@ -32,7 +32,7 @@ if(F){
   
   ## Decode question names.
   colnames(survey_wider)[5:22] <-
-    c("pronoun", "age", "education", "task_understanding", "data_viz_exp", "analysis_exp", 
+    c("pronoun", "age", "education", "task_understanding", "data_viz_exp", "analysis_exp",
       "grand_familar", "grand_ease", "grand_confidence", "grand_like",
       "pca_familar", "pca_ease", "pca_confidence", "pca_like",
       "radial_familar", "radial_ease", "radial_confidence", "radial_like")
@@ -44,7 +44,7 @@ if(F){
       instance_id = factor(instance_id),
       pronoun = factor(pronoun, levels = c("he/him", "she/her", "thy/them or other", 
                                              "decline to answer <default, blank, no change>")),
-      age = as.factor(age), ## order already correct.
+      age = as.factor(age), ## Order already correct.
       education = factor(education, levels = 
                            c("Undergraduate degree (BA/BSc/other)", "Graduate degree (MA/MSc/MPhil/other)",
                              "Doctorate degree (PhD/other)", "decline to answer <default, blank, no change>")),
@@ -111,7 +111,7 @@ if(F){
   saveRDS(survey_wider, "./apps_supplementary/survey/survey_wider.rds")
 }
 
-#### Load and plot as demographic heat map ----
+#### Load and plot as demographic heatmap ----
 ## Load aggregated data. filter to only surveys in the 108 instances in the analysis
 survey_wider <- readRDS("./apps_supplementary/survey/survey_wider.rds")
 instance_id_whitelist <- readRDS("./apps_supplementary/v4_prolifico_100/instance_id_whitelist.rds")
@@ -121,7 +121,7 @@ survey_wider <- survey_wider %>%
          instance_id %in% instance_id_whitelist)
 str(survey_wider)
 
-## change character to factor, include counts in the levels of sex?
+## Change character to factor, include counts in the levels of sex?
 (demographic_heatmaps <- ggplot(survey_wider, aes(education, age)) +
     stat_bin2d(aes(fill = after_stat(count))) +
     geom_text(aes(label = after_stat(count)), stat = "bin2d") +
@@ -137,92 +137,69 @@ if(F)
          plot = demographic_heatmaps, width = .w, height = .w/2)
 
 
-# ## Subjective measures, BOXPLOTS -----
-# survey_wider <- readRDS("./apps_supplementary/survey/survey_wider.rds")
-# str(survey_wider)
-# skimr::skim(survey_wider)
-# 
-# ## pivot_longer within factor
-# radial_longer <- survey_wider %>%
-#   select(instance_id, radial_familar:radial_like) %>%
-#   pivot_longer(radial_familar:radial_like, 
-#                names_to = "factor", values_to = "value")
-# grand_longer <- survey_wider %>%
-#   select(instance_id, grand_familar:grand_like) %>%
-#   pivot_longer(grand_familar:grand_like, 
-#                names_to = "factor", values_to = "value")
-# pca_longer <- survey_wider %>%
-#   select(instance_id, pca_familar:pca_like) %>%
-#   pivot_longer(pca_familar:pca_like, 
-#                names_to = "factor", values_to = "value")
-# ## Combine and split measure from factor
-# subjective_longer <- rbind(radial_longer, grand_longer, pca_longer) %>%
-#   separate(factor, c("factor", "measure"), sep = "_")
-# 
-# 
-# ## 4 panes with {ggpubr}, ggviolin or ggbowplot with tests
-# my_comparisons <- list( c("radial", "grand"), c("grand", "pca"), c("radial", "pca"))
-# my_ggpubr <- function(df, title = "missing"){
-#   ggboxplot(df,  x = "factor", y = "value", fill = "factor", alpha = .6,
-#             palette = "Dark2",
-#             add = "jitter", add.params = list(color = "factor", alpha = .3, width = .2)) +
-#     stat_compare_means(comparisons = my_comparisons, label = "p.format") +
-#     stat_compare_means(label.y = 7, method = "anova") + 
-#     theme_bw() +
-#     ggtitle(title)
-# }
-# 
-# (p_like <- my_ggpubr(subjective_longer %>% filter(measure == "like"), "Preference") +
-#     theme(legend.position = "off"))
-# (p_ease <-
-#     my_ggpubr(subjective_longer %>% filter(measure == "ease"), "Ease of use") +
-#     theme(legend.position = "off",
-#           axis.title.y = element_blank(),
-#           axis.text.y = element_blank(),
-#           axis.ticks.y = element_blank()))
-# (p_confident <-
-#     my_ggpubr(subjective_longer %>% filter(measure == "confidence"), "Confidence") +
-#     theme(legend.position = "off",
-#           axis.title.y = element_blank(),
-#           axis.text.y = element_blank(),
-#           axis.ticks.y = element_blank()))
-# (p_familar <-
-#     my_ggpubr(subjective_longer %>% filter(measure == "familar"), "Familiarity") +
-#     theme(legend.position = "off",
-#           axis.title.y = element_blank(),
-#           axis.text.y = element_blank(),
-#           axis.ticks.y = element_blank()))
-# 
-# ## Cowplot and bringing it together
-# library(cowplot)
-# comp <- cowplot::plot_grid(p_like, p_ease, p_confident, p_familar,
-#                            nrow = 1, rel_widths = c(1, 1, 1, 1))
-# legend <- get_legend(
-#   p_like + theme(legend.box.margin = margin(0, 12, 0, 12),
-#                  legend.position = "bottom",
-#                  legend.justification = "center")
-# )
-# supertitle <- ggdraw() +
-#   draw_label(
-#     "Participant subjective measures",
-#     fontface = 'bold',
-#     x = 0,
-#     hjust = 0
-#   )
-# subtitle <- ggdraw() +
-#   draw_label(
-#     "Likert [1-5], least to most",
-#     x = 0,
-#     hjust = 0
-#   )
-# (out <- plot_grid(
-#   supertitle, subtitle, comp, legend,
-#   ncol = 1,
-#   rel_heights = c(.1, .1, 1, .1)
-# ))
-# 
-# ## Save
-# ggsave("./paper/figures/figSubjectiveMeasures.png", out, width = 8, height = 4, units = "in")
+## Subjective measures, BOXPLOTS -----
+survey_wider <- readRDS("./apps_supplementary/survey/survey_wider.rds")
+str(survey_wider)
+
+{
+  ## pivot_longer within factor
+  radial_longer <- survey_wider %>%
+    dplyr::select(instance_id, radial_familar:radial_like) %>%
+    pivot_longer(radial_familar:radial_like,
+                 names_to = "factor", values_to = "value")
+  grand_longer <- survey_wider %>%
+    dplyr::select(instance_id, grand_familar:grand_like) %>%
+    pivot_longer(grand_familar:grand_like,
+                 names_to = "factor", values_to = "value")
+  pca_longer <- survey_wider %>%
+    dplyr::select(instance_id, pca_familar:pca_like) %>%
+    pivot_longer(pca_familar:pca_like,
+                 names_to = "factor", values_to = "value")
+  ## Combine and split measure from factor
+  subjective_longer <- rbind(radial_longer, grand_longer, pca_longer) %>%
+    separate(factor, c("factor", "measure"), sep = "_")
+}
+## Technically not continuous numeric, will show side by side with Likert plot.
+.lvls <- c("most disagree", "disagree", "neutral", "agree", "most agree")
+subjective_longer <- subjective_longer %>%
+  mutate(value = as.integer(plyr::mapvalues(value, from = .lvls, to = 1L:5L)),
+         measure = factor(plyr::mapvalues(measure,
+                                          from = c("like", "ease", "confidence", "familar"),
+                                          to = c("preference", "ease of use", "confidence", "familiarity")))
+  )
+
+## 4 panes with {ggpubr}, ggviolin or ggboxplot with tests
+my_ggpubr <- function(df, x = "factor", y = "value", title = waiver(), subtitle = waiver()){
+  ## Find height of global significance test text.
+  .x_lvls <- df %>% pull({{x}}) %>% levels()
+  .y_range <- diff(range(df[y]))
+  .n_lvls <- length(.x_lvls)
+  .lab.y <- (.12 * .y_range) * (1 + .n_lvls) * .y_range + max(df[y])
+  my_comparisons <- list(c("pca", "grand"), c("grand", "radial"), c("pca", "radial"))
+  
+  ## Plot
+  ggviolin(df, x = x, y = y, fill = x, alpha = .6,
+           palette = "Dark2", shape = x,
+           add = c("mean"), ## Black circle, can change size, but not shape or alpha?
+           draw_quantiles = c(.25, .5, .75)) +
+    stat_compare_means(method = "wilcox.test",
+                       comparisons = my_comparisons,
+                       label = "p.signif") + ## pairwise test
+    # stat_compare_means(label = "p.signif", label.y = .lab.y - .4,
+    #                    method = "wilcox.test", ref.group = .x_lvls[1]) + ## Test each lvl w.r.t. first level.
+    stat_compare_means( ## Global test
+      label.y = .lab.y,
+      aes(label = paste0("Krusal-p=", ..p.format..))
+    ) + ## custom label
+    my_theme +
+    ggtitle(title, subtitle)
+}
+my_ggpubr_facet <- function(..., facet = "measure"){
+  facet(my_ggpubr(...), facet.by = facet)
+}
+(measure_violins <- my_ggpubr_facet(df = subjective_longer, x = "factor", y = "value"))
+
+
 
 
 #### Subjective measures, LIKERT PLOTS -----
@@ -251,8 +228,8 @@ length(unique(survey_wider$instance_id))
   
   ## Format likert questions
   likert_q_nms <- colnames(survey_wider[, 11:22])
-  likert <<- survey_agg %>% filter(question %in% likert_q_nms) %>% 
-    separate(question, c("factor", "question"), sep = "_") %>% 
+  likert <<- survey_agg %>% filter(question %in% likert_q_nms) %>%
+    separate(question, c("factor", "question"), sep = "_") %>%
     mutate(factor = factor(factor, levels = rev(c("pca", "grand", "radial"))),
            response = factor(response, levels = rev(.l_lvls)))
   likert$question <-
@@ -272,20 +249,39 @@ length(unique(survey_wider$instance_id))
             "Likert scale [1-5]") +
     theme_bw() +
     scale_fill_manual(values = rev(RColorBrewer::brewer.pal(5, "PRGn"))) +
-    # theme(legend.position = "bottom",
-    #       legend.direction = "horizontal") +
-    ## Reverse order that fill is displayed in legend.
-    #guides(fill = guide_legend(reverse = TRUE)) +
-    ## x as % rather than rate.
+    theme(legend.position = "bottom",
+          legend.direction = "horizontal") +
+    # Reverse order that fill is displayed in legend.
+    guides(fill = guide_legend(reverse = TRUE)) +
+    # x as % rather than rate.
     scale_x_continuous(labels = scales::percent)
 )
+
+
+
+### SAVEING ------
+## Cowplot and bringing it together
+require("cowplot")
+figSubjectiveMeasures <- 
+  cowplot::plot_grid(subjectiveMeasures, measure_violins, ncol = 2)
+
 
 if(F){
   message("show side by side with boxplots?")
   ggsave("./paper/figures/figSubjectiveMeasures_vert.png", subjectiveMeasures,
          width = .w, height = .w * .66, units = "in")
-  ggsave("./paper/figures/figSubjectiveMeasures_hori.png", subjectiveMeasures + coord_flip(),
+  ggsave("./paper/figures/figSubjectiveMeasures_hori.png",
+         subjectiveMeasures +
+           ## Convert to horizontal:
+           coord_flip(),
          width = .w, height = .w * 1.33, units = "in")
+  ggsave("./paper/figures/figSubjectiveMeasures_w.violin_vert.png", 
+         cowplot::plot_grid(subjectiveMeasures, measure_violins, ncol = 2),
+         width = .w, height = .w * .66, units = "in")
+  ggsave("./paper/figures/figSubjectiveMeasures_w.violin_hori.png",
+         cowplot::plot_grid(subjectiveMeasures + coord_flip(), measure_violins, ncol = 2),
+         width = .w, height = .w * 1.33, units = "in")
+  
 }
 
 ### Significance testing: ------
@@ -297,7 +293,7 @@ if(F)
 # Subset to years 1 and 2
 examp_2way <- likert %>% filter(question == "ease" & factor %in% c("radial", "pca"))
 rstatix::wilcox_test(n~factor, data = examp_2way) ## W always in (7,9) p always .8 ...
-examp_global <- likert %>% 
+examp_global <- likert %>%
   filter(question == "ease" & factor %in% c("radial", "pca")) %>%
   mutate(question = factor(question),
          dummy = factor(paste(factor, question))) %>% dplyr::select(dummy, n)
