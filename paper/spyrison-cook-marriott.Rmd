@@ -365,9 +365,9 @@ In building a set of models to test we include all single term models, a model w
 <!-- 1) Eval parameters -->
 \begin{align*}
 \textbf{Terms:}&&    \textbf{Expanded Model:~~} & \\
-\alpha&& \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \epsilon \\
-\alpha \* \beta \* \gamma&& \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i * \beta_j * \gamma_k + \epsilon \\
-\alpha \* \beta \* \gamma \* \delta&& \widehat{marks} =& \textbf{Z} \* \mu + \alpha_i + \beta_j \* \gamma_k \* \delta_l + \epsilon \\
+\alpha&& \widehat{marks} =& \mu + \alpha_i + \textbf{Z} + \textbf{W} + \epsilon \\
+\alpha \* \beta \* \gamma&& \widehat{marks} =& \mu + \alpha_i * \beta_j * \gamma_k + \textbf{Z} + \textbf{W} + \epsilon \\
+\alpha \* \beta \* \gamma \* \delta&& \widehat{marks} =& \mu + \alpha_i + \beta_j \* \gamma_k \* \delta_l + \textbf{Z} + \textbf{W} + \epsilon \\
 \end{align*}
 
 where
@@ -378,13 +378,13 @@ where
 &\textbf{Z} \sim \mathcal{N}(0,~\tau), \text{ the random effect of participant} \\
 &\textbf{W} \sim \mathcal{N}(0,~\upsilon), \text{ the random effect of simulation} \\
 &\alpha_i \text{, fixed term for factor}~|~i\in (\text{pca, grand, radial}) \\
-&\beta_j \text{, fixed term for location}~|~j\in (\text{0_1, 33_66, 50_50}) \text{ percent noise mixing of a noise and signal variable respectively} \\
+&\beta_j \text{, fixed term for location}~|~j\in (\text{0\_1, 33\_66, 50\_50}) \text{ percent noise mixing of a noise and signal variable respectively} \\
 &\gamma_k \text{, fixed term for shape}~|~k\in (\text{EEE, EEV, EVV banana}) \text{ mclust model family shapes described above} \\
 &\delta_l \text{, fixed term for dim}~|~dim\in (\text{4 variables with 3 cluster, 6 variables with 4 clusters}) \\
 \end{align*}
 
 
-```{r modelTable, fig.cap = "Use the caption arg in kable(), not this."}
+```{r modelCompTable, fig.cap = "Use the caption arg in kable(), not this."}
 model_comp_tbl_ls <- readRDS("./figures/tblModelCompLs.rds")
 require(kableExtra)
 
@@ -399,7 +399,7 @@ kableExtra::kbl(model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
 <!-- \end{landscape} -->
 
 <!-- Coefficients of the selected model, ABC -->
-```{r modelTable, fig.cap = "Use the caption arg in kable(), not this."}
+```{r modelSummaryTable, fig.cap = "Use the caption arg in kable(), not this."}
 ABC_coef <- readRDS("./figures/tblModelABCcoef.rds")
 ABC_coef[, -6] <- round(ABC_coef[, -6], 2)
 ABC_coef["df"] <- round(ABC_coef["df"], 1)
@@ -438,11 +438,11 @@ if(F)
 
 if(F) ## Creation and saving figure at:
   file.edit("./paper/R/fig_population_demographics.rmd")
-knitr::include_graphics("./figures/figSubjectiveMeasures_w.violins_hori.png") ## Alternatively use the suffix *_vert
+knitr::include_graphics("./figures/figSubjectiveMeasures_w.violin_hori.png") ## Alternatively use the suffix *_vert
 # figSubjectiveMeasures_vert.png
 # figSubjectiveMeasures_hori.png
-# figSubjectiveMeasures_w.violins_vert.png
-# figSubjectiveMeasures_w.violins_hori.png
+# figSubjectiveMeasures_w.violin_vert.png
+# figSubjectiveMeasures_w.violin_hori.png
 ```
 
 # Discussion {#sec:discussion}

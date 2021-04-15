@@ -293,7 +293,7 @@ where
 &\textbf{Z} \sim \mathcal{N}(0,~\tau), \text{ the random effect of participant} \\
 &\textbf{W} \sim \mathcal{N}(0,~\upsilon), \text{ the random effect of simulation} \\
 &\alpha_i \text{, fixed term for factor}~|~i\in (\text{pca, grand, radial}) \\
-&\beta_j \text{, fixed term for location}~|~j\in (\text{0_1, 33_66, 50_50}) \text{ percent noise mixing of a noise and signal variable respectively} \\
+&\beta_j \text{, fixed term for location}~|~j\in (\text{0\_1, 33\_66, 50\_50}) \text{ percent noise mixing of a noise and signal variable respectively} \\
 &\gamma_k \text{, fixed term for shape}~|~k\in (\text{EEE, EEV, EVV banana}) \text{ mclust model family shapes described above} \\
 &\delta_l \text{, fixed term for dim}~|~dim\in (\text{4 variables with 3 cluster, 6 variables with 4 clusters}) \\
 \end{align*}
