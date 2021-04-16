@@ -379,7 +379,7 @@ where
 
 
 ```{r marksCompTbl, fig.cap = "Use the caption arg in kable(), not this."}
-model_comp_tbl_ls <- readRDS("./figures/tblModelCompLs.rds")
+model_comp_tbl_ls <- readRDS("./figures/modelCompLs.rds")
 require(kableExtra)
 
 ## 1) Eval parameters
@@ -395,7 +395,7 @@ kableExtra::kbl(model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
 
 <!-- Coefficients of the selected model, ABC -->
 ```{r marksCoefTbl, fig.cap = "Use the caption arg in kable(), not this."}
-coef_ls <- readRDS("./figures/tblModelABCcoef.rds")
+coef_ls <- readRDS("./figures/modelCoefLs.rds")
 
 ## For grouping rows see:
 if(F)
@@ -405,10 +405,10 @@ kableExtra::kbl(coef_ls[[1]], booktabs = TRUE, linesep = "", format = "latex",
   kableExtra::column_spec(column = 1, width = "6.6cm") %>%
   kableExtra::column_spec(column = c(2:3), width = "1.8cm") %>%
   kableExtra::column_spec(column = c(4,6), width = "1.2cm") %>%
-  kableExtra::column_spec(column = 5, width = "1.6cm") #%>%
-  # kableExtra::pack_rows("factor", 2, 3) %>%
-  # pack_rows("main effects", 4, 7) %>%
-  # pack_rows("interactions", 8, nrow(coef_ls[[1]]))
+  kableExtra::column_spec(column = 5, width = "1.6cm") %>%
+  kableExtra::pack_rows("factor", 2, 3) %>%
+  pack_rows("fixed effects", 4, 7) %>%
+  pack_rows("interactions", 8, nrow(coef_ls[[1]]))
 ```
 
 <!-- Random effects vs Mean Mark CI by participant and sim -->
@@ -451,10 +451,10 @@ kableExtra::kbl(coef_ls[[2]], booktabs = TRUE, linesep = "", format = "latex",
   kableExtra::column_spec(column = 1, width = "6.6cm") %>%
   kableExtra::column_spec(column = c(2:3), width = "1.8cm") %>%
   kableExtra::column_spec(column = c(4,6), width = "1.2cm") %>%
-  kableExtra::column_spec(column = 5, width = "1.6cm") #%>% 
-  # kableExtra::pack_rows("factor", 2, 3) %>%
-  # pack_rows("main effects", 4, 7) %>%
-  # pack_rows("interactions", 8, nrow(t_ABC_coef))
+  kableExtra::column_spec(column = 5, width = "1.6cm") %>%
+  kableExtra::pack_rows("factor", 2, 3) %>%
+  pack_rows("fixed effects", 4, 7) %>%
+  pack_rows("interactions", 8, nrow(coef_ls[[2]]))
 ```
 
 ## Subjective measures
@@ -494,108 +494,8 @@ This research was supported by an Australian Government Research Training Progra
 
 \newpage
 
-# Supplemental matterial
+<!-- # Supplemental matterial -->
 
-<!-- after the 12-4 meeting with Di, going to a regression oriented approach with only only violin plot of final terms in the model; boxplots scraped. -->
-## Marginal block parameters and survey variables
-
-<!-- Test: Kruskal-Wallis H test (or one-way anova) -->
-Consider the 108 trials and their associate block parameterizations, We apply the Kruskal-Wallis H test (or one-way anova), a non-parametric method for testing if the x-levels are from the same distribution.
-
-
-<!-- Interpreting what marginal effects -->
-Figure \@ref(fig:figMarksByMarg) (top) compares the effect of the study block parameters. Location is the inverse of what is expected, though perhaps mixing the signal diversifies the marks in that its easier to choose at least one of the correct answers of two dimensions with signal rather than the higher risk of selecting the only correct answer for all marks. EEV slightly outperforms EEE, perhaps the different shape helps distinguish the cluster or stick out from one another. Evaluation order does not have a monotonic increase. Every odd evaluation beats the next evaluation which have 4 and 6 dimensions respectively.
-
-```{r figMarksByMarg, out.width="100%", fig.show='asis', fig.cap='Marks by the marginal effect of the block parameterizations (top) and survey variables (bottom), for the 4 variables with most support. Factor has a large degree of support for the alternative hypothesis, that use of the radial tour outperforms both the discrete benchmark, pca, and animated benchmark, grand tour for this task. The other block parameterizations quickly drop off in support. While order is near significant it is not monotonically increasing marks, the increasing difficulty of fixed block parameterization appear to have a stronger effect than any oberservable learning effect. Of the survey variables (bottom), note that the boxplots have an uneven number of observations, those with low numbers may not aproximate the true population well. Task understanding is hugely significant, though it may be conflated with latent attenion and effort of participants. Participants that default/decline recieved unanimously low marks.'}
-if(F) ## Creation and saving figure at:
-  file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
-knitr::include_graphics("./figures/figMarksByMarg.png")
-```
-
-<!-- Interpreting the effects of the marginal survey variables -->
-We also test the demographic and experience question from the survey to see if they they effect marks. Figure \@ref(fig:figMarksByMarg) (bottom) show the variables with strongest evidence to explain marks. Keep in mind that some of the x groups have low counts any likely may not reflect the true distribution of their demographic. Perhaps unsurprisingly, participants that rated their task comprehension higher, averaged higher marks. Age group was narrowly significant, with the lowest, highest, and default groups scoring low. The explanatory power of age is more likely more of a proxy for attention and thoroughness rather than a true effect of age. Education correlates with marks, though is narrowly not significant at $\alpha = .95$, it is also be slight correlated with age and understanding which explain marks better then education alone. Decline/default groups received lower marks unanimously across survey questions; care should be taken to ensure or evaluate the level of effort of participants.
-
-## Random effects regression
-
-<!-- Look at survey variables survey -->
-We want to see how survey variables fare in comparison. Holding the factor model as a comparison benchmark we fit another battery of similarly increasing complexity. Keep in mind that the scope has changed a bit from the 108 evaluations to only the 84 studies that have available survey data.
-
-<!-- 2) Survey parameters -->
-\begin{align*}
-\textbf{Abbreviation:}&&    \textbf{Model:~~} & \\
-\text{F:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \text{effect}_{participant} + \epsilon \\
-\text{F + else $|$ study:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s}) + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) + \\
-&& & \Sigma_{o = 1}^6(\alpha_{o} \*  \beta_{o}) + \text{effect}_{participant} + \epsilon \\
-\text{F + else $|$ survey:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \Sigma_{p = 1}^4(\alpha_{p} \* \beta_{p}) + \Sigma_{1 = 1}^5(\alpha_{a} \* \beta_{a}) + \Sigma_{e = 1}^4(\alpha_{e} \* \beta_{e}) + \\
-&& & \Sigma_{v = 1}^5(\alpha_{v} \* \beta_{v}) + \Sigma_{ae = 1}^5(\alpha_{ae} \* \beta_{ae}) + \text{effect}_{participant} + \epsilon \\
-\text{F \* else $|$ study:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) \* (\Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s} + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) + \\
-&& & \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o})) + \text{effect}_{participant} + \epsilon \\
-\text{F \* else $|$ survey:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) \* (\Sigma_{p = 1}^4(\alpha_{p} \* \beta_{p}) + \Sigma_{1 = 1}^5(\alpha_{a} \* \beta_{a}) + \Sigma_{e = 1}^4(\alpha_{e} \* \beta_{e}) + \\
-&& & \Sigma_{v = 1}^5(\alpha_{v} \* \beta_{v}) + \Sigma_{ae = 1}^5(\alpha_{ae} \* \beta_{ae})) + \text{effect}_{participant} + \epsilon \\
-\text{F + else $|$ study\&survey:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s} + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) + \\
-&& & \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o}) + (\Sigma_{p = 1}^4(\alpha_{p} \* \beta_{p}) + \Sigma_{1 = 1}^5(\alpha_{a} \* \beta_{a}) + \Sigma_{e = 1}^4(\alpha_{e} \* \beta_{e}) + \\
-&& & \Sigma_{v = 1}^5(\alpha_{v} \* \beta_{v}) + \Sigma_{ae = 1}^5(\alpha_{ae} \* \beta_{ae}) + \text{effect}_{participant} + \epsilon \\
-\text{F \* else $|$ study\&survey:}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) \* (\Sigma_{l = 1}^3(\alpha_{l} \* \beta_{l}) + \Sigma_{s = 1}^3(\alpha_{s} \* \beta_{s} + \Sigma_{d = 1}^2(\alpha_{d} \* \beta_{d}) + \\
-&& & \Sigma_{o = 1}^6(\alpha_{o} \* \beta_{o}) + (\Sigma_{p = 1}^4(\alpha_{p} \* \beta_{p}) + \Sigma_{1 = 1}^5(\alpha_{a} \* \beta_{a}) + \Sigma_{e = 1}^4(\alpha_{e} \* \beta_{e}) + \\
-&& & \Sigma_{v = 1}^5(\alpha_{v} \* \beta_{v}) + \Sigma_{ae = 1}^5(\alpha_{ae} \* \beta_{ae})) + \text{effect}_{participant} + \epsilon \\
-\end{align*}
-
-where
-
-\begin{align*}
-&\text{pronoun}~p \in (\text{he/him, she/her, they/them or other, default/decline}) \\
-&text{age}~a \in (\text{18 to 24, 25 to 35, 36 to 45, 45 to 60, default/decline}) \\
-&text{education}~e \in (\text{Undergraduate degree (BA/BSc/other), Graduate degree (MA/MSc/MPhil/other), Doctorate degree (PhD/other), default/decline}) \\
-&text{task Understanding}~u \in (\text{Likert scale [1-5]: I understand the how to perform the task.}) \\
-&text{data Visualization experience}~v \in (\text{Likert scale [1-5]: I am experienced with data visualization.}) \\
-&\text{Analysis Experience}~ae \in (\text{Likert scale [1-5]: I am educated in multivariate statistical analysis.}) 
-\end{align*}
-
-
-<!-- Extend models, eval and survey -->
-Among the above models, the simple factor model performs best in terms of AIC and BIC, and is thus included as a benchmark model of comparison going forward. In see the a particular simulation effect on the score an additional random effect term based on the simulation data is used. We also want to see how well the time till response can be explained by the single factor model; consider:
-
-<!--  3) extending to RE(data), and regressing against time for eval and survey.  -->
-\begin{align*}
-\textbf{Abbreviation:}&&    \textbf{Model:~~} & \\
-\text{marks=F+RE(participant):}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{} \* \beta_{f}) + \text{effect}_{participant} + \epsilon \\
-\text{marks=F+RE(participant+simulation):}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \text{effect}_{participant} + \text{effect}_{simulation} + \epsilon \\
-\text{time=F+RE(participant):}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \text{effect}_{participant} + \epsilon \\
-\text{time=F+RE(participant+simulation):}&&   \widehat{marks} =& \beta_{0} + \Sigma_{f = 1}^3(\alpha_{f} \* \beta_{f}) + \text{effect}_{participant} + \text{effect}_{simulation} + \epsilon \\
-\end{align*}
-
-where
-
-\begin{align*}
-&\text{effect}_{simulation} \sim \mathcal{N}(0,~\pi_{simulation}) \\
-&time \text{ is the duration of time on the page till the last response change} \\
-\end{align*}
-
-
-```{r modelTableSupp, fig.cap = "Use the caption arg in kable(), not this."}
-model_comp_tbl_ls <- readRDS("./figures/model_comp_tbl_ls.rds")
-
-## 2) Survey parameters
-knitr::kable(model_comp_tbl_ls[[2]], align = c("l", rep("r", 7)), format="latex",
-             booktabs = TRUE, linesep = "", caption = "TODO: XXX CAP NEEDED") %>%
-  kableExtra::column_spec(column = 1, width = "3.2cm") %>%
-  kableExtra::column_spec(column = c(2:3, 6:7), width = "1.7cm") %>%
-  kableExtra::column_spec(column = c(4:5, 8), width = "1.1cm")
-
-## 3) extending to RE(data), and regressing against time for eval and survey.
-knitr::kable(model_comp_tbl_ls[[3]], align = c("l", rep("r", 7)), format="latex",
-             booktabs = TRUE, linesep = "", caption = "We select the simple facet model as our benchmark and compare the random effects from participants with the random effects of simulated data. The random effect of the data is small compared to the random effect of the data. The random effect of the participant is good at prediciting the time users take, its conditional R2 is much larger than the marginal R2 of the factor fixed term. TODO: XXX, scale time to be between [-1, 1] for better comparison of RMSE? would be desirable or confusing?") %>%
-  kableExtra::column_spec(column = 1, width = "3.2cm") %>%
-  kableExtra::column_spec(column = c(2:3, 6:7), width = "1.7cm") %>%
-  kableExtra::column_spec(column = c(4:5, 8), width = "1.1cm")
-```
-
-
-<!-- Residuals and random effects simulation -->
-Residual plots had no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figModelSupp) illustrates a typically residual plot (left), while the right compares 95\% confidence interval of the effect ranges for participant and simulation. The effect ranges are estimated from simulations of the posterior distribution. The effect size of participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha$ = .95, while none of the simulation effects significantly deviate from the null of having no effect size on the marks.
-
-```{r figModelSupp, out.width="100%", fig.show='asis', fig.cap='Residual plot and estimated effect ranges for factor regressing on marks with random effects for both partitcipant and data simulation. The effect size of participant is relatively large, with several significant extrema (alpha = .95). None of the simulations deviate significantly.'}
-if(F) ## Creation and saving figure at:
-  file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
-knitr::include_graphics("./figures/figModels.png")
-```
+<!-- Consider: -->
+<!-- -residual plots -->
+<!-- -extending models with survey data; Di tends away from this, as they are not parameterization, they are aspects of the participant not known apriori.  -->
