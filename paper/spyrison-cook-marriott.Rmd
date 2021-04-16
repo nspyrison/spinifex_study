@@ -346,17 +346,11 @@ To recap, the primary response variable are marks as defined in section \@ref(se
 Below we look at the marginal performance of the block parameters and survey responses. After that we build a battery of regression models to explore the variables and their interactions. Lastly we look at the subjective measures between the factors.
 
 
-
-## Random effects regression model
+## Random effects regression model against marks
 
 <!-- Note that we list the measures at the top of the Results section -->
-
 <!-- Introduce regression model explaining marks, and the random effect term  -->
 To more thoroughly examine explanatory variables we regress against marks. All models have a random effect term on the participant, which captures the effect of the individual participant. After we look at models of the block parameters we extend to compare against survey variables. Last, we compare how adding a random effect for data and regressing against time till last response fares against benchmark models. The matrices for models with more than a few terms quickly become rank deficient; there is not enough information in the data to explain all of the effect terms. In which case the least impactful terms are dropped.
-
-<!-- Measures of model comparison -->
-Evaluation of the models will include Akaike's Information Criterion (AIC), Bayesian information criterion (BIC). These are comparisons measures of models based on its maximized log-likelihood function and penalize over fitting models linearly with the number of fixed terms. Root mean square error (RMSE) is the standard deviation of the residuals is also included. For the above 3 measures, the lower the value the more accurate the model. We additionally include Nakagawa's R\^2 for mixed models[@nakagawa_coefficient_2017], which has conditional and marginal measures with respect to the random effect terms, and doesn't penalize overfitting.
-<!-- Add ICC?? see ?performance::icc -->
 
 <!-- Building a battery of models -->
 In building a set of models to test we include all single term models, a model with all independent terms. We also include an interaction term of factor by location, allowing for the slope of each location to change across each level of the factor, which is feasible. For comparison an overly complex model with many interaction terms is included.
@@ -384,7 +378,7 @@ where
 \end{align*}
 
 
-```{r modelCompTable, fig.cap = "Use the caption arg in kable(), not this."}
+```{r marksCompTbl, fig.cap = "Use the caption arg in kable(), not this."}
 model_comp_tbl_ls <- readRDS("./figures/tblModelCompLs.rds")
 require(kableExtra)
 
@@ -397,35 +391,70 @@ kableExtra::kbl(model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
   column_spec(column = c(4:5, 8), width = "1.1cm")
 ```
 
+<!-- Select model ABC -->
 
 <!-- Coefficients of the selected model, ABC -->
-```{r modelSummaryTable, fig.cap = "Use the caption arg in kable(), not this."}
-ABC_coef <- readRDS("./figures/tblModelABCcoef.rds")
-ABC_coef[, -6] <- round(ABC_coef[, -6], 2)
-ABC_coef["df"] <- round(ABC_coef["df"], 1)
+```{r marksCoefTbl, fig.cap = "Use the caption arg in kable(), not this."}
+coef_ls <- readRDS("./figures/tblModelABCcoef.rds")
 
 ## For grouping rows see:
 if(F)
   browseURL("https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html#Group_rows_via_labeling")
-kableExtra::kbl(ABC_coef, booktabs = TRUE, linesep = "", caption = "TODO: XXX FILL IN.") %>%
+kableExtra::kbl(coef_ls[[1]], booktabs = TRUE, linesep = "", format = "latex",
+                caption = "TODO: XXX FILL IN.") %>%
   kableExtra::column_spec(column = 1, width = "6.6cm") %>%
   kableExtra::column_spec(column = c(2:3), width = "1.8cm") %>%
   kableExtra::column_spec(column = c(4,6), width = "1.2cm") %>%
-  kableExtra::column_spec(column = 5, width = "1.6cm") %>% 
-  kableExtra::pack_rows("factor", 2, 3) %>%
-  pack_rows("main effects", 4, 7) %>%
-  pack_rows("interactions", 8, nrow(ABC_coef))
+  kableExtra::column_spec(column = 5, width = "1.6cm") #%>%
+  # kableExtra::pack_rows("factor", 2, 3) %>%
+  # pack_rows("main effects", 4, 7) %>%
+  # pack_rows("interactions", 8, nrow(coef_ls[[1]]))
 ```
 
-
-
-<!-- Residuals and random effects simulation -->
-Residual plots have no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figEffectRange) illustrates (T) the effect size of the random terms participant and simulation, or more accurately, the 95\% CI from Gelman simulation of their postirior distribution. The effect size of participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha$ = .95, while none of the simulation effects significantly deviate from the null of having no effect size on the marks. In comparison, (B) 95\% confidence intervals of the mean marks for participation and simulation respectively. 
+<!-- Random effects vs Mean Mark CI by participant and sim -->
+Residual plots have no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figEffectRange) illustrates (T) the effect size of the random terms participant and simulation, or more accurately, the 95\% CI from Gelman simulation of their posterior distribution. The effect size of participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha$ = .95, while none of the simulation effects significantly deviate from the null of having no effect size on the marks. In comparison, (B) 95\% confidence intervals of the mean marks for participation and simulation respectively. 
 
 ```{r figEffectRange, out.width="100%", fig.show='asis', fig.cap='(T) Estimated effect ranges of the random effect terms partitcipant and data simulation of the alpha * beta * gamma model. Confidence intervals are created via Gelman simulation on the effect posterior distributions. The effect size of participant is relatively large, with several significant extrema (alpha = .95). None of the simulations deviate significantly. (B) The ordered distributions of the marks for the '}
 if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 knitr::include_graphics("./figures/figEffectRange.png")
+```
+
+<!-- Conditional effects of variables -->
+We also want to visually explore the conditional variables in the model. Figure XXX explores violin plots of marks by factor while faceting on the location (vertical) and shape (horizonal). Notice that the conditional variable regularly have much smaller p-value, with seemingly so much more evidence in their favor, this is because they are not "diversifying" their explanatory power across numerous interaction terms, so to speak.
+
+```{r, figMarksABC, echo = F, out.width = '100%', fig.cap = "TODO: XXX"}
+if(F) ## Creation and saving figure at:
+  file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
+knitr::include_graphics("./figures/figMarksABC.png")
+```
+
+## Time regressing models 
+
+As a secondary explanatory variable we also want to look at time. First we take the log transformation of time as it is right skewed. Now we repeat the same modeling procedure, namely, 1) build a battery of all additive and multiplicative models. 2) Compare their performance, reporting a some top performers.
+3) Select a model to examine it's coefficients.
+
+
+```{r timeCompTbl, fig.cap = "Use the caption arg in kable(), not this."}
+## 1) Eval parameters
+kableExtra::kbl(model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
+             booktabs = TRUE, linesep = "", caption = "Model comparison of our random effects models regressing marks. Each model includs a random effect term of the participant, which explains the individuals influence on their marks. Complex models perform better in terms of R2 and RMSE, yet AIC and BIC penialize their large number of fixed effect in favor of the much simpler model containing only factor.") %>%
+  kableExtra::column_spec(column = 1, width = "3.2cm") %>%
+  column_spec(column = c(2:3, 6:7), width = "1.7cm") %>%
+  column_spec(column = c(4:5, 8), width = "1.1cm") %>%
+  column_spec(column = c(4:5, 8), width = "1.1cm")
+```
+
+```{r timeCoefTbl, fig.cap = "Use the caption arg in kable(), not this."}
+kableExtra::kbl(coef_ls[[2]], booktabs = TRUE, linesep = "", format = "latex",
+                caption = "TODO: XXX FILL IN.") %>%
+  kableExtra::column_spec(column = 1, width = "6.6cm") %>%
+  kableExtra::column_spec(column = c(2:3), width = "1.8cm") %>%
+  kableExtra::column_spec(column = c(4,6), width = "1.2cm") %>%
+  kableExtra::column_spec(column = 5, width = "1.6cm") #%>% 
+  # kableExtra::pack_rows("factor", 2, 3) %>%
+  # pack_rows("main effects", 4, 7) %>%
+  # pack_rows("interactions", 8, nrow(t_ABC_coef))
 ```
 
 ## Subjective measures

@@ -121,13 +121,13 @@ my_ggpubr <- function(df, x = "factor", y = "marks", title = "Title missing", su
            draw_quantiles = c(.25, .5, .75)) +
     stat_compare_means(method = "wilcox.test", 
                        comparisons = my_comparisons, 
-                       label = "p.signif") + ## pairwise test
+                       label = "p.signif", hide.ns = TRUE) + ## pairwise test
     # stat_compare_means(label = "p.signif", label.y = .lab.y - .4,
     #                    method = "wilcox.test", ref.group = .x_lvls[1]) + ## Test each lvl w.r.t. first level.
     stat_compare_means( ## Global test
                        label.y = .lab.y,
-                       aes(label = paste0("Krusal-p=", ..p.format..))
-                       ) + ## custom label
+                       aes(label = paste0("Krusal-p=", ..p.format..)),
+                       hide.ns = TRUE) + ## custom label
     my_theme +
     ggtitle(title, subtitle)
 }
@@ -435,11 +435,14 @@ knitr::kable(model_comp_tbl)
 ############################
 #### EXPLORE ----
 ############################
-ABC_coef <- summary(ABC)$coefficients %>% data.frame(check.names = F) %>% 
+model2coef <- function(model){
+  summary(model)$coefficients %>% data.frame(check.names = F) %>% 
   mutate(" " = case_when(`Pr(>|t|)` < .001 ~ "***",
                          `Pr(>|t|)` < .01 ~ "**",
                          `Pr(>|t|)` < .05 ~ "*",
                          TRUE ~ ""))
+}
+ABC_coef <- model2coef(ABC)
 
 ggEffectRanges <- plotREsim(REsim(ABC)) +
   ggtitle("Effect range vs mean marks for participants and simulations", "Effect range for the model alpha * beta * gamma") +
@@ -542,7 +545,7 @@ botRanges <-
 ### Model alpha * beta * gamma
 
 ```{r}
-(marks_by_factor_facet_location_shape <-
+(marks_by_factor_facet_location_shape <- marks_by_ABC <-
    my_ggpubr_facet(dat_qual,
                    x = "factor", y = "marks",
                    title = "Marks by factor, faceting on location and shape",
@@ -554,7 +557,7 @@ botRanges <-
 ## regression agianst time
 
 As a secondary explanatory variable we also want to look at time. First we take the log transformation of time as it is right skewed. Now we repeat the same modeling procedure, namely, 1) build a battery of all additive and multiplicative models. 2) Compare their performance, reporting a some top performers.
-3) Select a model to examine it's coefficents.
+3) Select a model to examine it's coefficients.
 
 ```{r}
 ## Once again, abbreviated verse regressing on time.
@@ -634,11 +637,7 @@ knitr::kable(t_model_comp_tbl)
 ############################
 #### EXPLORE ----
 ############################
-t_ABC_coef <- summary(tABC)$coefficients %>% data.frame(check.names = F) %>% 
-  mutate(" " = case_when(`Pr(>|t|)` < .001 ~ "***",
-                         `Pr(>|t|)` < .01 ~ "**",
-                         `Pr(>|t|)` < .05 ~ "*",
-                         TRUE ~ ""))
+t_ABC_coef <- model2coef(tABC)
 knitr::kable(t_ABC_coef)
 ```
 
@@ -688,17 +687,24 @@ if(F){
   .h = 9
   
   ## Model table
-  model_comp_tbl_ls <- list(model_comp_eval = model_comp_tbl)
+  model_comp_tbl_ls <- list(modelComp_MarksByEval = model_comp_tbl,
+                            modelComp_TimeByEval = t_model_comp_tbl)
   saveRDS(model_comp_tbl_ls, file = "./paper/figures/tblModelCompLs.rds")
-  ## Selected model: ABC 
-  saveRDS(ABC_coef, file = "./paper/figures/tblModelABCcoef.rds")
+  ## Selected model: ABC efficients
+  round_coef <- function(coef_df){
+    coef_df[, -6] <- round(coef_df[, -6], 2)
+    coef_df["df"] <- round(coef_df["df"], 1)
+    coef_df
+  }
+  coef_ls <- list(ABC_coef = round_coef(ABC_coef), t_ABC_coef = round_coef(t_ABC_coef))
+  saveRDS(coef_ls, file = "./paper/figures/ModelCoefLs.rds")
   
   ## RE Effect ranges by mark quantiles
   ggsave("figEffectRange.png", plot = figEffectRange, path = "./paper/figures",
          device = "png", width = .w, height = .w, unit = .u)
   
   ## Marks by violin of factor faceting on location and shape
-  ggsave("figMarksFactorLoctionShape.png", marks_by_factor_facet_location_shape,
+  ggsave("figMarksABC.png", marks_by_ABC, path = "./paper/figures",
          device = "png", width = .w, height = .w, unit = .u)
   
 }
