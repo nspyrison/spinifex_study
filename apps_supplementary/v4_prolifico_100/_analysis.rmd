@@ -285,7 +285,6 @@ _Context: 648 task evaluations from 108 studies; we regress against marks using 
 &&\alpha * \beta * \gamma * \delta \widehat{marks} =& \mu + \alpha_i + \beta_j * \gamma_k * \delta_l + \textbf{Z} + \textbf{W} + \epsilon \\
 \end{align*}
 
-
 where
 
 \begin{align*}
@@ -352,12 +351,6 @@ model_ls <- list(`alpha` = a,
                  `alpha * gamma * delta` = ACD,
                  `alpha * beta * gamma * delta` = ABCD)
 
-# mod_anova_gt_f(ABCD, gt_f = 2)
-#ABCD_f.gt2 <- lmer(marks ~ factor * location * shape * dim + (1 | participant), data = dat_qual)
-# z <- lmer(marks ~ factor * location * shape * dim + (1 | participant), data = dat_qual)
-# drop1(z)
-
-
 ## Local functions to abstract code complexity
 ## A residual plot with marginal density, ggplot2 obj
 plot_residual <- function(model){
@@ -396,20 +389,13 @@ format_column_extrema <- function(df, col, extrema = max, markup = "*"){
 #### COMPARE -----
 ############################
 ## lapply over models
-performance_ls <- aic_ls <- bic_ls <- summary_ls <- plotREsim_ls <-
-  plot_REsim_qq_ls <- plot_residual_ls <- annova_ls <- list()
-factors_vec <- fixef_vec <- vector()
+performance_ls <- list(); factors_vec <- fixef_vec <- vector();
 mute <- lapply(seq_along(model_ls), function(i){
   this_model <- model_ls[[i]]
   performance_ls[[i]] <<- performance::model_performance(this_model)
   factors_vec[i] <<- ncol(attr(terms(this_model), "factors"))
   fixef_vec[i] <<- length(fixef(this_model))
-  ## Other model artifacts
-  # summary_ls[[i]] <<- summary(this_model)
-  # plotREsim_ls[[i]] <<- plotREsim(REsim(this_model))
-  # plot_REsim_qq_ls[[i]] <<- plot_REsim_qq(this_model)
-  # plot_residual_ls[[i]] <<- plot_residual(this_model)
-  # annova_ls[[i]] <<- anova(this_model)
+
 })
 .perf_df <- dplyr::bind_rows(performance_ls)
 .model_comp_colnms <- c("Fixed effects", "No. levels", "No. terms", "AIC", 
@@ -433,9 +419,10 @@ model_comp_tbl <- model_comp_tbl %>%
   format_column_extrema(6, max) %>%
   format_column_extrema(7, max) %>%
   format_column_extrema(8, min)
-
-model_comp_tbl <- model_comp_tbl[c(1, 12, 15), 1:8]
-
+.r_idx <- which(pull(model_comp_tbl[, 1]) %in% c("alpha", "alpha + beta + gamma + delta", 
+                                                   "alpha * beta", "alpha * beta * gamma", 
+                                                   "alpha * beta * gamma * delta"))
+model_comp_tbl <- model_comp_tbl[.r_idx, 1:8]
 
 ## print table
 knitr::kable(model_comp_tbl)
@@ -449,10 +436,10 @@ knitr::kable(model_comp_tbl)
 #### EXPLORE ----
 ############################
 ABC_coef <- summary(ABC)$coefficients %>% data.frame(check.names = F) %>% 
-  mutate(ABC_coef, " " = case_when(`Pr(>|t|)` < .001 ~ "***",
-                                   `Pr(>|t|)` < .01 ~ "**",
-                                   `Pr(>|t|)` < .05 ~ "*",
-                                   TRUE ~ ""))
+  mutate(" " = case_when(`Pr(>|t|)` < .001 ~ "***",
+                         `Pr(>|t|)` < .01 ~ "**",
+                         `Pr(>|t|)` < .05 ~ "*",
+                         TRUE ~ ""))
 
 ggEffectRanges <- plotREsim(REsim(ABC)) +
   ggtitle("Effect range vs mean marks for participants and simulations", "Effect range for the model alpha * beta * gamma") +
@@ -563,23 +550,97 @@ botRanges <-
                    facet = c("location", "shape")))
 ```
 
-<!-- ### Model alpha * beta * gamma * delta -->
 
-<!-- ```{r} -->
-<!-- (marks_by_factor_facet_location_shape) -->
-<!-- (marks_by_factor_facet_location_dim <- -->
-<!--     my_ggpubr_facet(dat_qual, -->
-<!--                     x = "factor", y = "marks", -->
-<!--                     title = "Marks by factor, faceting on location and dim", -->
-<!--                     facet = c("location", "dim"))) -->
-<!-- (marks_by_factor_facet_shape_dim <- -->
-<!--     my_ggpubr_facet(dat_qual, -->
-<!--                     x = "factor", y = "marks", -->
-<!--                     title = "Marks by factor, faceting on location and dim", -->
-<!--                     facet = c("shape", "dim"))) -->
-<!-- ``` -->
+## regression agianst time
 
+As a secondary explanatory variable we also want to look at time. First we take the log transformation of time as it is right skewed. Now we repeat the same modeling procedure, namely, 1) build a battery of all additive and multiplicative models. 2) Compare their performance, reporting a some top performers.
+3) Select a model to examine it's coefficents.
 
+```{r}
+## Once again, abbreviated verse regressing on time.
+############################
+#### CREATE -----
+############################
+## The Models:
+ta <-    lmer(`seconds to last response` ~ factor + (1 | participant) + (1 | simulation), data = dat_qual)
+tab <-   lmer(`seconds to last response` ~ factor + location + (1 | participant) + (1 | simulation), data = dat_qual)
+tac <-   lmer(`seconds to last response` ~ factor + shape + (1 | participant) + (1 | simulation), data = dat_qual)
+tad <-   lmer(`seconds to last response` ~ factor + dim + (1 | participant) + (1 | simulation), data = dat_qual)
+tabc <-  lmer(`seconds to last response` ~ factor + location + shape + (1 | participant) + (1 | simulation), data = dat_qual)
+tabd <-  lmer(`seconds to last response` ~ factor + location + dim + (1 | participant) + (1 | simulation), data = dat_qual)
+tacd <-  lmer(`seconds to last response` ~ factor + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
+tabcd <- lmer(`seconds to last response` ~ factor + location + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
+tAB <-   lmer(`seconds to last response` ~ factor * location + (1 | participant) + (1 | simulation), data = dat_qual)
+tAC <-   lmer(`seconds to last response` ~ factor * shape + (1 | participant) + (1 | simulation), data = dat_qual)
+tAD <-   lmer(`seconds to last response` ~ factor * dim + (1 | participant) + (1 | simulation), data = dat_qual)
+tABC <-  lmer(`seconds to last response` ~ factor * location * shape + (1 | participant) + (1 | simulation), data = dat_qual)
+tABD <-  lmer(`seconds to last response` ~ factor * location * dim + (1 | participant) + (1 | simulation), data = dat_qual)
+tACD <-  lmer(`seconds to last response` ~ factor * shape * dim + (1 | participant) + (1 | simulation), data = dat_qual)
+tABCD <- lmer(`seconds to last response` ~ factor * location * shape * dim + (1 | participant) + (1 | simulation), data = dat_qual)
+
+t_model_ls <- list(`alpha`                        = ta,
+                   `alpha + beta`                 = tab,
+                   `alpha + gamma`                = tac,
+                   `alpha + delta`                = tad,
+                   `alpha + beta + gamma`         = tabc, 
+                   `alpha + beta + delta`         = tabd,
+                   `alpha + gamma + delta`        = tacd,
+                   `alpha + beta + gamma + delta` = tabcd,
+                   `alpha * beta`                 = tAB,
+                   `alpha * gamma`                = tAC,
+                   `alpha * delta`                = tAD,
+                   `alpha * beta * gamma`         = tABC, 
+                   `alpha * beta * delta`         = tABD,
+                   `alpha * gamma * delta`        = tACD,
+                   `alpha * beta * gamma * delta` = tABCD)
+
+############################
+#### COMPARE -----
+############################
+## lapply over models
+t_performance_ls <- list(); t_factors_vec <- t_fixef_vec <- vector()
+mute <- lapply(seq_along(t_model_ls), function(i){
+  this_model <- t_model_ls[[i]]
+  t_performance_ls[[i]] <<- performance::model_performance(this_model)
+  t_factors_vec[i] <<- ncol(attr(terms(this_model), "factors"))
+  t_fixef_vec[i] <<- length(fixef(this_model))
+})
+.t_perf_df <- dplyr::bind_rows(performance_ls)
+t_model_comp_tbl <- tibble(names(t_model_ls),
+                         t_factors_vec,
+                         t_fixef_vec,
+                         round(.t_perf_df[, 1]),
+                         round(.t_perf_df[, 2]),
+                         round(.t_perf_df[, 3], 3),
+                         round(.t_perf_df[, 4], 3),
+                         round(.t_perf_df[, 6], 3),
+                         round(.t_perf_df[, 3], 3) / round(.t_perf_df[, 4], 3))
+colnames(t_model_comp_tbl) <- .model_comp_colnms
+
+## Latex formatting
+t_model_comp_tbl <- t_model_comp_tbl %>%
+  format_column_extrema(4, min) %>%
+  format_column_extrema(5, min) %>%
+  format_column_extrema(6, max) %>%
+  format_column_extrema(7, max) %>%
+  format_column_extrema(8, min)
+.r_idx <- which(pull(t_model_comp_tbl[, 1]) %in% c("alpha", "alpha + beta + gamma + delta", 
+                                                   "alpha * beta", "alpha * beta * gamma", 
+                                                   "alpha * beta * gamma * delta"))
+t_model_comp_tbl <- t_model_comp_tbl[.r_idx, 1:8]
+
+## print table
+knitr::kable(t_model_comp_tbl)
+############################
+#### EXPLORE ----
+############################
+t_ABC_coef <- summary(tABC)$coefficients %>% data.frame(check.names = F) %>% 
+  mutate(" " = case_when(`Pr(>|t|)` < .001 ~ "***",
+                         `Pr(>|t|)` < .01 ~ "**",
+                         `Pr(>|t|)` < .05 ~ "*",
+                         TRUE ~ ""))
+knitr::kable(t_ABC_coef)
+```
 
 
 # Supplemental material
@@ -609,68 +670,6 @@ marks_by_last_resp <- ggplot(dat_qual) + my_theme +
 
 (marks_by_last_resp <- ggExtra::ggMarginal(marks_by_last_resp, type = "density",
                                            groupColour = TRUE, groupFill = TRUE))
-```
-
-
-### Regressing against the time
-
-_#TODO: XXX continue rework here_
-
-Because factor uniquely performed so well, let's use it as a benchmark as compared to models:
-
-- marks ~ factor + RE_participant -- benchmark
-- marks ~ factor + RE_participant.data
-- time ~ factor + RE_participant
-- time ~ factor + RE_participant.data
-
-```{r}
-marks_f_re_partcipant <- lmer(marks ~ factor + (1 | participant), data = dat_qual) ## Benchmark
-marks_f_re_partcipant.data <-
-  lmer(marks ~ factor + (1 | participant) + (1 | simulation), data = dat_qual)
-time_f_re_partcipant <-
-  lmer(`seconds to last response` ~ factor + (1 | participant), data = dat_qual)
-time_f_re_partcipant.data <-
-  lmer(`seconds to last response` ~ factor + (1 | participant) + (1 | simulation), data = dat_qual)
-
-model_ls3 <- list(`marks~F+RE(parti.)` = marks_f_re_partcipant,
-                  `marks~F+RE(parti.+sim)` = marks_f_re_partcipant.data,
-                  `time~F+RE(parti.)` = time_f_re_partcipant,
-                  `time~F+RE(parti.+sim)` = time_f_re_partcipant.data
-)
-
-performance_ls3 <- list()
-factors_vec3 <- fixef_vec3 <- vector()
-mute <- lapply(seq_along(model_ls3), function(i){
-  this_model <- model_ls3[[i]]
-  performance_ls3[[i]] <<- performance::model_performance(this_model)
-  factors_vec3[i] <<- ncol(attr(terms(this_model), "factors"))
-  fixef_vec3[i] <<- length(fixef(this_model))
-})
-
-.perf_df3 <- dplyr::bind_rows(performance_ls3)
-model_comp_tbl3 <- tibble(names(model_ls3),
-                          factors_vec3,
-                          fixef_vec3,
-                          round(.perf_df3[, 1]),
-                          round(.perf_df3[, 2]),
-                          round(.perf_df3[, 3], 2),
-                          round(.perf_df3[, 4], 2),
-                          round(.perf_df3[, 6], 2))
-colnames(model_comp_tbl3) <- .model_comp_colnms
-
-knitr::kable(model_comp_tbl)
-knitr::kable(model_comp_tbl3)
-
-print("Random effect of the dataset as compared to that of the participant:")
-summary(marks_f_re_partcipant.data)
-.resim <- REsim(marks_f_re_partcipant.data)
-plotREsim(.resim)
-.resim_data <- .resim %>%
-  filter(groupFctr == "simulation") %>%
-  arrange(mean)
-print("Most difficult and easiest datasets:")
-head(.resim_data)
-tail(.resim_data)
 ```
 
 ______
