@@ -92,7 +92,7 @@ require(dplyr)
 
 <!-- Example figure -->
 ```{r figExamp, echo = F, out.width = '100%',fig.cap = "Example case. Person 'A' is assigned to group 2, where they will use factor 2 (grand tour) for the first period. They perform 3 block difficulties of task 1 on simulations of increasing difficulty. Then 3 block difficulties of task 2 on unique simulations sampled from the same distributions of increasing difficulty. After this, they proceed to period 2, where they are use factor 3 (manual tour) to perform 3 block difficulties of each task. Lastly, in the third period, they use factor 1 (PCA) to perform the tasks.", eval = F}
-#knitr::include_graphics("./figures/experimental_design_personA.PNG")
+knitr::include_graphics("./figures/imageName.png")
 ```
 <!-- Figure \@ref(fig:figExamp) is an example of referencing a the example figure. -->
 
@@ -472,7 +472,7 @@ if(F)
   browseURL("https://bookdown.org/Rmadillo/likert/is-there-a-significant-difference.html#permutation-mann-whitney-tests")
 
 if(F) ## Creation and saving figure at:
-  file.edit("./paper/R/fig_population_demographics.rmd")
+  file.edit("./paper/R/fig_population_demographics.r")
 knitr::include_graphics("./figures/figSubjectiveMeasures_w.violin_hori.png") ## Alternatively use the suffix *_vert
 # figSubjectiveMeasures_vert.png
 # figSubjectiveMeasures_hori.png

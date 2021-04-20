@@ -1,4 +1,6 @@
-require(tidyverse)
+require("tidyverse")
+require("dplyr")
+
 ## Follow the loose setup of _analysis.rmd:
 if(F)
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
@@ -145,19 +147,19 @@ str(survey_wider)
   ## pivot_longer within factor
   radial_longer <- survey_wider %>%
     dplyr::select(instance_id, radial_familar:radial_like) %>%
-    pivot_longer(radial_familar:radial_like,
+    tidyr::pivot_longer(radial_familar:radial_like,
                  names_to = "factor", values_to = "value")
   grand_longer <- survey_wider %>%
     dplyr::select(instance_id, grand_familar:grand_like) %>%
-    pivot_longer(grand_familar:grand_like,
+    tidyr::pivot_longer(grand_familar:grand_like,
                  names_to = "factor", values_to = "value")
   pca_longer <- survey_wider %>%
     dplyr::select(instance_id, pca_familar:pca_like) %>%
-    pivot_longer(pca_familar:pca_like,
+    tidyr::pivot_longer(pca_familar:pca_like,
                  names_to = "factor", values_to = "value")
   ## Combine and split measure from factor
   subjective_longer <- rbind(radial_longer, grand_longer, pca_longer) %>%
-    separate(factor, c("factor", "measure"), sep = "_")
+    tidyr::separate(factor, c("factor", "measure"), sep = "_")
 }
 ## Technically not continuous numeric, will show side by side with Likert plot.
 .lvls <- c("most disagree", "disagree", "neutral", "agree", "most agree")
@@ -169,12 +171,22 @@ subjective_longer <- subjective_longer %>%
   )
 
 ## 4 panes with {ggpubr}, ggviolin or ggboxplot with tests
+require("ggpubr")
+my_theme <- list(
+  theme_bw(),
+  scale_color_brewer(palette = "Dark2"),
+  scale_fill_brewer(palette = "Dark2"),
+  geom_hline(yintercept = 0L),
+  theme(legend.position = "bottom",
+        legend.box = "vertical",
+        legend.margin = margin(-6))
+)
 my_ggpubr <- function(df, x = "factor", y = "value", title = waiver(), subtitle = waiver()){
   ## Find height of global significance test text.
   .x_lvls <- df %>% pull({{x}}) %>% levels()
   .y_range <- diff(range(df[y]))
   .n_lvls <- length(.x_lvls)
-  .lab.y <- (.12 * .y_range) * (1 + .n_lvls) * .y_range + max(df[y])
+  .lab.y <- (.14 * .y_range) * (1 + .n_lvls) * .y_range + max(df[y])
   my_comparisons <- list(c("pca", "grand"), c("grand", "radial"), c("pca", "radial"))
   
   ## Plot
@@ -198,8 +210,6 @@ my_ggpubr_facet <- function(..., facet = "measure"){
   facet(my_ggpubr(...), facet.by = facet)
 }
 (measure_violins <- my_ggpubr_facet(df = subjective_longer, x = "factor", y = "value"))
-
-
 
 
 #### Subjective measures, LIKERT PLOTS -----
@@ -229,7 +239,7 @@ length(unique(survey_wider$instance_id))
   ## Format likert questions
   likert_q_nms <- colnames(survey_wider[, 11:22])
   likert <<- survey_agg %>% filter(question %in% likert_q_nms) %>%
-    separate(question, c("factor", "question"), sep = "_") %>%
+    tidyr::separate(question, c("factor", "question"), sep = "_") %>%
     mutate(factor = factor(factor, levels = rev(c("pca", "grand", "radial"))),
            response = factor(response, levels = rev(.l_lvls)))
   likert$question <-
@@ -266,7 +276,7 @@ figSubjectiveMeasures <-
   cowplot::plot_grid(subjectiveMeasures, measure_violins, ncol = 2)
 
 if(F){
-  message("show side by side with boxplots?")
+  require("ggplot2")
   ggsave("./paper/figures/figSubjectiveMeasures_vert.png", subjectiveMeasures,
          width = .w, height = .w * .66, units = "in")
   ggsave("./paper/figures/figSubjectiveMeasures_hori.png",
