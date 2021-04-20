@@ -109,7 +109,7 @@ my_ggpubr <- function(df, x = "factor", y = "marks", title = "Title missing", su
   .x_lvls <- df %>% pull({{x}}) %>% levels()
   .y_range <- diff(range(df[y]))
   .n_lvls <- length(.x_lvls)
-  .lab.y <- (.05 * .y_range) * (1 + .n_lvls) * .y_range + max(df[y])
+  .lab.y <- (.07 * .y_range) * (1 + .n_lvls) * .y_range + max(df[y])
   my_comparisons <- list(c("pca", "grand"), 
                          c("grand", "radial"),
                          c("pca", "radial"))
@@ -445,9 +445,10 @@ model2coef <- function(model){
 ABC_coef <- model2coef(ABC)
 
 ggEffectRanges <- plotREsim(REsim(ABC)) +
-  ggtitle("Effect range vs mean marks for participants and simulations", "Effect range for the model alpha * beta * gamma") +
+  ggtitle("Effect range vs mean marks for participants and simulations", 
+          "alpha = .95, model: marks^ = alpha * beta * gamma") +
   theme(axis.title.x = element_blank()) +
-  ylab("effect range (CI of Gelman sim)")
+  ylab("effect range")
 
   if(F)
     browseURL("http://www.cookbook-r.com/Manipulating_data/Summarizing_data/")
@@ -507,7 +508,7 @@ ggParticipantRanges <- ggplot(participant_agg) +
         axis.ticks.x = element_blank()) +
   coord_cartesian(ylim = c(-1, 1)) +
   xlab("participant (n=6 every line)") +
-  ylab("CI mean marks (alpha=.95)")
+  ylab("CI mean marks")
 ggParticipantRanges <- ggExtra::ggMarginal(ggParticipantRanges, 
                                            type = "density", fill = "grey80")
 ## By simulation
@@ -550,7 +551,9 @@ botRanges <-
                    x = "factor", y = "marks",
                    title = "Marks by factor, faceting on location and shape",
                    subtitle = "The fixed effects of model alpha * beta * gamma",
-                   facet = c("location", "shape")))
+                   facet = c("location", "shape")) +
+   coord_cartesian(ylim = c(-1.75, 2.75))
+)
 ```
 
 
@@ -635,51 +638,76 @@ t_model_comp_tbl <- t_model_comp_tbl %>%
                                                    "alpha * beta * gamma * delta"))
 t_model_comp_tbl <- t_model_comp_tbl[.r_idx, 1:8]
 
-## print table
+## print model comparison table
 knitr::kable(t_model_comp_tbl)
 ############################
 #### EXPLORE ----
 ############################
+## Explore selected model, log sec to resp ~ ABC
 t_ABC_coef <- model2coef(tABC)
 knitr::kable(t_ABC_coef)
-```
 
+## Redefine my_theme to remove line at y = 0.
+my_theme <- list(
+  theme_bw(),
+  scale_color_brewer(palette = "Dark2"),
+  scale_fill_brewer(palette = "Dark2"),
+  #geom_hline(yintercept = 0L),
+  theme(legend.position = "bottom",
+        legend.box = "vertical",
+        legend.margin = margin(-6))
+)
 
-# Supplemental material
+ggEffectRanges <- plotREsim(REsim(tABC)) +
+  ggtitle("Effect range vs mean log seconds to last response for participants and simulations", 
+          "alpha = .95, model: log(seconds to last response)^ = alpha * beta * gamma") +
+  theme(axis.title.x = element_blank()) +
+  ylab("effect range")
 
-## Last response time density
-
-We are concerned about the quality of the data, given that so many people experienced network issues. Let's explore.
-
-```{r}
-.ann_offset <- 7
-ggplot() +
-  geom_density(aes(`seconds to last response`, fill = ""), dat_qual, alpha = .5) +
-  ggtitle("Seconds to respond density") +
+## By participant
+participant_agg <- summarySE(dat_qual, "log_sec_last_resp", "participant") %>%
+  mutate(participant = forcats::fct_reorder(participant, log_sec_last_resp ))
+ggParticipantRanges <- ggplot(participant_agg) +
+  geom_point(aes(participant, log_sec_last_resp ), alpha = .2, size = 2) +
+  geom_linerange(aes(participant, ymin = log_sec_last_resp  - ci,
+                     ymax = log_sec_last_resp + ci), alpha = .3) +
   my_theme +
-  lims(x = c(0, 100)) +
-  geom_vline(xintercept = 60, linetype = 3L) +
-  geom_label(aes(x =  60 - .ann_offset, y = .03, label = "plot turns off"))
-```
-
-```{r}
-marks_by_last_resp <- ggplot(dat_qual) + my_theme +
-  geom_point(aes(`seconds to last response`, marks,
-                 fill = factor, color = factor), alpha = .2) +
-  geom_smooth(aes(`seconds to last response`, marks,
-                  fill = factor, color = factor)) +
-  ggtitle("Mark by last response time with marginal density")
-
-(marks_by_last_resp <- ggExtra::ggMarginal(marks_by_last_resp, type = "density",
-                                           groupColour = TRUE, groupFill = TRUE))
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank()) +
+  geom_hline(yintercept = mean(participant_agg$log_sec_last_resp)) +
+  #coord_cartesian(ylim = c(-1, 1)) +
+  xlab("participant (n=6 every line)") +
+  ylab("CI mean log seconds to last response")
+ggParticipantRanges <- ggExtra::ggMarginal(ggParticipantRanges, 
+                                           type = "density", fill = "grey80")
+## By simulation
+simulation_agg <- summarySE(dat_qual, "log_sec_last_resp", "simulation") %>% 
+  mutate(simulation = forcats::fct_reorder(simulation, log_sec_last_resp))
+ggSimulationRanges <- ggplot(simulation_agg) +
+  geom_point(aes(simulation, log_sec_last_resp), alpha = .2, size = 2) +
+  geom_linerange(aes(simulation, ymin = log_sec_last_resp - ci, 
+                     ymax = log_sec_last_resp + ci), alpha = .3) +
+  my_theme +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title.y = element_blank()) +
+  geom_hline(yintercept = mean(simulation_agg$log_sec_last_resp)) +
+  #coord_cartesian(ylim = c(-1, 1)) +
+  xlab("simulation (n=36 every line)")
+ggSimulationRanges <-
+  ggExtra::ggMarginal(ggSimulationRanges, type = "density", fill = "grey80")
+botRanges <-
+  cowplot::plot_grid(ggParticipantRanges, ggSimulationRanges,
+                     ncol = 2, rel_widths = c(1.07, 1))
+(t_figEffectRange <- cowplot::plot_grid(ggEffectRanges, botRanges, nrow = 2))
 ```
 
 ______
 
-## Saving paper figures
+# Saving paper figures
 ```{r}
 if(F){
-  ## instance_id whitelist, the people kept for analysis. 
+  ## instance_id whitelist, the people kept for analysis.
   #### (instance_id is: participant_num "_" perm_num "_" prolific_id)
   saveRDS(instance_id_whitelist,
           file = "./apps_supplementary/v4_prolifico_100/instance_id_whitelist.rds")
@@ -693,7 +721,8 @@ if(F){
   model_comp_tbl_ls <- list(modelComp_MarksByEval = model_comp_tbl,
                             modelComp_TimeByEval = t_model_comp_tbl)
   saveRDS(model_comp_tbl_ls, file = "./paper/figures/modelCompLs.rds")
-  ## Selected model: ABC coefficients
+  ## Selected models: marks ~ ABC, log_sec_to_resp ~ ABC
+  #### format coefficients
   round_coef <- function(coef_df){
     coef_df[, -6] <- round(coef_df[, -6], 2)
     coef_df["df"] <- round(coef_df["df"], 1)
@@ -705,14 +734,46 @@ if(F){
   ## RE Effect ranges by CI of mean marks
   ggsave("figEffectRange.png", plot = figEffectRange, path = "./paper/figures",
          device = "png", width = .w, height = .w, unit = .u)
+  ggsave("figTeffectRange.png", plot = t_figEffectRange, path = "./paper/figures",
+         device = "png", width = .w, height = .w, unit = .u)
   
   ## Marks by violin of factor faceting on location and shape
   ggsave("figMarksABC.png", marks_by_ABC, path = "./paper/figures",
          device = "png", width = .w, height = .w, unit = .u)
-  
 }
 ```
 
+_____
+
+# Supplemental material
+
+## Last response time density
+
+We are concerned about the quality of the data, given that so many people experienced network issues. Let's explore.
+
+```{r}
+.ann_offset <- 7
+ggplot() +
+  geom_density(aes(log_sec_last_resp, fill = ""), dat_qual, alpha = .5) +
+  ggtitle("Density of log seconds to last response") +
+  my_theme +
+  lims(x = c(0, 100)) +
+  xlab("Log(seconds to last response)") +
+  geom_vline(xintercept = 60, linetype = 3L) +
+  geom_label(aes(x =  60 - .ann_offset, y = .03, label = "plot turns off"))
+```
+
+```{r}
+marks_by_last_resp <- ggplot(dat_qual) + my_theme +
+  geom_point(aes(`seconds to last response`, marks,
+                 fill = factor, color = factor), alpha = .2) +
+  geom_smooth(aes(`seconds to last response`, marks,
+                  fill = factor, color = factor)) +
+  ggtitle("Marks by Seconds till last response with marginal density")
+
+(marks_by_last_resp <- ggExtra::ggMarginal(marks_by_last_resp, type = "density",
+                                           groupColour = TRUE, groupFill = TRUE))
+```
 
 <!-- ## Saving supplemental material figures -->
 

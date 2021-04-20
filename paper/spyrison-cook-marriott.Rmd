@@ -414,7 +414,7 @@ kableExtra::kbl(coef_ls[[1]], booktabs = TRUE, linesep = "", format = "latex",
 <!-- Random effects vs Mean Mark CI by participant and sim -->
 Residual plots have no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figEffectRange) illustrates (T) the effect size of the random terms participant and simulation, or more accurately, the 95\% CI from Gelman simulation of their posterior distribution. The effect size of participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha$ = .95, while none of the simulation effects significantly deviate from the null of having no effect size on the marks. In comparison, (B) 95\% confidence intervals of the mean marks for participation and simulation respectively. 
 
-```{r figEffectRange, out.width="100%", fig.show='asis', fig.cap='(T) Estimated effect ranges of the random effect terms partitcipant and data simulation of the alpha * beta * gamma model. Confidence intervals are created via Gelman simulation on the effect posterior distributions. The effect size of participant is relatively large, with several significant extrema (alpha = .95). None of the simulations deviate significantly. (B) The ordered distributions of the marks for the '}
+```{r figEffectRange, out.width="100%", fig.show='asis', fig.cap='(T) Estimated effect ranges of the random effect terms partitcipant and data simulation of the alpha * beta * gamma model. Confidence intervals are created via Gelman simulation on the effect posterior distributions. The effect size of participant is relatively large, with several significant extrema (alpha = .95). None of the simulations deviate significantly. (B) The ordered distributions of the CI of mean marks follow the same general patten and give the additional context of the cield of  effect range without the explaination information of fix terms. The effect ranges capture about 2/3 of the range of the data without the model.'}
 if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 knitr::include_graphics("./figures/figEffectRange.png")
@@ -455,6 +455,12 @@ kableExtra::kbl(coef_ls[[2]], booktabs = TRUE, linesep = "", format = "latex",
   kableExtra::pack_rows("factor", 2, 3) %>%
   pack_rows("fixed effects", 4, 7) %>%
   pack_rows("interactions", 8, nrow(coef_ls[[2]]))
+```
+
+```{r figTeffectRange, out.width="100%", fig.show='asis', fig.cap='(T) TODO: XXX. (B) '}
+if(F) ## Creation and saving figure at:
+  file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
+knitr::include_graphics("./figures/figTeffectRange.png")
 ```
 
 ## Subjective measures
