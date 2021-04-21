@@ -2,6 +2,8 @@
 title: "The effect of user interaction for understanding variable contributions to
   structure in linear projections \n"
 author: "Nicholas Spyrison, Dianne Cook, Kimbal Marriott"
+documentclass: jdssv
+classoption: article
 header-includes:
 - \usepackage{amsmath}
 - \usepackage{graphicx}
@@ -9,8 +11,9 @@ header-includes:
 - \usepackage{lmodern}
 - \usepackage{thumbpdf}
 - \usepackage{bm}
-- \documentclass[article]{jdssv}
-#output: pdf_document
+output: 
+  bookdown::pdf_document2:
+    keep_tex: yes
 keywords: multivariate data, exploratory data analysis, high dimensional data, data
   visualization, cluster analysis, dimension reduction, data science, user study,
   between users, linear projections, linear embeddings
