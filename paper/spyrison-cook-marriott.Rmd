@@ -1,25 +1,45 @@
 ---
+title: "The effect of user interaction for understanding variable contributions to
+  structure in linear projections \n"
+author: "Nicholas Spyrison, Dianne Cook, Kimbal Marriott"
 header-includes:
-  - \usepackage{amsmath} ## LaTeX preamble
-  - \usepackage{graphicx}
-  - \usepackage{pdflscape}
-  - \usepackage{lmodern} ## \pounds symbol
-output: 
-  bookdown::pdf_document2:
-    toc: false
-title: >
-  The effect of user interaction for understanding variable contributions to structure in linear projections 
-author:
-  Nicholas Spyrison, Dianne Cook, Kimbal Marriott
-abstract: >
-  Viewing data in its original variable space is foundamental to the exploratory data analysis. For multivariate data this is an complex task. We perform a between-participant user study to evaluate 3 types of linear embeddings, namely, biplots of principal componts, grand tours, and radial tours. Crowdsourced participants (N = 108) were asked to identify which variable(s) explain the difference between a pair of clusters within the data as the factor of visualization is changed within participant. Principal componants and grand tour are the discrete and animated benchmarks to beat. We find radial tours score higher and respond slightly faster than alternatives. Visual factor is significantly more important than the other block parameterizations (location, shape, dimension) or learning effects from the order of evaluation. Demographics, prior experience, and parameter values vary in significance, while the size of their coeffecients all relatively small as compared with visual and the random effect of the participants.
-keywords: multivariate data, exploratory data analysis, high dimensional data, data visualization, cluster analysis, dimension reduction, data science, user study, between users, linear projections, linear embeddings
+- \usepackage{amsmath}
+- \usepackage{graphicx}
+- \usepackage{pdflscape}
+- \usepackage{lmodern}
+- \usepackage{thumbpdf}
+- \usepackage{bm}
+- \documentclass[article]{jdssv}
+#output: pdf_document
+keywords: multivariate data, exploratory data analysis, high dimensional data, data
+  visualization, cluster analysis, dimension reduction, data science, user study,
+  between users, linear projections, linear embeddings
 bibliography: spyrison-cook-marriott.bib
-editor_options: 
+editor_options:
   chunk_output_type: console
+abstract: |
+  Viewing data in its original variable space is foundamental to the exploratory data analysis. For multivariate data this is an complex task. We perform a between-participant user study to evaluate 3 types of linear embeddings, namely, biplots of principal componts, grand tours, and radial tours. Crowdsourced participants (N = 108) were asked to identify which variable(s) explain the difference between a pair of clusters within the data as the factor of visualization is changed within participant. Principal componants and grand tour are the discrete and animated benchmarks to beat. We find radial tours score higher and respond slightly faster than alternatives. Visual factor is significantly more important than the other block parameterizations (location, shape, dimension) or learning effects from the order of evaluation. Demographics, prior experience, and parameter values vary in significance, while the size of their coeffecients all relatively small as compared with visual and the random effect of the participants.
 ---
 \bibliography{spyrison-cook-marriott}
 ```{r setup_paper, include=FALSE}
+knitr::opts_chunk$set(
+  fig.align = "center", 
+  echo = FALSE,
+  collapse = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  error = FALSE,
+  cache = FALSE,
+  cache.lazy = FALSE
+)
+require("knitr")
+require("kableExtra")
+
+## Slowly adding JDSSV formatting and themes files:
+# knitr::opts_knit$set(out.format = "latex")
+```
+```{r writingNotesExcluded, include=FALSE,eval=FALSE}
+## EXAMPLE YAML from spinifex_paper R journal YAML
 # ---
 # author:
   # - name: Nicholas Spyrison
@@ -48,23 +68,6 @@ editor_options:
 # ---
 # \bibliography{spyrison-cook-marriott}
 
-
-#options(tinytex.verbose = TRUE) ## Keep additional intermediate content when compiling?
-
-knitr::opts_chunk$set(
-  fig.align = "center", 
-  echo = FALSE,
-  collapse = TRUE,
-  message = FALSE,
-  warning = FALSE,
-  error = FALSE,
-  cache = FALSE,
-  cache.lazy = FALSE
-)
-require(spinifex)
-require(ggplot2)
-require(gridExtra)
-require(dplyr)
 
 # Hypothesis: 
 # does the availability of the manual tour improve the ability of the analyst 
@@ -380,7 +383,6 @@ where
 
 ```{r marksCompTbl, fig.cap = "Use the caption arg in kable(), not this."}
 model_comp_tbl_ls <- readRDS("./figures/modelCompLs.rds")
-require(kableExtra)
 
 ## 1) Eval parameters
 kableExtra::kbl(model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
