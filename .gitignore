@@ -8,6 +8,8 @@ output_SimDifficulty/
 *_cache/
 .secrets
 
+paper/spyrison-cook-marriott_cache/latex/__paackages
+paper/spyrison-cook-marriott_cache/latex/
 paper/spyrison-cook-marriott_cache/
 paper/spyrison-cook-marriott.log
 paper/spyrison-cook-marriott.tex

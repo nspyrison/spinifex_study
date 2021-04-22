@@ -457,7 +457,7 @@ As a secondary explanatory variable we also want to look at time. First we take 
 ```{r timeCompTbl, fig.cap = "Use the caption arg in kable(), not this."}
 ## 1) Eval parameters
 kableExtra::kbl(model_comp_tbl_ls[[2]], align = c("l", rep("r", 7)),
-             booktabs = TRUE, linesep = "", caption = "Model comparison of our random effects models regressing marks. Each model includs a random effect term of the participant, which explains the individuals influence on their marks. Complex models perform better in terms of R2 and RMSE, yet AIC and BIC penialize their large number of fixed effect in favor of the much simpler model containing only factor.") %>%
+             booktabs = TRUE, linesep = "", caption = "Model comparison for log(time) random effects models, all models include 2 random effect terms for participants and for simulations. We see the same trade off where the simplest factor model is perfered by AIC/BIC, while R2 and RMSE perform best with the full multiplicitative model.") %>%
   kableExtra::column_spec(column = 1, width = "3.2cm") %>%
   column_spec(column = c(2:3, 6:7), width = "1.7cm") %>%
   column_spec(column = c(4:5, 8), width = "1.1cm") %>%

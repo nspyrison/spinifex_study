@@ -4,3 +4,7 @@ spinifex
 ggplot2
 gridExtra
 dplyr
+fortunes
+statquotes
+knitr
+kableExtra

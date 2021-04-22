@@ -319,20 +319,20 @@ mod_anova_gt_f <- function(mod, gt_f = 1){
 #### CREATE -----
 ############################
 ## The Models:
-a <- lmer(marks ~ factor + (1 | participant) + (1 | simulation), data = dat_qual)
-ab <- lmer(marks ~ factor + location + (1 | participant) + (1 | simulation), data = dat_qual)
-ac <- lmer(marks ~ factor + shape + (1 | participant) + (1 | simulation), data = dat_qual)
-ad <- lmer(marks ~ factor + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-abc <- lmer(marks ~ factor + location + shape + (1 | participant) + (1 | simulation), data = dat_qual)
-abd <- lmer(marks ~ factor + location + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-acd <- lmer(marks ~ factor + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
+a <-    lmer(marks ~ factor + (1 | participant) + (1 | simulation), data = dat_qual)
+ab <-   lmer(marks ~ factor + location + (1 | participant) + (1 | simulation), data = dat_qual)
+ac <-   lmer(marks ~ factor + shape + (1 | participant) + (1 | simulation), data = dat_qual)
+ad <-   lmer(marks ~ factor + dim + (1 | participant) + (1 | simulation), data = dat_qual)
+abc <-  lmer(marks ~ factor + location + shape + (1 | participant) + (1 | simulation), data = dat_qual)
+abd <-  lmer(marks ~ factor + location + dim + (1 | participant) + (1 | simulation), data = dat_qual)
+acd <-  lmer(marks ~ factor + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
 abcd <- lmer(marks ~ factor + location + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-AB <- lmer(marks ~ factor * location + (1 | participant) + (1 | simulation), data = dat_qual)
-AC <- lmer(marks ~ factor * shape + (1 | participant) + (1 | simulation), data = dat_qual)
-AD <- lmer(marks ~ factor * dim + (1 | participant) + (1 | simulation), data = dat_qual)
-ABC <- lmer(marks ~ factor * location * shape + (1 | participant) + (1 | simulation), data = dat_qual)
-ABD <- lmer(marks ~ factor * location * dim + (1 | participant) + (1 | simulation), data = dat_qual)
-ACD <- lmer(marks ~ factor * shape * dim + (1 | participant) + (1 | simulation), data = dat_qual)
+AB <-   lmer(marks ~ factor * location + (1 | participant) + (1 | simulation), data = dat_qual)
+AC <-   lmer(marks ~ factor * shape + (1 | participant) + (1 | simulation), data = dat_qual)
+AD <-   lmer(marks ~ factor * dim + (1 | participant) + (1 | simulation), data = dat_qual)
+ABC <-  lmer(marks ~ factor * location * shape + (1 | participant) + (1 | simulation), data = dat_qual)
+ABD <-  lmer(marks ~ factor * location * dim + (1 | participant) + (1 | simulation), data = dat_qual)
+ACD <-  lmer(marks ~ factor * shape * dim + (1 | participant) + (1 | simulation), data = dat_qual)
 ABCD <- lmer(marks ~ factor * location * shape * dim + (1 | participant) + (1 | simulation), data = dat_qual)
 
 model_ls <- list(`alpha` = a,
@@ -419,9 +419,10 @@ model_comp_tbl <- model_comp_tbl %>%
   format_column_extrema(6, max) %>%
   format_column_extrema(7, max) %>%
   format_column_extrema(8, min)
-.r_idx <- which(pull(model_comp_tbl[, 1]) %in% c("alpha", "alpha + beta + gamma + delta", 
-                                                   "alpha * beta", "alpha * beta * gamma", 
-                                                   "alpha * beta * gamma * delta"))
+.r_idx <- which(pull(model_comp_tbl[, 1]) %in% 
+                  c("alpha", "alpha + beta + gamma + delta", 
+                    "alpha * beta", "alpha * beta * gamma", 
+                    "alpha * beta * gamma * delta"))
 model_comp_tbl <- model_comp_tbl[.r_idx, 1:8]
 
 ## print table
@@ -505,14 +506,16 @@ ggParticipantRanges <- ggplot(participant_agg) +
   geom_linerange(aes(participant, ymin = marks - ci, ymax = marks + ci), alpha = .3) +
   my_theme +
   theme(axis.text.x = element_blank(),
-        axis.ticks.x = element_blank()) +
+        axis.ticks.x = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
   coord_cartesian(ylim = c(-1, 1)) +
-  xlab("participant (n=6 every line)") +
-  ylab("CI mean marks")
-ggParticipantRanges <- ggExtra::ggMarginal(ggParticipantRanges, 
-                                           type = "density", fill = "grey80")
+  ylab("CI mean marks") +
+  xlab("participant (n=6 per line)")
+ggParticipantRanges <- 
+  ggExtra::ggMarginal(ggParticipantRanges, type = "density", fill = "grey80")
 ## By simulation
-simulation_agg <- summarySE(dat_qual, "marks", "simulation") %>% 
+simulation_agg <- summarySE(dat_qual, "marks", "simulation") %>%
   mutate(simulation = forcats::fct_reorder(simulation, marks))
 ggSimulationRanges <- ggplot(simulation_agg) +
   geom_point(aes(simulation, marks), alpha = .2, size = 2) +
@@ -520,16 +523,21 @@ ggSimulationRanges <- ggplot(simulation_agg) +
   my_theme + 
   theme(axis.text = element_blank(),
         axis.ticks = element_blank(),
-        axis.title.y = element_blank()) +
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank()) +
   coord_cartesian(ylim = c(-1, 1)) +
-  xlab("simulation (n=36 every line)")
+  xlab("simulation (n=36 per line)") 
 ggSimulationRanges <-
-  ggExtra::ggMarginal(ggSimulationRanges, 
-                      type = "density", fill = "grey80")
+  ggExtra::ggMarginal(ggSimulationRanges, type = "density", fill = "grey80")
 botRanges <-
   cowplot::plot_grid(ggParticipantRanges, ggSimulationRanges,
                      ncol = 2, rel_widths = c(1.07, 1))
-(figEffectRange <- cowplot::plot_grid(ggEffectRanges, botRanges, nrow = 2))
+
+(figEffectRange <- cowplot::plot_grid(
+  ggEffectRanges,
+  botRanges,
+  nrow = 2))
 ```
 
 ## Violin plot of models
@@ -673,33 +681,35 @@ ggParticipantRanges <- ggplot(participant_agg) +
                      ymax = log_sec_last_resp + ci), alpha = .3) +
   my_theme +
   theme(axis.text.x = element_blank(),
-        axis.ticks.x = element_blank()) +
+        axis.ticks.x = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
   geom_hline(yintercept = mean(participant_agg$log_sec_last_resp)) +
   #coord_cartesian(ylim = c(-1, 1)) +
   xlab("participant (n=6 every line)") +
   ylab("CI mean log seconds to last response")
-ggParticipantRanges <- ggExtra::ggMarginal(ggParticipantRanges, 
-                                           type = "density", fill = "grey80")
 ## By simulation
-simulation_agg <- summarySE(dat_qual, "log_sec_last_resp", "simulation") %>% 
+simulation_agg <- summarySE(dat_qual, "log_sec_last_resp", "simulation") %>%
   mutate(simulation = forcats::fct_reorder(simulation, log_sec_last_resp))
 ggSimulationRanges <- ggplot(simulation_agg) +
   geom_point(aes(simulation, log_sec_last_resp), alpha = .2, size = 2) +
-  geom_linerange(aes(simulation, ymin = log_sec_last_resp - ci, 
+  geom_linerange(aes(simulation, ymin = log_sec_last_resp - ci,
                      ymax = log_sec_last_resp + ci), alpha = .3) +
   my_theme +
   theme(axis.text = element_blank(),
         axis.ticks = element_blank(),
-        axis.title.y = element_blank()) +
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
   geom_hline(yintercept = mean(simulation_agg$log_sec_last_resp)) +
-  #coord_cartesian(ylim = c(-1, 1)) +
   xlab("simulation (n=36 every line)")
-ggSimulationRanges <-
-  ggExtra::ggMarginal(ggSimulationRanges, type = "density", fill = "grey80")
-botRanges <-
+botCis <-
   cowplot::plot_grid(ggParticipantRanges, ggSimulationRanges,
                      ncol = 2, rel_widths = c(1.07, 1))
-(t_figEffectRange <- cowplot::plot_grid(ggEffectRanges, botRanges, nrow = 2))
+(t_figEffectRange <- cowplot::plot_grid(
+  ggExtra::ggMarginal(ggEffectRanges, type = "density", fill = "grey80"),
+  ggExtra::ggMarginal(botCis,  type = "density", fill = "grey80"),
+  nrow = 2))
 ```
 
 ______
