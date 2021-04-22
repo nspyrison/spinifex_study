@@ -11,7 +11,7 @@ header-includes:
 - \usepackage{lmodern}
 - \usepackage{thumbpdf}
 - \usepackage{bm}
-output: 
+output:
   bookdown::pdf_document2:
     keep_tex: yes
 keywords: multivariate data, exploratory data analysis, high dimensional data, data
@@ -41,6 +41,7 @@ abstract: |
 ```{r setup_paper, include=FALSE}
 require("knitr")
 require("kableExtra")
+require("magrittr")
 knitr::opts_chunk$set(
   fig.align = "center", 
   echo = FALSE,
@@ -202,14 +203,14 @@ knitr::include_graphics("./figures/figFactor.png")
 
 ## Hypothesis {#sec:hypothesis}
 
+XXX TODO:
+
 <!-- Research question -->
 _Does the animated removal of single variables via the radial tour improve the ability of the analyst to understand the importance of variables contribution to the separation of clusters?_
 
 <!-- Hypothesis: null and alternative -->
-$$
-H_o: \text{visualization factor does not impact task performance} \\
-H_a: \text{visualization factor does impact task performance} \\
-$$
+$$H_o: \text{visualization factor does not impact task performance} \\$$
+$$H_a: \text{visualization factor does impact task performance} \\$$
 
 <!-- Rational for standards of comparison -->
 PCA will be used as a baseline for compared as it is the most common linear embedding. The grand tour will act as a secondary control that will help evaluate the benefit of animation, where the object permanence of the data points, but without the ability influence it's path. Lastly the radial tour should perform best as it benefits both from animation and being able to select an individual variable to change the contribution of. 
@@ -399,14 +400,15 @@ where
 if(F) ## Creation and saving at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 model_comp_tbl_ls <- readRDS("./figures/modelCompLs.rds")
-
+model_comp_tbl_ls[[1]]$`Fixed effects` <- model_comp_tbl_ls[[2]]$`Fixed effects` <-
+  c("a", "a+b+c+d", "a*b", "a*b*c", "a*b*c*d")
 ## 1) Eval parameters
 kableExtra::kbl(model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
              booktabs = TRUE, linesep = "", caption = "Model comparison of our random effects models regressing marks. Each model includs a random effect term of the participant, which explains the individuals influence on their marks. Complex models perform better in terms of R2 and RMSE, yet AIC and BIC penialize their large number of fixed effect in favor of the much simpler model containing only factor.") %>%
-  kableExtra::column_spec(column = 1, width = "3.2cm") %>%
-  column_spec(column = c(2:3, 6:7), width = "1.7cm") %>%
-  column_spec(column = c(4:5, 8), width = "1.1cm") %>%
-  column_spec(column = c(4:5, 8), width = "1.1cm")
+  kableExtra::column_spec(column = 1, width = "1.5cm") %>%
+  column_spec(column = c(2:3), width = "1cm") %>%
+  column_spec(column = c(4:8), width = "1.5cm") %>%
+  kable_styling(bootstrap_options = "striped", font_size = 10)
 ```
 
 <!-- Select model ABC -->
@@ -416,19 +418,29 @@ kableExtra::kbl(model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
 if(F) ## Creation and saving at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 coef_ls <- readRDS("./figures/modelCoefLs.rds")
+rownames(coef_ls[[1]]) <- rownames(coef_ls[[2]]) <-
+  c("(Intercept)"                   ,"fct=grand"                    ,"fct=radial"
+    ,"loc=33_66"                    ,"loc=50_50"                    ,"shp=EEV"
+    ,"shp=ban"                      ,"fct=grand:loc=33_66"          ,"fct=radial:loc=33_66"
+    ,"fct=grand:loc=50_50"          ,"fct=radial:loc=50_50"         ,"fct=grand:shp=EEV"
+    ,"fct=radial:shp=EEV"           ,"fct=grand:shp=ban"            ,"fct=radial:shp=ban"
+    ,"loc=33_66:shp=EEV"            ,"loc=50_50:shp=EEV"            ,"loc=33_66:shp=ban"
+    ,"loc=50_50:shp=ban"            ,"fct=grand:loc=33_66:shp=EEV"  ,"fct=radial:loc=33_66:shp=EEV"
+    ,"fct=grand:loc=50_50:shp=EEV"  ,"fct=radial:loc=50_50:shp=EEV" ,"fct=grand:loc=33_66:shp=ban"
+    ,"fct=radial:loc=33_66:shp=ban" ,"fct=grand:loc=50_50:shp=ban"  ,"fct=radial:loc=50_50:shp=ban")
 
 ## For grouping rows see:
 if(F)
   browseURL("https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html#Group_rows_via_labeling")
 kableExtra::kbl(coef_ls[[1]], booktabs = TRUE, linesep = "", format = "latex",
                 caption = "The model coeffients for $\\widehat{marks} = \\alpha * \\beta * \\gamma$, with factor:pca, locaation0/100, and shapeEEE held as baselines. Factor being radial is the fixed term with the strongest evidence in support of the hypothesis. Evidence for the interaction terms vary widely. The evidence in favor of any one coeffcient is relatively modest, this is due inpart to expending the fixed terms explainatory across so many interaction terms; each fixed term appears much more extreme models with less terms.") %>%
-  kableExtra::column_spec(column = 1, width = "6.6cm") %>%
-  kableExtra::column_spec(column = c(2:3), width = "1.8cm") %>%
-  kableExtra::column_spec(column = c(4,6), width = "1.2cm") %>%
-  kableExtra::column_spec(column = 5, width = "1.6cm") %>%
+  kableExtra::column_spec(column = 1, width = "5.5cm") %>%
+  kableExtra::column_spec(column = 3, width = "1.6cm") %>%
+  kableExtra::column_spec(column = c(2, 4:6), width = "1.4cm") %>%
   kableExtra::pack_rows("factor", 2, 3) %>%
   pack_rows("fixed effects", 4, 7) %>%
-  pack_rows("interactions", 8, nrow(coef_ls[[1]]))
+  pack_rows("interactions", 8, 27) %>%
+  kable_styling(bootstrap_options = "striped", font_size = 10)
 ```
 
 <!-- Random effects vs Mean Mark CI by participant and sim -->
@@ -443,7 +455,7 @@ knitr::include_graphics("./figures/figEffectRange.png")
 <!-- Conditional effects of variables -->
 We also want to visually explore the conditional variables in the model. Figure \@ref(fig:figMarksABC) explores violin plots of marks by factor while faceting on the location (vertical) and shape (horizontal). Notice that the conditional variable regularly have much smaller p-value, with seemingly so much more evidence in their favor, this is because they are not "diversifying" their explanatory power across numerous interaction terms, so to speak.
 
-```{r, figMarksABC, echo = F, out.width = '100%', fig.cap = "Violin plots of 3 parmeter interaction terms of the model $\\widehat{marks} = \\alpha * \\beta * \\gamma$. Overlaid with global significance from the Kruskal-Wallis rank sum test, and pairwise significance from  the Wilcoxon ranked sum, both non-parametric tests. "}
+```{r, figMarksABC, echo = F, out.width = '100%', fig.cap = "Violin plots of 3 parmeter interaction terms of the model $\\widehat{marks} = \\alpha * \\beta * \\gamma$. Overlaid with global significance from the Kruskal-Wallis test, and pairwise significance from the Wilcoxon test, both non-parametric, ranked sum tests suitable for handling discrete data. Participants are more confident and find the radial easier to use relative to the grand tour. Particpants claim low familiarity as we would expected fro crowdsourced particiants. Radial is more preffered compared with either alternative for this task."}
 if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 knitr::include_graphics("./figures/figMarksABC.png")
@@ -457,23 +469,23 @@ As a secondary explanatory variable we also want to look at time. First we take 
 ```{r timeCompTbl, fig.cap = "Use the caption arg in kable(), not this."}
 ## 1) Eval parameters
 kableExtra::kbl(model_comp_tbl_ls[[2]], align = c("l", rep("r", 7)),
-             booktabs = TRUE, linesep = "", caption = "Model comparison for log(time) random effects models, all models include 2 random effect terms for participants and for simulations. We see the same trade off where the simplest factor model is perfered by AIC/BIC, while R2 and RMSE perform best with the full multiplicitative model.") %>%
-  kableExtra::column_spec(column = 1, width = "3.2cm") %>%
-  column_spec(column = c(2:3, 6:7), width = "1.7cm") %>%
-  column_spec(column = c(4:5, 8), width = "1.1cm") %>%
-  column_spec(column = c(4:5, 8), width = "1.1cm")
+             booktabs = TRUE, linesep = "", caption = "Model comparisons for $\\widehat{log(time)}$ random effects models, where each models include 2 random effect terms for participants and simulations. We see the same trade off where the simplest factor model is perfered by AIC/BIC, while R2 and RMSE perform best with the full multiplicitative model. We again select the model $\\alpha * \\beta * \\gamma$ to explore futher as it has relatively high marginal R2 while having much ess complexity than the full model. ") %>%
+  kableExtra::column_spec(column = 1, width = "1.5cm") %>%
+  column_spec(column = c(2:3), width = "1cm") %>%
+  column_spec(column = c(4:8), width = "1.5cm") %>%
+  kable_styling(bootstrap_options = "striped", font_size = 10)
 ```
 
 ```{r timeCoefTbl, fig.cap = "Use the caption arg in kable(), not this."}
 kableExtra::kbl(coef_ls[[2]], booktabs = TRUE, linesep = "", format = "latex",
                 caption = "The model coeffients for $\\widehat{log(time)} = \\alpha * \\beta * \\gamma$, with factor:pca, locaation0/100, and shapeEEE held as baselines. location50/50 is the fixed term with the strongest evidence and takes less time. In contrast the interaction term location50/50:shapeEEV has the most evidence and takes much longer on average.") %>%
-  kableExtra::column_spec(column = 1, width = "6.6cm") %>%
-  kableExtra::column_spec(column = c(2:3), width = "1.8cm") %>%
-  kableExtra::column_spec(column = c(4,6), width = "1.2cm") %>%
-  kableExtra::column_spec(column = 5, width = "1.6cm") %>%
+  kableExtra::column_spec(column = 1, width = "5.5cm") %>%
+  kableExtra::column_spec(column = 3, width = "1.6cm") %>%
+  kableExtra::column_spec(column = c(2, 4:6), width = "1.4cm") %>%
   kableExtra::pack_rows("factor", 2, 3) %>%
   pack_rows("fixed effects", 4, 7) %>%
-  pack_rows("interactions", 8, nrow(coef_ls[[2]]))
+  pack_rows("interactions", 8, 27) %>%
+  kable_styling(bootstrap_options = "striped", font_size = 10)
 ```
 
 ```{r figTeffectRange, out.width="100%", fig.show='asis', fig.cap='(T) TODO: XXX. (B) '}
@@ -486,7 +498,7 @@ knitr::include_graphics("./figures/figTeffectRange.png")
 
 __TODO: XXX__
 
-```{r figSubjectiveMeasures, out.width="100%", fig.show='asis', fig.cap='TODO: XXX caption needed. need significance test; Nothing is significiant using {coin}... go to permutation tests next?'}
+```{r figSubjectiveMeasures, out.width="100%", fig.show='asis', fig.cap='The subjective measures of the 84 responses of the post-study survey, 5 discrete likert scale levels of aggrement. (L) Likert plots (stacked percent bar plots) with (R) violin plots of the same measures. Violin plots are overlaid with global significance from the Kruskal-Wallis test, and pairwise significance from the Wilcoxon test, both are non-parametric, ranked sum tests.'}
 if(F)
   browseURL("https://bookdown.org/Rmadillo/likert/is-there-a-significant-difference.html#permutation-mann-whitney-tests")
 

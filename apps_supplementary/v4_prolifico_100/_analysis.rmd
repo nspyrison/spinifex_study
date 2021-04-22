@@ -530,14 +530,12 @@ ggSimulationRanges <- ggplot(simulation_agg) +
   xlab("simulation (n=36 per line)") 
 ggSimulationRanges <-
   ggExtra::ggMarginal(ggSimulationRanges, type = "density", fill = "grey80")
-botRanges <-
+## Bringing it all together
+botCis <-
   cowplot::plot_grid(ggParticipantRanges, ggSimulationRanges,
                      ncol = 2, rel_widths = c(1.07, 1))
 
-(figEffectRange <- cowplot::plot_grid(
-  ggEffectRanges,
-  botRanges,
-  nrow = 2))
+(figEffectRange <- cowplot::plot_grid(ggEffectRanges, botCis, nrow = 2))
 ```
 
 ## Violin plot of models
@@ -688,6 +686,8 @@ ggParticipantRanges <- ggplot(participant_agg) +
   #coord_cartesian(ylim = c(-1, 1)) +
   xlab("participant (n=6 every line)") +
   ylab("CI mean log seconds to last response")
+ggParticipantRanges <-
+  ggExtra::ggMarginal(ggParticipantRanges, type = "density", fill = "grey80")
 ## By simulation
 simulation_agg <- summarySE(dat_qual, "log_sec_last_resp", "simulation") %>%
   mutate(simulation = forcats::fct_reorder(simulation, log_sec_last_resp))
@@ -703,13 +703,13 @@ ggSimulationRanges <- ggplot(simulation_agg) +
         panel.grid.minor = element_blank()) +
   geom_hline(yintercept = mean(simulation_agg$log_sec_last_resp)) +
   xlab("simulation (n=36 every line)")
+ggSimulationRanges <-
+  ggExtra::ggMarginal(ggSimulationRanges, type = "density", fill = "grey80")
+## Bringing it all together
 botCis <-
   cowplot::plot_grid(ggParticipantRanges, ggSimulationRanges,
                      ncol = 2, rel_widths = c(1.07, 1))
-(t_figEffectRange <- cowplot::plot_grid(
-  ggExtra::ggMarginal(ggEffectRanges, type = "density", fill = "grey80"),
-  ggExtra::ggMarginal(botCis,  type = "density", fill = "grey80"),
-  nrow = 2))
+(t_figEffectRange <- cowplot::plot_grid(ggEffectRanges, botCis, nrow = 2))
 ```
 
 ______

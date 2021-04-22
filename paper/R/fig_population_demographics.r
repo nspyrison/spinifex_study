@@ -167,7 +167,8 @@ subjective_longer <- subjective_longer %>%
   mutate(value = as.integer(plyr::mapvalues(value, from = .lvls, to = 1L:5L)),
          measure = factor(plyr::mapvalues(measure,
                                           from = c("like", "ease", "confidence", "familar"),
-                                          to = c("preference", "ease of use", "confidence", "familiarity")))
+                                          to = c("preference", "ease of use", "confidence", "familiarity"))),
+         factor = factor(factor, levels = c("pca", "grand", "radial"))
   )
 
 ## 4 panes with {ggpubr}, ggviolin or ggboxplot with tests
@@ -186,7 +187,7 @@ my_ggpubr <- function(df, x = "factor", y = "value", title = waiver(), subtitle 
   .x_lvls <- df %>% pull({{x}}) %>% levels()
   .y_range <- diff(range(df[y]))
   .n_lvls <- length(.x_lvls)
-  .lab.y <- (.14 * .y_range) * (1 + .n_lvls) * .y_range + max(df[y])
+  .lab.y <- (.04 * .y_range) * (1 + .n_lvls) * .y_range + max(df[y])
   my_comparisons <- list(c("pca", "grand"), c("grand", "radial"), c("pca", "radial"))
   
   ## Plot
@@ -196,7 +197,7 @@ my_ggpubr <- function(df, x = "factor", y = "value", title = waiver(), subtitle 
            draw_quantiles = c(.25, .5, .75)) +
     stat_compare_means(method = "wilcox.test",
                        comparisons = my_comparisons,
-                       label = "p.signif") + ## pairwise test
+                       label = "p.signif", hide.ns = TRUE) + ## pairwise test
     # stat_compare_means(label = "p.signif", label.y = .lab.y - .4,
     #                    method = "wilcox.test", ref.group = .x_lvls[1]) + ## Test each lvl w.r.t. first level.
     stat_compare_means( ## Global test
@@ -254,7 +255,7 @@ length(unique(survey_wider$instance_id))
 # Stacked + percent
 (subjectiveMeasures <-
     ggplot(likert, aes(x = percent, y = factor, fill = response)) +
-    geom_bar(position = "fill", stat = "identity") + facet_grid(vars(question)) +
+    geom_bar(position = "fill", stat = "identity", width = .6) + facet_grid(vars(question)) +
     ggtitle("Subjective measures",
             "Likert scale [1-5]") +
     theme_bw() +
@@ -284,13 +285,17 @@ if(F){
            ## Convert to horizontal:
            coord_flip(),
          width = .w, height = .w * 1.33, units = "in")
-  ggsave("./paper/figures/figSubjectiveMeasures_w.violin_vert.png", 
+  ggsave("./paper/figures/figSubjectiveMeasures_w.violin_vert.png",
          cowplot::plot_grid(subjectiveMeasures, measure_violins, ncol = 2),
          width = .w, height = .w * .66, units = "in")
   ggsave("./paper/figures/figSubjectiveMeasures_w.violin_hori.png",
-         cowplot::plot_grid(subjectiveMeasures + coord_flip(), measure_violins, ncol = 2),
+         cowplot::plot_grid(subjectiveMeasures +
+                              coord_flip() +
+                              theme(legend.direction = "vertical") +
+                              guides(fill = guide_legend(reverse = FALSE)),
+                            measure_violins,
+                            ncol = 2),
          width = .w, height = .w * 1.33, units = "in")
-  
 }
 
 ### Significance testing: ------
