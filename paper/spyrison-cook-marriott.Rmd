@@ -48,7 +48,7 @@ knitr::opts_chunk$set(
   message = FALSE,
   warning = FALSE,
   error = FALSE,
-  cache = FALSE,
+  cache = TRUE,
   cache.lazy = FALSE
 )
 ```
@@ -109,7 +109,7 @@ knitr::opts_chunk$set(
 
 <!-- Example figure -->
 ```{r EXCLUDEDfigExamp, echo = F, out.width = '100%',fig.cap = "Example case. Person 'A' is assigned to group 2, where they will use factor 2 (grand tour) for the first period. They perform 3 block difficulties of task 1 on simulations of increasing difficulty. Then 3 block difficulties of task 2 on unique simulations sampled from the same distributions of increasing difficulty. After this, they proceed to period 2, where they are use factor 3 (manual tour) to perform 3 block difficulties of each task. Lastly, in the third period, they use factor 1 (PCA) to perform the tasks.", eval = F}
-knitr::include_graphics("./figures/imageName.png")
+knitr::include_graphics("./figures/imageName.png") ## Note relative to the folder that the .rmd is in not the project dir()
 ```
 <!-- Figure \@ref(fig:figExamp) is an example of referencing a the example figure. -->
 
@@ -396,6 +396,8 @@ where
 
 
 ```{r marksCompTbl, fig.cap = "Use the caption arg in kable(), not this."}
+if(F) ## Creation and saving at:
+  file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 model_comp_tbl_ls <- readRDS("./figures/modelCompLs.rds")
 
 ## 1) Eval parameters
@@ -411,13 +413,15 @@ kableExtra::kbl(model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
 
 <!-- Coefficients of the selected model, ABC -->
 ```{r marksCoefTbl, fig.cap = "Use the caption arg in kable(), not this."}
+if(F) ## Creation and saving at:
+  file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 coef_ls <- readRDS("./figures/modelCoefLs.rds")
 
 ## For grouping rows see:
 if(F)
   browseURL("https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html#Group_rows_via_labeling")
 kableExtra::kbl(coef_ls[[1]], booktabs = TRUE, linesep = "", format = "latex",
-                caption = "TODO: XXX FILL IN.") %>%
+                caption = "The model coeffients for $\\widehat{marks} = \\alpha * \\beta * \\gamma$, with factor:pca, locaation0/100, and shapeEEE held as baselines. Factor being radial is the fixed term with the strongest evidence in support of the hypothesis. Evidence for the interaction terms vary widely. The evidence in favor of any one coeffcient is relatively modest, this is due inpart to expending the fixed terms explainatory across so many interaction terms; each fixed term appears much more extreme models with less terms.") %>%
   kableExtra::column_spec(column = 1, width = "6.6cm") %>%
   kableExtra::column_spec(column = c(2:3), width = "1.8cm") %>%
   kableExtra::column_spec(column = c(4,6), width = "1.2cm") %>%
@@ -439,7 +443,7 @@ knitr::include_graphics("./figures/figEffectRange.png")
 <!-- Conditional effects of variables -->
 We also want to visually explore the conditional variables in the model. Figure \@ref(fig:figMarksABC) explores violin plots of marks by factor while faceting on the location (vertical) and shape (horizontal). Notice that the conditional variable regularly have much smaller p-value, with seemingly so much more evidence in their favor, this is because they are not "diversifying" their explanatory power across numerous interaction terms, so to speak.
 
-```{r, figMarksABC, echo = F, out.width = '100%', fig.cap = "TODO: XXX"}
+```{r, figMarksABC, echo = F, out.width = '100%', fig.cap = "Violin plots of 3 parmeter interaction terms of the model $\\widehat{marks} = \\alpha * \\beta * \\gamma$. Overlaid with global significance from the Kruskal-Wallis rank sum test, and pairwise significance from  the Wilcoxon ranked sum, both non-parametric tests. "}
 if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 knitr::include_graphics("./figures/figMarksABC.png")
@@ -452,7 +456,7 @@ As a secondary explanatory variable we also want to look at time. First we take 
 
 ```{r timeCompTbl, fig.cap = "Use the caption arg in kable(), not this."}
 ## 1) Eval parameters
-kableExtra::kbl(model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
+kableExtra::kbl(model_comp_tbl_ls[[2]], align = c("l", rep("r", 7)),
              booktabs = TRUE, linesep = "", caption = "Model comparison of our random effects models regressing marks. Each model includs a random effect term of the participant, which explains the individuals influence on their marks. Complex models perform better in terms of R2 and RMSE, yet AIC and BIC penialize their large number of fixed effect in favor of the much simpler model containing only factor.") %>%
   kableExtra::column_spec(column = 1, width = "3.2cm") %>%
   column_spec(column = c(2:3, 6:7), width = "1.7cm") %>%
@@ -462,7 +466,7 @@ kableExtra::kbl(model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
 
 ```{r timeCoefTbl, fig.cap = "Use the caption arg in kable(), not this."}
 kableExtra::kbl(coef_ls[[2]], booktabs = TRUE, linesep = "", format = "latex",
-                caption = "TODO: XXX FILL IN.") %>%
+                caption = "The model coeffients for $\\widehat{log(time)} = \\alpha * \\beta * \\gamma$, with factor:pca, locaation0/100, and shapeEEE held as baselines. location50/50 is the fixed term with the strongest evidence and takes less time. In contrast the interaction term location50/50:shapeEEV has the most evidence and takes much longer on average.") %>%
   kableExtra::column_spec(column = 1, width = "6.6cm") %>%
   kableExtra::column_spec(column = c(2:3), width = "1.8cm") %>%
   kableExtra::column_spec(column = c(4,6), width = "1.2cm") %>%
@@ -510,7 +514,9 @@ spinifex::run_app("primary")
 
 # Acknowledgments {#sec:acknowledgments}
 
-This research was supported by an Australian Government Research Training Program (RTP) Scholarship. This article was created in \proglang{R} [@r_core_team_r:_2020], using \pkg{knitr} [@stodden_knitr:_2014] and \pkg{rmarkdown} [@xie_r_2018]. The source files for this article, application, data, and analysis can be found at [github.com/nspyrison/spinifex_study/](https://github.com/nspyrison/spinifex_study/). The source code for the \pkg{spinifex} package and accompanying shiny application can be found at [github.com/nspyrison/spinifex/](https://github.com/nspyrison/spinifex/).
+This research was supported by an Australian Government Research Training Program (RTP) Scholarship. This article was created in \proglang{R}~4.0.3 [@r_core_team_r:_2020], using \pkg{knitr} [@stodden_knitr:_2014] and \pkg{rmarkdown} [@xie_r_2018]. Visuals were prepared with \pkg{spinifex}~0.2.8. All packages used are available from the Comprehensive
+\proglang{R} Archive Network (CRAN) at
+\url{https://CRAN.R-project.org/}. The source files for this article, application, data, and analysis can be found at [github.com/nspyrison/spinifex_study/](https://github.com/nspyrison/spinifex_study/). The source code for the \pkg{spinifex} package and accompanying shiny application can be found at [github.com/nspyrison/spinifex/](https://github.com/nspyrison/spinifex/).
 
 # Bibliography {#sec:bib}
 
