@@ -1,6 +1,6 @@
 ---
 title: "The effect of user interaction for understanding variable contributions to
-  structure in linear projections \n"
+  structure in linear projections"
 author: "Nicholas Spyrison, Dianne Cook, Kimbal Marriott"
 documentclass: jdssv
 classoption: article
@@ -24,7 +24,23 @@ abstract: |
   Viewing data in its original variable space is foundamental to the exploratory data analysis. For multivariate data this is an complex task. We perform a between-participant user study to evaluate 3 types of linear embeddings, namely, biplots of principal componts, grand tours, and radial tours. Crowdsourced participants (N = 108) were asked to identify which variable(s) explain the difference between a pair of clusters within the data as the factor of visualization is changed within participant. Principal componants and grand tour are the discrete and animated benchmarks to beat. We find radial tours score higher and respond slightly faster than alternatives. Visual factor is significantly more important than the other block parameterizations (location, shape, dimension) or learning effects from the order of evaluation. Demographics, prior experience, and parameter values vary in significance, while the size of their coeffecients all relatively small as compared with visual and the random effect of the participants.
 ---
 \bibliography{spyrison-cook-marriott}
+
+<!-- JDSSV Sweave example -->
+\author{Patrick J.F. Groenen\\Erasmus University Rotterdam
+   \And Stefan Van Aelst\\KU Leuven}
+\Plainauthor{Patrick J.F. Groenen, Stefan Van Aelst}
+
+\title{Guidelines for the Journal of Data Science, Statistics, and Visualisation}
+\Plaintitle{Guidelines for the Journal of Data Science, Statistics, and Visualisation Version 0.1}
+\Shorttitle{JDSSV Guidelines, Version 0.1}
+
+\Abstract{
+  This short article illustrates how to write a manuscript for the   \emph{Journal of Data Science, Statistics and Visualisation} (JDSSV) using its {\LaTeX} style files.   Please follow JDSSV's style guidelines precisely. Also, it is recommended to keep the {\LaTeX} code as simple as possible, that is, avoid inclusion of packages/commands that are not necessary.
+}
+<!-- END JDSSV example -->
 ```{r setup_paper, include=FALSE}
+require("knitr")
+require("kableExtra")
 knitr::opts_chunk$set(
   fig.align = "center", 
   echo = FALSE,
@@ -35,14 +51,9 @@ knitr::opts_chunk$set(
   cache = FALSE,
   cache.lazy = FALSE
 )
-require("knitr")
-require("kableExtra")
-
-## Slowly adding JDSSV formatting and themes files:
-# knitr::opts_knit$set(out.format = "latex")
 ```
-```{r writingNotesExcluded, include=FALSE,eval=FALSE}
-## EXAMPLE YAML from spinifex_paper R journal YAML
+```{r EXCLUDEDwritingNotes, include=FALSE,eval=FALSE}
+#### EXAMPLE YAML from spinifex_paper R journal YAML
 # ---
 # author:
   # - name: Nicholas Spyrison
@@ -71,11 +82,11 @@ require("kableExtra")
 # ---
 # \bibliography{spyrison-cook-marriott}
 
-
-# Hypothesis: 
+#### Hypothesis: 
 # does the availability of the manual tour improve the ability of the analyst 
 # to understand the importance of variables contributing to the structure?
-# Other user studies to consider:
+
+#### Other user studies to consider:
 # DH Jeong 2009
 # https://www.researchgate.net/profile/Brian_Fisher2/publication/220506453_IPCA_An_interactive_system_for_PCA-based_visual_analytics/links/59e395fa458515393d5b8f29/IPCA-An-interactive-system-for-PCA-based-visual-analytics.pdf 
 # 
@@ -97,7 +108,7 @@ require("kableExtra")
 ```
 
 <!-- Example figure -->
-```{r figExamp, echo = F, out.width = '100%',fig.cap = "Example case. Person 'A' is assigned to group 2, where they will use factor 2 (grand tour) for the first period. They perform 3 block difficulties of task 1 on simulations of increasing difficulty. Then 3 block difficulties of task 2 on unique simulations sampled from the same distributions of increasing difficulty. After this, they proceed to period 2, where they are use factor 3 (manual tour) to perform 3 block difficulties of each task. Lastly, in the third period, they use factor 1 (PCA) to perform the tasks.", eval = F}
+```{r EXCLUDEDfigExamp, echo = F, out.width = '100%',fig.cap = "Example case. Person 'A' is assigned to group 2, where they will use factor 2 (grand tour) for the first period. They perform 3 block difficulties of task 1 on simulations of increasing difficulty. Then 3 block difficulties of task 2 on unique simulations sampled from the same distributions of increasing difficulty. After this, they proceed to period 2, where they are use factor 3 (manual tour) to perform 3 block difficulties of each task. Lastly, in the third period, they use factor 1 (PCA) to perform the tasks.", eval = F}
 knitr::include_graphics("./figures/imageName.png")
 ```
 <!-- Figure \@ref(fig:figExamp) is an example of referencing a the example figure. -->
@@ -417,7 +428,7 @@ kableExtra::kbl(coef_ls[[1]], booktabs = TRUE, linesep = "", format = "latex",
 ```
 
 <!-- Random effects vs Mean Mark CI by participant and sim -->
-Residual plots have no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figEffectRange) illustrates (T) the effect size of the random terms participant and simulation, or more accurately, the 95\% CI from Gelman simulation of their posterior distribution. The effect size of participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha$ = .95, while none of the simulation effects significantly deviate from the null of having no effect size on the marks. In comparison, (B) 95\% confidence intervals of the mean marks for participation and simulation respectively. 
+Residual plots have no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figEffectRange) illustrates (T) the effect size of the random terms participant and simulation, or more accurately, the 95\% CI from Gelman simulation of their posterior distribution. The effect size of participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha$ = .95, while none of the simulation effects significantly deviate from the null of having no effect size on the marks. In comparison, (B) 95\% confidence intervals of the mean marks for participation and simulation respectively.
 
 ```{r figEffectRange, out.width="100%", fig.show='asis', fig.cap='(T) Estimated effect ranges of the random effect terms partitcipant and data simulation of the alpha * beta * gamma model. Confidence intervals are created via Gelman simulation on the effect posterior distributions. The effect size of participant is relatively large, with several significant extrema (alpha = .95). None of the simulations deviate significantly. (B) The ordered distributions of the CI of mean marks follow the same general patten and give the additional context of the cield of  effect range without the explaination information of fix terms. The effect ranges capture about 2/3 of the range of the data without the model.'}
 if(F) ## Creation and saving figure at:
@@ -426,7 +437,7 @@ knitr::include_graphics("./figures/figEffectRange.png")
 ```
 
 <!-- Conditional effects of variables -->
-We also want to visually explore the conditional variables in the model. Figure XXX explores violin plots of marks by factor while faceting on the location (vertical) and shape (horizonal). Notice that the conditional variable regularly have much smaller p-value, with seemingly so much more evidence in their favor, this is because they are not "diversifying" their explanatory power across numerous interaction terms, so to speak.
+We also want to visually explore the conditional variables in the model. Figure \@ref(fig:figMarksABC) explores violin plots of marks by factor while faceting on the location (vertical) and shape (horizontal). Notice that the conditional variable regularly have much smaller p-value, with seemingly so much more evidence in their favor, this is because they are not "diversifying" their explanatory power across numerous interaction terms, so to speak.
 
 ```{r, figMarksABC, echo = F, out.width = '100%', fig.cap = "TODO: XXX"}
 if(F) ## Creation and saving figure at:
@@ -434,10 +445,9 @@ if(F) ## Creation and saving figure at:
 knitr::include_graphics("./figures/figMarksABC.png")
 ```
 
-## Time regressing models 
+## Time regressing models
 
-As a secondary explanatory variable we also want to look at time. First we take the log transformation of time as it is right skewed. Now we repeat the same modeling procedure, namely, 1) build a battery of all additive and multiplicative models. 2) Compare their performance, reporting a some top performers.
-3) Select a model to examine it's coefficients.
+As a secondary explanatory variable we also want to look at time. First we take the log transformation of time as it is right skewed. Now we repeat the same modeling procedure, namely, 1) build a battery of all additive and multiplicative models. 2) Compare their performance, reporting a some top performers. 3) Select a model to examine it's coefficients.
 
 
 ```{r timeCompTbl, fig.cap = "Use the caption arg in kable(), not this."}
@@ -478,7 +488,8 @@ if(F)
 
 if(F) ## Creation and saving figure at:
   file.edit("./paper/R/fig_population_demographics.r")
-knitr::include_graphics("./figures/figSubjectiveMeasures_w.violin_hori.png") ## Alternatively use the suffix *_vert
+knitr::include_graphics("./figures/figSubjectiveMeasures_w.violin_hori.png") 
+## Alternatively use:
 # figSubjectiveMeasures_vert.png
 # figSubjectiveMeasures_hori.png
 # figSubjectiveMeasures_w.violin_vert.png
@@ -489,7 +500,7 @@ knitr::include_graphics("./figures/figSubjectiveMeasures_w.violin_hori.png") ## 
 
 # Accompanying tool: spinifex application {#sec:spinifex}
 
-To accompany this study we have produced a more general use tool to perform such exploratory analysis of high dimensional data. The R package, `spinifex`, [@spyrison_spinifex_2020] R package  contains a free, open-source `shiny` [@chang_shiny_2020] application. The application allows users to explore their data with either interactive or predefined manual tours without the need for any coding. Limited implementations of grand, little, and local tours are also made available. Data can be imported in .csv and .rda format, and projections or animations can be saved as .png, .gif, and .csv formats where applicable. Run the following R code for help getting started.
+To accompany this study we have produced a more general use tool to perform such exploratory analysis of high dimensional data. The \proglang{R} package, \pkg{spinifex}, [@spyrison_spinifex_2020] contains a free, open-source \pkg{shiny} [@chang_shiny_2020] application. The application allows users upload, process, and interactively explore their data. Users can quickly traverse global and local extrema and then explore the near by space with the radial tour as similarly applied in the user study. Limited implementations of grand, little, and local tours are also made available. Data can be imported in .csv and .rda format, and projections or animations can be saved as .png, .gif, and .csv formats where applicable. Run the following \proglang{R} code for help getting started.
 
 ```{r getting_started, eval = F}
 install.packages("spinifex", dependencies = TRUE)
@@ -499,14 +510,14 @@ spinifex::run_app("primary")
 
 # Acknowledgments {#sec:acknowledgments}
 
-This research was supported by an Australian Government Research Training Program (RTP) Scholarship. This article was created in R [@r_core_team_r:_2020], using `knitr` [@stodden_knitr:_2014] and `rmarkdown` [@xie_r_2018]. The source files for this article, application, data, and analysis can be found at [github.com/nspyrison/spinifex_study/](https://github.com/nspyrison/spinifex_study/). The source code for the `spinifex` package and accompanying shiny application can be found at [github.com/nspyrison/spinifex/](https://github.com/nspyrison/spinifex/).
+This research was supported by an Australian Government Research Training Program (RTP) Scholarship. This article was created in \proglang{R} [@r_core_team_r:_2020], using \pkg{knitr} [@stodden_knitr:_2014] and \pkg{rmarkdown} [@xie_r_2018]. The source files for this article, application, data, and analysis can be found at [github.com/nspyrison/spinifex_study/](https://github.com/nspyrison/spinifex_study/). The source code for the \pkg{spinifex} package and accompanying shiny application can be found at [github.com/nspyrison/spinifex/](https://github.com/nspyrison/spinifex/).
 
 # Bibliography {#sec:bib}
 
 \newpage
 
-<!-- # Supplemental matterial -->
+<!-- # Supplemental material -->
 
 <!-- Consider: -->
 <!-- -residual plots -->
-<!-- -extending models with survey data; Di tends away from this, as they are not parameterization, they are aspects of the participant not known apriori.  -->
+<!-- -extending models with survey data; Di tends away from this, as they are not parameterization, they are aspects of the participant not known a priori.  -->
