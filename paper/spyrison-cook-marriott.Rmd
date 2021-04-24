@@ -473,12 +473,12 @@ knitr::include_graphics("./figures/figEffectRange.png")
 ```
 
 <!-- Conditional effects of variables -->
-We also want to visually explore the conditional variables in the model. Figure \@ref(fig:figMarksABC) explores violin plots of marks by factor while faceting on the location (vertical) and shape (horizontal). Notice that the conditional variable regularly have much smaller p-value, with seemingly so much more evidence in their favor, this is because they are not "diversifying" their explanatory power across numerous interaction terms, so to speak.
+We also want to visually explore the conditional variables in the model. Figure \@ref(fig:figMarksABcd) explores violin plots of marks by factor while faceting on the location (vertical) and shape (horizontal). Notice that the conditional variable regularly have much smaller p-value, with seemingly so much more evidence in their favor, this is because they are not "diversifying" their explanatory power across numerous interaction terms, so to speak.
 
-```{r, figMarksABC, echo = F, out.width = '100%', fig.cap = "Violin plots of 3 parmeter interaction terms of the model $\\widehat{marks} = \\alpha * \\beta * \\gamma$. Overlaid with global significance from the Kruskal-Wallis test, and pairwise significance from the Wilcoxon test, both non-parametric, ranked sum tests suitable for handling discrete data. Participants are more confident and find the radial easier to use relative to the grand tour. Particpants claim low familiarity as we would expected fro crowdsourced particiants. Radial is more preffered compared with either alternative for this task."}
+```{r, figMarksABcd, echo = F, out.width = '100%', fig.cap = "Violin plots of 3 parmeter interaction terms of the model $\\widehat{marks} = \\alpha * \\beta * \\gamma$. Overlaid with global significance from the Kruskal-Wallis test, and pairwise significance from the Wilcoxon test, both non-parametric, ranked sum tests suitable for handling discrete data. Participants are more confident and find the radial easier to use relative to the grand tour. Particpants claim low familiarity as we would expected fro crowdsourced particiants. Radial is more preffered compared with either alternative for this task."}
 if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
-knitr::include_graphics("./figures/figMarksABC.png")
+knitr::include_graphics("./figures/figMarksABcd.png")
 ```
 
 ## Time regressing models

@@ -114,13 +114,21 @@ my_ggpubr <- function(df, x = "factor", y = "marks", title = waiver(), subtitle 
                          c("grand", "radial"),
                          c("pca", "radial"))
   
+  .df_n_obs <-
+    data.frame(.x = 1:.n_lvls - .2,
+               .y = min(df[y]),
+               plyr::count(df[x]))
+  .df_n_obs <- .df_n_obs %>%
+    mutate(grp = .df_n_obs[x],
+           lab = paste0(c("n=", rep("", .n_lvls - 1L)), freq, "\n"))
+  
   ## Plot
   ggviolin(df, x = x, y = y, fill = x, alpha = .6,
            palette = "Dark2", shape = x,
            add = c("mean"), ## Black circle, can change size, but not shape or alpha?
            draw_quantiles = c(.25, .5, .75)) +
-    stat_compare_means(method = "wilcox.test", 
-                       comparisons = my_comparisons, 
+    stat_compare_means(method = "wilcox.test",
+                       comparisons = my_comparisons,
                        label = "p.signif", hide.ns = TRUE) + ## pairwise test
     # stat_compare_means(label = "p.signif", label.y = .lab.y - .4,
     #                    method = "wilcox.test", ref.group = .x_lvls[1]) + ## Test each lvl w.r.t. first level.
@@ -128,21 +136,33 @@ my_ggpubr <- function(df, x = "factor", y = "marks", title = waiver(), subtitle 
                        label.y = .lab.y,
                        aes(label = paste0("Krusal-p=", ..p.format..)),
                        hide.ns = TRUE) + ## custom label
-    my_theme +
-    ggtitle(title, subtitle) +
-    geom_text(aes(x = 1:.n_lvls - .2,
-                  y = min(df[y]),
-                  label = paste0("n=", freq, "\n"), ## could add "n=", may be busy.
-                  group = {{x}}),
-              data = plyr::count(df[c(x, facet)])) ## works with NULL facet.
+    my_theme + 
+    ggtitle(title, subtitle)
+}
+my_ggpubr_with_n <- function(df, x = "factor", y = "marks", title = waiver(), subtitle = waiver(), facet = NULL){
+  .n_lvls <- df[x] %>% pull() %>% levels() %>% length()
+.df_n_obs <-
+  data.frame(.x = 1:.n_lvls - .2,
+             .y = min(dat_qual$marks),
+             plyr::count(dat_qual, vars = c(x))) %>%
+  mutate(grp = paste0({{x}}),
+         lab = paste0(c("n=", rep("", .n_lvls - 1L)), freq, "\n"))
+
+my_ggpubr(df, x, y, title, subtitle, facet) +
+  geom_text(aes(x = .x,
+                y = .y,
+                label = lab, ## could add "n=", may be busy.
+                group = grp),
+            data = .df_n_obs) ## works with NULL facet.
 }
 my_ggpubr_facet <- function(..., facet = "location"){
-  facet(my_ggpubr(...), facet.by = facet)
+  .facet <- facet
+  facet(my_ggpubr(..., facet = .facet), facet.by = .facet)
 }
 ```
-
-______
-
+  
+  ______
+  
 # Results
 
 ## Even-ness of evaluation
@@ -433,7 +453,7 @@ ABCD <- lmer(marks ~ factor * location * shape * dim + (1 | participant) + (1 | 
 
 model_ls <-
   list(a=a, ab=ab, ac=ac, ad=ad, abc=abc, abd=abd, acd=acd, abcd=abcd,
-       ABcd=ABcd, ACbd=ACbd, ADcd=ADcb, ABCd=ABCd, ABDc=ABDc, ACDb=ACDb, ABCD=ABCD)
+       ABcd=ABcd, ACbd=ACbd, ADbc=ADbc, ABCd=ABCd, ABDc=ABDc, ACDb=ACDb, ABCD=ABCD)
 
 ############################
 #### COMPARE  MODELS -----
@@ -539,7 +559,7 @@ botCis <-
 
 ```{r}
 (marks_by_factor <-
-   my_ggpubr(dat_qual,
+   my_ggpubr_with_n(dat_qual,
              x = "factor", y = "marks",
              title = "Marks by factor"))
 ```
@@ -547,16 +567,22 @@ botCis <-
 ### Model alpha * beta + gamma + delta
 
 ```{r}
-.factor <- my_ggpubr(dat_qual, x = "factor", y = "marks")
-.location <- my_ggpubr(dat_qual, x = "location", y = "marks")
-.shape <- my_ggpubr(dat_qual, x = "shape", y = "marks")
-.dim <- my_ggpubr(dat_qual, x = "dim", y = "marks")
+.factor <- my_ggpubr_with_n(dat_qual, x = "factor", y = "marks")
+.location <- my_ggpubr_with_n(dat_qual, x = "location", y = "marks")
+.shape <- my_ggpubr_with_n(dat_qual, x = "shape", y = "marks")
+.dim <- my_ggpubr_with_n(dat_qual, x = "dim", y = "marks")
 .FactorLocation <- my_ggpubr_facet(dat_qual,
                                    x = "factor", y = "marks",
                                    title = "Marks by factor, faceting on location and shape",
                                    subtitle = "The fixed effects of model alpha * beta * gamma",
                                    facet = "location")
-cowplot::plot_grid()
+title <- cowplot::ggdraw() + 
+  cowplot::draw_label("Violin plot of the terms in marks^=A*B+c+d",
+                      x = .5, y = .75, hjust = .5, vjust = 1)
+top <- cowplot::plot_grid(.factor, .location, .shape, .dim, nrow= 1)
+gc()
+(violin_ABcd <- 
+  cowplot::plot_grid(title, top, .FactorLocation + ggtitle("", ""), ncol = 1, rel_heights = c(.1,1,1)))
 ```
 
 
@@ -570,6 +596,10 @@ As a secondary explanatory variable we also want to look at time. First we take 
 ############################
 #### CREATE -----
 ############################
+## a == facter
+## b == location
+## c == shape
+## d == dim
 ## Take log of right skewed time.
 dat_qual <- dat_qual %>%
   mutate(log_sec_last_resp = log(`seconds to last response`))
@@ -582,29 +612,18 @@ tabc <-  lmer(log_sec_last_resp ~ factor + location + shape + (1 | participant) 
 tabd <-  lmer(log_sec_last_resp ~ factor + location + dim + (1 | participant) + (1 | simulation), data = dat_qual)
 tacd <-  lmer(log_sec_last_resp ~ factor + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
 tabcd <- lmer(log_sec_last_resp ~ factor + location + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-tAB <-   lmer(log_sec_last_resp ~ factor * location + (1 | participant) + (1 | simulation), data = dat_qual)
-tAC <-   lmer(log_sec_last_resp ~ factor * shape + (1 | participant) + (1 | simulation), data = dat_qual)
-tAD <-   lmer(log_sec_last_resp ~ factor * dim + (1 | participant) + (1 | simulation), data = dat_qual)
-tABC <-  lmer(log_sec_last_resp ~ factor * location * shape + (1 | participant) + (1 | simulation), data = dat_qual)
-tABD <-  lmer(log_sec_last_resp ~ factor * location * dim + (1 | participant) + (1 | simulation), data = dat_qual)
-tACD <-  lmer(log_sec_last_resp ~ factor * shape * dim + (1 | participant) + (1 | simulation), data = dat_qual)
+tABcd <-   lmer(log_sec_last_resp ~ factor * location + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
+tACbd <-   lmer(log_sec_last_resp ~ factor * shape + location + dim + (1 | participant) + (1 | simulation), data = dat_qual)
+tADbc <-   lmer(log_sec_last_resp ~ factor * dim + location + shape + (1 | participant) + (1 | simulation), data = dat_qual)
+tABCd <-  lmer(log_sec_last_resp ~ factor * location * shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
+tABDc <-  lmer(log_sec_last_resp ~ factor * location * dim + shape +(1 | participant) + (1 | simulation), data = dat_qual)
+tACDb <-  lmer(log_sec_last_resp ~ factor * shape * dim + location + (1 | participant) + (1 | simulation), data = dat_qual)
 tABCD <- lmer(log_sec_last_resp ~ factor * location * shape * dim + (1 | participant) + (1 | simulation), data = dat_qual)
 
-t_model_ls <- list(`alpha`                        = ta,
-                   `alpha + beta`                 = tab,
-                   `alpha + gamma`                = tac,
-                   `alpha + delta`                = tad,
-                   `alpha + beta + gamma`         = tabc, 
-                   `alpha + beta + delta`         = tabd,
-                   `alpha + gamma + delta`        = tacd,
-                   `alpha + beta + gamma + delta` = tabcd,
-                   `alpha * beta`                 = tAB,
-                   `alpha * gamma`                = tAC,
-                   `alpha * delta`                = tAD,
-                   `alpha * beta * gamma`         = tABC, 
-                   `alpha * beta * delta`         = tABD,
-                   `alpha * gamma * delta`        = tACD,
-                   `alpha * beta * gamma * delta` = tABCD)
+t_model_ls <-
+  list(ta = ta, tab = tab, tac = tac, tad = tad, tabc = tabc, tabd = tabd, tacd = tacd,
+      tabcd = tabcd, tABcd = tABcd, tACbd = tACbd, tADbc = tADbc, 
+      tABCd = tABCd, tABDc = tABDc, tACDb = tACDb, tABCD = tABCD)
 
 ############################
 #### COMPARE -----
@@ -636,9 +655,8 @@ t_model_comp_tbl <- t_model_comp_tbl %>%
   format_column_extrema(6, max) %>%
   format_column_extrema(7, max) %>%
   format_column_extrema(8, min)
-.r_idx <- which(pull(t_model_comp_tbl[, 1]) %in% c("alpha", "alpha + beta + gamma + delta",
-                                                   "alpha * beta", "alpha * beta * gamma",
-                                                   "alpha * beta * gamma * delta"))
+.r_idx <- which(pull(t_model_comp_tbl[, 1]) %in%
+                  c("ta", "tabcd", "tABcd", "tABCd", "tABCD"))
 t_model_comp_tbl <- t_model_comp_tbl[.r_idx, 1:8]
 
 ## print model comparison table
@@ -647,8 +665,8 @@ knitr::kable(t_model_comp_tbl)
 #### EXPLORE ----
 ############################
 ## Explore selected model, log sec to resp ~ ABC
-t_ABC_coef <- model2coef(tABC)
-knitr::kable(t_ABC_coef)
+t_ABcd_coef <- model2coef(tABcd)
+knitr::kable(t_ABcd_coef)
 
 ## Redefine my_theme to remove line at y = 0.
 my_theme <- list(
@@ -661,7 +679,7 @@ my_theme <- list(
         legend.margin = margin(-6))
 )
 
-ggEffectRanges <- plotREsim(REsim(tABC)) +
+ggEffectRanges <- plotREsim(REsim(tABcd)) +
   ggtitle("Effect range vs mean log seconds to last response for participants and simulations", 
           "alpha = .95, model: log(seconds to last response)^ = alpha * beta * gamma") +
   theme(axis.title.x = element_blank()) +
@@ -745,7 +763,7 @@ if(F){
          device = "png", width = .w, height = .w, unit = .u)
   
   ## Marks by violin of factor faceting on location and shape
-  ggsave("figMarksABC.png", marks_by_ABC, path = "./paper/figures",
+  ggsave("figMarksABcd.png", violin_ABcd, path = "./paper/figures",
          device = "png", width = .w, height = .w, unit = .u)
 }
 ```
