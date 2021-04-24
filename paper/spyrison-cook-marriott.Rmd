@@ -5,16 +5,25 @@ output:
   bookdown::pdf_document2:
     keep_tex: true
     toc: false
-    ## Liminal paper uses:
     #template: template/jdssv_template.tex
     #citation_package: natbib
 title: "The effect of user interaction for understanding variable contributions to structure in linear projections"
+  # formatted: "Casting Multiple Shadows: High-Dimensional Interactive Data Visualisation with Tours and Embeddings"
+  # plain:     "Casting Multiple Shadows: High-Dimensional Interactive Data Visualisation with Tours and Embeddings"
+  # short:     "\\pkg{liminal}: High-Dimensional Interactive Data Visualisation"
 ## __formatted: and __plain, and __short not wroking
 author: "Nicholas Spyrison, Dianne Cook, Kimbal Marriott"
+ # - name: Stuart Lee ## 2 spaces
+ #    affiliation: Monash University
+ #    # use this syntax to add text on several lines
+ #    address: |
+ #      | Department of Econometrics and Business Statistics,
+ #      | Monash University
+ #    email: \email{stuart.lee1@monash.edu}
 ## __-name: , etc not working
-abstract: |
+## abstract: >
+abstract: | 
   Principal component analysis and other eigenvalue decomposition enjoy wide when it comes to visualizing multivariate spaces. The grand tour is adds the continity of near-by linear projections while moving towards a randomly selected basis. The radial tours keep this continuity of projection space while manipulating the contribution of a single variable. However, there is an absence of work evaluating the efficacy of different multivariate visualizations. We perform a between-participant user study evaluating these visualizations: biplots of principal componts, grand tours, and radial tours. We used accuracy and speed as evaluation measures for a task of supervised clusters where participants indicate which variables contain the seperation between two target clusters. Prolific.co is used to crowdsourced N=108 participants across 648 task evaluations. Additionaly, 84 post-study surveys were collected. We measure accross 3 dimensions of block parameterizations: dimensionality, location, and shape. In summary, we find that radial tours score higher and respond slightly faster than alternatives. The effect of the vizualization to dwarf the effect of the other block parameterizations. The effect of the visual is itself dwarfed by the random effect of the individual participant.
-## May be able to move to template/jdssv_template.tex if working.
 preamble: > ## LaTeX preamble, load packages
   \usepackage{amsmath}
   \usepackage{graphicx}
@@ -26,6 +35,8 @@ preamble: > ## LaTeX preamble, load packages
 keywords: multivariate data, exploratory data analysis, high dimensional data, data
   visualization, cluster analysis, dimension reduction, data science, user study,
   between users, linear projections, linear embeddings
+  # formatted: [dimensionality reduction, high-dimensional data, interactive graphics, t-SNE, grand tour, "\\proglang{R}"]
+  # plain:     [dimensionality reduction, high-dimensional data, interactive graphics, t-SNE, grand tour, R]
 bibliography: spyrison-cook-marriott.bib
 editor_options:
   chunk_output_type: console

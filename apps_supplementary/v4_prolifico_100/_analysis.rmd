@@ -100,20 +100,20 @@ my_theme <- list(
   geom_hline(yintercept = 0L),
   theme(legend.position = "bottom",
         legend.box = "vertical",
-        legend.margin = margin(-6))
+        legend.margin = margin(-6L))
 )
 
 ## indirect (via ggpubr/cowplot) ggplot2 helpers
-my_ggpubr <- function(df, x = "factor", y = "marks", title = "Title missing", subtitle = waiver()){
+my_ggpubr <- function(df, x = "factor", y = "marks", title = waiver(), subtitle = waiver(), facet = NULL){
   ## Find height of global significance test text.
   .x_lvls <- df %>% pull({{x}}) %>% levels()
   .y_range <- diff(range(df[y]))
   .n_lvls <- length(.x_lvls)
-  .lab.y <- (.07 * .y_range) * (1 + .n_lvls) * .y_range + max(df[y])
-  my_comparisons <- list(c("pca", "grand"), 
+  .lab.y <- (.05 * .y_range) * (1 + .n_lvls) * .y_range + max(df[y])
+  my_comparisons <- list(c("pca", "grand"),
                          c("grand", "radial"),
                          c("pca", "radial"))
-
+  
   ## Plot
   ggviolin(df, x = x, y = y, fill = x, alpha = .6,
            palette = "Dark2", shape = x,
@@ -129,7 +129,12 @@ my_ggpubr <- function(df, x = "factor", y = "marks", title = "Title missing", su
                        aes(label = paste0("Krusal-p=", ..p.format..)),
                        hide.ns = TRUE) + ## custom label
     my_theme +
-    ggtitle(title, subtitle)
+    ggtitle(title, subtitle) +
+    geom_text(aes(x = 1:.n_lvls - .2,
+                  y = min(df[y]),
+                  label = paste0("n=", freq, "\n"), ## could add "n=", may be busy.
+                  group = {{x}}),
+              data = plyr::count(df[c(x, facet)])) ## works with NULL facet.
 }
 my_ggpubr_facet <- function(..., facet = "location"){
   facet(my_ggpubr(...), facet.by = facet)
@@ -300,24 +305,115 @@ where
 
 
 ```{r}
+{ ## Load local functions, abstracting code complexity
+  ## Print coef of the model that are greater than selected t_val
+  mod_coef_gt_t <- function(mod, gt_t = 1.5){
+    .coef <- summary(mod)$coefficients %>% data.frame() ## tibble failed
+    .coef %>% filter(abs(t.value) > gt_t)
+  }
+  mod_anova_gt_f <- function(mod, gt_f = 1){
+    .anova <- anova(mod) %>% data.frame() ## tibble failed
+    .anova %>% filter(abs(F.value) > gt_f)
+  }
+  ## A residual plot with marginal density, ggplot2 obj
+  plot_residual <- function(model){
+    .df <- data.frame(predicted  = predict(model),
+                      residual = residuals(model),
+                      factor = dat_qual$factor)
+    p <- ggplot(.df, aes(x = predicted, y = residual, color = factor, shape = factor)) +
+      geom_point(alpha = .33) + my_theme + ggtitle("Residual plot") +
+      theme(legend.position = "bottom",
+            legend.box = "vertical",
+            legend.margin = margin(-6))
+    p <- ggExtra::ggMarginal(p, type = "density", fill = "grey80")
+    return(p)
+  }
+  ## A qq plot of the Random Effect simulation
+  plot_REsim_qq <- function(model){
+    .df <- data.frame(y = REsim(model)$mean)
+    ggplot(.df, aes(sample = y)) +
+      stat_qq(alpha = .5) + stat_qq_line() + my_theme +
+      ggtitle("qq plot of the mean of random effects simulation")
+  }
+  ## Adds kable markup to bold the max/min of a column.
+  format_column_extrema <- function(df, col, extrema = max, markup = "*"){
+    ## c("*", "**", "~~"), c("italics", "bold", "strikethrough")
+    v <- as.data.frame(df[, col])[, 1]
+    ## Make sure values are not factors
+    r_idx <- which(v == extrema(v))
+    ## Update formatting
+    v[r_idx] <- paste0(markup, v[r_idx], markup)
+    df[, col] <- v
+    return(df)
+  }
+  ## Summarizes data.
+  ## Gives count, mean, standard deviation, standard error of the mean, and confidence interval (default 95%).
+  ##   data: a data frame.
+  ##   measurevar: the name of a column that contains the variable to be summariezed
+  ##   groupvars: a vector containing names of columns that contain grouping variables
+  ##   na.rm: a boolean that indicates whether to ignore NA's
+  ##   conf.interval: the percent range of the confidence interval (default is 95%)
+  if(F)
+    browseURL("http://www.cookbook-r.com/Manipulating_data/Summarizing_data/")
+  summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
+                        conf.interval=.95, .drop=TRUE) {
+    
+    require(plyr)
+    
+    # New version of length which can handle NA's: if na.rm==T, don't count them
+    length2 <- function (x, na.rm=FALSE){
+      if (na.rm) sum(!is.na(x))
+      else       length(x)
+    }
+    
+    # This does the summary. For each group's data frame, return a vector with
+    # N, mean, and sd
+    datac <- ddply(data, groupvars, .drop=.drop,
+                   .fun = function(xx, col){
+                     c(N    = length2(xx[[col]], na.rm=na.rm),
+                       mean = mean   (xx[[col]], na.rm=na.rm),
+                       sd   = sd     (xx[[col]], na.rm=na.rm)
+                     )
+                   },
+                   measurevar
+    )
+    
+    # Rename the "mean" column    
+    datac <- rename(datac, c("mean" = measurevar))
+    
+    datac$se <- datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
+    
+    # Confidence interval multiplier for standard error
+    # Calculate t-statistic for confidence interval: 
+    # e.g., if conf.interval is .95, use .975 (above/below), and use df=N-1
+    ciMult <- qt(conf.interval/2 + .5, datac$N-1)
+    datac$ci <- datac$se * ciMult
+    
+    return(datac)
+  }
+  ## Extracts the coefficients of a model and applies stars.
+  model2coef <- function(model){
+    summary(model)$coefficients %>% data.frame(check.names = F) %>% 
+      mutate(" " = case_when(`Pr(>|t|)` < .001 ~ "***",
+                             `Pr(>|t|)` < .01 ~ "**",
+                             `Pr(>|t|)` < .05 ~ "*",
+                             TRUE ~ ""))
+  }
+}
+
 ## Mixed (fixed and random/variable) effects regression model
 ### following along with:
 if(F) 
   browseURL("https://m-clark.github.io/mixed-models-with-R/random_intercepts.html#running-a-mixed-model")
 
-## Print coef of the model that are greater than selected t_val
-mod_coef_gt_t <- function(mod, gt_t = 1.5){
-  .coef <- summary(mod)$coefficients %>% data.frame() ## tibble failed
-  .coef %>% filter(abs(t.value) > gt_t)
-}
-mod_anova_gt_f <- function(mod, gt_f = 1){
-  .anova <- anova(mod) %>% data.frame() ## tibble failed
-  .anova %>% filter(abs(F.value) > gt_f)
-}
 
 ############################
-#### CREATE -----
+#### CREATE MODELS -----
 ############################
+# a == factor
+# b == location
+# c == shape
+# d == dim
 ## The Models:
 a <-    lmer(marks ~ factor + (1 | participant) + (1 | simulation), data = dat_qual)
 ab <-   lmer(marks ~ factor + location + (1 | participant) + (1 | simulation), data = dat_qual)
@@ -327,66 +423,20 @@ abc <-  lmer(marks ~ factor + location + shape + (1 | participant) + (1 | simula
 abd <-  lmer(marks ~ factor + location + dim + (1 | participant) + (1 | simulation), data = dat_qual)
 acd <-  lmer(marks ~ factor + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
 abcd <- lmer(marks ~ factor + location + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-AB <-   lmer(marks ~ factor * location + (1 | participant) + (1 | simulation), data = dat_qual)
-AC <-   lmer(marks ~ factor * shape + (1 | participant) + (1 | simulation), data = dat_qual)
-AD <-   lmer(marks ~ factor * dim + (1 | participant) + (1 | simulation), data = dat_qual)
-ABC <-  lmer(marks ~ factor * location * shape + (1 | participant) + (1 | simulation), data = dat_qual)
-ABD <-  lmer(marks ~ factor * location * dim + (1 | participant) + (1 | simulation), data = dat_qual)
-ACD <-  lmer(marks ~ factor * shape * dim + (1 | participant) + (1 | simulation), data = dat_qual)
+ABcd <- lmer(marks ~ factor * location + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
+ACbd <- lmer(marks ~ factor * shape + location + dim + (1 | participant) + (1 | simulation), data = dat_qual)
+ADbc <- lmer(marks ~ factor * dim + location + shape + (1 | participant) + (1 | simulation), data = dat_qual)
+ABCd <- lmer(marks ~ factor * location * shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
+ABDc <- lmer(marks ~ factor * location * dim + shape + (1 | participant) + (1 | simulation), data = dat_qual)
+ACDb <- lmer(marks ~ factor * shape * dim + location + (1 | participant) + (1 | simulation), data = dat_qual)
 ABCD <- lmer(marks ~ factor * location * shape * dim + (1 | participant) + (1 | simulation), data = dat_qual)
 
-model_ls <- list(`alpha` = a,
-                 `alpha + beta` = ab,
-                 `alpha + gamma` = ac,
-                 `alpha + delta` = ad,
-                 `alpha + beta + gamma` = abc, 
-                 `alpha + beta + delta` = abd,
-                 `alpha + gamma + delta` = acd,
-                 `alpha + beta + gamma + delta` = abcd,
-                 `alpha * beta` = AB,
-                 `alpha * gamma` = AC,
-                 `alpha * delta` = AD,
-                 `alpha * beta * gamma` = ABC, 
-                 `alpha * beta * delta` = ABD,
-                 `alpha * gamma * delta` = ACD,
-                 `alpha * beta * gamma * delta` = ABCD)
-
-## Local functions to abstract code complexity
-## A residual plot with marginal density, ggplot2 obj
-plot_residual <- function(model){
-  .df <- data.frame(predicted  = predict(model),
-                    residual = residuals(model),
-                    factor = dat_qual$factor)
-  p <- ggplot(.df, aes(x = predicted, y = residual, color = factor, shape = factor)) +
-    geom_point(alpha = .33) + my_theme + ggtitle("Residual plot") +
-    theme(legend.position = "bottom",
-          legend.box = "vertical",
-          legend.margin = margin(-6))
-  p <- ggExtra::ggMarginal(p, type = "density", fill = "grey80")
-  return(p)
-}
-
-## A qq plot of the Random Effect simulation
-plot_REsim_qq <- function(model){
-  .df <- data.frame(y = REsim(model)$mean)
-  ggplot(.df, aes(sample = y)) +
-    stat_qq(alpha = .5) + stat_qq_line() + my_theme +
-    ggtitle("qq plot of the mean of random effects simulation")
-}
-## Adds kable markup to bold the max/min of a column.
-format_column_extrema <- function(df, col, extrema = max, markup = "*"){
-  ## c("*", "**", "~~"), c("italics", "bold", "strikethrough")
-  v <- as.data.frame(df[, col])[, 1]
-  ## Make sure values are not factors
-  r_idx <- which(v == extrema(v))
-  ## Update formatting
-  v[r_idx] <- paste0(markup, v[r_idx], markup)
-  df[, col] <- v
-  return(df)
-}
+model_ls <-
+  list(a=a, ab=ab, ac=ac, ad=ad, abc=abc, abd=abd, acd=acd, abcd=abcd,
+       ABcd=ABcd, ACbd=ACbd, ADcd=ADcb, ABCd=ABCd, ABDc=ABDc, ACDb=ACDb, ABCD=ABCD)
 
 ############################
-#### COMPARE -----
+#### COMPARE  MODELS -----
 ############################
 ## lapply over models
 performance_ls <- list(); factors_vec <- fixef_vec <- vector();
@@ -395,12 +445,11 @@ mute <- lapply(seq_along(model_ls), function(i){
   performance_ls[[i]] <<- performance::model_performance(this_model)
   factors_vec[i] <<- ncol(attr(terms(this_model), "factors"))
   fixef_vec[i] <<- length(fixef(this_model))
-
 })
 .perf_df <- dplyr::bind_rows(performance_ls)
-.model_comp_colnms <- c("Fixed effects", "No. levels", "No. terms", "AIC", 
-                        "BIC", "R2 cond. (on RE)", "R2 marg. (w/o RE)", "RMSE",
-                        "AIC / R2 marg.")
+.model_comp_colnms <- c("Fixed effects", "No. levels", "No. terms",
+                        "AIC", "BIC", "R2 cond. (on RE)",
+                        "R2 marg. (w/o RE)", "RMSE")
 model_comp_tbl <- tibble(names(model_ls),
                          factors_vec,
                          fixef_vec,
@@ -409,8 +458,9 @@ model_comp_tbl <- tibble(names(model_ls),
                          round(.perf_df[, 3], 3),
                          round(.perf_df[, 4], 3),
                          round(.perf_df[, 6], 3),
-                         round(.perf_df[, 3], 3) / round(.perf_df[, 4], 3))
+)
 colnames(model_comp_tbl) <- .model_comp_colnms
+
 
 ## Latex formatting
 model_comp_tbl <- model_comp_tbl %>%
@@ -419,87 +469,32 @@ model_comp_tbl <- model_comp_tbl %>%
   format_column_extrema(6, max) %>%
   format_column_extrema(7, max) %>%
   format_column_extrema(8, min)
-.r_idx <- which(pull(model_comp_tbl[, 1]) %in% 
-                  c("alpha", "alpha + beta + gamma + delta", 
-                    "alpha * beta", "alpha * beta * gamma", 
-                    "alpha * beta * gamma * delta"))
+## Subset to 5 models to include in write up.
+.r_idx <- which(pull(model_comp_tbl[, 1]) %in%
+                  c("a", "abcd", "ABcd", "ABCd", "ABCD"))
 model_comp_tbl <- model_comp_tbl[.r_idx, 1:8]
 
 ## print table
 knitr::kable(model_comp_tbl)
-#`Model name`                   | Terms
-#1 alpha                        | Factor
-#2 alpha * beta * gamma         | Factor * Location * Shape
-#3 alpha * beta * gamma * delta | Factor * Location * Shape * Dim
-
+# a == factor
+# b == location
+# c == shape
+# d == dim
 
 ############################
-#### EXPLORE ----
+#### EXPLORE SELECTED MODEL ----
 ############################
-model2coef <- function(model){
-  summary(model)$coefficients %>% data.frame(check.names = F) %>% 
-  mutate(" " = case_when(`Pr(>|t|)` < .001 ~ "***",
-                         `Pr(>|t|)` < .01 ~ "**",
-                         `Pr(>|t|)` < .05 ~ "*",
-                         TRUE ~ ""))
-}
-ABC_coef <- model2coef(ABC)
+ABcd_coef <- model2coef(ABcd)
 
-ggEffectRanges <- plotREsim(REsim(ABC)) +
-  ggtitle("Effect range vs mean marks for participants and simulations", 
+ggEffectRanges <- plotREsim(REsim(ABcd)) +
+  ggtitle("Effect range vs mean marks for participants and simulations",
           "alpha = .95, model: marks^ = alpha * beta * gamma") +
   theme(axis.title.x = element_blank()) +
   ylab("effect range")
 
-  if(F)
-    browseURL("http://www.cookbook-r.com/Manipulating_data/Summarizing_data/")
-## Summarizes data.
-## Gives count, mean, standard deviation, standard error of the mean, and confidence interval (default 95%).
-##   data: a data frame.
-##   measurevar: the name of a column that contains the variable to be summariezed
-##   groupvars: a vector containing names of columns that contain grouping variables
-##   na.rm: a boolean that indicates whether to ignore NA's
-##   conf.interval: the percent range of the confidence interval (default is 95%)
-summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
-                      conf.interval=.95, .drop=TRUE) {
-
-  require(plyr)
-  
-  # New version of length which can handle NA's: if na.rm==T, don't count them
-  length2 <- function (x, na.rm=FALSE) {
-    if (na.rm) sum(!is.na(x))
-    else       length(x)
-  }
-  
-  # This does the summary. For each group's data frame, return a vector with
-  # N, mean, and sd
-  datac <- ddply(data, groupvars, .drop=.drop,
-                 .fun = function(xx, col) {
-                   c(N    = length2(xx[[col]], na.rm=na.rm),
-                     mean = mean   (xx[[col]], na.rm=na.rm),
-                     sd   = sd     (xx[[col]], na.rm=na.rm)
-                   )
-                 },
-                 measurevar
-  )
-  
-  # Rename the "mean" column    
-  datac <- rename(datac, c("mean" = measurevar))
-  
-  datac$se <- datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
-  
-  # Confidence interval multiplier for standard error
-  # Calculate t-statistic for confidence interval: 
-  # e.g., if conf.interval is .95, use .975 (above/below), and use df=N-1
-  ciMult <- qt(conf.interval/2 + .5, datac$N-1)
-  datac$ci <- datac$se * ciMult
-  
-  return(datac)
-}
-
-#### If you eant to show boxplots cannot aggregate over evaluation, 
+#### If you want to show boxplots cannot aggregate over evaluation, 
 ## By participant
-participant_agg <- summarySE(dat_qual, "marks", "participant") %>% 
+participant_agg <- summarySE(dat_qual, "marks", "participant") %>%
   mutate(participant = forcats::fct_reorder(participant, marks))
 ggParticipantRanges <- ggplot(participant_agg) +
   geom_point(aes(participant, marks), alpha = .2, size = 2) +
@@ -512,7 +507,7 @@ ggParticipantRanges <- ggplot(participant_agg) +
   coord_cartesian(ylim = c(-1, 1)) +
   ylab("CI mean marks") +
   xlab("participant (n=6 per line)")
-ggParticipantRanges <- 
+ggParticipantRanges <-
   ggExtra::ggMarginal(ggParticipantRanges, type = "density", fill = "grey80")
 ## By simulation
 simulation_agg <- summarySE(dat_qual, "marks", "simulation") %>%
@@ -520,14 +515,14 @@ simulation_agg <- summarySE(dat_qual, "marks", "simulation") %>%
 ggSimulationRanges <- ggplot(simulation_agg) +
   geom_point(aes(simulation, marks), alpha = .2, size = 2) +
   geom_linerange(aes(simulation, ymin = marks - ci, ymax = marks + ci), alpha = .3) +
-  my_theme + 
+  my_theme +
   theme(axis.text = element_blank(),
         axis.ticks = element_blank(),
         axis.title.y = element_blank(),
-        panel.grid.major = element_blank(), 
+        panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()) +
   coord_cartesian(ylim = c(-1, 1)) +
-  xlab("simulation (n=36 per line)") 
+  xlab("simulation (n=36 per line)")
 ggSimulationRanges <-
   ggExtra::ggMarginal(ggSimulationRanges, type = "density", fill = "grey80")
 ## Bringing it all together
@@ -549,17 +544,19 @@ botCis <-
              title = "Marks by factor"))
 ```
 
-### Model alpha * beta * gamma
+### Model alpha * beta + gamma + delta
 
 ```{r}
-(marks_by_factor_facet_location_shape <- marks_by_ABC <-
-   my_ggpubr_facet(dat_qual,
-                   x = "factor", y = "marks",
-                   title = "Marks by factor, faceting on location and shape",
-                   subtitle = "The fixed effects of model alpha * beta * gamma",
-                   facet = c("location", "shape")) +
-   coord_cartesian(ylim = c(-1.75, 2.75))
-)
+.factor <- my_ggpubr(dat_qual, x = "factor", y = "marks")
+.location <- my_ggpubr(dat_qual, x = "location", y = "marks")
+.shape <- my_ggpubr(dat_qual, x = "shape", y = "marks")
+.dim <- my_ggpubr(dat_qual, x = "dim", y = "marks")
+.FactorLocation <- my_ggpubr_facet(dat_qual,
+                                   x = "factor", y = "marks",
+                                   title = "Marks by factor, faceting on location and shape",
+                                   subtitle = "The fixed effects of model alpha * beta * gamma",
+                                   facet = "location")
+cowplot::plot_grid()
 ```
 
 
@@ -639,8 +636,8 @@ t_model_comp_tbl <- t_model_comp_tbl %>%
   format_column_extrema(6, max) %>%
   format_column_extrema(7, max) %>%
   format_column_extrema(8, min)
-.r_idx <- which(pull(t_model_comp_tbl[, 1]) %in% c("alpha", "alpha + beta + gamma + delta", 
-                                                   "alpha * beta", "alpha * beta * gamma", 
+.r_idx <- which(pull(t_model_comp_tbl[, 1]) %in% c("alpha", "alpha + beta + gamma + delta",
+                                                   "alpha * beta", "alpha * beta * gamma",
                                                    "alpha * beta * gamma * delta"))
 t_model_comp_tbl <- t_model_comp_tbl[.r_idx, 1:8]
 
