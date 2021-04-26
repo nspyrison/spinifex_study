@@ -186,65 +186,68 @@ A matrix is said to be orthonormal if and only if they are 1) orthogonal, that i
 
 ## Principal component analysis
 
-Principal component analysis and other single valued decomposition technique are the obvious baseline of comparison for linear projections because of their frequant broad use across disciplines. Principal component analysis (PCA) [@pearson_liii._1901] creates new components that are linear combinations of the original variables. The creation of these variables is ordered by decreasing variation which is orthogonally constrained to all previous components. while the full dimensionality is in tact the benefit comes from the ordered nature of the components. For instance if nearly all of the variation in a data-space can be explained in the first half of its components than the complexity of viewing such a space is exponentially simplified.
+Principal component analysis and other single valued decomposition technique are the obvious baseline of comparison for linear projections because of their frequent broad use across disciplines. Principal component analysis (PCA) [@pearson_liii._1901] creates new components that are linear combinations of the original variables. The creation of these variables is ordered by decreasing variation which is orthogonally constrained to all previous components. While the full dimensionality is intact, the benefit comes from the ordered nature of the components. The first two or three components are typically used to approximate the variation multivariate data set, while the rest are discarded. We will allow participants to choose the components on the x and y axes from the first 4 principal components.
 
 ## Data visualization tours
 
 <!-- tours intro -->
-A data visualization _tour_ is an animation of many linear projections across several identified target basis. One of key features of the tour is the object permanence of the data points; that is to say by watching nearby frames one can track the relative changes of observations as the basis moves toward the next target basis. Various types of tours are enumerated by the selection or generation of their basis paths[TODO: XXX @Cite]. To contrast with PCA, we compare with the _grand_ and _radial_ tours. Both of these methods use geodesically-interopolated orthonormal frames with a fixed step distance between frames.
+A data visualization _tour_ is an animation of many linear projections across several identified target basis. One of the key features of the tour is the object permanence of the data points; that is to say by watching nearby frames one can track the relative changes of observations as the basis moves toward the next target basis. Various types of tours are enumerated by the selection or generation of their basis paths[cook_grand_2008; lee_review_2021]. To contrast with PCA, we compare with the _grand_ and _radial_ tours. Both of these methods use geodesically-interpolated orthonormal frames with a fixed step distance between frames.
 
 ## Grand tours
 <!-- Grand tour -->
-In a grand tour[TODO: CITE ASIMOV] the target bases are selected randomly. The grand tour is the first and most widely known tour. It will serve as an intermediate unit of comparison and which has continuity of data points in nearby frames, but lacks the user control of PCA or radial tours.
+In a grand tour[@asimov_grand_1985] the target bases are selected randomly. The grand tour is the first and most widely known tour. It will serve as an intermediate unit of comparison which has continuity of data points in nearby frames along with the radial tour, but lacks the user control enjoyed by PCA and radial tours. This lack of control makes grand tours more of generalist exploratory tool theoretically wouldn't excel at tasks with a pointed goal in mind.
 
-<!-- ADD HERE? -->
 
-## Manual tours
+## Radial, (manual) tours
 
 <!-- Manual tour -->
-The _manual_ tour [@cook_manual_1997; @spyrison_spinifex_2020] defines its basis path by manipulating the basis contribution of a selected variable. A manipulation dimension is appended onto the projection plane, with a full contribution given to the selected variable. The target bases are then selected based on rotating this newly created manipulation space. The target bases are then similarly orthogonally-interpolated, data projected, and rendered into an animation. In order for variables to remain independent of each other the contributions of the other variables must also change, _ie._ dimension space should maintain its orthonormal structure. A key feature of the manual tour is that it affords users a way to control the variable contributions of the next target basis. This means that such manipulations can be selected and queued in advance or select on the spot for human-in-the-loop analysis [@karwowski_international_2006]. However, this navigation is relatively time-consuming due to the huge volume of $p$-space (an aspect of the curse of dimensionality [@bellman_dynamic_1957]) and the abstract method of steering the projection basis. It is advisable to first identify a basis of particular interest and then use a manual tour as a finer, local exploration tool to observe how the contributions of the selected variable does or does not contribute to the feature of interest.
+The _manual_ tour [@cook_manual_1997; @spyrison_spinifex_2020] defines its basis path by manipulating the basis contribution of a selected variable. A manipulation dimension is appended onto the projection plane, with a full contribution given to the selected variable. The target bases are then selected based on rotating this newly created manipulation space. The target bases are then similarly orthogonally-interpolated, data projected and rendered into an animation. In order for the variables to remain independent of each other the contributions of the other variables must also change, _ie._ dimension space should maintain its orthonormal structure. A key feature of the manual tour is that it affords users a way to control the variable contributions of the next target basis. This means that such manipulations can be selected and queued in advance or select on the spot for human-in-the-loop analysis [@karwowski_international_2006]. However, this navigation is relatively time-consuming due to the huge volume of $p$-space (an aspect of the curse of dimensionality [@bellman_dynamic_1957]) and the abstract method of steering the projection basis. It is advisable to first identify a basis of particular interest and then use a manual tour as a finer, local exploration tool to observe how the contributions of the selected variable do or do not contribute to the feature of interest.
 
 <!-- radial tour variant -->
-In order to simplify the task and keep its duration realistic we consider a variant of the manual tour, called a _radial_ tour. In a radial tour the selected variable is allowed to change its magnitude of contribution, but not it's angle; it must move along the direction of its original contribution radius.
+To simplify the task and keep its duration realistic, we consider a variant of the manual tour, called a _radial_ tour. In a radial tour, the selected variable is allowed to change its magnitude of contribution, but not its angle; it must move along the direction of its original contribution radius. The radial tour benefits from both continuity of the data alongside grand tours, but also allows for user interaction similar to PCA.
 
 \begin{landscape}
-```{r figFactor, echo = F, out.width = '100%',fig.cap = "Example of the different visual factors. All use the same sort of biplot display to view linear projections of multivariate data. They differ in which bases are viewed which is influenced by the different factor inputs and whether or not are animated to convey the coninuity of data points from 1 frame to the next."}
+```{r figFactor, echo = F, out.width = '100%',fig.cap = "Example of the different visual factors. All use the same sort of biplot display to view linear projections of multivariate data. They differ in which bases are viewed which is influenced by the different factor inputs and whether or not are animated to convey the continuity of data points from 1 frame to the next."}
 if(F)
   file.edit("./paper/R/fig_factor.r")
 knitr::include_graphics("./figures/figFactor.pdf")
 ```
 \end{landscape}
 
-# User study {#sec:userstudy}
+Figure \@ref(fig:figFactor) illustrates the different visualization factors, the control of biplot asethetics, and where they differ. The leftmost column discusses their differences along side 3 of their character bases, albeit its more difficult to see the benefit of animation in print.
 
+# User study {#sec:userstudy}
 
 ## Hypothesis {#sec:hypothesis}
 
 XXX TODO:
 
 <!-- Research question -->
-_Does the animated removal of single variables via the radial tour improve the ability of the analyst to understand the importance of variables contribution to the separation of clusters?_
+_Does the animated removal of single variables via the radial tour improve the ability of the analyst to understand the importance of variable's contribution to the separation of clusters?_
 
 <!-- Hypothesis: null and alternative -->
-$~~~~~~H_0: \text{visualization factor does \textit{not} impact task performance} \\$
-$~~~~~~~H_a: \text{visualization factor does impact task performance}$
-
+1, Accuracy) $\\$
+$~~~~~~H_0: \text{visualization factor does \textit{not} impact task accuracy} \\$
+$~~~~~~H_a: \text{visualization factor does impact task accuracy} \\$
+2, Speed) $\\$
+$~~~~~~H_0: \text{visualization factor does \textit{not} impact task speed} \\$
+$~~~~~~H_a: \text{visualization factor does impact task speed}$
 
 
 <!-- Rational for standards of comparison -->
-PCA will be used as a baseline for compared as it is the most common linear embedding. The grand tour will act as a secondary control that will help evaluate the benefit of animation, where the object permanence of the data points, but without the ability influence it's path. Lastly the radial tour should perform best as it benefits both from animation and being able to select an individual variable to change the contribution of. 
+PCA will be used as a baseline for comparison as it is the most common linear embedding. The grand tour will act as a secondary control that will help evaluate the benefit of animation, where the object permanence of the data points, but without the ability to influence its path. Lastly, the radial tour should perform best as it benefits both from animation and being able to select an individual variable to change the contribution of.
 
 
 ## Task and evaluation {#sec:task}
 
 <!-- Geom, clusters, explicit task -->
-The display was a 2D scatterplot with observations supervised. Cluster membership was mapped to shape and color. There were either 3 or 4 clusters each with the number of observations within each cluster. Participants were asked to 'check any/all variables that contribute more than average to the cluster separation green circles and orange triangles', which was further explained in the explanatory video as 'mark and and all variable that carry more than their fair share of the weight, or 1 quarter in the case of 4 variables'.
+The display was a 2D scatterplot with observations supervised. Cluster membership was mapped to shape and color. There were either 3 or 4 clusters each with the number of observations within each cluster. Participants were asked to 'check any/all variables that contribute more than average to the cluster separation green circles and orange triangles', which was further explained in the explanatory video as 'mark and all variable that carry more than their fair share of the weight, or 1 quarter in the case of 4 variables'.
 
 <!-- Instruction and video -->
 The instructions iterated several times in the video was: 1) Use the input controls to find a frame that contains separation between the clusters of green circles and orange triangles, 2) look at the orientation of the variable contributions in the gray circle, a visual depiction of basis, and 3) select all variables that contribute more than average in the direction of the separation in the scatterplot. Regardless of factor and block values participants were limited to 60 seconds for each evaluation of this task.
 
 <!-- Evaluating measure -->
-The evaluation measure of this task was designed to have a few of features: 1) the sum of squares of the individual variable marks should be 1, and 2) symmetric about 0. With these in mind we define the following measure for evaluating the task:
+The evaluation measure of this task was designed to have a few features: 1) the sum of squares of the individual variable marks should be 1, and 2) symmetric about 0. With these in mind we define the following measure for evaluating the task:
 
 Let a dataset $\textbf{X}$ be a simulation containing clusters of observations of different distributions. Let $\textbf{X}_k$ be the subset of observations in cluster $k$ containing the $p$ variables.
 
@@ -275,7 +278,7 @@ We define weights, $W$ to be a vector explaining the variable-wise difference be
 
 
 <!-- bring in participant responses  -->
-Participant responses, $R$ are a vector of logical values, whether or not participant thinks the variable separates the two clusters more than if the difference uniformly distributed. Then $M$ is a vector of variable marks.
+Participant responses, $R$ are a vector of logical values, whether or not participant thinks the variable separates the two clusters more than if the difference were uniformly distributed. Then $M$ is a vector of variable marks.
 
 \begin{align*}
   M &= I(r_j) * sign(w_j) * \sqrt{|w_j|} \\
@@ -285,59 +288,59 @@ Participant responses, $R$ are a vector of logical values, whether or not partic
 
 where $I$ is the indicator function. Then the total marks for this task is the sum of this marks vector.
 
-```{r, figBiplotScoring, echo = F, out.width = '100%', fig.cap = "(L), PCA biplot of the components showing the most cluster separation with (R) illustration of the magnitude of cluster separation is for each variable (wide bar) and the weight of the marks given if a variable is selected (red/green line). The horizontal dashed line is 1 / dimensionality, the ammount of separation each variable would have if evenly detributed. The weights equal the signed square of the differce between each variable value and the dashed line."}
+```{r, figBiplotScoring, echo = F, out.width = '100%', fig.cap = "(L), PCA biplot of the components showing the most cluster separation with (R) illustration of the magnitude of cluster separation is for each variable (wide bar) and the weight of the marks given if a variable is selected (red/green line). The horizontal dashed line is 1 / dimensionality, the amount of separation each variable would have if evenly distributed. The weights equal the signed square of the difference between each variable value and the dashed line."}
 if(F)
   file.edit("./paper/R/fig_biplot_scoring.r")
 knitr::include_graphics("./figures/figBiplotScoring.pdf")
 ```
 
 <!--Period order: Training, eval, eval -->
-Each of the 3 periods introduced a new factor, where participants were first able to explore an untimed task with data under the simplest parameterizations of block. The training allows the participant to become familiar with the inputs and visual specific to the factor. Upon clicking a button to proceed text containing the correct answer displays with visual still intact to explore further. After the training, participant performed 2 evaluation trials. After 60 second the display was removed, though in application, few participants elapsed this time. These evaluation trials where performed under different parameterizations as explained in section \@ref(sec:blocks).
+Each of the 3 periods introduced a new factor, where participants were first able to explore an untimed task with data under the simplest parameterizations. The training allows the participant to become familiar with the inputs and visual specific to the factor. Upon clicking a button to proceed text containing the correct answer displays with visual still intact to explore further. After the training, each participant performed 2 evaluation trials. After 60 seconds the display was turned off, though few participants elapsed this time. These evaluation trials were performed under different parameterizations as explained in section \@ref(sec:blocks).
 
 ## Factor application {#sec:factors}
 
 <!-- Background for methodology, application here -->
-Section \@ref(sec:background) gives the sources and a description of the visual factors PCA, grand tours, and radial manual tours. The factors are tested within participant, with each factor being evaluated by each participant. The order that factors are experienced in is controlled with the block assignment as illustrated below in Figure \@ref(fig:figParmeterizationExample). Below we cover the aesthetic standardization, as well the unique input and display within each factor.
+Section \@ref(sec:background) gives the sources and a description of the visual factors PCA, grand tours, and radial manual tours. The factors are tested within-participant, with each factor being evaluated by each participant. The order that factors are experienced in is controlled with the block assignment as illustrated below in Figure \@ref(fig:figParmeterizationExample). Below we cover the aesthetic standardization, as well the unique input and display within each factor.
 
 <!-- aesthetic standardization -->
-The visualization methods were standardized wherever possible. each factor was shown as a biplot, with variable contributions displayed on a unit circle. All aesthetic values (colors, shapes, sizes, absence of legend, and absence axis titles) were held consistent. Variable contributions where always shown left of the scatterplot embeddings with their aesthetic values consistent as well. What did vary between factors were their inputs which caused a discrete jump to another pair or principal components, were absent for the grand tour with target bases to animate through selected at random, or for radial tour which variable should have its contribution animated. Key frames have of each factor have been illustrated above in Figure \@ref(fig:figFactor).
+The visualization methods were standardized wherever possible. each factor was shown as a biplot, with variable contributions displayed on a unit circle. All aesthetic values (colors, shapes, sizes, absence of legend, and absence axis titles) were held consistent. Variable contributions where always shown left of the scatterplot embeddings with their aesthetic values consistent as well. What did vary between factors were their inputs which caused a discrete jump to another pair or principal components, were absent for the grand tour with target bases to animate through selected at random, or for the radial tour which variable should have its contribution animated. The key frames have of each factor have been illustrated above in Figure \@ref(fig:figFactor).
 
 <!-- PCA -->
-PCA inputs allowed for users to select between the top 4 principal components for both the x and y axis regardless of the data dimensionality (either 4 or 6). <!-- Grand tours -->There were no user input for grand tour, users were instead shown a 15 second animation of the same randomly selected path. Users were able to view the same clip up to 4 times within the time limit. <!-- Radial tours -->Radial tours were also displayed at 5 frames per second with in interpolation step size of 0.1 radians. Users where able to swap between variables, upon which the display would change the the start of radially increasing the contribution of the selected variable till it was full, zeroed, and then back to its initial contribution. The complete animation of any variable takes about 20 seconds, and is almost fully in the projection frame at around 6 second. The starting basis of each is initialized to a half-clock design, where the variables were evenly distributed in half of the circle which is then orthonormalized. This design was created to be variable agnostic while maximizing the independence of the variables.
+PCA inputs allowed for users to select between the top 4 principal components for both the x and y-axis regardless of the data dimensionality (either 4 or 6). <!-- Grand tours -->There was no user input for the grand tour, users were instead shown a 15-second animation of the same randomly selected path. Users were able to view the same clip up to 4 times within the time limit. <!-- Radial tours -->Radial tours were also displayed at 5 frames per second within the interpolation step size of 0.1 radians. Users were able to swap between variables, upon which the display would change the start of radially increasing the contribution of the selected variable till it was full, zeroed, and then back to its initial contribution. The complete animation of any variable takes about 20 seconds and is almost fully in the projection frame at around 6 seconds. The starting basis of each is initialized to a half-clock design, where the variables were evenly distributed in half of the circle which is then orthonormalized. This design was created to be variable agnostic while maximizing the independence of the variables.
 
 
 ## Blocks and parameterization {#sec:blocks}
 
 <!-- volume of parameter space -->
-In addition to factor we vary the data across 3 aspects: 1) The dimensionality of the data. 2) the shapes of the clusters, by changing the variance-covariance of the clusters. 3) The location of the difference between clusters, by mixing a signal and a noise variable at different ratio we control which variables contain cluster separation.
+In addition to factor, we vary the data across 3 aspects: 1) The dimensionality of the data. 2) the shapes of the clusters, by changing the variance-covariance of the clusters. 3) The location of the difference between clusters, by mixing a signal and a noise variable at different ratios, we control which variables contain cluster separation.
 
 <!-- Dimensionality -->
-Dimensionality is tested at 2 modest levels, namely, in 4 dimensions containing 3 clusters and 6 dimensions with 4 clusters. Each cluster samples 140 observations. Each dimension is originally distributed as $\mathcal{N}(2 * I(signal), 1)~|~\text{covariance}~\Sigma$, before applying location mixing and standardizing by standard deviation). Signal variables have correlation 0.9 when they have equal orientation and -0.9 when their orientations vary. Noise variables were restricted to 0 correlation. Within each factor-period dimension is fixed with increasing difficulty, 4 then 6.
+Dimensionality is tested at 2 modest levels, namely, in 4 dimensions containing 3 clusters and 6 dimensions with 4 clusters. Each cluster samples 140 observations. Each dimension is originally distributed as $\mathcal{N}(2 * I(signal), 1)~|~\text{covariance}~\Sigma$, before applying location mixing and standardizing by standard deviation). Signal variables have a correlation 0.9 when they have equal orientation and -0.9 when their orientations vary. Noise variables were restricted to 0 correlation. Within each factor-period dimension is fixed with increasing difficulty, 4 then 6.
 
 <!-- Shape, vc matrix -->
-For choosing the shape of the clusters we follow the convention given by scrucca, [@scrucca_mclust_2016] who named and categorize 14 variants of model families containing for 3 clusters. The name of the model family is the abbreviation of its respective volume, shape, and orientation, which are either equal or vary. We use the models EEE, EEV, and EVV, the latter is further modified by moving 4 fifths of the data out in an "V" or banana-like shape. Figure \@ref(fig:figModelFamilies) shows the principal component biplot of the 3 model variants applied here. The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty. The evaluation periods use EEE, EEV, and EVV-banana respectively in increasing order of difficulty.
+For choosing the shape of the clusters we follow the convention given by scrucca, [@scrucca_mclust_2016] who named and categorize 14 variants of model families containing 3 clusters. The name of the model family is the abbreviation of its respective volume, shape, and orientation, which are either equal or vary. We use the models EEE, EEV, and EVV, the latter is further modified by moving 4 fifths of the data out in a "V" or banana-like shape. Figure \@ref(fig:figModelFamilies) shows the principal component biplot of the 3 model variants applied here. The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in the order of increasing difficulty. The evaluation periods use EEE, EEV, and EVV-banana respectively in increasing order of difficulty.
 
-```{r figModelFamilies, echo = F, out.width = '100%', fig.cap = "Ellipses of the isodensities of the model families used. Family labels are are the abbreviation for the clusters volume, shape, and orientation respectively, which are either equal or vary. We futher change the EVV model by shifting fifths of the data in banana or chevron arrow shape."}
+```{r figModelFamilies, echo = F, out.width = '100%', fig.cap = "Ellipses of the isodensity of the model families used. Family labels are are the abbreviation for the clusters volume, shape, and orientation respectively, which are either equal or vary. We further change the EVV model by shifting fifths of the data in banana or chevron arrow shape."}
 if(F)
   file.edit("./paper/R/fig_model_families.r")
 knitr::include_graphics("./figures/figModelFam.pdf")
 ```
 
 <!-- Location mixing -->
-The separation of any pair of clusters is currently contained fully within a single variable at this point. In order to test the sensitivity to this we mix a noise variable with the signal-containing variable such that the difference in the clusters is mixed at the following percentages: 0/100 (not mixed), 33/66, 50/50 (evenly mixed). The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty. The training data does not mix signal Location mixing within an evaluation period is held constant and rotated through the 6 permutations of their order. Randomizing the order of the location mixing is controlled by iterating once after each of the 6 factor order permutations are evaluated. This is illustrated in Figure \@ref(fig:figParmeterizationExample).
+The separation of any pair of clusters is currently contained fully within a single variable at this point. To test the sensitivity to this we mix a noise variable with the signal-containing variable such that the difference in the clusters is mixed at the following percentages: 0/100 (not mixed), 33/66, 50/50 (evenly mixed). The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty. The training data does not mix signal Location mixing within an evaluation period is held constant and rotated through the 6 permutations of their order. Randomizing the order of the location mixing is controlled by iterating once after each of the 6-factor order permutations are evaluated. This is illustrated in Figure \@ref(fig:figParmeterizationExample).
 
-```{r figParmeterizationExample, echo = F, out.width = '100%', fig.cap = "Illustration of how a hypothetical participant 63 is assigned factor and block parameterizations. Each of the 6 factor order permuations are exausted before iterating to the next permutation of location order."}
+```{r figParmeterizationExample, echo = F, out.width = '100%', fig.cap = "Illustration of how a hypothetical participant 63 is assigned factor and block parameterizations. Each of the 6-factor order permutations is exhausted before iterating to the next permutation of location order."}
 knitr::include_graphics("./figures/figParmeterizationExample.png") ## this is .pttx screen cap, .png ok.
 ```
 
 <!-- Eval evaluation, selection of size -->
-With this setup we test the parameter space $dimension \in (4,~ 6),~shape \in(EEE,~ EEV,~ EVV-banana),~location ~\in~ (0/100,~ 33/66,~ 50/50)$ percent noise/signal mixing in order to evaluate the graphic display across the $factors~\in~(PCA,~grand,~radial)$. As we iterate though the possible permutations of these factors and location we perform an even evaluation of the full parameter space every 36 participants. Via pilot studies we estimate that 3 even block evaluations should be sufficient to identify difference between the factors; we targeted for $N = 108$ participants.
+With this setup, we test the parameter space $dimension \in (4,~ 6),~shape \in(EEE,~ EEV,~ EVV-banana),~location ~\in~ (0/100,~ 33/66,~ 50/50)$ percent noise/signal mixing to evaluate the graphic display across the $factors~\in~(PCA,~grand,~radial).$ As we iterate through the possible permutations of these factors and location we perform an even evaluation of the full parameter space every 36 participants. Via pilot studies we estimate that 3 even block evaluations should be sufficient to identify the difference between the factors; we targeted for $N = 108$ participants.
 
 <!-- Learning effect -->
-In addition to the explicitly controlled block parameters we will also be discussing each participants evaluation order regardless of factor or location experiences. This will expose an learning effect from the repetition of being expose to this data or problem. Keep in my that the fixed blocks shape and location are always experienced in order of increasing difficulty.
+In addition to the explicitly controlled block parameters, we will also be discussing each participant's evaluation order regardless of factor or location experiences. This will expose a learning effect from the repetition of being exposed to this data or problem. Keep in mind that the shape and location are always experienced in order of increasing difficulty.
 
 
-## Post study survey {#sec:survey}
+## Post-study survey {#sec:survey}
 
 <!-- placement and Likert scale -->
 After the evaluation section of the study, participants were given a short survey containing questions gauging demographics, experience, and subjective evaluation of each factor on a 5-point Likert scale. The questions and possible responses are as follows:
@@ -346,12 +349,12 @@ __Demographic:__
 
 - What are your preferred pronouns? [decline to answer, he/him, she/her, they/them or other]
 - Which age group do you belong to? [decline to answer, 18 to 24, 25 to 35, 36 to 45, 45 to 60, 60 and up]
-- What is your highest completed education? [decline to answer, Undergraduate degree (BA/BSc/other), Graduate degree (MA/MSc/MPhil/other), Doctorate degree (PhD/other); prolific.co participants were filtered to those stating they had an least an undergraduate degree]
+- What is your highest completed education? [decline to answer, Undergraduate degree (BA/BSc/other), Graduate degree (MA/MSc/MPhil/other), Doctorate degree (PhD/other); prolific.co participants were filtered to those stating they had at least an undergraduate degree]
 
 __Within participant bias:__ $\\$
 Likert scale [1-5], least agreement to most agreement.
 
-- I understand the how to perform the task.
+- I understand how to perform the task.
 - I am experienced with data visualization.
 - I am educated in multivariate statistical analysis.
 
@@ -367,9 +370,9 @@ The code, response files, their analyses, and study application are made publicl
 
 ## Sampling population {#sec:population}
 
-We recruited $N = 108$ via prolific.co [@palan_prolific_2018]. We make the assumption that interpretation of biplot displays used will not be commonly used for consumption by the general population and apply a single filter on education; that participants have completed at least an undergraduate degree (some 58,700 of the 150,400 users at the time). There is also the implicit filter that Prolific participants must be at least 18 years of age. Participants were compensated for their time at \pounds 7.50 per hour, whereas the mean duration of survey was about 16 minutes. We can't preclude previous knowledge or experience with the factors, but instead try to control for this in the user study. Figure \@ref(fig:figSurveyDemographics) shows distributions of age and preferred pronouns of the participants that completed the post-study survey who are relatively young and well educated.
+We recruited $N = 108$ via prolific.co [@palan_prolific_2018]. We make the assumption that interpretation of biplot displays used will not be commonly used for consumption by the general population and apply a single filter on education; that participants have completed at least an undergraduate degree (some 58,700 of the 150,400 users at the time). There is also the implicit filter that Prolific participants must be at least 18 years of age. Participants were compensated for their time at \pounds 7.50 per hour, whereas the mean duration of the survey was about 16 minutes. We can't preclude previous knowledge or experience with the factors, but instead, try to control for this in the user study. Figure \@ref(fig:figSurveyDemographics) shows distributions of age and preferred pronouns of the participants that completed the post-study survey who are relatively young and well educated.
 
-```{r, figSurveyDemographics, echo = F, out.width = '100%', fig.cap = "Heatmaps of participant demopgraphics, counts of age group by completed eduation as faceted across prefered pronoun. The average parcipant was a young adult with an undergraduate or graduate degree."}
+```{r, figSurveyDemographics, echo = F, out.width = '100%', fig.cap = "Heatmaps of participant demographics, counts of age group by completed education as faceted across preferred pronoun. The average participant was a young adult with an undergraduate or graduate degree."}
 if(F) ## Creation and saving figure at:
   file.edit("./paper/R/fig_population_demographics.r")
 knitr::include_graphics("./figures/figSurveyDemographics.pdf")
@@ -377,14 +380,14 @@ knitr::include_graphics("./figures/figSurveyDemographics.pdf")
 
 ## Evenness of block evaluation
 
-From pilot studies through a sample of convenience (primarily PhD students) we predict that we wanted 3 even block evaluations to support differences in our factor and block parameterizations. Given that factor and location each have 6 permutations we targeted $N = 108 = 3 * (6 * 6)$ evaluations before data was collected. In data collection we experience a number of adverse conditions, primarily: limited control of application server network configuration, throughput thresholds on data read/write API, and repeat attempts from users when experiencing disconnects. To mitigate this we over collect survey trials, exclude all partial trials, and remove the oldest attempts (mostly likely to experience adverse network conditions) from over evaluated permutations until we have our desired evaluations under each permutation.
+From pilot studies through a sample of convenience (consisting of information technology and statistics Ph.D. students attending Monash University) we predict that we wanted 3 even block evaluations to support differences in our factor and block parameterizations. Given that factor and location, each have 6 permutations we targeted $N = 108 = 3 * (6 * 6)$ evaluations before data was collected. In data collection we experience several adverse conditions, primarily: limited control of application server network configuration, throughput thresholds on data read/write API, and repeat attempts from users when experiencing disconnects. To mitigate this we over-collect survey trials, exclude all partial trials and remove the oldest attempts (mostly likely to experience adverse network conditions) from over evaluated permutations until we have our desired evaluations under each permutation.
 
 
 # Results {#sec:results}
 
-To recap, the primary response variable are marks as defined in section \@ref(sec:task), while time till last response will be used as a secondary response variable. We have 2 primary data sets; the user study evaluations and post study survey. The former is contains the 108 trials with explanatory variables: _factor_, _location_ of the cluster separation signal, _shape_ of variance-covariance matrix, _dim_-ensionality of the data, and _order_ of evaluation within the participant. Block parameterization and randomization was discussed in section \@ref(sec:blocks). The survey was completed for 84 of these 108 trials and contains demographic information (*pronoun*, _age_, and _education_), explanatory variables (*task understanding*, *visualization experience*, and *analysis experience*), and subjective measures for each of the factors (*preference*, *familiarity*, *ease of use*, and *confidence*). The survey was covered in more detail in \@ref(sec:survey).
+To recap, the primary response variable are task marks as defined in section \@ref(sec:task), and the log response time will be used as a secondary response variable. We have 2 primary data sets; the user study evaluations and post-study survey. The former is contains the 108 trials with explanatory variables: _factor_, _location_ of the cluster separation signal, _shape_ of variance-covariance matrix, _dim_-ensionality of the data, and _order_ of evaluation within the participant. Block parameterization and randomization was discussed in section \@ref(sec:blocks). The survey was completed for 84 of these 108 trials and contains demographic information (*pronoun*, _age_, and _education_), explanatory variables (*task understanding*, *visualization experience*, and *analysis experience*), and subjective measures for each of the factors (*preference*, *familiarity*, *ease of use*, and *confidence*). The survey was covered in more detail in \@ref(sec:survey).
 
-Below we look at the marginal performance of the block parameters and survey responses. After that we build a battery of regression models to explore the variables and their interactions. Lastly we look at the subjective measures between the factors.
+Below we look at the marginal performance of the block parameters and survey responses. After that, we build a battery of regression models to explore the variables and their interactions. Lastly, we look at the subjective measures between the factors.
 
 
 ## Random effects regression model against marks
