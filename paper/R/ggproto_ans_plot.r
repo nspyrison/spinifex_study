@@ -6,7 +6,7 @@
 
 ## ggproto for the ans_plot
 ggproto_ans_plot <- function(
-  resp_ans_longer, 
+  resp_ans_longer,
   brewer_pal = RColorBrewer::brewer.pal(8L, "Dark2")){
   ## List of ggproto objects
   lab_fill <- "Varaiable cluster seperation"
@@ -32,20 +32,21 @@ ggproto_ans_plot <- function(
   mark_col <- dplyr::if_else(sign(resp_ans_longer$diff) == 1L, "green", "red")
   ret <- c(ret,
            list(
-             ## 0 line
-             ggplot2::geom_hline(yintercept = 0L, size = 1L),
-             ## Uniform bar, and text
-             ggplot2::geom_hline(ggplot2::aes(yintercept = bar), 
-                                 resp_ans_longer, 
-                                 size = 1L, linetype = 2L),
-             ggplot2::geom_text(ggplot2::aes(x = p + 1L, y = bar + .1,
-                                             label = paste0("1/p = ", round(bar, 2))),
-                                resp_ans_longer,
-                                size = 4L, hjust = 1L),
-             ## Marks segment
+             ## Marks vertical line segment
              ggplot2::geom_segment(ggplot2::aes(x = var_num, xend = var_num,
                                                 y = 0, yend = weight),
-                                   resp_ans_longer, colour = mark_col, size = 2L)
+                                   resp_ans_longer, colour = mark_col, size = 2L),
+             ## 0 line
+             ggplot2::geom_hline(yintercept = 0L, size = 1L),
+             ## Uniform bar
+             ggplot2::geom_hline(ggplot2::aes(yintercept = bar),
+                                 resp_ans_longer,
+                                 size = 1L, linetype = 2L),
+             ## Uniform bar text
+             ggplot2::geom_text(ggplot2::aes(x = p + 1L, y = bar + .05,
+                                             label = paste0("1/p = ", round(bar, 2))),
+                                resp_ans_longer,
+                                size = 4L, hjust = 1L)
            )
   )
   

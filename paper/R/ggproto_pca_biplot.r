@@ -50,7 +50,11 @@ ggproto_pca_biplot <- function(
     ## Data points
     ggplot2::geom_point(mapping = point_aes,
                         proj,
-                        size = 1.5),
+                        size = 1),
+    ## Circle path
+    ggplot2::geom_path(ggplot2::aes(x = x, y = y),
+                       circ,
+                       color = "grey80", size = 1L, inherit.aes = FALSE),
     ## Axis segments
     ggplot2::geom_segment(ggplot2::aes(x = x, xend = zero[, 1L],
                                        y = y, yend = zero[, 2L]),
@@ -60,10 +64,6 @@ ggproto_pca_biplot <- function(
     ggplot2::geom_text(ggplot2::aes(x = x, y = y, label = colnames(dat)),
                        bas,
                        size = text_size, colour = "grey50", #fontface = "bold",
-                       vjust = "outward", hjust = "outward"),
-    ## Circle path
-    ggplot2::geom_path(ggplot2::aes(x = x, y = y),
-                       circ,
-                       color = "grey80", size = 1L, inherit.aes = FALSE)
+                       vjust = "outward", hjust = "outward")
   )
 }

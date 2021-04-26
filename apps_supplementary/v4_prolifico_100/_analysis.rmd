@@ -497,10 +497,10 @@ knitr::kable(model_comp_tbl)
 ABcd_coef <- model2coef(ABcd)
 
 ggEffectRanges <- plotREsim(REsim(ABcd)) +
-  ggtitle("Effect range vs mean marks for participants and simulations",
-          "alpha = .95, model: marks^ = alpha * beta * gamma") +
+  ggtitle("Effect range, CI mean marks of participants and simulations",
+          "model: marks^ = \u03b1 * \u03b2 + \u03b3 + \u03b4      confidence: \u03b1 = .95") +
   theme(axis.title.x = element_blank()) +
-  ylab("effect range")
+  labs(y = "effect range")
 
 #### If you want to show boxplots cannot aggregate over evaluation, 
 ## By participant
@@ -516,7 +516,7 @@ ggParticipantRanges <- ggplot(participant_agg) +
         panel.grid.minor = element_blank()) +
   coord_cartesian(ylim = c(-1, 1)) +
   ylab("CI mean marks") +
-  xlab("participant (n=6 per line)")
+  xlab("participant (n=6 ea.)")
 ggParticipantRanges <-
   ggExtra::ggMarginal(ggParticipantRanges, type = "density", fill = "grey80")
 ## By simulation
@@ -532,12 +532,13 @@ ggSimulationRanges <- ggplot(simulation_agg) +
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()) +
   coord_cartesian(ylim = c(-1, 1)) +
-  xlab("simulation (n=36 per line)")
+  xlab("simulation (n=36 ea.)")
 ggSimulationRanges <-
   ggExtra::ggMarginal(ggSimulationRanges, type = "density", fill = "grey80")
 ## Bringing it all together
 botCis <-
-  cowplot::plot_grid(ggParticipantRanges, ggSimulationRanges,
+  cowplot::plot_grid(ggParticipantRanges, 
+                     ggSimulationRanges,
                      ncol = 2, rel_widths = c(1.07, 1))
 
 (figEffectRange <- cowplot::plot_grid(ggEffectRanges, botCis, nrow = 2))
@@ -676,8 +677,8 @@ my_theme <- list(
 )
 
 ggEffectRanges <- plotREsim(REsim(tABcd)) +
-  ggtitle("Effect range vs mean log seconds to last response for participants and simulations",
-          "alpha = .95, model: log(seconds to last response)^ = alpha * beta * gamma") +
+  ggtitle("Effect range, CI mean log(time) of participants and simulations",
+          "model: log(time)^ = \u03b1 * \u03b2 + \u03b3 + \u03b4      confidence: \u03b1 = .95")
   theme(axis.title.x = element_blank()) +
   ylab("effect range")
 
@@ -694,7 +695,7 @@ ggParticipantRanges <- ggplot(participant_agg) +
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()) +
   geom_hline(yintercept = mean(participant_agg$log_sec_last_resp)) +
-  xlab("participant (n=6 every line)") +
+  xlab("participant (n=6 ea.)") +
   ylab("CI mean log seconds to last response")
 ggParticipantRanges <-
   ggExtra::ggMarginal(ggParticipantRanges, type = "density", fill = "grey80")
@@ -712,7 +713,7 @@ ggSimulationRanges <- ggplot(simulation_agg) +
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()) +
   geom_hline(yintercept = mean(simulation_agg$log_sec_last_resp)) +
-  xlab("simulation (n=36 every line)")
+  xlab("simulation (n=36 ea.)")
 ggSimulationRanges <-
   ggExtra::ggMarginal(ggSimulationRanges, type = "density", fill = "grey80")
 ## Bringing it all together
@@ -748,9 +749,9 @@ if(F){
   
   ## RE Effect ranges by CI of mean marks
   ggsave("figEffectRange.pdf", plot = figEffectRange, path = "./paper/figures",
-         device = "pdf", width = .w, height = .w, unit = .u)
+         device = cairo_pdf, width = .w, height = .w, unit = .u)
   ggsave("figTeffectRange.pdf", plot = t_figEffectRange, path = "./paper/figures",
-         device = "pdf", width = .w, height = .w, unit = .u)
+         device = cairo_pdf, width = .w, height = .w, unit = .u)
   
   ## Marks by violin of factor faceting on location and shape
   ggsave("figMarksABcd.pdf", violin_ABcd, path = "./paper/figures",

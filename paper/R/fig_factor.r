@@ -26,7 +26,7 @@ this_theme <- list(
 )
   
 
-### PCA
+### PCA -----
 pc_x <- c(2:4, 3)
 pc_y <- c(rep(1, 3), 2)
 for(i in 1:4){ ## creates P1:P4
@@ -37,18 +37,19 @@ for(i in 1:4){ ## creates P1:P4
   assign(paste0("p", i), p, envir = globalenv())
 }
 
-### Grand tour
+### Grand tour -----
 tpath_fp <- "./apps_supplementary/data/tpath_p6.rda"
 load(tpath_fp, envir = globalenv()) ## tpath_p6
 for(i in 1:4){ ## creates P1:P4
   bas <- matrix(tpath_p6[,, i], nrow = 6, ncol = 2)
   p <- view_frame(bas, dat, axes = "left",
-                  aes_args = list(color = clas, shape = clas)) + this_theme
+                  aes_args = list(color = clas, shape = clas),
+                  identity_args = list(size = 1)) + this_theme
   
   assign(paste0("p", 4 + i), p, envir = globalenv())
 }
 
-### Radial tour
+### Radial tour -----
 ## bas_p6
 .ang <- seq(0, pi, length.out = 7)[-7] ## p + 1
 .u_circ_p6 <- as.matrix(data.frame(x = sin(.ang), y = cos(.ang)))
@@ -63,11 +64,12 @@ tgt_bases <- c(1, 6, 12, 16)
 for(i in 1:4){
   this_bas <- mt[,, tgt_bases[i]]
   p <- view_frame(this_bas, dat, axes = "left", manip_var = 1,
-                  aes_args = list(color = clas, shape = clas)) + this_theme
+                  aes_args = list(color = clas, shape = clas),
+                  identity_args = list(size = 1)) + this_theme
   assign(paste0("p", 8 + i), p, envir = globalenv())
 }
 
-### Table cells
+### Text cells -----
 require("ggpmisc")
 require("dplyr")
 
@@ -101,13 +103,13 @@ tb3 <- tibble(x = 0, y = 0, text3 = list(text3))
 gt3 <- ggplot() + 
   geom_table(data = tb3, aes(x,y,label = text3),
              table.theme = ttheme_gtminimal, table.hjust = 0 ) + this_theme
-### Bring it together
+### Bring it together ------
 ## a littel finachy, may need to restart and clear envirnment to get it to work.
 gc()
-fig <- cowplot::plot_grid(gt1, p1, p2, p3, #p4, ## pca
+(fig <- cowplot::plot_grid(gt1, p1, p2, p3, #p4, ## pca
                           gt2, p5, p6, p7, #p8, ## grand
                           gt3, p9, p10, p11, #p12, ## radial
-                          nrow = 3, ncol = 4, rel_widths = c(3, 2,2,2))
+                          nrow = 3, ncol = 4, rel_widths = c(3, 2,2,2)))
 
 if(F)
   ggsave("./paper/figures/figFactor.pdf", fig,

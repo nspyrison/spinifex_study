@@ -23,7 +23,7 @@ author: "Nicholas Spyrison, Dianne Cook, Kimbal Marriott"
 ## __-name: , etc not working
 ## abstract: >
 abstract: | 
-  Principal component analysis and other eigenvalue decomposition enjoy wide when it comes to visualizing multivariate spaces. The grand tour is adds the continity of near-by linear projections while moving towards a randomly selected basis. The radial tours keep this continuity of projection space while manipulating the contribution of a single variable. However, there is an absence of work evaluating the efficacy of different multivariate visualizations. We perform a between-participant user study evaluating these visualizations: biplots of principal componts, grand tours, and radial tours. We used accuracy and speed as evaluation measures for a task of supervised clusters where participants indicate which variables contain the seperation between two target clusters. Prolific.co is used to crowdsourced N=108 participants across 648 task evaluations. Additionaly, 84 post-study surveys were collected. We measure accross 3 dimensions of block parameterizations: dimensionality, location, and shape. In summary, we find that radial tours score higher and respond slightly faster than alternatives. The effect of the vizualization to dwarf the effect of the other block parameterizations. The effect of the visual is itself dwarfed by the random effect of the individual participant.
+  Principal component analysis and other eigenvalue decomposition enjoy wide when it comes to visualizing multivariate spaces. The grand tour adds the continuity of near-by linear projections while moving towards a randomly selected basis. The radial tours keep this continuity of projection space while manipulating the contribution of a single variable. However, there is an absence of work evaluating the efficacy of different multivariate visualizations. We perform a between-participant user study evaluating these visualizations: biplots of principal components, grand tours, and radial tours. We used accuracy and speed as evaluation measures for a task of supervised clusters where participants indicate which variables contain the separation between two target clusters. Prolific.co is used to crowdsourced N=108 participants across 648 task evaluations. Additionally, 84 post-study surveys were collected. We measure across 3 dimensions of block parameterizations: dimensionality, location, and shape. In summary, we find that radial tours score higher and respond slightly faster than alternatives. The effect of the visualization dwarfs the effect of the other block parameterizations. The effect of the visual is small compared with the random effect of the individual participant.
 preamble: > ## LaTeX preamble, load packages
   \usepackage{amsmath}
   \usepackage{graphicx}
@@ -123,20 +123,18 @@ knitr::include_graphics("./figures/imageName.pdf") ## Note relative to the folde
 # Introduction
 
 <!-- catchy use case -->
-Imagine, its that time of year, again. Your favorite data event is right around the corner. They did a great job tantalizing releasing new information piece by piece. You know the topic, you have your tool belt is at the ready. Your plan of attack is sound and thought-through. But what about the communication, you've seen this before, so-many measures to look at and digest let alone to convey to other. The audience reading your submission also needs to be rapidly brought up to speed on such a complex problem. The visualizations you use can make or break your submission, or more dangerously may even obscure an insight to the author.
+Imagine, it is that time of year, again. Your favorite data event is right around the corner. They did a great job tantalizing releasing new information piece by piece. You know the topic, you have your tool belt is at the ready. Your plan of attack is sound and thought-through. But what about the communication, you've seen this before, so-many measures to look at and digest let alone to convey to others. The audience reading your submission also needs to be rapidly brought up to speed on such a complex problem. The visualizations you use can make or break your submission, or more dangerously may even obscure an insight to the author.
 
 <!-- Multivariate spaces and EDA -->
-Multivariate data (and measure space) is ubiquitous. Yet exploratory data analysis (EDA) [@tukey_exploratory_1977] of such spaces becomes difficult, increasingly so as dimension increases. Numeric statistic summarization of data often doesn't explain the full complexity of the data or worse, can lead to missing obvious visual patterns [@anscombe_graphs_1973; @matejka_same_2017; @goodman_dirty_2008; @coleman_geometric_1986]. Ideally, data would be visually explored, in it's original variable-space, before during and after model application and statistical summarization. This is crucial to validating assumptions, identify outliers, finding of visual peculiarities, and galvanizing insight in the best direction to take a study.
+Multivariate data (and measure space) is ubiquitous. Yet exploratory data analysis (EDA) [@tukey_exploratory_1977] of such spaces becomes difficult, increasingly so as dimension increases. Numeric statistic summarization of data often doesn't explain the full complexity of the data or worse, can lead to missing obvious visual patterns [@anscombe_graphs_1973; @matejka_same_2017; @goodman_dirty_2008; @coleman_geometric_1986]. Ideally, data would be visually explored, in its original variable-space, before and after model application and statistical summarization. This is crucial to validating assumptions, identify outliers, finding visual peculiarities, and galvanizing insight in the best direction to take a study.
 <!-- Wickham [@wickham_visualizing_2015] introduces the terminologies of data-space. -->
 
 <!-- Research gap -->
-There is a notable absence in the research on which visualization should be used and when to best convey information to readers in the context multivariate data. We have principles, gammar, and designs, yet these aid and guide composition of 2D plots, sometimes with perception ques into a 3rd spatial dimension, or by mapping variables to aesthetics such as color or shape. Visualizing multivariate data is an appreciable task. Doing so, almost implies a trade-off between viewing large numbers of linear projection or highly obscuring and twisting the variable space to fit itself into a low dimension non-linear embedding.
+There is a notable absence in the research on which visualization should be used and when to best convey information to readers in the context of multivariate data. We have principles, grammar, and designs, yet these aid and guide composition of 2D plots, sometimes with perception ques into a 3rd spatial dimension, or by mapping variables to aesthetics such as color or shape. Visualizing multivariate data is an appreciable task. Doing so almost implies a trade-off between viewing large numbers of linear projection or highly obscuring and twisting the variable space to fit itself into a low dimension non-linear embedding.
 
 <!-- Add more gap and lit review here? Wants a better segue. -->
 
-Here, we compare and contrast the efficacy of 3 linear projection techniques by means of a within participant user study. Specific visualization is the primary factor of the study with a null hypothesis that visual have no impact on either the accuracy or the speed of evaluating a task. We design a task and measure evaluating it accuracy that involves participants indicating which variable(s) contain a difference in groups of different clusters. Data is simulated over several block parameterizations. 
-
-
+Here, we compare and contrast the efficacy of 3 linear projection techniques though application of a within-participant user study. Specific visualization is the primary factor of the study with a null hypothesis that visual has no impact on the accuracy nor the speed of evaluating a task. We design a task and measure evaluating its accuracy that involves participants indicating which variable(s) contain a difference in groups of different clusters. Data is simulated over several block parameterizations. 
 
 
 <!-- Not Scatterplot matrices, PCP, want mapped to position -->
@@ -157,15 +155,17 @@ Here, we compare and contrast the efficacy of 3 linear projection techniques by 
 
 
 <!-- structure of the paper -->
-Section \@ref(sec:background) discusses the visualization methods. Section \@ref(sec:userstudy) goes into the user study. The subsection \@ref(sec:task) digs into the task and its evaluation. The results of the study are in section \@ref(sec:results). Discussion is covered in section \@ref(sec:discussion). An accompanying tool is discussed in section \@ref(sec:spinifex).
+Section \@ref(sec:background) discusses the visualization methods. Section \@ref(sec:userstudy) goes into the user study. Subsection \@ref(sec:task) digs into the task and its evaluation. The results of the study are in section \@ref(sec:results). Discussion is covered in section \@ref(sec:discussion). An accompanying tool is discussed in section \@ref(sec:spinifex).
 
 
 # Background, visual methods {#sec:background}
 
+<!-- Arriving at linear projections or too meta? -->
+<!-- Considering that we want to explore multivariate data space while restricting . -->
+
 ## Linear projection notation
 
 Consider a numeric data matrix with $n$ observations of $p$ variables,
-
 
 \begin{gather*}
   \textbf{X}_{[n, p]} = (\textbf{x}_{1},~...~\textbf{x}_{p}) \\
@@ -174,29 +174,30 @@ Consider a numeric data matrix with $n$ observations of $p$ variables,
 
 Let $Y_{[n, d]}$ be the $d$-dimensional projection or embedding of $\textbf{X}_{[n, p]}$ via matrix multiplication of a particular orthonormal basis matrix $\textbf{B}_{[p, d]}$.
 
-
 \begin{gather*}
   \textbf{Y}_{[n, d]} = \textbf{X}_{[n, p]} \textbf{B}_{[p, d]}~|~\textbf{B}\text{ is orthonormal} \\
   \textbf{y}_{j} = (y_{1j},~...~ y_{nj})~|~j \in [i, d]
 \end{gather*}
 
-
-A matrix is said to be orthonormal if and only if they are 1) orthogonal, that is all column pairs are independent, having a cross product of 0, and 2) normal, each columns has a norm - Eucledian distance - of 1.
+A matrix is said to be orthonormal if and only if they are 1) orthogonal, that is all column pairs are independent, having a cross product of 0, and 2) normal, each column has a norm - Euclidean  distance - of 1.
 
 <!-- note on interchangeably, probably better to make consistent afterward -->
 <!-- A quick note on terminology we use the terms projection & embedding and variable & dimension interchangeably. -->
 
 ## Principal component analysis
 
-Considering that we want to explore multivariate data space, while maintaining position mapping of points. Linear combinations of variables becomes an ideal candidate. Principal component analysis (PCA) [@pearson_liii._1901] creates new components that are linear combinations of the original variables. The creation of these variables is ordered by decreasing variation which is orthogonally constrained to all previous components. while the full dimensionality is in tact the benefit comes from the ordered nature of the components. For instance if nearly all of the variation in a data-space can be explained in the first half of its components than the complexity of viewing such a space is exponentially simplified.
+Principal component analysis and other single valued decomposition technique are the obvious baseline of comparison for linear projections because of their frequant broad use across disciplines. Principal component analysis (PCA) [@pearson_liii._1901] creates new components that are linear combinations of the original variables. The creation of these variables is ordered by decreasing variation which is orthogonally constrained to all previous components. while the full dimensionality is in tact the benefit comes from the ordered nature of the components. For instance if nearly all of the variation in a data-space can be explained in the first half of its components than the complexity of viewing such a space is exponentially simplified.
 
-## Grand tours
+## Data visualization tours
 
 <!-- tours intro -->
-Later, Asimov [@asimov_grand_1985], coined data visualization _tour_, an animation of many linear projections across local changes in the basis. One of key features of the tour is the object permanence of the data points. That is to say by watching near by, orthogonally-interpolated frames one can track the relative changes of observations as variable contributions change.
+A data visualization _tour_ is an animation of many linear projections across several identified target basis. One of key features of the tour is the object permanence of the data points; that is to say by watching nearby frames one can track the relative changes of observations as the basis moves toward the next target basis. Various types of tours are enumerated by the selection or generation of their basis paths[TODO: XXX @Cite]. To contrast with PCA, we compare with the _grand_ and _radial_ tours. Both of these methods use geodesically-interopolated orthonormal frames with a fixed step distance between frames.
 
+## Grand tours
 <!-- Grand tour -->
-Asimov originally purposed the _grand_ tour. To start, several target bases are randomly selected. These target bases are then orthogonally-interpolated between with a fixed target distance between interpolation frames. The data matrix is premultiplied to the array of interpolated bases and rendered into an animation. There is no user interaction in a grand tour and the target.
+In a grand tour[TODO: CITE ASIMOV] the target bases are selected randomly. The grand tour is the first and most widely known tour. It will serve as an intermediate unit of comparison and which has continuity of data points in nearby frames, but lacks the user control of PCA or radial tours.
+
+<!-- ADD HERE? -->
 
 ## Manual tours
 
@@ -400,7 +401,7 @@ In building a set of models to test we include all single term models, a model w
 \begin{align*}
 &\textbf{Terms:}& \textbf{Expand}&\textbf{ed Model:~~}  \\
 &\alpha& \widehat{marks} =& \mu + \alpha_i + \textbf{Z} + \textbf{W} + \epsilon \\
-&\alpha + \beta + \gamma + \delta& \widehat{marks} =& \mu + \alpha_i + \beta_j + \gamma_k + &\delta_l + \textbf{Z} + \textbf{W} + \epsilon \\
+&\alpha + \beta + \gamma + \delta& \widehat{marks} =& \mu + \alpha_i + \beta_j + \gamma_k + \delta_l + \textbf{Z} + \textbf{W} + \epsilon \\
 &\alpha * \beta + \gamma + \delta& \widehat{marks} =& \mu + \alpha_i * \beta_j + \textbf{Z} + \textbf{W} + \epsilon \\
 &\alpha * \beta * \gamma + \delta& \widehat{marks} =& \mu + \alpha_i * \beta_j * \gamma_k + \textbf{Z} + \textbf{W} + \epsilon \\
 &\alpha * \beta * \gamma * \delta& \widehat{marks} =& \mu + \alpha_i * \beta_j * \gamma_k * \delta_l + \textbf{Z} + \textbf{W} + \epsilon \\
@@ -465,7 +466,7 @@ kableExtra::kbl(coef_ls[[1]], booktabs = TRUE, linesep = "", format = "latex",
 <!-- Random effects vs Mean Mark CI by participant and sim -->
 Residual plots have no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figEffectRange) illustrates (T) the effect size of the random terms participant and simulation, or more accurately, the 95\% CI from Gelman simulation of their posterior distribution. The effect size of participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha = .95$, while none of the simulation effects significantly deviate from the null of having no effect size on the marks. In comparison, (B) 95\% confidence intervals of the mean marks for participation and simulation respectively.
 
-```{r figEffectRange, out.width="100%", fig.show='asis', fig.cap='(T) Estimated effect ranges of the random effect terms partitcipant and data simulation of the $\\alpha * \\beta + \\gamma + \\delta$ model. Confidence intervals are created via Gelman simulation on the effect posterior distributions. The effect size of participant is relatively large, with several significant extrema . None of the simulations deviate significantly. (B) The ordered distributions of the CI of mean marks follow the same general patten and give the additional context of the cield of  effect range without the explaination information of fix terms. The effect ranges capture about 2/3 of the range of the data without the model. All intervals for $\\alpha = .95$ confidence.'}
+```{r figEffectRange, out.width="100%", fig.show='asis', fig.cap='(T) Estimated effect ranges of the random effect terms partitcipant and data simulation of the $\\alpha * \\beta + \\gamma + \\delta$ model. Confidence intervals are created with Gelman simulation on the effect posterior distributions. The effect size of participant is relatively large, with several significant extrema . None of the simulations deviate significantly. (B) The ordered distributions of the CI of mean marks follow the same general patten and give the additional context of the cield of  effect range without the explaination information of fix terms. The effect ranges capture about 2/3 of the range of the data without the model. All intervals for $\\alpha = .95$ confidence.'}
 if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 knitr::include_graphics("./figures/figEffectRange.pdf")

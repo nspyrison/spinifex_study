@@ -15,8 +15,7 @@ gg1 <- ggplot() + theme_void() +
   theme(axis.title = element_text(),
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5)) +
-  labs(title = "PCA biplot", 
-       subtitle = "EEV_p6_33_66_rep2",
+  labs(title = "factor=pca, location:33/66%, \n shape=EEV, dim=6",
        x = "PC1", y = "PC4")
 
 ## Make ans_plot
@@ -29,15 +28,14 @@ source("./paper/R/ggproto_ans_plot.r")
 gg2 <- ggplot() + theme_bw() +
   ggproto_ans_plot(sub_longer) +
   theme(plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(hjust = 0.5),) +
-  labs(title = "Variable cluster separation & weights",
-       subtitle = "EEV_p6_33_66_rep2")
+        plot.subtitle = element_text(hjust = 0.5)) +
+  labs(title = "Cluster separation & weights")
 
-(final <- cowplot::plot_grid(gg1, gg2, scale = c(1, .66)))
+(final <- cowplot::plot_grid(gg1, gg2 + theme(legend.position = "off"), scale = c(1, .7)))
 .w = 6.25
 .h = 9
 .u = "in"
 if(F)
   ggsave("./paper/figures/figBiplotScoring.pdf", final,
-         device = "pdf", width = .w, height = .w/2, units = .u)
+         device = "pdf", width = .w, height = .w / 2, units = .u)
 

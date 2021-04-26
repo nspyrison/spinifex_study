@@ -7,7 +7,8 @@ this_theme <- list(
   scale_fill_manual( values = palette()[1:8]),
   theme(axis.title = element_blank(),
         axis.text = element_blank(),
-        axis.ticks = element_blank())
+        axis.ticks = element_blank(),
+        legend.position = "off")
 )
 
 ###### model_families.png ------
@@ -33,7 +34,8 @@ model_fam_df <- data.frame(
     geom_text(aes(x = x, y = y, label = cluster, color = cluster), size = 10) +
     facet_wrap(vars(name)) +
     coord_fixed() +
-    this_theme
+    this_theme +
+    ggtitle("{mclust} model families used")
 )
 
 .w = 6.25
@@ -41,5 +43,5 @@ model_fam_df <- data.frame(
 .u = "in"
 if(F)
   ggsave("./paper/figures/figModelFam.pdf", figModelFam,
-         device = "pdf", width = .w, height = .w / 3, units = .u)
+         device = "pdf", width = .w, height = .w / 2, units = .u)
 
