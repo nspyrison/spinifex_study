@@ -54,7 +54,7 @@ knitr::opts_chunk$set(
   message = FALSE,
   warning = FALSE,
   error = FALSE,
-  cache = TRUE,
+  cache = FALSE,
   cache.lazy = FALSE
 )
 ```
@@ -115,7 +115,7 @@ knitr::opts_chunk$set(
 
 <!-- Example figure -->
 ```{r EXCLUDEDfigExamp, echo = F, out.width = '100%',fig.cap = "Example case. Person 'A' is assigned to group 2, where they will use factor 2 (grand tour) for the first period. They perform 3 block difficulties of task 1 on simulations of increasing difficulty. Then 3 block difficulties of task 2 on unique simulations sampled from the same distributions of increasing difficulty. After this, they proceed to period 2, where they are use factor 3 (manual tour) to perform 3 block difficulties of each task. Lastly, in the third period, they use factor 1 (PCA) to perform the tasks.", eval = F}
-knitr::include_graphics("./figures/imageName.png") ## Note relative to the folder that the .rmd is in not the project dir()
+knitr::include_graphics("./figures/imageName.pdf") ## Note relative to the folder that the .rmd is in not the project dir()
 ```
 <!-- Figure \@ref(fig:figExamp) is an example of referencing a the example figure. -->
 
@@ -210,7 +210,7 @@ In order to simplify the task and keep its duration realistic we consider a vari
 ```{r figFactor, echo = F, out.width = '100%',fig.cap = "Example of the different visual factors. All use the same sort of biplot display to view linear projections of multivariate data. They differ in which bases are viewed which is influenced by the different factor inputs and whether or not are animated to convey the coninuity of data points from 1 frame to the next."}
 if(F)
   file.edit("./paper/R/fig_factor.r")
-knitr::include_graphics("./figures/figFactor.png")
+knitr::include_graphics("./figures/figFactor.pdf")
 ```
 \end{landscape}
 
@@ -285,7 +285,9 @@ Participant responses, $R$ are a vector of logical values, whether or not partic
 where $I$ is the indicator function. Then the total marks for this task is the sum of this marks vector.
 
 ```{r, figBiplotScoring, echo = F, out.width = '100%', fig.cap = "(L), PCA biplot of the components showing the most cluster separation with (R) illustration of the magnitude of cluster separation is for each variable (wide bar) and the weight of the marks given if a variable is selected (red/green line). The horizontal dashed line is 1 / dimensionality, the ammount of separation each variable would have if evenly detributed. The weights equal the signed square of the differce between each variable value and the dashed line."}
-knitr::include_graphics("./figures/figBiplotScoring.png")
+if(F)
+  file.edit("./paper/R/fig_biplot_scoring.r")
+knitr::include_graphics("./figures/figBiplotScoring.pdf")
 ```
 
 <!--Period order: Training, eval, eval -->
@@ -315,14 +317,16 @@ Dimensionality is tested at 2 modest levels, namely, in 4 dimensions containing 
 For choosing the shape of the clusters we follow the convention given by scrucca, [@scrucca_mclust_2016] who named and categorize 14 variants of model families containing for 3 clusters. The name of the model family is the abbreviation of its respective volume, shape, and orientation, which are either equal or vary. We use the models EEE, EEV, and EVV, the latter is further modified by moving 4 fifths of the data out in an "V" or banana-like shape. Figure \@ref(fig:figModelFamilies) shows the principal component biplot of the 3 model variants applied here. The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty. The evaluation periods use EEE, EEV, and EVV-banana respectively in increasing order of difficulty.
 
 ```{r figModelFamilies, echo = F, out.width = '100%', fig.cap = "Ellipses of the isodensities of the model families used. Family labels are are the abbreviation for the clusters volume, shape, and orientation respectively, which are either equal or vary. We futher change the EVV model by shifting fifths of the data in banana or chevron arrow shape."}
-knitr::include_graphics("./figures/figModelFam.png")
+if(F)
+  file.edit("./paper/R/fig_model_families.r")
+knitr::include_graphics("./figures/figModelFam.pdf")
 ```
 
 <!-- Location mixing -->
 The separation of any pair of clusters is currently contained fully within a single variable at this point. In order to test the sensitivity to this we mix a noise variable with the signal-containing variable such that the difference in the clusters is mixed at the following percentages: 0/100 (not mixed), 33/66, 50/50 (evenly mixed). The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in order of increasing difficulty. The training data does not mix signal Location mixing within an evaluation period is held constant and rotated through the 6 permutations of their order. Randomizing the order of the location mixing is controlled by iterating once after each of the 6 factor order permutations are evaluated. This is illustrated in Figure \@ref(fig:figParmeterizationExample).
 
 ```{r figParmeterizationExample, echo = F, out.width = '100%', fig.cap = "Illustration of how a hypothetical participant 63 is assigned factor and block parameterizations. Each of the 6 factor order permuations are exausted before iterating to the next permutation of location order."}
-knitr::include_graphics("./figures/figParmeterizationExample.png")
+knitr::include_graphics("./figures/figParmeterizationExample.png") ## this is .pttx screen cap, .png ok.
 ```
 
 <!-- Eval evaluation, selection of size -->
@@ -367,7 +371,7 @@ We recruited $N = 108$ via prolific.co [@palan_prolific_2018]. We make the assum
 ```{r, figSurveyDemographics, echo = F, out.width = '100%', fig.cap = "Heatmaps of participant demopgraphics, counts of age group by completed eduation as faceted across prefered pronoun. The average parcipant was a young adult with an undergraduate or graduate degree."}
 if(F) ## Creation and saving figure at:
   file.edit("./paper/R/fig_population_demographics.r")
-knitr::include_graphics("./figures/figSurveyDemographics.png")
+knitr::include_graphics("./figures/figSurveyDemographics.pdf")
 ```
 
 ## Evenness of block evaluation
@@ -397,8 +401,8 @@ In building a set of models to test we include all single term models, a model w
 &\textbf{Terms:}& \textbf{Expand}&\textbf{ed Model:~~}  \\
 &\alpha& \widehat{marks} =& \mu + \alpha_i + \textbf{Z} + \textbf{W} + \epsilon \\
 &\alpha + \beta + \gamma + \delta& \widehat{marks} =& \mu + \alpha_i + \beta_j + \gamma_k + &\delta_l + \textbf{Z} + \textbf{W} + \epsilon \\
-&\alpha * \beta& \widehat{marks} =& \mu + \alpha_i * \beta_j + \textbf{Z} + \textbf{W} + \epsilon \\
-&\alpha * \beta * \gamma& \widehat{marks} =& \mu + \alpha_i * \beta_j * \gamma_k + \textbf{Z} + \textbf{W} + \epsilon \\
+&\alpha * \beta + \gamma + \delta& \widehat{marks} =& \mu + \alpha_i * \beta_j + \textbf{Z} + \textbf{W} + \epsilon \\
+&\alpha * \beta * \gamma + \delta& \widehat{marks} =& \mu + \alpha_i * \beta_j * \gamma_k + \textbf{Z} + \textbf{W} + \epsilon \\
 &\alpha * \beta * \gamma * \delta& \widehat{marks} =& \mu + \alpha_i * \beta_j * \gamma_k * \delta_l + \textbf{Z} + \textbf{W} + \epsilon \\
 \end{align*}
 
@@ -410,8 +414,8 @@ where
 &\textbf{Z} \sim \mathcal{N}(0,~\tau), \text{ the random effect of participant} \\
 &\textbf{W} \sim \mathcal{N}(0,~\upsilon), \text{ the random effect of simulation} \\
 &\alpha_i \text{, fixed term for factor}~|~i\in (\text{pca, grand, radial}) \\
-&\beta_j \text{, fixed term for location}~|~j\in (\text{0\_1, 33\_66, 50\_50}) \text{ percent noise mixing of a noise and signal variable respectively} \\
-&\gamma_k \text{, fixed term for shape}~|~k\in (\text{EEE, EEV, EVV banana}) \text{ mclust model family shapes described above} \\
+&\beta_j \text{, fixed term for location}~|~j\in (\text{0\_1, 33\_66, 50\_50}) \text{ percent noise/signal mixing} \\
+&\gamma_k \text{, fixed term for shape}~|~k\in (\text{EEE, EEV, EVV banana}) \text{ mclust model family shapes} \\
 &\delta_l \text{, fixed term for dim}~|~dim\in (\text{4 variables with 3 cluster, 6 variables with 4 clusters}) \\
 \end{align*}
 
@@ -421,7 +425,7 @@ if(F) ## Creation and saving at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 model_comp_tbl_ls <- readRDS("./figures/modelCompLs.rds")
 model_comp_tbl_ls[[1]]$`Fixed effects` <- model_comp_tbl_ls[[2]]$`Fixed effects` <-
-  c("a", "a+b+c+d", "a*b", "a*b*c", "a*b*c*d")
+  c("a", "a+b+c+d", "a*b+c+d", "a*b*c+d", "a*b*c*d")
 ## 1) Eval parameters
 kableExtra::kbl(model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
              booktabs = TRUE, linesep = "", caption = "Model comparison of our random effects models regressing marks. Each model includs a random effect term of the participant, which explains the individuals influence on their marks. Complex models perform better in terms of R2 and RMSE, yet AIC and BIC penialize their large number of fixed effect in favor of the much simpler model containing only factor.") %>%
@@ -431,54 +435,49 @@ kableExtra::kbl(model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
   kable_styling(bootstrap_options = "striped", font_size = 10)
 ```
 
-<!-- Select model ABC -->
+<!-- Select model ABcd -->
 
-<!-- Coefficients of the selected model, ABC -->
+<!-- Coefficients of the selected model, ABcd -->
 ```{r marksCoefTbl, fig.cap = "Use the caption arg in kable(), not this."}
 if(F) ## Creation and saving at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 coef_ls <- readRDS("./figures/modelCoefLs.rds")
 rownames(coef_ls[[1]]) <- rownames(coef_ls[[2]]) <-
-  c("(Intercept)"                   ,"fct=grand"                    ,"fct=radial"
-    ,"loc=33_66"                    ,"loc=50_50"                    ,"shp=EEV"
-    ,"shp=ban"                      ,"fct=grand:loc=33_66"          ,"fct=radial:loc=33_66"
-    ,"fct=grand:loc=50_50"          ,"fct=radial:loc=50_50"         ,"fct=grand:shp=EEV"
-    ,"fct=radial:shp=EEV"           ,"fct=grand:shp=ban"            ,"fct=radial:shp=ban"
-    ,"loc=33_66:shp=EEV"            ,"loc=50_50:shp=EEV"            ,"loc=33_66:shp=ban"
-    ,"loc=50_50:shp=ban"            ,"fct=grand:loc=33_66:shp=EEV"  ,"fct=radial:loc=33_66:shp=EEV"
-    ,"fct=grand:loc=50_50:shp=EEV"  ,"fct=radial:loc=50_50:shp=EEV" ,"fct=grand:loc=33_66:shp=ban"
-    ,"fct=radial:loc=33_66:shp=ban" ,"fct=grand:loc=50_50:shp=ban"  ,"fct=radial:loc=50_50:shp=ban")
+  c("(Intercept)" ,"fct=grand" ,"fct=radial"
+    ,"loc=33_66"  ,"loc=50_50" ,"shp=EEV"
+    ,"shp=ban"    ,"dim=6"     ,"fct=grand:loc=33_66"
+    ,"fct=radial:loc=33_66"    ,"fct=grand:loc=50_50", "fct=radial:loc=50_50")
 
 ## For grouping rows see:
 if(F)
   browseURL("https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html#Group_rows_via_labeling")
 kableExtra::kbl(coef_ls[[1]], booktabs = TRUE, linesep = "", format = "latex",
-                caption = "The model coeffients for $\\widehat{marks} = \\alpha * \\beta * \\gamma$, with factor:pca, locaation0/100, and shapeEEE held as baselines. Factor being radial is the fixed term with the strongest evidence in support of the hypothesis. Evidence for the interaction terms vary widely. The evidence in favor of any one coeffcient is relatively modest, this is due inpart to expending the fixed terms explainatory across so many interaction terms; each fixed term appears much more extreme models with less terms.") %>%
-  kableExtra::column_spec(column = 1, width = "5.5cm") %>%
+                caption = "The model coeffients for $\\widehat{marks} = \\alpha * \\beta + \\gamma + \\delta$, with factor:pca, locaation0/100, and shapeEEE held as baselines. Factor being radial is the fixed term with the strongest evidence in support of the hypothesis. Evidence for the interaction terms vary widely. The evidence in favor of any one coeffcient is relatively modest, this is due inpart to expending the fixed terms explainatory across so many interaction terms; each fixed term appears much more extreme models with less terms.") %>%
+  kableExtra::column_spec(column = 1, width = "5cm") %>%
   kableExtra::column_spec(column = 3, width = "1.6cm") %>%
   kableExtra::column_spec(column = c(2, 4:6), width = "1.4cm") %>%
   kableExtra::pack_rows("factor", 2, 3) %>%
-  pack_rows("fixed effects", 4, 7) %>%
-  pack_rows("interactions", 8, 27) %>%
+  pack_rows("fixed effects", 4, 8) %>%
+  pack_rows("interactions", 9, 12) %>%
   kable_styling(bootstrap_options = "striped", font_size = 10)
 ```
 
 <!-- Random effects vs Mean Mark CI by participant and sim -->
-Residual plots have no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figEffectRange) illustrates (T) the effect size of the random terms participant and simulation, or more accurately, the 95\% CI from Gelman simulation of their posterior distribution. The effect size of participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha$ = .95, while none of the simulation effects significantly deviate from the null of having no effect size on the marks. In comparison, (B) 95\% confidence intervals of the mean marks for participation and simulation respectively.
+Residual plots have no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figEffectRange) illustrates (T) the effect size of the random terms participant and simulation, or more accurately, the 95\% CI from Gelman simulation of their posterior distribution. The effect size of participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha = .95$, while none of the simulation effects significantly deviate from the null of having no effect size on the marks. In comparison, (B) 95\% confidence intervals of the mean marks for participation and simulation respectively.
 
-```{r figEffectRange, out.width="100%", fig.show='asis', fig.cap='(T) Estimated effect ranges of the random effect terms partitcipant and data simulation of the alpha * beta * gamma model. Confidence intervals are created via Gelman simulation on the effect posterior distributions. The effect size of participant is relatively large, with several significant extrema (alpha = .95). None of the simulations deviate significantly. (B) The ordered distributions of the CI of mean marks follow the same general patten and give the additional context of the cield of  effect range without the explaination information of fix terms. The effect ranges capture about 2/3 of the range of the data without the model.'}
+```{r figEffectRange, out.width="100%", fig.show='asis', fig.cap='(T) Estimated effect ranges of the random effect terms partitcipant and data simulation of the $\\alpha * \\beta + \\gamma + \\delta$ model. Confidence intervals are created via Gelman simulation on the effect posterior distributions. The effect size of participant is relatively large, with several significant extrema . None of the simulations deviate significantly. (B) The ordered distributions of the CI of mean marks follow the same general patten and give the additional context of the cield of  effect range without the explaination information of fix terms. The effect ranges capture about 2/3 of the range of the data without the model. All intervals for $\\alpha = .95$ confidence.'}
 if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
-knitr::include_graphics("./figures/figEffectRange.png")
+knitr::include_graphics("./figures/figEffectRange.pdf")
 ```
 
 <!-- Conditional effects of variables -->
 We also want to visually explore the conditional variables in the model. Figure \@ref(fig:figMarksABcd) explores violin plots of marks by factor while faceting on the location (vertical) and shape (horizontal). Notice that the conditional variable regularly have much smaller p-value, with seemingly so much more evidence in their favor, this is because they are not "diversifying" their explanatory power across numerous interaction terms, so to speak.
 
-```{r, figMarksABcd, echo = F, out.width = '100%', fig.cap = "Violin plots of 3 parmeter interaction terms of the model $\\widehat{marks} = \\alpha * \\beta * \\gamma$. Overlaid with global significance from the Kruskal-Wallis test, and pairwise significance from the Wilcoxon test, both non-parametric, ranked sum tests suitable for handling discrete data. Participants are more confident and find the radial easier to use relative to the grand tour. Particpants claim low familiarity as we would expected fro crowdsourced particiants. Radial is more preffered compared with either alternative for this task."}
+```{r, figMarksABcd, echo = F, out.width = '100%', fig.cap = "Violin plots of 3 parmeter interaction terms of the model $\\widehat{marks} = \\alpha * \\beta + \\gamma + \\delta$. Overlaid with global significance from the Kruskal-Wallis test, and pairwise significance from the Wilcoxon test, both non-parametric, ranked sum tests suitable for handling discrete data. Participants are more confident and find the radial easier to use relative to the grand tour. Particpants claim low familiarity as we would expected fro crowdsourced particiants. Radial is more preffered compared with either alternative for this task."}
 if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
-knitr::include_graphics("./figures/figMarksABcd.png")
+knitr::include_graphics("./figures/figMarksABcd.pdf")
 ```
 
 ## Time regressing models
@@ -489,7 +488,7 @@ As a secondary explanatory variable we also want to look at time. First we take 
 ```{r timeCompTbl, fig.cap = "Use the caption arg in kable(), not this."}
 ## 1) Eval parameters
 kableExtra::kbl(model_comp_tbl_ls[[2]], align = c("l", rep("r", 7)),
-             booktabs = TRUE, linesep = "", caption = "Model comparisons for $\\widehat{log(time)}$ random effects models, where each models include 2 random effect terms for participants and simulations. We see the same trade off where the simplest factor model is perfered by AIC/BIC, while R2 and RMSE perform best with the full multiplicitative model. We again select the model $\\alpha * \\beta * \\gamma$ to explore futher as it has relatively high marginal R2 while having much ess complexity than the full model. ") %>%
+             booktabs = TRUE, linesep = "", caption = "Model comparisons for $\\widehat{log(time)}$ random effects models, where each models include 2 random effect terms for participants and simulations. We see the same trade off where the simplest factor model is perfered by AIC/BIC, while R2 and RMSE perform best with the full multiplicitative model. We again select the model $\\alpha * \\beta + \\gamma + \\delta$ to explore futher as it has relatively high marginal R2 while having much less complexity than the full model.") %>%
   kableExtra::column_spec(column = 1, width = "1.5cm") %>%
   column_spec(column = c(2:3), width = "1cm") %>%
   column_spec(column = c(4:8), width = "1.5cm") %>%
@@ -498,20 +497,20 @@ kableExtra::kbl(model_comp_tbl_ls[[2]], align = c("l", rep("r", 7)),
 
 ```{r timeCoefTbl, fig.cap = "Use the caption arg in kable(), not this."}
 kableExtra::kbl(coef_ls[[2]], booktabs = TRUE, linesep = "", format = "latex",
-                caption = "The model coeffients for $\\widehat{log(time)} = \\alpha * \\beta * \\gamma$, with factor:pca, locaation0/100, and shapeEEE held as baselines. location50/50 is the fixed term with the strongest evidence and takes less time. In contrast the interaction term location=50/50:shape=EEV has the most evidence and takes much longer on average.") %>%
-  kableExtra::column_spec(column = 1, width = "5.5cm") %>%
+                caption = "The model coeffients for $\\widehat{log(time)} = \\alpha * \\beta + \\gamma + \\delta$, with factor:pca, locaation0/100, and shapeEEE held as baselines. location50/50 is the fixed term with the strongest evidence and takes less time. In contrast the interaction term location=50/50:shape=EEV has the most evidence and takes much longer on average.") %>%
+  kableExtra::column_spec(column = 1, width = "5cm") %>%
   kableExtra::column_spec(column = 3, width = "1.6cm") %>%
   kableExtra::column_spec(column = c(2, 4:6), width = "1.4cm") %>%
   kableExtra::pack_rows("factor", 2, 3) %>%
-  pack_rows("fixed effects", 4, 7) %>%
-  pack_rows("interactions", 8, 27) %>%
+  pack_rows("fixed effects", 4, 8) %>%
+  pack_rows("interactions", 9, 12) %>%
   kable_styling(bootstrap_options = "striped", font_size = 10)
 ```
 
-```{r figTeffectRange, out.width="100%", fig.show='asis', fig.cap='(T) The effect ranges of Gelmen resimulation on postierior distributions. These show the magnitude and distributions of particular participants and simulations. Simuation has a relatively small effect on response time. (B) Confidence intervals for mean log(time) by participant and simulation. The marginal density shows that the response times are left skewed after log transformation. Interpreting back to linear time there are quite the spread of response times: $e//^1=2.7$, $e//^2.75=15.6$, $e//^3.75=42.5$ seconds. Cosidering simulations (R), the bottom has huge variation of time, relative to the effect ranges which means that the variation actualy is explained in the terms of the model and not by the simulation itself.'}
+```{r figTeffectRange, out.width="100%", fig.show='asis', fig.cap='(T) The effect ranges of Gelmen resimulation on postierior distributions. These show the magnitude and distributions of particular participants and simulations. Simuation has a relatively small effect on response time. (B) Confidence intervals for mean log(time) by participant and simulation. The marginal density shows that the response times are left skewed after log transformation. Interpreting back to linear time there are quite the spread of response times: $e^{1}=2.7$, $e^{2.75}=15.6$, $e^{3.75}=42.5$ seconds. Considering simulations, on the right, the bottom has huge variation of time, relative to the effect ranges which means that the variation actualy is explained in the terms of the model and not by the simulation itself.'}
 if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
-knitr::include_graphics("./figures/figTeffectRange.png")
+knitr::include_graphics("./figures/figTeffectRange.pdf")
 ```
 
 ## Subjective measures
@@ -524,12 +523,12 @@ if(F)
 
 if(F) ## Creation and saving figure at:
   file.edit("./paper/R/fig_population_demographics.r")
-knitr::include_graphics("./figures/figSubjectiveMeasures_w.violin_hori.png") 
+knitr::include_graphics("./figures/figSubjectiveMeasures_w.violin_hori.pdf")
 ## Alternatively use:
-# figSubjectiveMeasures_vert.png
-# figSubjectiveMeasures_hori.png
-# figSubjectiveMeasures_w.violin_vert.png
-# figSubjectiveMeasures_w.violin_hori.png
+# figSubjectiveMeasures_vert.pdf
+# figSubjectiveMeasures_hori.pdf
+# figSubjectiveMeasures_w.violin_vert.pdf
+# figSubjectiveMeasures_w.violin_hori.pdf
 ```
 
 # Discussion {#sec:discussion}

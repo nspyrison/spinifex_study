@@ -135,8 +135,8 @@ str(survey_wider)
     scale_fill_gradient(low = "lightpink", high = "firebrick", na.value = NA) +
     ggtitle("Participant demographics"))
 if(F)
-  ggsave(filename = "./paper/figures/figSurveyDemographics.png",
-         plot = demographic_heatmaps, width = .w, height = .w/2)
+  ggsave(filename = "./paper/figures/figSurveyDemographics.pdf",
+         plot = demographic_heatmaps, device = "pdf", width = .w, height = .w/2)
 
 
 ## Subjective measures, BOXPLOTS -----
@@ -278,24 +278,24 @@ figSubjectiveMeasures <-
 
 if(F){
   require("ggplot2")
-  ggsave("./paper/figures/figSubjectiveMeasures_vert.png", subjectiveMeasures,
-         width = .w, height = .w * .66, units = "in")
-  ggsave("./paper/figures/figSubjectiveMeasures_hori.png",
+  ggsave("./paper/figures/figSubjectiveMeasures_vert.pdf", subjectiveMeasures,
+         device = "pdf", width = .w, height = .w * .66, units = "in")
+  ggsave("./paper/figures/figSubjectiveMeasures_hori.pdf",
          subjectiveMeasures +
            ## Convert to horizontal:
            coord_flip(),
-         width = .w, height = .w * 1.33, units = "in")
-  ggsave("./paper/figures/figSubjectiveMeasures_w.violin_vert.png",
+         device = "pdf", width = .w, height = .w * 1.33, units = "in")
+  ggsave("./paper/figures/figSubjectiveMeasures_w.violin_vert.pdf",
          cowplot::plot_grid(subjectiveMeasures, measure_violins, ncol = 2),
-         width = .w, height = .w * .66, units = "in")
-  ggsave("./paper/figures/figSubjectiveMeasures_w.violin_hori.png",
+         device = "pdf", width = .w, height = .w * .66, units = "in")
+  ggsave("./paper/figures/figSubjectiveMeasures_w.violin_hori.pdf",
          cowplot::plot_grid(subjectiveMeasures +
                               coord_flip() +
                               theme(legend.direction = "vertical") +
                               guides(fill = guide_legend(reverse = FALSE)),
                             measure_violins,
                             ncol = 2),
-         width = .w, height = .w * 1.33, units = "in")
+         device = "pdf", width = .w, height = .w * 1.33, units = "in")
 }
 
 ### Significance testing: ------

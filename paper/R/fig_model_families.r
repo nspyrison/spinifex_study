@@ -26,13 +26,20 @@ model_fam_df <- data.frame(
 )
 
 ## RENDER
-ggplot(data = model_fam_df) +
-  geom_ellipse(aes(x0 = x, y0 = y, a = a, b = b,
-                   angle = angle, color = cluster), size = 1.5) +
-  geom_text(aes(x = x, y = y, label = cluster, color = cluster), size = 10) +
-  facet_wrap(vars(name)) +
-  coord_fixed() +
-  this_theme
-  
-ggsave("./paper/figures/figModelFam.png", width = 8, height = 8/3, units = "in")
+(figModelFam <-
+    ggplot(data = model_fam_df) +
+    geom_ellipse(aes(x0 = x, y0 = y, a = a, b = b,
+                     angle = angle, color = cluster), size = 1.5) +
+    geom_text(aes(x = x, y = y, label = cluster, color = cluster), size = 10) +
+    facet_wrap(vars(name)) +
+    coord_fixed() +
+    this_theme
+)
+
+.w = 6.25
+.h = 9
+.u = "in"
+if(F)
+  ggsave("./paper/figures/figModelFam.pdf", figModelFam,
+         device = "pdf", width = .w, height = .w / 3, units = .u)
 

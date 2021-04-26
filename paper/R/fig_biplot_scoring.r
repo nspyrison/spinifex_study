@@ -33,5 +33,11 @@ gg2 <- ggplot() + theme_bw() +
   labs(title = "Variable cluster separation & weights",
        subtitle = "EEV_p6_33_66_rep2")
 
-cowplot::plot_grid(gg1, gg2, scale = c(1, .66))
-ggsave("./paper/figures/figBiplotScoring.png", width = 8, height = 8/2.2, units = "in")
+(final <- cowplot::plot_grid(gg1, gg2, scale = c(1, .66)))
+.w = 6.25
+.h = 9
+.u = "in"
+if(F)
+  ggsave("./paper/figures/figBiplotScoring.pdf", final,
+         device = "pdf", width = .w, height = .w/2, units = .u)
+

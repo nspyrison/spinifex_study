@@ -29,9 +29,12 @@ rel_path <- function(rel_path = "."){
   rel_path <- paste0(rel_dir, "/", rel_path)
   normalizePath(rel_path, winslash = "/")
 }
+
+## Portrait dim, inside margin
+.u = "in"
+.w = 6.25
+.h = 9
 ```
-
-
 ```{r LOAD_FORMAT_LOCAL_FUNCS}
 ## Read from gsheets API4 and save local
 if(F){
@@ -104,57 +107,60 @@ my_theme <- list(
 )
 
 ## indirect (via ggpubr/cowplot) ggplot2 helpers
+#' @examples
+#' df=dat_qual;x="factor";y="marks";title = waiver(); subtitle = waiver(); facet = NULL
 my_ggpubr <- function(df, x = "factor", y = "marks", title = waiver(), subtitle = waiver(), facet = NULL){
   ## Find height of global significance test text.
   .x_lvls <- df %>% pull({{x}}) %>% levels()
   .y_range <- diff(range(df[y]))
-  .n_lvls <- length(.x_lvls)
-  .lab.y <- (.05 * .y_range) * (1 + .n_lvls) * .y_range + max(df[y])
-  my_comparisons <- list(c("pca", "grand"),
-                         c("grand", "radial"),
-                         c("pca", "radial"))
-  
-  .df_n_obs <-
-    data.frame(.x = 1:.n_lvls - .2,
-               .y = min(df[y]),
-               plyr::count(df[x]))
-  .df_n_obs <- .df_n_obs %>%
-    mutate(grp = .df_n_obs[x],
-           lab = paste0(c("n=", rep("", .n_lvls - 1L)), freq, "\n"))
+  .no_x_lvls <- length(.x_lvls)
+  .facet_lvls <- 1 ## Init
+  if(is.null(facet) == FALSE)
+    .facet_lvls <- df %>% pull({{facet}}) %>% levels() %>% length()
+  .lab.y <- (.05 * .y_range) * (1 + .no_x_lvls) * .y_range + max(df[y])
+  my_comparisons <- NULL
+  if(.no_x_lvls == 2)
+    my_comparisons <- list(c(.x_lvls[1], .x_lvls[2]))
+  if(.no_x_lvls == 3)
+    my_comparisons <- list(c(.x_lvls[1], .x_lvls[2]),
+                           c(.x_lvls[2], .x_lvls[3]),
+                           c(.x_lvls[1], .x_lvls[3]))
   
   ## Plot
   ggviolin(df, x = x, y = y, fill = x, alpha = .6,
            palette = "Dark2", shape = x,
            add = c("mean"), ## Black circle, can change size, but not shape or alpha?
            draw_quantiles = c(.25, .5, .75)) +
-    stat_compare_means(method = "wilcox.test",
+    stat_compare_means(label.y = .lab.y,
+                       aes(label = paste0("Krusal-p=", ..p.format..)), ## Global test
+                       hide.ns = TRUE) + ## custom label
+    stat_compare_means(method = "wilcox.test", ## pairwise test
                        comparisons = my_comparisons,
-                       label = "p.signif", hide.ns = TRUE) + ## pairwise test
+                       label = "p.signif", hide.ns = TRUE) +
     # stat_compare_means(label = "p.signif", label.y = .lab.y - .4,
     #                    method = "wilcox.test", ref.group = .x_lvls[1]) + ## Test each lvl w.r.t. first level.
-    stat_compare_means( ## Global test
-                       label.y = .lab.y,
-                       aes(label = paste0("Krusal-p=", ..p.format..)),
-                       hide.ns = TRUE) + ## custom label
-    my_theme + 
-    ggtitle(title, subtitle)
+    my_theme +
+    #loosing ggpubr content, may need to call outside.
+    coord_cartesian(ylim = c(min(df[y]), max(df[y]) + .5 * .y_range)) +
+    ggtitle(title, subtitle) +
+    ggplot2::xlab(paste0(x, "\n(n=", nrow(df)/(.no_x_lvls * .facet_lvls), " ea.)"))
 }
-my_ggpubr_with_n <- function(df, x = "factor", y = "marks", title = waiver(), subtitle = waiver(), facet = NULL){
-  .n_lvls <- df[x] %>% pull() %>% levels() %>% length()
-.df_n_obs <-
-  data.frame(.x = 1:.n_lvls - .2,
-             .y = min(dat_qual$marks),
-             plyr::count(dat_qual, vars = c(x))) %>%
-  mutate(grp = paste0({{x}}),
-         lab = paste0(c("n=", rep("", .n_lvls - 1L)), freq, "\n"))
-
-my_ggpubr(df, x, y, title, subtitle, facet) +
-  geom_text(aes(x = .x,
-                y = .y,
-                label = lab, ## could add "n=", may be busy.
-                group = grp),
-            data = .df_n_obs) ## works with NULL facet.
-}
+# my_ggpubr_with_n <- function(df, x = "factor", y = "marks", title = waiver(), subtitle = waiver(), facet = NULL){
+#   .no_x_lvls <- df[x] %>% pull() %>% levels() %>% length()
+#   .df_n_obs <-
+#     data.frame(.x = 1:.no_x_lvls - .2,
+#                .y = min(dat_qual$marks),
+#                plyr::count(dat_qual, vars = c(x))) %>%
+#     mutate(grp = paste0({{x}}),
+#            lab = paste0(c("n=", rep("", .no_x_lvls - 1L)), freq, "\n"))
+#   
+#   my_ggpubr(df, x, y, title, subtitle, facet) +
+#     geom_text(aes(x = .x,
+#                   y = .y,
+#                   label = lab, ## could add "n=", may be busy.
+#                   group = grp),
+#               data = .df_n_obs) ## works with NULL facet.
+# }
 my_ggpubr_facet <- function(..., facet = "location"){
   .facet <- facet
   facet(my_ggpubr(..., facet = .facet), facet.by = .facet)
@@ -171,7 +177,6 @@ Let's look at the distribution of quality evaluations by full_perm_num.
 
 ```{r}
 #### Aggregation tables
-
 ## instance_agg
 instance_agg <- dat_task_agg %>%
   group_by(instance_id, participant_num, `parameter permutation`, participant) %>%
@@ -302,27 +307,14 @@ perm_num_agg2 <- dat_qual %>%
 
 _Context: 648 task evaluations from 108 studies; we regress against marks using block parameters_
 
-<!-- 1) Eval parameters -->
-\begin{align*}
-&&\textbf{Terms:} \textbf{Expand}&\textbf{ed Model:~~}  \\
-&&\alpha \widehat{marks} =& \mu + \alpha_i + \textbf{Z} + \textbf{W} + \epsilon \\
-&&\alpha * \beta * \gamma \widehat{marks} =& \mu + \alpha_i * \beta_j * \gamma_k + \textbf{Z} + \textbf{W} + \epsilon \\
-&&\alpha * \beta * \gamma * \delta \widehat{marks} =& \mu + \alpha_i + \beta_j * \gamma_k * \delta_l + \textbf{Z} + \textbf{W} + \epsilon \\
-\end{align*}
-
-where
+see paper for latex terminology, but keep in mind:
 
 \begin{align*}
-&\mu \text{ is the intercept of the model including the mean of random effects} \\
-&\epsilon \sim \mathcal{N}(0,~\sigma), \text{ the error of the model} \\
-&\textbf{Z} \sim \mathcal{N}(0,~\tau), \text{ the random effect of participant} \\
-&\textbf{W} \sim \mathcal{N}(0,~\upsilon), \text{ the random effect of simulation} \\
-&\alpha_i \text{, fixed effect for factor}~|~i\in (\text{pca, grand, radial}) \\
-&\beta_j \text{, fixed effect for location}~|~j\in (\text{0\_1, 33\_66, 50\_50}) \text{ percent noise mixing of a noise and signal variable respectively} \\
-&\gamma_k \text{, fixed effect for shape}~|~k\in (\text{EEE, EEV, EVV banana}) \text{ mclust model family shapes described above} \\
-&\delta_l \text{, fixed effect for dim}~|~dim\in (\text{4 variables with 3 cluster, 6 variables with 4 clusters}) \\
+\alpha is factor \\
+\beta is location \\
+\gamma is shape \\
+\delta is dim
 \end{align*}
-
 
 ```{r}
 { ## Load local functions, abstracting code complexity
@@ -376,11 +368,10 @@ where
   if(F)
     browseURL("http://www.cookbook-r.com/Manipulating_data/Summarizing_data/")
   summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
-                        conf.interval=.95, .drop=TRUE) {
-    
+                        conf.interval=.95, .drop=TRUE){
     require(plyr)
-    
     # New version of length which can handle NA's: if na.rm==T, don't count them
+    
     length2 <- function (x, na.rm=FALSE){
       if (na.rm) sum(!is.na(x))
       else       length(x)
@@ -413,7 +404,7 @@ where
   }
   ## Extracts the coefficients of a model and applies stars.
   model2coef <- function(model){
-    summary(model)$coefficients %>% data.frame(check.names = F) %>% 
+    summary(model)$coefficients %>% data.frame(check.names = F) %>%
       mutate(" " = case_when(`Pr(>|t|)` < .001 ~ "***",
                              `Pr(>|t|)` < .01 ~ "**",
                              `Pr(>|t|)` < .05 ~ "*",
@@ -425,7 +416,6 @@ where
 ### following along with:
 if(F) 
   browseURL("https://m-clark.github.io/mixed-models-with-R/random_intercepts.html#running-a-mixed-model")
-
 
 ############################
 #### CREATE MODELS -----
@@ -559,7 +549,7 @@ botCis <-
 
 ```{r}
 (marks_by_factor <-
-   my_ggpubr_with_n(dat_qual,
+   my_ggpubr(dat_qual,
              x = "factor", y = "marks",
              title = "Marks by factor"))
 ```
@@ -567,22 +557,28 @@ botCis <-
 ### Model alpha * beta + gamma + delta
 
 ```{r}
-.factor <- my_ggpubr_with_n(dat_qual, x = "factor", y = "marks")
-.location <- my_ggpubr_with_n(dat_qual, x = "location", y = "marks")
-.shape <- my_ggpubr_with_n(dat_qual, x = "shape", y = "marks")
-.dim <- my_ggpubr_with_n(dat_qual, x = "dim", y = "marks")
+.factor <- my_ggpubr(dat_qual, x = "factor", y = "marks")
+.location <- my_ggpubr(dat_qual, x = "location", y = "marks")
+.shape <- my_ggpubr(dat_qual, x = "shape", y = "marks")
+.dim <- my_ggpubr(dat_qual, x = "dim", y = "marks")
 .FactorLocation <- my_ggpubr_facet(dat_qual,
                                    x = "factor", y = "marks",
                                    title = "Marks by factor, faceting on location and shape",
                                    subtitle = "The fixed effects of model alpha * beta * gamma",
                                    facet = "location")
-title <- cowplot::ggdraw() + 
+.no_legend <- theme(legend.position = "off")
+title <- cowplot::ggdraw() +
   cowplot::draw_label("Violin plot of the terms in marks^=A*B+c+d",
                       x = .5, y = .75, hjust = .5, vjust = 1)
-top <- cowplot::plot_grid(.factor, .location, .shape, .dim, nrow= 1)
+top <- cowplot::plot_grid(.factor + .no_legend,
+                          .location + .no_legend,
+                          .shape + .no_legend,
+                          .dim + .no_legend,
+                          nrow = 1)
 gc()
-(violin_ABcd <- 
-  cowplot::plot_grid(title, top, .FactorLocation + ggtitle("", ""), ncol = 1, rel_heights = c(.1,1,1)))
+(violin_ABcd <-
+  cowplot::plot_grid(title, top, .FactorLocation + ggtitle("", ""),
+                     ncol = 1, rel_heights = c(.1, 1, 1.4)))
 ```
 
 
@@ -596,7 +592,7 @@ As a secondary explanatory variable we also want to look at time. First we take 
 ############################
 #### CREATE -----
 ############################
-## a == facter
+## a == factor
 ## b == location
 ## c == shape
 ## d == dim
@@ -622,7 +618,7 @@ tABCD <- lmer(log_sec_last_resp ~ factor * location * shape * dim + (1 | partici
 
 t_model_ls <-
   list(ta = ta, tab = tab, tac = tac, tad = tad, tabc = tabc, tabd = tabd, tacd = tacd,
-      tabcd = tabcd, tABcd = tABcd, tACbd = tACbd, tADbc = tADbc, 
+      tabcd = tabcd, tABcd = tABcd, tACbd = tACbd, tADbc = tADbc,
       tABCd = tABCd, tABDc = tABDc, tACDb = tACDb, tABCD = tABCD)
 
 ############################
@@ -680,7 +676,7 @@ my_theme <- list(
 )
 
 ggEffectRanges <- plotREsim(REsim(tABcd)) +
-  ggtitle("Effect range vs mean log seconds to last response for participants and simulations", 
+  ggtitle("Effect range vs mean log seconds to last response for participants and simulations",
           "alpha = .95, model: log(seconds to last response)^ = alpha * beta * gamma") +
   theme(axis.title.x = element_blank()) +
   ylab("effect range")
@@ -689,7 +685,7 @@ ggEffectRanges <- plotREsim(REsim(tABcd)) +
 participant_agg <- summarySE(dat_qual, "log_sec_last_resp", "participant") %>%
   mutate(participant = forcats::fct_reorder(participant, log_sec_last_resp ))
 ggParticipantRanges <- ggplot(participant_agg) +
-  geom_point(aes(participant, log_sec_last_resp ), alpha = .2, size = 2) +
+  geom_point(aes(participant, log_sec_last_resp), alpha = .2, size = 2) +
   geom_linerange(aes(participant, ymin = log_sec_last_resp  - ci,
                      ymax = log_sec_last_resp + ci), alpha = .3) +
   my_theme +
@@ -698,7 +694,6 @@ ggParticipantRanges <- ggplot(participant_agg) +
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()) +
   geom_hline(yintercept = mean(participant_agg$log_sec_last_resp)) +
-  #coord_cartesian(ylim = c(-1, 1)) +
   xlab("participant (n=6 every line)") +
   ylab("CI mean log seconds to last response")
 ggParticipantRanges <-
@@ -737,11 +732,6 @@ if(F){
   saveRDS(instance_id_whitelist,
           file = "./apps_supplementary/v4_prolifico_100/instance_id_whitelist.rds")
   
-  ## Portrait dim, inside margin
-  .u = "in"
-  .w = 6.25
-  .h = 9
-  
   ## Model table
   model_comp_tbl_ls <- list(modelComp_MarksByEval = model_comp_tbl,
                             modelComp_TimeByEval = t_model_comp_tbl)
@@ -753,18 +743,19 @@ if(F){
     coef_df["df"] <- round(coef_df["df"], 1)
     coef_df
   }
-  coef_ls <- list(ABC_coef = round_coef(ABC_coef), t_ABC_coef = round_coef(t_ABC_coef))
+  coef_ls <- list(ABcd_coef = round_coef(ABcd_coef), t_ABcd_coef = round_coef(t_ABcd_coef))
   saveRDS(coef_ls, file = "./paper/figures/modelCoefLs.rds")
   
   ## RE Effect ranges by CI of mean marks
-  ggsave("figEffectRange.png", plot = figEffectRange, path = "./paper/figures",
-         device = "png", width = .w, height = .w, unit = .u)
-  ggsave("figTeffectRange.png", plot = t_figEffectRange, path = "./paper/figures",
-         device = "png", width = .w, height = .w, unit = .u)
+  ggsave("figEffectRange.pdf", plot = figEffectRange, path = "./paper/figures",
+         device = "pdf", width = .w, height = .w, unit = .u)
+  ggsave("figTeffectRange.pdf", plot = t_figEffectRange, path = "./paper/figures",
+         device = "pdf", width = .w, height = .w, unit = .u)
   
   ## Marks by violin of factor faceting on location and shape
-  ggsave("figMarksABcd.png", violin_ABcd, path = "./paper/figures",
-         device = "png", width = .w, height = .w, unit = .u)
+  ggsave("figMarksABcd.pdf", violin_ABcd, path = "./paper/figures",
+         device = "pdf", width = .w, height = .w, unit = .u)
+
 }
 ```
 
@@ -790,11 +781,11 @@ ggplot() +
 
 ```{r}
 marks_by_last_resp <- ggplot(dat_qual) + my_theme +
-  geom_point(aes(`seconds to last response`, marks,
+  geom_point(aes(log_sec_last_resp, marks,
                  fill = factor, color = factor), alpha = .2) +
   geom_smooth(aes(`seconds to last response`, marks,
                   fill = factor, color = factor)) +
-  ggtitle("Marks by Seconds till last response with marginal density")
+  ggtitle("Marks by log time with marginal density")
 
 (marks_by_last_resp <- ggExtra::ggMarginal(marks_by_last_resp, type = "density",
                                            groupColour = TRUE, groupFill = TRUE))
@@ -840,8 +831,8 @@ marks_by_last_resp <- ggplot(dat_qual) + my_theme +
 <!--       cowplot::plot_grid(title1, MargEval_notitle, title2, MargSurvey_notitle, -->
 <!--                          nrow = 4, rel_heights = c(0.1, 1, .1, 1))) -->
 <!--   gc() -->
-<!--   ggsave("figMarksByMarg.png", plot = figMarksByMarg, path = "./paper/figures", -->
-<!--          device = "png", width = .w, height = .h * .8, unit = .u) -->
+<!--   ggsave("figMarksByMarg.pdf", plot = figMarksByMarg, path = "./paper/figures", -->
+<!--          device = "pdf", width = .w, height = .h * .8, unit = .u) -->
 
 <!--   ## Model tables -->
 <!--   warning("OLD NAMES") -->
@@ -860,7 +851,7 @@ marks_by_last_resp <- ggplot(dat_qual) + my_theme +
 <!--                         x = .5, y = .75, hjust = .5, vjust = 1) -->
 <!--   (figModel <- cowplot::plot_grid(title, figModel_notitle, -->
 <!--                                   ncol = 1, rel_heights = c(0.1, 1))) -->
-<!--   ggsave("figModels.png", plot = figModel, path = "./paper/figures", -->
-<!--          device = "png", width = 8, height = 4, unit = "in") -->
+<!--   ggsave("figModels.pdf", plot = figModel, path = "./paper/figures", -->
+<!--          device = "pdf", width = 8, height = 4, unit = "in") -->
 <!-- } -->
 <!-- ``` -->

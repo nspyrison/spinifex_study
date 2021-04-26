@@ -92,7 +92,7 @@ gt2 <- ggplot() +
   geom_table(data = tb2, aes(x,y,label = text2),
              table.theme = ttheme_gtminimal, table.hjust = 0 ) + this_theme
 text3 <- 
-  tibble(`Radial                                                               ` = 
+  tibble(`Radial                                                               ` =
            c("- Inputs: manipulation variable in [1, ... 6]",
              "- Differce: animates selected variable to",
              "     norm=1, norm=0, then back to start",
@@ -109,6 +109,7 @@ fig <- cowplot::plot_grid(gt1, p1, p2, p3, #p4, ## pca
                           gt3, p9, p10, p11, #p12, ## radial
                           nrow = 3, ncol = 4, rel_widths = c(3, 2,2,2))
 
-ggsave("./paper/figures/figFactor.png", fig,
-       width = .h, height = 3/5*.h, units = .u)
+if(F)
+  ggsave("./paper/figures/figFactor.pdf", fig,
+         device = "pdf", width = .h, height = 3/5*.h, units = .u)
 
