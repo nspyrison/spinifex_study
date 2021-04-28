@@ -132,7 +132,7 @@ my_ggpubr <- function(df, x = "factor", y = "marks", title = waiver(), subtitle 
            add = c("mean"), ## Black circle, can change size, but not shape or alpha?
            draw_quantiles = c(.25, .5, .75)) +
     stat_compare_means(label.y = .lab.y,
-                       aes(label = paste0("Krusal-p=", ..p.format..)), ## Global test
+                       aes(label = paste0("Kruskal-p=", ..p.format..)), ## Global test
                        hide.ns = TRUE) + ## custom label
     stat_compare_means(method = "wilcox.test", ## pairwise test
                        comparisons = my_comparisons,
@@ -310,10 +310,10 @@ _Context: 648 task evaluations from 108 studies; we regress against marks using 
 see paper for latex terminology, but keep in mind:
 
 \begin{align*}
-\alpha is factor \\
-\beta is location \\
-\gamma is shape \\
-\delta is dim
+&\alpha~is~factor \\
+&\beta~is~location \\
+&\gamma~is~shape \\
+&\delta~is~dim
 \end{align*}
 
 ```{r}

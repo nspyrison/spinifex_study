@@ -76,7 +76,7 @@ require("dplyr")
 ggplot() + geom_table(data = data.tb, aes(x,y,label = tb))
 text1 <- tibble(`PCA                                                               ` = 
                 c("- Inputs: x, y axes in [PC1, ... PC4]",
-                  "- Differce: not animated, discrete change",
+                  "- Transition: not animated, discrete change",
                   "- Illustrated: 3 of the 12 unique",
                   "     PC combinations"))
 tb1 <- tibble(x = 0, y = 0, text1 = list(text1))
@@ -86,7 +86,7 @@ gt1 <- ggplot() +
 
 text2 <- tibble(`Grand                                                               ` = 
                   c("- Inputs: none",
-                    "- Differce: animated through randomly",
+                    "- Transition: animated through randomly",
                     "     selected target bases",
                     "- Illustrated: first 3 such target bases"))
 tb2 <- tibble(x=0, y=0, text2 = list(text2))
@@ -96,7 +96,7 @@ gt2 <- ggplot() +
 text3 <- 
   tibble(`Radial                                                               ` =
            c("- Inputs: manipulation variable in [1, ... 6]",
-             "- Differce: animates selected variable to",
+             "- Transition: animates selected variable: ",
              "     norm=1, norm=0, then back to start",
              "- Illustrated: target bases rotating variable 6"))
 tb3 <- tibble(x = 0, y = 0, text3 = list(text3))

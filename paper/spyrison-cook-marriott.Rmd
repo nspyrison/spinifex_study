@@ -390,14 +390,14 @@ To recap, the primary response variable are task marks as defined in section \@r
 Below we look at the marginal performance of the block parameters and survey responses. After that, we build a battery of regression models to explore the variables and their interactions. Lastly, we look at the subjective measures between the factors.
 
 
-## Random effects regression model against marks
+## Random effect regression against marks
 
 <!-- Note that we list the measures at the top of the Results section -->
 <!-- Introduce regression model explaining marks, and the random effect term  -->
 To more thoroughly examine explanatory variables we regress against marks. All models have a random effect term on the participant, which captures the effect of the individual participant. After we look at models of the block parameters we extend to compare against survey variables. Last, we compare how adding a random effect for data and regressing against time till last response fares against benchmark models. The matrices for models with more than a few terms quickly become rank deficient; there is not enough information in the data to explain all of the effect terms. In which case the least impactful terms are dropped.
 
 <!-- Building a battery of models -->
-In building a set of models to test we include all single term models, a model with all independent terms. We also include an interaction term of factor by location, allowing for the slope of each location to change across each level of the factor, which is feasible. For comparison an overly complex model with many interaction terms is included.
+In building a set of models to test we include all single term models, a model with all independent terms. We also include an interaction term of factor by location, allowing for the slope of each location to change across each level of the factor, which is feasible. For comparison, an overly complex model with many interaction terms is included.
 
 <!-- _Context: 648 task evaluations from 108 studies; we regress against marks using block parameters_ -->
 <!-- 1) Eval parameters -->
@@ -413,7 +413,7 @@ In building a set of models to test we include all single term models, a model w
 where
 
 \begin{align*}
-&\mu \text{ is the intercept of the model including the mean of random effects} \\
+&\mu \text{ is the intercept of the model including the mean of random effect} \\
 &\epsilon \sim \mathcal{N}(0,~\sigma), \text{ the error of the model} \\
 &\textbf{Z} \sim \mathcal{N}(0,~\tau), \text{ the random effect of participant} \\
 &\textbf{W} \sim \mathcal{N}(0,~\upsilon), \text{ the random effect of simulation} \\
@@ -432,7 +432,7 @@ model_comp_tbl_ls[[1]]$`Fixed effects` <- model_comp_tbl_ls[[2]]$`Fixed effects`
   c("a", "a+b+c+d", "a*b+c+d", "a*b*c+d", "a*b*c*d")
 ## 1) Eval parameters
 kableExtra::kbl(model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
-             booktabs = TRUE, linesep = "", caption = "Model comparison of our random effects models regressing marks. Each model includs a random effect term of the participant, which explains the individuals influence on their marks. Complex models perform better in terms of R2 and RMSE, yet AIC and BIC penialize their large number of fixed effect in favor of the much simpler model containing only factor.") %>%
+             booktabs = TRUE, linesep = "", caption = "Model comparison of our random effect models regressing marks. Each model includes a random effect term of the participant, which explains the individual's influence on their marks. Complex models perform better in terms of R2 and RMSE, yet AIC and BIC penalize their large number of fixed effect in favor of the much simpler model containing only factor.") %>%
   kableExtra::column_spec(column = 1, width = "1.5cm") %>%
   column_spec(column = c(2:3), width = "1cm") %>%
   column_spec(column = c(4:8), width = "1.5cm") %>%
@@ -456,7 +456,7 @@ rownames(coef_ls[[1]]) <- rownames(coef_ls[[2]]) <-
 if(F)
   browseURL("https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html#Group_rows_via_labeling")
 kableExtra::kbl(coef_ls[[1]], booktabs = TRUE, linesep = "", format = "latex",
-                caption = "The model coeffients for $\\widehat{marks} = \\alpha * \\beta + \\gamma + \\delta$, with factor:pca, locaation0/100, and shapeEEE held as baselines. Factor being radial is the fixed term with the strongest evidence in support of the hypothesis. Evidence for the interaction terms vary widely. The evidence in favor of any one coeffcient is relatively modest, this is due inpart to expending the fixed terms explainatory across so many interaction terms; each fixed term appears much more extreme models with less terms.") %>%
+                caption = "The model coefficients for $\\widehat{marks} = \\alpha * \\beta + \\gamma + \\delta$, with factor:pca, locaation0/100, and shapeEEE held as baselines. Factor being radial is the fixed term with the strongest evidence in support of the hypothesis. Evidence for the interaction terms varies widely. The evidence in favor of any single coefficient is relatively modest, this is due in part to spreading the explanatory power of observations across so many interaction terms; each fixed term appears much more extreme models with fewer interaction terms.") %>%
   kableExtra::column_spec(column = 1, width = "5cm") %>%
   kableExtra::column_spec(column = 3, width = "1.6cm") %>%
   kableExtra::column_spec(column = c(2, 4:6), width = "1.4cm") %>%
@@ -467,9 +467,9 @@ kableExtra::kbl(coef_ls[[1]], booktabs = TRUE, linesep = "", format = "latex",
 ```
 
 <!-- Random effects vs Mean Mark CI by participant and sim -->
-Residual plots have no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figEffectRange) illustrates (T) the effect size of the random terms participant and simulation, or more accurately, the 95\% CI from Gelman simulation of their posterior distribution. The effect size of participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha = .95$, while none of the simulation effects significantly deviate from the null of having no effect size on the marks. In comparison, (B) 95\% confidence intervals of the mean marks for participation and simulation respectively.
+Residual plots have no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figEffectRange) illustrates (T) the effect size of the random terms participant and simulation, or more accurately, the 95\% CI from Gelman simulation of their posterior distribution. The effect size of the participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha = .95$, while none of the simulation effects significantly deviate from the null of having no effect size on the marks. In comparison, (B) 95\% confidence intervals of the mean marks for participation and simulation respectively.
 
-```{r figEffectRange, out.width="100%", fig.show='asis', fig.cap='(T) Estimated effect ranges of the random effect terms partitcipant and data simulation of the $\\alpha * \\beta + \\gamma + \\delta$ model. Confidence intervals are created with Gelman simulation on the effect posterior distributions. The effect size of participant is relatively large, with several significant extrema . None of the simulations deviate significantly. (B) The ordered distributions of the CI of mean marks follow the same general patten and give the additional context of the cield of  effect range without the explaination information of fix terms. The effect ranges capture about 2/3 of the range of the data without the model. All intervals for $\\alpha = .95$ confidence.'}
+```{r figEffectRange, out.width="100%", fig.show='asis', fig.cap='(T) Estimated effect ranges of the random effect terms participant and data simulation of the $\\alpha * \\beta + \\gamma + \\delta$ model. Confidence intervals are created with Gelman simulation on the effect posterior distributions. The effect size of the participant is relatively large, with several significant extrema. None of the simulations deviate significantly. (B) The ordered distributions of the CI of mean marks follow the same general pattern and give the additional context of how much variation is in the data, an upper limit to the effect range. The effect ranges capture about 2/3 of the range of the data without the model. All intervals for $\\alpha = .95$ confidence.'}
 if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 knitr::include_graphics("./figures/figEffectRange.pdf")
@@ -478,7 +478,7 @@ knitr::include_graphics("./figures/figEffectRange.pdf")
 <!-- Conditional effects of variables -->
 We also want to visually explore the conditional variables in the model. Figure \@ref(fig:figMarksABcd) explores violin plots of marks by factor while faceting on the location (vertical) and shape (horizontal). Notice that the conditional variable regularly have much smaller p-value, with seemingly so much more evidence in their favor, this is because they are not "diversifying" their explanatory power across numerous interaction terms, so to speak.
 
-```{r, figMarksABcd, echo = F, out.width = '100%', fig.cap = "Violin plots of 3 parmeter interaction terms of the model $\\widehat{marks} = \\alpha * \\beta + \\gamma + \\delta$. Overlaid with global significance from the Kruskal-Wallis test, and pairwise significance from the Wilcoxon test, both non-parametric, ranked sum tests suitable for handling discrete data. Participants are more confident and find the radial easier to use relative to the grand tour. Particpants claim low familiarity as we would expected fro crowdsourced particiants. Radial is more preffered compared with either alternative for this task."}
+```{r, figMarksABcd, echo = F, out.width = '100%', fig.cap = "Violin plots of terms of the model $\\widehat{marks} = \\alpha * \\beta + \\gamma + \\delta$. Overlaid with global significance from the Kruskal-Wallis test, and pairwise significance from the Wilcoxon test, both are non-parametric, ranked sum tests suitable for handling discrete data. Participants are more confident and find the radial easier to use relative to the grand tour. Participants claim low familiarity as we expect from crowdsourced participants. Radial is more preferred compared with either alternative for this task."}
 if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 knitr::include_graphics("./figures/figMarksABcd.pdf")
@@ -486,13 +486,13 @@ knitr::include_graphics("./figures/figMarksABcd.pdf")
 
 ## Time regressing models
 
-As a secondary explanatory variable we also want to look at time. First we take the log transformation of time as it is right skewed. Now we repeat the same modeling procedure, namely, 1) build a battery of all additive and multiplicative models. 2) Compare their performance, reporting a some top performers. 3) Select a model to examine it's coefficients.
+As a secondary explanatory variable, we also want to look at time. First, we take the log transformation of time as it is right-skewed. Now we repeat the same modeling procedure, namely: 1) build a battery of all additive and multiplicative models. 2) Compare their performance, reporting some top performers. 3) Select a model to examine its coefficients.
 
 
 ```{r timeCompTbl, fig.cap = "Use the caption arg in kable(), not this."}
 ## 1) Eval parameters
 kableExtra::kbl(model_comp_tbl_ls[[2]], align = c("l", rep("r", 7)),
-             booktabs = TRUE, linesep = "", caption = "Model comparisons for $\\widehat{log(time)}$ random effects models, where each models include 2 random effect terms for participants and simulations. We see the same trade off where the simplest factor model is perfered by AIC/BIC, while R2 and RMSE perform best with the full multiplicitative model. We again select the model $\\alpha * \\beta + \\gamma + \\delta$ to explore futher as it has relatively high marginal R2 while having much less complexity than the full model.") %>%
+             booktabs = TRUE, linesep = "", caption = "Model comparisons for $\\widehat{log(time)}$ random effect models, where each model includes random effect terms for participants and simulations. We see the same trade-off where the simplest factor model is perfered by AIC/BIC, while R2 and RMSE perform best with the full multiplicative model. We again select the model $\\alpha * \\beta + \\gamma + \\delta$ to explore further as it has relatively high marginal R2 while having much less complexity than the full model.") %>%
   kableExtra::column_spec(column = 1, width = "1.5cm") %>%
   column_spec(column = c(2:3), width = "1cm") %>%
   column_spec(column = c(4:8), width = "1.5cm") %>%
@@ -501,7 +501,7 @@ kableExtra::kbl(model_comp_tbl_ls[[2]], align = c("l", rep("r", 7)),
 
 ```{r timeCoefTbl, fig.cap = "Use the caption arg in kable(), not this."}
 kableExtra::kbl(coef_ls[[2]], booktabs = TRUE, linesep = "", format = "latex",
-                caption = "The model coeffients for $\\widehat{log(time)} = \\alpha * \\beta + \\gamma + \\delta$, with factor:pca, locaation0/100, and shapeEEE held as baselines. location50/50 is the fixed term with the strongest evidence and takes less time. In contrast the interaction term location=50/50:shape=EEV has the most evidence and takes much longer on average.") %>%
+                caption = "The model coeffients for $\\widehat{log(time)} = \\alpha * \\beta + \\gamma + \\delta$, with factor:pca, locaation0/100, and shapeEEE held as baselines. location50/50 is the fixed term with the strongest evidence and takes less time. In contrast, the interaction term location=50/50:shape=EEV has the most evidence and takes much longer on average.") %>%
   kableExtra::column_spec(column = 1, width = "5cm") %>%
   kableExtra::column_spec(column = 3, width = "1.6cm") %>%
   kableExtra::column_spec(column = c(2, 4:6), width = "1.4cm") %>%
@@ -511,7 +511,7 @@ kableExtra::kbl(coef_ls[[2]], booktabs = TRUE, linesep = "", format = "latex",
   kable_styling(bootstrap_options = "striped", font_size = 10)
 ```
 
-```{r figTeffectRange, out.width="100%", fig.show='asis', fig.cap='(T) The effect ranges of Gelmen resimulation on postierior distributions. These show the magnitude and distributions of particular participants and simulations. Simuation has a relatively small effect on response time. (B) Confidence intervals for mean log(time) by participant and simulation. The marginal density shows that the response times are left skewed after log transformation. Interpreting back to linear time there are quite the spread of response times: $e^{1}=2.7$, $e^{2.75}=15.6$, $e^{3.75}=42.5$ seconds. Considering simulations, on the right, the bottom has huge variation of time, relative to the effect ranges which means that the variation actualy is explained in the terms of the model and not by the simulation itself.'}
+```{r figTeffectRange, out.width="100%", fig.show='asis', fig.cap='(T) The effect ranges of Gelman resimulation on posterior distributions. These show the magnitude and distributions of particular participants and simulations. Simulation has a relatively small effect on response time. (B) Confidence intervals for mean log(time) by participant and simulation. The marginal density shows that the response times are left-skewed after log transformation. Interpreting back to linear time there is quite the spread of response times: $e^{1}=2.7$, $e^{2.75}=15.6$, $e^{3.75}=42.5$ seconds. Considering simulations, on the right, the bottom has a large variation of time, relative to the effect ranges which means that the variation actually is explained in the terms of the model and not by the simulation itself.'}
 if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 knitr::include_graphics("./figures/figTeffectRange.pdf")
@@ -521,7 +521,7 @@ knitr::include_graphics("./figures/figTeffectRange.pdf")
 
 __TODO: XXX__
 
-```{r figSubjectiveMeasures, out.width="100%", fig.show='asis', fig.cap='The subjective measures of the 84 responses of the post-study survey, 5 discrete likert scale levels of aggrement. (L) Likert plots (stacked percent bar plots) with (R) violin plots of the same measures. Violin plots are overlaid with global significance from the Kruskal-Wallis test, and pairwise significance from the Wilcoxon test, both are non-parametric, ranked sum tests.'}
+```{r figSubjectiveMeasures, out.width="100%", fig.show='asis', fig.cap='The subjective measures of the 84 responses of the post-study survey, 5 discrete Likert scale levels of aggrement. (L) Likert plots (stacked percent bar plots) with (R) violin plots of the same measures. Violin plots are overlaid with global significance from the Kruskal-Wallis test, and pairwise significance from the Wilcoxon test, both are non-parametric, ranked sum tests.'}
 if(F)
   browseURL("https://bookdown.org/Rmadillo/likert/is-there-a-significant-difference.html#permutation-mann-whitney-tests")
 
