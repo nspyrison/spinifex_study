@@ -181,8 +181,6 @@ Let $Y_{[n, d]}$ be the $d$-dimensional projection or embedding of $\textbf{X}_{
 
 A matrix is said to be orthonormal if and only if they are 1) orthogonal, that is all column pairs are independent, having a cross product of 0, and 2) normal, each column has a norm - Euclidean  distance - of 1.
 
-<!-- note on interchangeably, probably better to make consistent afterward -->
-<!-- A quick note on terminology we use the terms projection & embedding and variable & dimension interchangeably. -->
 
 ## Principal component analysis
 
@@ -206,36 +204,40 @@ The _manual_ tour [@cook_manual_1997; @spyrison_spinifex_2020] defines its basis
 <!-- radial tour variant -->
 To simplify the task and keep its duration realistic, we consider a variant of the manual tour, called a _radial_ tour. In a radial tour, the selected variable is allowed to change its magnitude of contribution, but not its angle; it must move along the direction of its original contribution radius. The radial tour benefits from both continuity of the data alongside grand tours, but also allows for user interaction similar to PCA.
 
-\begin{landscape}
+<!-- \begin{landscape} -->
 ```{r figFactor, echo = F, out.width = '100%',fig.cap = "Example of the different visual factors. All use the same sort of biplot display to view linear projections of multivariate data. They differ in which bases are viewed which is influenced by the different factor inputs and whether or not are animated to convey the continuity of data points from 1 frame to the next."}
 if(F)
   file.edit("./paper/R/fig_factor.r")
 knitr::include_graphics("./figures/figFactor.pdf")
 ```
-\end{landscape}
+<!-- \end{landscape} -->
 
-Figure \@ref(fig:figFactor) illustrates the different visualization factors, the control of biplot asethetics, and where they differ. The leftmost column discusses their differences along side 3 of their character bases, albeit its more difficult to see the benefit of animation in print.
+Figure \@ref(fig:figFactor) illustrates the different visualization factors, the control of biplot aesthetics, and where they differ. The leftmost column discusses their differences along side 3 of their character bases, albeit its more difficult to see the benefit of animation in print.
 
 # User study {#sec:userstudy}
 
 ## Hypothesis {#sec:hypothesis}
 
-XXX TODO:
-
-<!-- Research question -->
-_Does the animated removal of single variables via the radial tour improve the ability of the analyst to understand the importance of variable's contribution to the separation of clusters?_
+The research question we are trying to answer is: <!-- Research question --> _Does the animated removal of single variables via the radial tour improve the ability of the analyst to understand the importance of variable's contribution to the separation of clusters?_ We measure the accuracy and speed over 4 dimensions of block parameterization. The Null hypotheses can be stated as:
 
 <!-- Hypothesis: null and alternative -->
 1, Accuracy) $\\$
-$~~~~~~H_0: \text{visualization factor does \textit{not} impact task accuracy} \\$
-$~~~~~~H_a: \text{visualization factor does impact task accuracy} \\$
+$~~~~~~H_0: \text{visualization factor does not impact task accuracy} \\$
 2, Speed) $\\$
-$~~~~~~H_0: \text{visualization factor does \textit{not} impact task speed} \\$
-$~~~~~~H_a: \text{visualization factor does impact task speed}$
-
+$~~~~~~H_0: \text{visualization factor does not impact task speed} \\$
 
 <!-- Rational for standards of comparison -->
-PCA will be used as a baseline for comparison as it is the most common linear embedding. The grand tour will act as a secondary control that will help evaluate the benefit of animation, where the object permanence of the data points, but without the ability to influence its path. Lastly, the radial tour should perform best as it benefits both from animation and being able to select an individual variable to change the contribution of.
+PCA will be used as a baseline for comparison as it is the most common linear embedding. The grand tour will act as a secondary control that will help evaluate the benefit of animation, where the object permanence of the data points, but without the ability to influence its path. Lastly, the radial tour should perform best as it benefits both from animation and being able to select an individual variable to change the contribution of. 
+
+\begin{center}
+\begin{tabular}{ c | p{2.2cm} p{2.2cm} }
+factor & observation \newline permanence & user \newline interaction \\
+\hline
+pca &  & Yes \\
+grand & Yes &  \\
+radial & Yes & Yes \\
+\end{tabular}
+\end{center}
 
 
 ## Task and evaluation {#sec:task}
@@ -247,7 +249,7 @@ The display was a 2D scatterplot with observations supervised. Cluster membershi
 The instructions iterated several times in the video was: 1) Use the input controls to find a frame that contains separation between the clusters of green circles and orange triangles, 2) look at the orientation of the variable contributions in the gray circle, a visual depiction of basis, and 3) select all variables that contribute more than average in the direction of the separation in the scatterplot. Regardless of factor and block values participants were limited to 60 seconds for each evaluation of this task.
 
 <!-- Evaluating measure -->
-The evaluation measure of this task was designed to have a few features: 1) the sum of squares of the individual variable marks should be 1, and 2) symmetric about 0. With these in mind we define the following measure for evaluating the task:
+The evaluation measure of this task was designed with a couple features in mind: 1) the sum of squares of the individual variable marks should be 1, and 2) symmetric about 0. With these in mind we define the following measure for evaluating the task.
 
 Let a dataset $\textbf{X}$ be a simulation containing clusters of observations of different distributions. Let $\textbf{X}_k$ be the subset of observations in cluster $k$ containing the $p$ variables.
 
@@ -264,27 +266,20 @@ where
     \text{ of variable } j \in (1,~...~p), \text{ of cluster } k \in (1,~...~K)
 \end{align*}
 
-
-We define weights, $W$ to be a vector explaining the variable-wise difference between 2 clusters. Namely the difference of each variable between clusters, as a proportion of the total difference, less $1/p$ the amount of different each variable would hold if it were uniformly distributed.
-
-\begin{align*}
-  W &=\frac
-  {(\overline{X_{j=1, k=1}} - \overline{X_{j=1, k=2}}, ~...~
-    (\overline{X_{j=p, k=1}} - \overline{X_{j=p, k=2}})}
-  {\sum_{j=1}^{p}(|\overline{X_{j,k=1}} - \overline{X_{j,k=2}}|)}
-  - \frac{1}{p} \\
-  &= (w_1,~...~ w_p)
-\end{align*}
-
-
-<!-- bring in participant responses  -->
-Participant responses, $R$ are a vector of logical values, whether or not participant thinks the variable separates the two clusters more than if the difference were uniformly distributed. Then $M$ is a vector of variable marks.
+<!-- W, weights -->
+We define weights, $W$ to be a vector explaining the variable-wise difference between 2 clusters. Namely the difference of each variable between clusters, as a proportion of the total difference, less $1/p$ the amount of different each variable would hold if it were uniformly distributed. <!-- R, participant responses -->Participant responses, $R$ are a vector of logical values, whether or not participant thinks the variable separates the two clusters more than if the difference were uniformly distributed. Then $M$ is a vector of variable marks.
 
 \begin{align*}
-  M &= I(r_j) * sign(w_j) * \sqrt{|w_j|} \\
-  &= (m_1, ~...~ m_p)
+W &=\frac
+{(\overline{X_{j=1, k=1}} - \overline{X_{j=1, k=2}}, ~...~
+(\overline{X_{j=p, k=1}} - \overline{X_{j=p, k=2}})}
+{\sum_{j=1}^{p}(|\overline{X_{j,k=1}} - \overline{X_{j,k=2}}|)}
+- \frac{1}{p} \\
+&= (w_1,~...~ w_p) \\
+\\
+M &= I(r_j) * sign(w_j) * \sqrt{|w_j|} \\
+&= (m_1, ~...~ m_p) \\
 \end{align*}
-
 
 where $I$ is the indicator function. Then the total marks for this task is the sum of this marks vector.
 
@@ -295,7 +290,8 @@ knitr::include_graphics("./figures/figBiplotScoring.pdf")
 ```
 
 <!--Period order: Training, eval, eval -->
-Each of the 3 periods introduced a new factor, where participants were first able to explore an untimed task with data under the simplest parameterizations. The training allows the participant to become familiar with the inputs and visual specific to the factor. Upon clicking a button to proceed text containing the correct answer displays with visual still intact to explore further. After the training, each participant performed 2 evaluation trials. After 60 seconds the display was turned off, though few participants elapsed this time. These evaluation trials were performed under different parameterizations as explained in section \@ref(sec:blocks).
+Each of the 3 periods introduced the participant to a new factor, where participants were first able to explore an untimed task with data under the simplest parameterizations. The training allows the participant to become familiar with the inputs and visual specific to the factor. Upon clicking a button to proceed text containing the correct answer displays with visual still intact to explore further. After the training, each participant performed 2 evaluation trials. After 60 seconds the display was turned off, though few participants elapsed this time. These evaluation trials were performed under different parameterizations as explained in section \@ref(sec:blocks).
+
 
 ## Factor application {#sec:factors}
 
@@ -401,28 +397,28 @@ In building a set of models to test we include all single term models, a model w
 
 <!-- _Context: 648 task evaluations from 108 studies; we regress against marks using block parameters_ -->
 <!-- 1) Eval parameters -->
-\begin{align*}
-&\textbf{Terms:}& \textbf{Expand}&\textbf{ed Model:~~}  \\
-&\alpha& \widehat{marks} =& \mu + \alpha_i + \textbf{Z} + \textbf{W} + \epsilon \\
-&\alpha + \beta + \gamma + \delta& \widehat{marks} =& \mu + \alpha_i + \beta_j + \gamma_k + \delta_l + \textbf{Z} + \textbf{W} + \epsilon \\
-&\alpha * \beta + \gamma + \delta& \widehat{marks} =& \mu + \alpha_i * \beta_j + \textbf{Z} + \textbf{W} + \epsilon \\
-&\alpha * \beta * \gamma + \delta& \widehat{marks} =& \mu + \alpha_i * \beta_j * \gamma_k + \textbf{Z} + \textbf{W} + \epsilon \\
-&\alpha * \beta * \gamma * \delta& \widehat{marks} =& \mu + \alpha_i * \beta_j * \gamma_k * \delta_l + \textbf{Z} + \textbf{W} + \epsilon \\
-\end{align*}
-
-where
-
-\begin{align*}
-&\mu \text{ is the intercept of the model including the mean of random effect} \\
-&\epsilon \sim \mathcal{N}(0,~\sigma), \text{ the error of the model} \\
+$$
+\begin{array}{ll}
+&\textbf{Fixed effects:}          &\textbf{Expanded Model:} \\
+&\alpha                           &\widehat{marks} = \mu + \alpha_i + \textbf{Z} + \textbf{W} + \epsilon \\
+&\alpha + \beta + \gamma + \delta &\widehat{marks} = \mu + \alpha_i + \beta_j + \gamma_k + \delta_l + \textbf{Z} + \textbf{W} + \epsilon \\
+&\alpha * \beta + \gamma + \delta &\widehat{marks} = \mu + \alpha_i * \beta_j + \textbf{Z} + \textbf{W} + \epsilon \\
+&\alpha * \beta * \gamma + \delta &\widehat{marks} = \mu + \alpha_i * \beta_j * \gamma_k + \textbf{Z} + \textbf{W} + \epsilon \\
+&\alpha * \beta * \gamma * \delta &\widehat{marks} = \mu + \alpha_i * \beta_j * \gamma_k * \delta_l + \textbf{Z} + \textbf{W} + \epsilon
+\end{array}
+$$
+$$
+\begin{array}{ll}
+\text{where } &\mu \text{ is the intercept of the model including the mean of random effect} \\
+&\epsilon   \sim \mathcal{N}(0,~\sigma), \text{ the error of the model} \\
 &\textbf{Z} \sim \mathcal{N}(0,~\tau), \text{ the random effect of participant} \\
 &\textbf{W} \sim \mathcal{N}(0,~\upsilon), \text{ the random effect of simulation} \\
 &\alpha_i \text{, fixed term for factor}~|~i\in (\text{pca, grand, radial}) \\
-&\beta_j \text{, fixed term for location}~|~j\in (\text{0\_1, 33\_66, 50\_50}) \text{ percent noise/signal mixing} \\
-&\gamma_k \text{, fixed term for shape}~|~k\in (\text{EEE, EEV, EVV banana}) \text{ mclust model family shapes} \\
-&\delta_l \text{, fixed term for dim}~|~dim\in (\text{4 variables with 3 cluster, 6 variables with 4 clusters}) \\
-\end{align*}
-
+&\beta_j  \text{, fixed term for location}~|~j\in (\text{0\_1, 33\_66, 50\_50}) \text{ \% noise/signal mixing} \\
+&\gamma_k \text{, fixed term for shape}~|~k\in (\text{EEE, EEV, EVV banana}) \text{ model shapes} \\
+&\delta_l \text{, fixed term for dim}~|~l\in (\text{4 variables \& 3 cluster, 6 variables \& 4 clusters}) \\
+\end{array}
+$$
 
 ```{r marksCompTbl, fig.cap = "Use the caption arg in kable(), not this."}
 if(F) ## Creation and saving at:
@@ -431,8 +427,9 @@ model_comp_tbl_ls <- readRDS("./figures/modelCompLs.rds")
 model_comp_tbl_ls[[1]]$`Fixed effects` <- model_comp_tbl_ls[[2]]$`Fixed effects` <-
   c("a", "a+b+c+d", "a*b+c+d", "a*b*c+d", "a*b*c*d")
 ## 1) Eval parameters
-kableExtra::kbl(model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
-             booktabs = TRUE, linesep = "", caption = "Model comparison of our random effect models regressing marks. Each model includes a random effect term of the participant, which explains the individual's influence on their marks. Complex models perform better in terms of R2 and RMSE, yet AIC and BIC penalize their large number of fixed effect in favor of the much simpler model containing only factor.") %>%
+kableExtra::kbl(
+  model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
+  booktabs = TRUE, linesep = "", caption = "Model comparison of our random effect models regressing marks. Each model includes a random effect term of the participant, which explains the individual's influence on their marks. Complex models perform better in terms of R2 and RMSE, yet AIC and BIC penalize their large number of fixed effect in favor of the much simpler model containing only factor.") %>%
   kableExtra::column_spec(column = 1, width = "1.5cm") %>%
   column_spec(column = c(2:3), width = "1cm") %>%
   column_spec(column = c(4:8), width = "1.5cm") %>%
@@ -456,7 +453,7 @@ rownames(coef_ls[[1]]) <- rownames(coef_ls[[2]]) <-
 if(F)
   browseURL("https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html#Group_rows_via_labeling")
 kableExtra::kbl(coef_ls[[1]], booktabs = TRUE, linesep = "", format = "latex",
-                caption = "The model coefficients for $\\widehat{marks} = \\alpha * \\beta + \\gamma + \\delta$, with factor:pca, locaation0/100, and shapeEEE held as baselines. Factor being radial is the fixed term with the strongest evidence in support of the hypothesis. Evidence for the interaction terms varies widely. The evidence in favor of any single coefficient is relatively modest, this is due in part to spreading the explanatory power of observations across so many interaction terms; each fixed term appears much more extreme models with fewer interaction terms.") %>%
+                caption = "The model coefficients for $\\widehat{marks} = \\alpha * \\beta + \\gamma + \\delta$, with factor:pca, locaation0/100, and shapeEEE held as baselines. Factor being radial is the fixed term with the strongest evidence in support of the hypothesis. Evidence for the interaction terms varies widely. The evidence in favor of any single coefficient is relatively modest, this is due in part to spreading the explanatory power of observations across so many interaction terms; each fixed term appears much more extreme models with fewer interaction terms. The model fit is based o the 648 evaluations by the 108 paricipants.") %>%
   kableExtra::column_spec(column = 1, width = "5cm") %>%
   kableExtra::column_spec(column = 3, width = "1.6cm") %>%
   kableExtra::column_spec(column = c(2, 4:6), width = "1.4cm") %>%
@@ -469,7 +466,7 @@ kableExtra::kbl(coef_ls[[1]], booktabs = TRUE, linesep = "", format = "latex",
 <!-- Random effects vs Mean Mark CI by participant and sim -->
 Residual plots have no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figEffectRange) illustrates (T) the effect size of the random terms participant and simulation, or more accurately, the 95\% CI from Gelman simulation of their posterior distribution. The effect size of the participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha = .95$, while none of the simulation effects significantly deviate from the null of having no effect size on the marks. In comparison, (B) 95\% confidence intervals of the mean marks for participation and simulation respectively.
 
-```{r figEffectRange, out.width="100%", fig.show='asis', fig.cap='(T) Estimated effect ranges of the random effect terms participant and data simulation of the $\\alpha * \\beta + \\gamma + \\delta$ model. Confidence intervals are created with Gelman simulation on the effect posterior distributions. The effect size of the participant is relatively large, with several significant extrema. None of the simulations deviate significantly. (B) The ordered distributions of the CI of mean marks follow the same general pattern and give the additional context of how much variation is in the data, an upper limit to the effect range. The effect ranges capture about 2/3 of the range of the data without the model. All intervals for $\\alpha = .95$ confidence.'}
+```{r figEffectRange, out.width="100%", fig.show='asis', fig.cap="(T) Estimated effect ranges of the random effect terms participant and data simulation of the $\\alpha * \\beta + \\gamma + \\delta$ model. Confidence intervals are created with Gelman simulation on the effect posterior distributions. The effect size of the participant is relatively large, with several significant extrema. None of the simulations deviate significantly. (B) The ordered distributions of the CI of mean marks follow the same general pattern and give the additional context of how much variation is in the data, an upper limit to the effect range. The effect ranges capture about 2/3 of the range of the data without the model. All intervals for $\\alpha = .95$ confidence."}
 if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 knitr::include_graphics("./figures/figEffectRange.pdf")
@@ -536,6 +533,9 @@ knitr::include_graphics("./figures/figSubjectiveMeasures_w.violin_hori.pdf")
 ```
 
 # Discussion {#sec:discussion}
+
+TODO: XXX
+
 
 # Accompanying tool: spinifex application {#sec:spinifex}
 
