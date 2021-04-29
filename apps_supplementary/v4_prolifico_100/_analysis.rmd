@@ -564,12 +564,10 @@ botCis <-
 .dim <- my_ggpubr(dat_qual, x = "dim", y = "marks")
 .FactorLocation <- my_ggpubr_facet(dat_qual,
                                    x = "factor", y = "marks",
-                                   title = "Marks by factor, faceting on location and shape",
-                                   subtitle = "The fixed effects of model alpha * beta * gamma",
                                    facet = "location")
 .no_legend <- theme(legend.position = "off")
 title <- cowplot::ggdraw() +
-  cowplot::draw_label("Violin plot of the terms in marks^=A*B+c+d",
+  cowplot::draw_label("Violin plots of the terms in marks^ = \u03b1 * \u03b2 + \u03b3 + \u03b4",
                       x = .5, y = .75, hjust = .5, vjust = 1)
 top <- cowplot::plot_grid(.factor + .no_legend,
                           .location + .no_legend,
@@ -755,7 +753,7 @@ if(F){
   
   ## Marks by violin of factor faceting on location and shape
   ggsave("figMarksABcd.pdf", violin_ABcd, path = "./paper/figures",
-         device = "pdf", width = .w, height = .w, unit = .u)
+         device = cairo_pdf, width = .w, height = .w, unit = .u)
 
 }
 ```

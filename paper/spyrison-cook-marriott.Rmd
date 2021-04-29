@@ -93,6 +93,7 @@ knitr::opts_chunk$set(
 # to understand the importance of variables contributing to the structure?
 
 #### Other user studies to consider:
+## compares iPCA application (PCA, princomp, ensombal graphics vs comercial SAS/INSIGHT)
 # DH Jeong 2009
 # https://www.researchgate.net/profile/Brian_Fisher2/publication/220506453_IPCA_An_interactive_system_for_PCA-based_visual_analytics/links/59e395fa458515393d5b8f29/IPCA-An-interactive-system-for-PCA-based-visual-analytics.pdf 
 # 
@@ -117,7 +118,7 @@ knitr::opts_chunk$set(
 ```{r EXCLUDEDfigExamp, echo = F, out.width = '100%',fig.cap = "Example case. Person 'A' is assigned to group 2, where they will use factor 2 (grand tour) for the first period. They perform 3 block difficulties of task 1 on simulations of increasing difficulty. Then 3 block difficulties of task 2 on unique simulations sampled from the same distributions of increasing difficulty. After this, they proceed to period 2, where they are use factor 3 (manual tour) to perform 3 block difficulties of each task. Lastly, in the third period, they use factor 1 (PCA) to perform the tasks.", eval = F}
 knitr::include_graphics("./figures/imageName.pdf") ## Note relative to the folder that the .rmd is in not the project dir()
 ```
-<!-- Figure \@ref(fig:figExamp) is an example of referencing a the example figure. -->
+<!-- Figure \@ref(fig:EXCLUDEDfigExamp) is an example of intext referencing the example figure. -->
 
 
 # Introduction
@@ -161,7 +162,7 @@ Section \@ref(sec:background) discusses the visualization methods. Section \@ref
 # Background, visual methods {#sec:background}
 
 <!-- Arriving at linear projections or too meta? -->
-<!-- Considering that we want to explore multivariate data space while restricting . -->
+<!-- Considering that we want to explore multivariate data space while restricting. -->
 
 ## Linear projection notation
 
@@ -399,12 +400,12 @@ In building a set of models to test we include all single term models, a model w
 <!-- 1) Eval parameters -->
 $$
 \begin{array}{ll}
-&\textbf{Fixed effects:}          &\textbf{Expanded Model:} \\
-&\alpha                           &\widehat{marks} = \mu + \alpha_i + \textbf{Z} + \textbf{W} + \epsilon \\
-&\alpha + \beta + \gamma + \delta &\widehat{marks} = \mu + \alpha_i + \beta_j + \gamma_k + \delta_l + \textbf{Z} + \textbf{W} + \epsilon \\
-&\alpha * \beta + \gamma + \delta &\widehat{marks} = \mu + \alpha_i * \beta_j + \textbf{Z} + \textbf{W} + \epsilon \\
-&\alpha * \beta * \gamma + \delta &\widehat{marks} = \mu + \alpha_i * \beta_j * \gamma_k + \textbf{Z} + \textbf{W} + \epsilon \\
-&\alpha * \beta * \gamma * \delta &\widehat{marks} = \mu + \alpha_i * \beta_j * \gamma_k * \delta_l + \textbf{Z} + \textbf{W} + \epsilon
+\textbf{Fixed effects:}          &\textbf{Expanded Mode:} \\
+\alpha                           &\widehat{marks} = \mu + \alpha_i + \textbf{Z} + \textbf{W} + \epsilon \\
+\alpha + \beta + \gamma + \delta &\widehat{marks} = \mu + \alpha_i + \beta_j + \gamma_k + \delta_l + \textbf{Z} + \textbf{W} + \epsilon \\
+\alpha * \beta + \gamma + \delta &\widehat{marks} = \mu + \alpha_i * \beta_j + \textbf{Z} + \textbf{W} + \epsilon \\
+\alpha * \beta * \gamma + \delta &\widehat{marks} = \mu + \alpha_i * \beta_j * \gamma_k + \textbf{Z} + \textbf{W} + \epsilon \\
+\alpha * \beta * \gamma * \delta &\widehat{marks} = \mu + \alpha_i * \beta_j * \gamma_k * \delta_l + \textbf{Z} + \textbf{W} + \epsilon
 \end{array}
 $$
 $$
@@ -516,7 +517,8 @@ knitr::include_graphics("./figures/figTeffectRange.pdf")
 
 ## Subjective measures
 
-__TODO: XXX__
+The 84 evaluations of the post-study survey also collect 4 subjective measures for each factor. Figure \@ref{fig:figSubjectiveMeasures} shows the Likert plots, or stacked percentage bar plots, alongside violin plots with the same non-parametric, ranked sum tests previously used. 
+ _TODO: XXX continue_
 
 ```{r figSubjectiveMeasures, out.width="100%", fig.show='asis', fig.cap='The subjective measures of the 84 responses of the post-study survey, 5 discrete Likert scale levels of aggrement. (L) Likert plots (stacked percent bar plots) with (R) violin plots of the same measures. Violin plots are overlaid with global significance from the Kruskal-Wallis test, and pairwise significance from the Wilcoxon test, both are non-parametric, ranked sum tests.'}
 if(F)

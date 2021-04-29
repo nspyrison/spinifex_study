@@ -202,7 +202,7 @@ my_ggpubr <- function(df, x = "factor", y = "value", title = waiver(), subtitle 
     #                    method = "wilcox.test", ref.group = .x_lvls[1]) + ## Test each lvl w.r.t. first level.
     stat_compare_means( ## Global test
       label.y = .lab.y,
-      aes(label = paste0("Krusal-p=", ..p.format..))
+      aes(label = paste0("Kruskal-p=", ..p.format..))
     ) + ## custom label
     my_theme +
     ggtitle(title, subtitle)
@@ -284,7 +284,7 @@ if(F){
          subjectiveMeasures +
            ## Convert to horizontal:
            coord_flip(),
-         device = "pdf", width = .w, height = .w * 1.33, units = "in")
+         device = "pdf", width = .w, height = .w * 1, units = "in")
   ggsave("./paper/figures/figSubjectiveMeasures_w.violin_vert.pdf",
          cowplot::plot_grid(subjectiveMeasures, measure_violins, ncol = 2),
          device = "pdf", width = .w, height = .w * .66, units = "in")
@@ -295,7 +295,7 @@ if(F){
                               guides(fill = guide_legend(reverse = FALSE)),
                             measure_violins,
                             ncol = 2),
-         device = "pdf", width = .w, height = .w * 1.33, units = "in")
+         device = "pdf", width = .w, height = .w * 1, units = "in")
 }
 
 ### Significance testing: ------
