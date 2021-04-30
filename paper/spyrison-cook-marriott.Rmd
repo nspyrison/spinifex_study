@@ -131,10 +131,9 @@ Multivariate data (and measure space) is ubiquitous. Yet exploratory data analys
 <!-- Wickham [@wickham_visualizing_2015] introduces the terminologies of data-space. -->
 
 <!-- Research gap -->
-There is a notable absence in the research on which visualization should be used and when to best convey information to readers in the context of multivariate data. We have principles, grammar, and designs, yet these aid and guide composition of 2D plots, sometimes with perception ques into a 3rd spatial dimension, or by mapping variables to aesthetics such as color or shape. Visualizing multivariate data is an appreciable task. Doing so almost implies a trade-off between viewing large numbers of linear projection or highly obscuring and twisting the variable space to fit itself into a low dimension non-linear embedding.
+Previous user studies in dimension reduction compares across embedding and display dimension [@wagner_filho_immersive_2018; @gracia_new_2016]. There are empirical metrics and comparisons used to describe non-linear reduction and how well and faithfully they embed the data [@van_der_maaten_visualizing_2008; @sedlmair_empirical_2013; @liu_visualizing_2017]. <!-- Add comment about the ensambal graphics applications of multivariate visuals? -->There is a notable absence comparing linear techniques, finding which excel and under what which contexts they should be employed and when to best convey information to the audience. <!-- We have principles, grammar, and designs, yet these aid and guide composition of 2D plots, sometimes with perception ques into a 3rd spatial dimension, or by mapping variables to aesthetics such as color or shape.Visualizing multivariate data is an appreciable task. Doing so almost implies a trade-off between viewing large numbers of linear projection or highly obscuring and distorting the variable space to fit itself into a low dimension non-linear embedding.--> 
 
 <!-- Add more gap and lit review here? Wants a better segue. -->
-
 Here, we compare and contrast the efficacy of 3 linear projection techniques though application of a within-participant user study. Specific visualization is the primary factor of the study with a null hypothesis that visual has no impact on the accuracy nor the speed of evaluating a task. We design a task and measure evaluating its accuracy that involves participants indicating which variable(s) contain a difference in groups of different clusters. Data is simulated over several block parameterizations. 
 
 
@@ -379,6 +378,10 @@ knitr::include_graphics("./figures/figSurveyDemographics.pdf")
 
 From pilot studies through a sample of convenience (consisting of information technology and statistics Ph.D. students attending Monash University) we predict that we wanted 3 even block evaluations to support differences in our factor and block parameterizations. Given that factor and location, each have 6 permutations we targeted $N = 108 = 3 * (6 * 6)$ evaluations before data was collected. In data collection we experience several adverse conditions, primarily: limited control of application server network configuration, throughput thresholds on data read/write API, and repeat attempts from users when experiencing disconnects. To mitigate this we over-collect survey trials, exclude all partial trials and remove the oldest attempts (mostly likely to experience adverse network conditions) from over evaluated permutations until we have our desired evaluations under each permutation.
 
+## Data capture and processing
+
+Data was recorded by a \pkg{shiny} application, and was written to Google Sheet document at the completion of each study period. Time is measured as the CPU time of the server. This could be made slightly more accurate by calculating the different of system time at these points. Because the frequency of the participants from prolific was more then the server would handle, participants were manually accepted one or two at a time. We collected participants till we had 3 even evaluations. The processing steps were fairly minimal after formatting to tidy format and decoding values to more human readable state. After formatting, a flag is added to indicate if survey had data from all 3 periods. We remove all partial studies and keep only the last 3 complete studies within each block parameterization, the studies which should have experienced least adverse network conditions. This brings us to the 108 studies described in the paper, from which models and aggregation tables were built. The post-study surveys were similarly decoded to human-readable tidy format, and then filtered to include only those 84 surveys that were associated the final 108 studies. The details of the analysis and study itself are available for review at [github.com/nspyrison/spinifex_study](https://github.com/nspyrison/spinifex_study).
+
 
 # Results {#sec:results}
 
@@ -517,8 +520,7 @@ knitr::include_graphics("./figures/figTeffectRange.pdf")
 
 ## Subjective measures
 
-The 84 evaluations of the post-study survey also collect 4 subjective measures for each factor. Figure \@ref{fig:figSubjectiveMeasures} shows the Likert plots, or stacked percentage bar plots, alongside violin plots with the same non-parametric, ranked sum tests previously used. 
- _TODO: XXX continue_
+The 84 evaluations of the post-study survey also collect 4 subjective measures for each factor. Figure \@ref{fig:figSubjectiveMeasures} shows the Likert plots, or stacked percentage bar plots, alongside violin plots with the same non-parametric, ranked sum tests previously used. Participants preferred to use radial for this task. Participants were also more confident of their answers and found radial tour easier to use compared with the grand tour. All factors have reportedly low familiarity something we expect from crowdsourced participants.
 
 ```{r figSubjectiveMeasures, out.width="100%", fig.show='asis', fig.cap='The subjective measures of the 84 responses of the post-study survey, 5 discrete Likert scale levels of aggrement. (L) Likert plots (stacked percent bar plots) with (R) violin plots of the same measures. Violin plots are overlaid with global significance from the Kruskal-Wallis test, and pairwise significance from the Wilcoxon test, both are non-parametric, ranked sum tests.'}
 if(F)
@@ -551,7 +553,7 @@ spinifex::run_app("primary")
 
 # Acknowledgments {#sec:acknowledgments}
 
-This research was supported by an Australian Government Research Training Program (RTP) Scholarship. This article was created in \proglang{R}~4.0.3 [@r_core_team_r:_2020], using \pkg{knitr} [@stodden_knitr:_2014] and \pkg{rmarkdown} [@xie_r_2018]. Visuals were prepared with \pkg{spinifex}~0.2.8. All packages used are available from the Comprehensive \proglang{R} Archive Network (CRAN) at \url{https://CRAN.R-project.org/}. The source files for this article, application, data, and analysis can be found at [github.com/nspyrison/spinifex_study/](https://github.com/nspyrison/spinifex_study/). The source code for the \pkg{spinifex} package and accompanying shiny application can be found at [github.com/nspyrison/spinifex/](https://github.com/nspyrison/spinifex/).
+This research was supported by an Australian Government Research Training Program (RTP) Scholarship. This article was created in \proglang{R} [@r_core_team_r:_2020], using \pkg{knitr} [@stodden_knitr:_2014] and \pkg{rmarkdown} [@xie_r_2018]. Visuals were prepared with \pkg{spinifex}. All packages used are available from the Comprehensive \proglang{R} Archive Network (CRAN) at \url{https://CRAN.R-project.org/}. The source files for this article, application, data, and analysis can be found at [github.com/nspyrison/spinifex_study/](https://github.com/nspyrison/spinifex_study/). The source code for the \pkg{spinifex} package and accompanying shiny application can be found at [github.com/nspyrison/spinifex/](https://github.com/nspyrison/spinifex/).
 
 # Bibliography {#sec:bib}
 
