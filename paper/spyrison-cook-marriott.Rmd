@@ -5,7 +5,7 @@ output:
   bookdown::pdf_document2:
     keep_tex: true
     toc: false
-    #template: template/jdssv_template.tex
+    template: template/jdssv_template.tex
     #citation_package: natbib
 title: "The effect of user interaction for understanding variable contributions to structure in linear projections"
   # formatted: "Casting Multiple Shadows: High-Dimensional Interactive Data Visualisation with Tours and Embeddings"
@@ -31,6 +31,7 @@ preamble: > ## LaTeX preamble, load packages
   \usepackage{lmodern}
   \usepackage{thumbpdf}
   \usepackage{bm}
+  \usepackage{xcolor}
 ## __formatted: and __plain, and keywords not working
 keywords: multivariate data, exploratory data analysis, high dimensional data, data
   visualization, cluster analysis, dimension reduction, data science, user study,
@@ -57,6 +58,13 @@ knitr::opts_chunk$set(
   cache = FALSE,
   cache.lazy = FALSE
 )
+
+## Yihui hack for fixing an xcolor warning on window.
+#### not working
+# options(kableExtra.latex.load_packages = FALSE)
+# knit_hooks$set(document = function(x) {
+#   sub('\\usepackage[]{color}', '\\usepackage{xcolor}', x, fixed = TRUE)
+# })
 ```
 ```{r EXCLUDEDwritingNotes, include=FALSE,eval=FALSE}
 #### EXAMPLE YAML from spinifex_paper R journal YAML
