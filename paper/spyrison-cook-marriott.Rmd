@@ -23,7 +23,7 @@ author: "Nicholas Spyrison, Dianne Cook, Kimbal Marriott"
 ## __-name: , etc not working
 ## abstract: >
 abstract: | 
-  Principal component analysis and other eigenvalue decomposition enjoy wide when it comes to visualizing multivariate spaces. The grand tour adds the continuity of near-by linear projections while moving towards a randomly selected basis. The radial tours keep this continuity of projection space while manipulating the contribution of a single variable. However, there is an absence of work evaluating the efficacy of different multivariate visualizations. We perform a between-participant user study evaluating these visualizations: biplots of principal components, grand tours, and radial tours. We used accuracy and speed as evaluation measures for a task of supervised clusters where participants indicate which variables contain the separation between two target clusters. Prolific.co is used to crowdsourced N=108 participants across 648 task evaluations. Additionally, 84 post-study surveys were collected. We measure across 3 dimensions of block parameterizations: dimensionality, location, and shape. In summary, we find that radial tours score higher and respond slightly faster than alternatives. The effect of the visualization dwarfs the effect of the other block parameterizations. The effect of the visual is small compared with the random effect of the individual participant.
+  Principal component analysis and other eigenvalue decomposition enjoy wide when it comes to visualizing multivariate spaces. The grand tour adds the continuity of near-by linear projections while moving towards a randomly selected basis. The radial tours keep this continuity of projection space while offering a means of controlling this animation. We perform a between-participant user study evaluating these biplots of the above methods. We measure accuracy and speed for a task of supervised clusters where participants indicate which variables contain the separation between two target clusters. Prolific.co is used to crowdsourced N=108 participants across 648 task evaluations. We vary across 3 dimensions of block parameterizations: location, shape, and data dimensionality. In summary, we find that use of radial tour tends to increase accuracy compared with the alternatives. This increase is relatively large compared with the effect from block dimension, though relatively small compared to the random effect of the participant. The use of the grand tour decreases the time taken which is also modest compared with the effect of the participant. Participants subjectively prefer to use the radial tour for this task.
 preamble: > ## LaTeX preamble, load packages
   \usepackage{amsmath}
   \usepackage{graphicx}
@@ -131,7 +131,7 @@ Multivariate data (and measure space) is ubiquitous. Yet exploratory data analys
 <!-- Wickham [@wickham_visualizing_2015] introduces the terminologies of data-space. -->
 
 <!-- Research gap -->
-Previous user studies in dimension reduction compares across embedding and display dimension [@wagner_filho_immersive_2018; @gracia_new_2016]. There are empirical metrics and comparisons used to describe non-linear reduction and how well and faithfully they embed the data [@van_der_maaten_visualizing_2008; @sedlmair_empirical_2013; @liu_visualizing_2017]. <!-- Add comment about the ensambal graphics applications of multivariate visuals? -->There is a notable absence comparing linear techniques, finding which excel and under what which contexts they should be employed and when to best convey information to the audience. <!-- We have principles, grammar, and designs, yet these aid and guide composition of 2D plots, sometimes with perception ques into a 3rd spatial dimension, or by mapping variables to aesthetics such as color or shape.Visualizing multivariate data is an appreciable task. Doing so almost implies a trade-off between viewing large numbers of linear projection or highly obscuring and distorting the variable space to fit itself into a low dimension non-linear embedding.--> 
+Previous user studies in dimension reduction compares across embedding and display dimension [@wagner_filho_immersive_2018; @gracia_new_2016]. There are empirical metrics and comparisons used to describe non-linear reduction and how well and faithfully they embed the data [@van_der_maaten_visualizing_2008; @sedlmair_empirical_2013; @liu_visualizing_2017]. <!-- Add comment about the ensemble graphics applications of multivariate visuals? -->There is a notable absence comparing linear techniques, finding which excel and under what which contexts they should be employed and when to best convey information to the audience. <!-- We have principles, grammar, and designs, yet these aid and guide composition of 2D plots, sometimes with perception ques into a 3rd spatial dimension, or by mapping variables to aesthetics such as color or shape.Visualizing multivariate data is an appreciable task. Doing so almost implies a trade-off between viewing large numbers of linear projection or highly obscuring and distorting the variable space to fit itself into a low dimension non-linear embedding.--> 
 
 <!-- Add more gap and lit review here? Wants a better segue. -->
 Here, we compare and contrast the efficacy of 3 linear projection techniques though application of a within-participant user study. Specific visualization is the primary factor of the study with a null hypothesis that visual has no impact on the accuracy nor the speed of evaluating a task. We design a task and measure evaluating its accuracy that involves participants indicating which variable(s) contain a difference in groups of different clusters. Data is simulated over several block parameterizations. 
@@ -155,7 +155,7 @@ Here, we compare and contrast the efficacy of 3 linear projection techniques tho
 
 
 <!-- structure of the paper -->
-Section \@ref(sec:background) discusses the visualization methods. Section \@ref(sec:userstudy) goes into the user study. Subsection \@ref(sec:task) digs into the task and its evaluation. The results of the study are in section \@ref(sec:results). Discussion is covered in section \@ref(sec:discussion). An accompanying tool is discussed in section \@ref(sec:spinifex).
+Section \@ref(sec:background) discusses the visualization methods. Section \@ref(sec:userstudy) goes into the user study. Subsection \@ref(sec:task) digs into the task and its evaluation. The results of the study are in section \@ref(sec:results). Conclusion and future directions are  covered in section \@ref(sec:conclusion). An accompanying tool is discussed in section \@ref(sec:spinifex).
 
 
 # Background, visual methods {#sec:background}
@@ -184,7 +184,7 @@ A matrix is said to be orthonormal if and only if they are 1) orthogonal, that i
 
 ## Principal component analysis
 
-Principal component analysis and other single valued decomposition technique are the obvious baseline of comparison for linear projections because of their frequent broad use across disciplines. Principal component analysis (PCA) [@pearson_liii._1901] creates new components that are linear combinations of the original variables. The creation of these variables is ordered by decreasing variation which is orthogonally constrained to all previous components. While the full dimensionality is intact, the benefit comes from the ordered nature of the components. The first two or three components are typically used to approximate the variation multivariate data set, while the rest are discarded. We will allow participants to choose the components on the x and y axes from the first 4 principal components.
+Principal component analysis and other single valued decomposition technique are the obvious baseline of comparison for linear projections because of their frequent broad use across disciplines. Principal component analysis (PCA) [@pearson_liii._1901] creates new components that are linear combinations of the original variables. The creation of these variables is ordered by decreasing variation which is orthogonally constrained to all previous components. While the full dimensionality is intact, the benefit comes from the ordered nature of the components. The first two or three components are typically used to approximate the variation multivariate data set, while the rest are discarded. We will allow participants to choose the components on the $x$ and $y$ axes from the first 4 principal components.
 
 ## Data visualization tours
 
@@ -536,9 +536,12 @@ knitr::include_graphics("./figures/figSubjectiveMeasures_w.violin_hori.pdf")
 # figSubjectiveMeasures_w.violin_hori.pdf
 ```
 
-# Discussion {#sec:discussion}
 
-TODO: XXX
+# Conclusion and future work {#sec:conclusion}
+
+Above we conducted a with-in participant user study comparing the efficacy of 3 linear projection techniques. The participants performed a supervised cluster task, specifically the identification of which variables contribute to the separation between 2 target clusters. In summary, we that use of the radial tour increases accuracy while use of the grand tour decrease the time it takes to perform this task. These effects are large relative to the other block parameterizations, but smaller than the random effect of the participant. Radial tour was subjectively most preferred, leads to more confidence in answers, and is easier to use than alternative.
+
+There are a number of ways that this study could be extend. In addition to expanding the support of the the block parameterizations, more interesting directions include type of task, factors used, and experience level of the target population. It is difficult to achieve good coverage given the number of possible permutations. Be sure to step back and plan what the target support, visuals, and task are. Keep in mind the volume and quality of responses from participants especially when crowdsourcing. These planning steps are useful for navigating when the complexity of the application details.
 
 
 # Accompanying tool: spinifex application {#sec:spinifex}
