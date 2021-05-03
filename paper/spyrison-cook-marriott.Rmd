@@ -7,22 +7,28 @@ output:
     toc: false
     template: template/jdssv_template.tex
     #citation_package: natbib
-title: "The effect of user interaction for understanding variable contributions to structure in linear projections"
-  # formatted: "Casting Multiple Shadows: High-Dimensional Interactive Data Visualisation with Tours and Embeddings"
-  # plain:     "Casting Multiple Shadows: High-Dimensional Interactive Data Visualisation with Tours and Embeddings"
-  # short:     "\\pkg{liminal}: High-Dimensional Interactive Data Visualisation"
-## __formatted: and __plain, and __short not wroking
-author: "Nicholas Spyrison, Dianne Cook, Kimbal Marriott"
- # - name: Stuart Lee ## 2 spaces
- #    affiliation: Monash University
- #    # use this syntax to add text on several lines
- #    address: |
- #      | Department of Econometrics and Business Statistics,
- #      | Monash University
- #    email: \email{stuart.lee1@monash.edu}
-## __-name: , etc not working
-## abstract: >
-abstract: | 
+title:
+  formatted: "The effect of user interaction for understanding variable contributions to structure in linear projections"
+  plain:     "The effect of user interaction for understanding variable contributions to structure in linear projections"
+  short:     "\\pkg{spinifex}: effect of user interaction in linear projections"
+author:
+  - name: Nicholas Spyrison
+    affiliation: Monash University
+    address: |
+      | Faculty of Information Technology,
+      | Monash University
+    email: \email{nicholas.spyrison@monash.edu}
+  - name: Dianne Cook
+    affiliation: Monash University
+    address: |
+      | Department of Econometrics & Business Statistics,
+      | Monash University
+  - name: Kimbal Marriott
+    affiliation: Monash University
+    address: |
+      | Faculty of Information Technology,
+      | Monash University
+abstract: |
   Principal component analysis and other eigenvalue decomposition enjoy wide when it comes to visualizing multivariate spaces. The grand tour adds the continuity of near-by linear projections while moving towards a randomly selected basis. The radial tours keep this continuity of projection space while offering a means of controlling this animation. We perform a between-participant user study evaluating these biplots of the above methods. We measure accuracy and speed for a task of supervised clusters where participants indicate which variables contain the separation between two target clusters. Prolific.co is used to crowdsourced N=108 participants across 648 task evaluations. We vary across 3 dimensions of block parameterizations: location, shape, and data dimensionality. In summary, we find that use of radial tour tends to increase accuracy compared with the alternatives. This increase is relatively large compared with the effect from block dimension, though relatively small compared to the random effect of the participant. The use of the grand tour decreases the time takenm, which is also of modest size compared with the effect of the participant. Participants subjectively prefer to use the radial tour for this task.
 preamble: > ## LaTeX preamble, load packages
   \usepackage{amsmath}
@@ -32,12 +38,9 @@ preamble: > ## LaTeX preamble, load packages
   \usepackage{thumbpdf}
   \usepackage{bm}
   \usepackage{xcolor}
-## __formatted: and __plain, and keywords not working
-keywords: multivariate data, exploratory data analysis, high dimensional data, data
-  visualization, cluster analysis, dimension reduction, data science, user study,
-  between users, linear projections, linear embeddings
-  # formatted: [dimensionality reduction, high-dimensional data, interactive graphics, t-SNE, grand tour, "\\proglang{R}"]
-  # plain:     [dimensionality reduction, high-dimensional data, interactive graphics, t-SNE, grand tour, R]
+keywords: 
+  formatted: [multivariate data, exploratory data analysis, grand tour, manual tour, dimension reduction, linear projections, linear embeddings, "\\proglang{R}"]
+  plain:     [multivariate data, exploratory data analysis, grand tour, manual tour, dimension reduction, linear projections, linear embeddings, R]
 bibliography: spyrison-cook-marriott.bib
 editor_options:
   chunk_output_type: console
@@ -65,61 +68,6 @@ knitr::opts_chunk$set(
 # knit_hooks$set(document = function(x) {
 #   sub('\\usepackage[]{color}', '\\usepackage{xcolor}', x, fixed = TRUE)
 # })
-```
-```{r EXCLUDEDwritingNotes, include=FALSE,eval=FALSE}
-#### EXAMPLE YAML from spinifex_paper R journal YAML
-# ---
-# author:
-  # - name: Nicholas Spyrison
-  #   # affiliation: Monash University
-  #   # address:
-  #   # - Faculty of Information Technology
-  #   # email:  nicholas.spyrison@monash.edu
-  # - name: Dianne Cook
-  #   # affiliation: Monash University
-  #   # address:
-  #   # - Department of Econometrics and Business Statistics
-  #   # email:  dicook@monash.edu
-  # - name: Kim Marriott
-  #   # affiliation: Monash University
-  #   # address:
-  #   # - Faculty of Information Technology
-  #   # email:  Kim.Marriott@monash.edu
-# preamble: > %% LaTeX preamble, load packages
-#   \usepackage{amsmath}
-# link-citations: true
-# fig_caption: yes
-# toc: false
-# 
-# bibliography: spyrison-cook-marriott.bib
-# output: rticles::ieee_article
-# ---
-# \bibliography{spyrison-cook-marriott}
-
-#### Hypothesis: 
-# does the availability of the manual tour improve the ability of the analyst 
-# to understand the importance of variables contributing to the structure?
-
-#### Other user studies to consider:
-## compares iPCA application (PCA, princomp, ensombal graphics vs comercial SAS/INSIGHT)
-# DH Jeong 2009
-# https://www.researchgate.net/profile/Brian_Fisher2/publication/220506453_IPCA_An_interactive_system_for_PCA-based_visual_analytics/links/59e395fa458515393d5b8f29/IPCA-An-interactive-system-for-PCA-based-visual-analytics.pdf 
-# 
-# a bit removed, for larger dimensions (100's):
-# J Yang 2007  
-# https://www.researchgate.net/profile/Matthew_Ward3/publication/6451414_Value_and_Relation_Display_Interactive_Visual_Exploration_of_Large_Data_Sets_with_Hundreds_of_Dimensions/links/00b495320b8f337d3a000000.pdf 
-#
-# Ben's Data Visceralization
-# https://arxiv.org/pdf/2009.00059.pdf
-
-#### inspiration; Other papers from kt, and kadek:
-## It's a Wrap: 
-## K. Chen et al.
-## https://www.researchgate.net/profile/Kun_Ting_Chen2/publication/348620236_It's_a_Wrap_Toroidal_Wrapping_of_Network_Visualisations_Supports_Cluster_Understanding_Tasks/links/6007d5d5a6fdccdcb868b2ef/Its-a-Wrap-Toroidal-Wrapping-of-Network-Visualisations-Supports-Cluster-Understanding-Tasks.pdf
-##
-## Quantitative Data Visualization on Virtual Globes,
-## K. Satriadi et al. Chi2021
-## https://www.researchgate.net/profile/Kadek_Satriadi/publication/348706131_Quantitative_Data_Visualisation_on_Virtual_Globes/links/600c1275a6fdccdcb873728a/Quantitative-Data-Visualisation-on-Virtual-Globes.pdf
 ```
 
 <!-- Example figure -->
