@@ -754,6 +754,11 @@ if(F){
   ## Marks by violin of factor faceting on location and shape
   ggsave("figMarksABcd.pdf", violin_ABcd, path = "./paper/figures",
          device = cairo_pdf, width = .w, height = .w, unit = .u)
+  
+  ### Png output for DVIA slides:
+  ggsave("factor_summary.png", .factor, path = "./paper/figures",
+         device = "png", width = 3, height = 3, unit = .u)
+
 }
 ```
 
