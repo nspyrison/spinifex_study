@@ -128,31 +128,34 @@ Consider a numeric data matrix with $n$ observations of $p$ variables,
   \textbf{x}_{i} = (x_{1i},~...~ x_{ni})~|~i \in [1, p]
 \end{gather*}
 
-Let $Y_{[n, d]}$ be the $d$-dimensional projection or embedding of $\textbf{X}_{[n, p]}$ via matrix multiplication of a particular orthonormal basis matrix $\textbf{B}_{[p, d]}$.
+Let $Y_{n*d}$ be the $d$-dimensional projection or embedding of $\textbf{X}_{n*p}$ via matrix multiplication of a particular orthonormal basis matrix $\textbf{B}_{p*d}$.
+
 
 \begin{gather*}
-  \textbf{Y}_{[n, d]} = \textbf{X}_{[n, p]} \textbf{B}_{[p, d]}~|~\textbf{B}\text{ is orthonormal} \\
+  \textbf{Y}_{n \ast d} = \textbf{X}_{n \ast p} \textbf{B}_{p	\ast d}~|~\textbf{B}\text{ is orthonormal} \\
   \textbf{y}_{j} = (y_{1j},~...~ y_{nj})~|~j \in [i, d]
 \end{gather*}
 
-A matrix is said to be orthonormal if and only if they are 1) orthogonal, that is all column pairs are independent, having a cross product of 0, and 2) normal, each column has a norm - Euclidean  distance - of 1.
+
+
+A matrix is said to be orthonormal if they are 1) orthogonal, that is all column pairs are independent, having a cross product of 0, and 2) normal, each column has a norm length of 1.
 
 
 ## Principal component analysis
 
-Principal component analysis is the obvious baseline of comparison for linear projections because of its frequent and broad use across discipline. Principal component analysis (PCA) [@pearson_liii._1901] creates new components that are linear combinations of the original variables. The creation of these variables is ordered by decreasing variation which is orthogonally constrained to all previous components. While the full dimensionality is intact, the benefit comes from the ordered nature of the components. The first two or three components are typically used to approximate the variation multivariate data set, while the rest are discarded. We will allow participants to choose the components on the $x$ and $y$ axes from the first 4 principal components.
+Principal component analysis is a good baseline of comparison for linear projections because of its frequent and broad use across discipline. Principal component analysis (PCA) [@pearson_liii._1901] creates new components that are linear combinations of the original variables. The creation of these variables is ordered by decreasing variation which is orthogonally constrained to all previous components. While the full dimensionality is intact, the benefit comes from the ordered nature of the components. The first two or three components are typically used to approximate the variation multivariate data set, while the rest are discarded. We will allow participants to choose the components on the $x$ and $y$ axes from the first 4 principal components.
 
 ## Data visualization tours
 
 <!-- tours intro -->
 A data visualization _tour_ is an animation of many linear projections across several identified target bases. One of the key features of the tour is the object permanence of the data points; that is to say by watching nearby frames one can track the relative changes of observations as the basis moves toward the next target basis. Various types of tours are enumerated by the selection or generation of their basis paths[lee_review_2021; cook_grand_2008]. To contrast with PCA, we compare with the _grand_ and _radial_ tours. Both of these methods use geodesically-interpolated orthonormal frames with a fixed step distance between frames.
 
-## Grand tours
+### Grand tours
 <!-- Grand tour -->
 In a grand tour[@asimov_grand_1985] the target bases are selected randomly. The grand tour is the first and most widely known tour. It will serve as an intermediate unit of comparison which has continuity of data points in nearby frames along with the radial tour, but lacks the user control enjoyed by PCA and radial tours. This lack of control makes grand tours more of a generalist exploratory tool theoretically wouldn't excel at tasks with a pointed goal in mind.
 
 
-## Radial, (manual) tours
+### Radial (manual) tours
 
 <!-- Manual tour -->
 The _manual_ tour [@cook_manual_1997; @spyrison_spinifex_2020] defines its basis path by manipulating the basis contribution of a selected variable. A manipulation dimension is appended onto the projection plane, with a full contribution given to the selected variable. The target bases are then selected based on rotating this newly created manipulation space. The target bases are then similarly orthogonally-interpolated, data projected and rendered into an animation. In order for the variables to remain independent of each other, the contributions of the other variables must also change, _ie._ dimension space should maintain its orthonormal structure. A key feature of the manual tour is that it affords users a way to control the variable contributions of the next target basis. This means that such manipulations can be selected and queued in advance or select on the spot for human-in-the-loop analysis [@karwowski_international_2006]. However, this navigation is relatively time-consuming due to the huge volume of $p$-space (an aspect of the curse of dimensionality [@bellman_dynamic_1957]) and the abstract method of steering the projection basis. It is advisable to first identify a basis of particular interest and then use a manual tour as a finer, local exploration tool to observe how the contributions of the selected variable do or do not contribute to the feature of interest.
@@ -172,9 +175,11 @@ Figure \@ref(fig:figFactor) illustrates the different visualization factors, the
 
 # User study {#sec:userstudy}
 
-## Hypothesis {#sec:hypothesis}
+## Objective {#sec:objective}
 
-The research question we are trying to answer is: <!-- Research question --> _Does the animated removal of single variables via the radial tour improve the ability of the analyst to understand the importance of variable's contribution to the separation of clusters?_ We measure the accuracy and speed over 4 dimensions of block parameterization. The Null hypotheses can be stated as:
+From our experience and application of linear projections we have some expectations about the factors. PCA excels at finding features that are in-plane with the first principal component. Whereas, the animated transitions of tours conveys a lot of meaningful structural information. The grand tour is good for initial exploration and explores a lot of different angles very quickly. While the manual (and radial) tours are best used as a more local exploration tool, to test the sensitivity of structure. Then for some subset of tasks we expect to find that the radial tour performs most accurately. Secondly, it maybe the case that the task can be performed faster than the alternatives. We are less certain with this there is no optimization or functional goal in the grand tour's generation of bases; it is possible that we are shown the planes that completely avoid information needed to perform the task.
+
+We measure the accuracy and speed over 4 dimensions of block parameterizations. The null hypotheses can be stated as:
 
 <!-- Hypothesis: null and alternative -->
 1, Accuracy) $\\$
@@ -183,17 +188,17 @@ $~~~~~~H_0: \text{visualization factor does not impact task } \textit{accuracy}.
 $~~~~~~H_0: \text{visualization factor does not impact task } \textit{speed}. \\$
 
 <!-- Rational for standards of comparison -->
-PCA will be used as a baseline for comparison as it is the most common linear embedding. The grand tour will act as a secondary control that will help evaluate the benefit of animation, where the object permanence of the data points, but without the ability to influence its path. Lastly, the radial tour should perform best as it benefits both from animation and being able to select an individual variable to change the contribution of. 
+PCA will be used as a baseline for comparison as it is the most common linear embedding. The grand tour will act as a secondary control that will help evaluate the benefit of animation, where the object permanence of the data points, but without the ability to influence its path. Lastly, the radial tour should perform best as it benefits both from animation and being able to select an individual variable to change the contribution of.
 
-\begin{center}
-\begin{tabular}{ c | p{2.2cm} p{2.2cm} }
-factor & observation \newline permanence & user \newline interaction \\
-\hline
-pca &  & Yes \\
-grand & Yes &  \\
-radial & Yes & Yes \\
-\end{tabular}
-\end{center}
+<!-- \begin{center} -->
+<!-- \begin{tabular}{ c | p{2.2cm} p{2.2cm} } -->
+<!-- factor & animated \newline transition & user \newline interaction \\ -->
+<!-- \hline -->
+<!-- pca &  & Yes \\ -->
+<!-- grand & Yes &  \\ -->
+<!-- radial & Yes & Yes \\ -->
+<!-- \end{tabular} -->
+<!-- \end{center} -->
 
 
 ## Task and evaluation {#sec:task}
@@ -209,25 +214,30 @@ The evaluation measure of this task was designed with a couple of features in mi
 
 Let a dataset $\textbf{X}$ be a simulation containing clusters of observations of different distributions. Let $\textbf{X}_k$ be the subset of observations in cluster $k$ containing the $p$ variables.
 
+
 \begin{align*}
-  &\textbf{X}_{[n,~p]} = (x_1,~...~x_p) \\
-  &\textbf{X}_{[n_k,~p]k} = (x_1,~...~x_p)
+  &\textbf{X}_{n\*p} = (x_1,~...~x_p) \\
+  &\textbf{X}_{n_k\*p_k} = (x_1,~...~x_p)
     ~|~ n_k \in [1, n], \text{ is an observation subset of } \textbf{X}
 \end{align*}
 
+
 where
 
+
 \begin{align*}
-  x_{i, j, k} \text{ is scalar; the observation } i \in (1,~...~n),
-    \text{ of variable } j \in (1,~...~p), \text{ of cluster } k \in (1,~...~K)
+  x_{i, j, k} \text{ is scalar; the observation } i \in [1,~...~n],
+    \text{ of variable } j \in [1,~...~p], \text{ of cluster } k \in [1,~...~K]
 \end{align*}
+
 
 <!-- W, weights -->
 We define weights, $W$ to be a vector explaining the variable-wise difference between 2 clusters. Namely the difference of each variable between clusters, as a proportion of the total difference, less $1/p$ the amount of difference each variable would hold if it were uniformly distributed. <!-- R, participant responses -->Participant responses, $R$ are a vector of logical values, whether or not participant thinks the variable separates the two clusters more than if the difference were uniformly distributed. Then $M$ is a vector of variable marks.
 
+
 \begin{align*}
-W &=\frac
-{(\overline{X_{j=1, k=1}} - \overline{X_{j=1, k=2}}, ~...~
+W_{j} &=\frac
+{(\overline{X_{j=1, k=1}} - \overline{X_{1, k=2}}, ~...~
 (\overline{X_{j=p, k=1}} - \overline{X_{j=p, k=2}})}
 {\sum_{j=1}^{p}(|\overline{X_{j,k=1}} - \overline{X_{j,k=2}}|)}
 - \frac{1}{p} \\
@@ -236,6 +246,7 @@ W &=\frac
 M &= I(r_j) * sign(w_j) * \sqrt{|w_j|} \\
 &= (m_1, ~...~ m_p) \\
 \end{align*}
+
 
 where $I$ is the indicator function. Then the total marks for this task is the sum of this marks vector.
 
