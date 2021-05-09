@@ -79,7 +79,7 @@ knitr::include_graphics("./figures/imageName.pdf") ## Note relative to the folde
 
 # Introduction
 
-<!-- catchy use case -->
+<!-- creative writing use case -->
 Imagine, it is that time of year, again. Your favorite data event is right around the corner. They did a great job tantalizing releasing new information piece by piece. You know the topic, you have your tool belt is at the ready. Your plan of attack is sound and thought-through. But what about the communication, you've seen this before, so-many measures to look at and digest let alone to convey to others. The audience reading your submission also needs to be rapidly brought up to speed on such a complex problem. The visualizations you use can make or break your submission, or more dangerously may even obscure an insight to the author.
 
 <!-- Multivariate spaces and EDA -->
@@ -92,9 +92,6 @@ Previous user studies in dimension reduction compare across embedding- and displ
 <!-- Add more gap and lit review here? Wants a better segue. -->
 Here, we compare and contrast the efficacy of 3 linear projection techniques through the application of a within-participant user study. Specific visualization is the primary factor of the study with a null hypothesis that visual has no impact on the accuracy nor the speed of evaluating a task. We design a task and measure evaluating its accuracy that involves participants indicating which variable(s) contain a difference in groups of different clusters. Data is simulated over several block parameterizations. 
 
-
-<!-- Not Scatterplot matrices, PCP, want mapped to position -->
-<!-- For these reasons, it is important to use visualizations of data spaces and extend the diversity of its application. However, visualizing data containing more than a handful of variables is not trivial. Scatterplot matrices or small multiples [@chambers_graphical_1983] looks at all permutation pairs of variables, but quickly becomes to vast a number of images to consider. On the other extreme, parallel coordinates plot [@ocagne_coordonnees_1885] and its radial variants, plot observations as lines varying across scaled variables as displayed in a line or circle. This scales well with dimensionality, while suffering from couple issues. The larger issue, being the loss of mapping multiple variables to graphic position, which is perhaps the most important visual cue for human perception [@munzner_visualization_2014]. The lesser being that they suffer from asymmetry, as their interpretation is dependent on variable ordering. -->
 
 <!-- linear combinations of dimensions -->
 <!-- Using a linear combinations of variables will allow us to keep position in 2 display axes while peering into information not contained in any one dimension. The idea of using a combination of variables may appear daunting at first, however we do it almost exclusively in the spatial dimensions. That is to say we are rarely completely aligned with rectangular objects at any one point in time. Consider a book or a filing cabinet any orientation that isn't fully a 2D rectangle, you are seeing as a linear combination of its variables, height, width, and depth. Generalizing this to arbitrary dimensionality we can project or embed a 2D profile of $p$-dimensional data. Its worth noting that the number of these embedded profiles, and consequently the time it takes to explore them, increase exponentially with the dimensionality of the data. -->
@@ -119,36 +116,46 @@ Section \@ref(sec:background) discusses the visualization methods. Section \@ref
 <!-- Arriving at linear projections or too meta? -->
 <!-- Considering that we want to explore multivariate data space while restricting. -->
 
-## Linear projection notation
+<!-- ## Linear projection notation -->
 
-Consider a numeric data matrix with $n$ observations of $p$ variables,
+<!-- Consider a numeric data matrix with $n$ observations of $p$ variables, -->
 
-\begin{gather*}
-  \textbf{X}_{[n, p]} = (\textbf{x}_{1},~...~\textbf{x}_{p}) \\
-  \textbf{x}_{i} = (x_{1i},~...~ x_{ni})~|~i \in [1, p]
-\end{gather*}
+<!-- \begin{gather*} -->
+<!--   \textbf{X}_{[n, p]} = (\textbf{x}_{1},~...~\textbf{x}_{p}) \\ -->
+<!--   \textbf{x}_{i} = (x_{1i},~...~ x_{ni})~|~i \in [1, p] -->
+<!-- \end{gather*} -->
 
-Let $Y_{n*d}$ be the $d$-dimensional projection or embedding of $\textbf{X}_{n*p}$ via matrix multiplication of a particular orthonormal basis matrix $\textbf{B}_{p*d}$.
-
-
-\begin{gather*}
-  \textbf{Y}_{n \ast d} = \textbf{X}_{n \ast p} \textbf{B}_{p	\ast d}~|~\textbf{B}\text{ is orthonormal} \\
-  \textbf{y}_{j} = (y_{1j},~...~ y_{nj})~|~j \in [i, d]
-\end{gather*}
+<!-- Let $Y_{n*d}$ be the $d$-dimensional projection or embedding of $\textbf{X}_{n*p}$ via matrix multiplication of a particular orthonormal basis matrix $\textbf{B}_{p*d}$. -->
 
 
+<!-- \begin{gather*} -->
+<!--   \textbf{Y}_{n \ast d} = \textbf{X}_{n \ast p} \textbf{B}_{p	\ast d}~|~\textbf{B}\text{ is orthonormal} \\ -->
+<!--   \textbf{y}_{j} = (y_{1j},~...~ y_{nj})~|~j \in [i, d] -->
+<!-- \end{gather*} -->
 
-A matrix is said to be orthonormal if they are 1) orthogonal, that is all column pairs are independent, having a cross product of 0, and 2) normal, each column has a norm length of 1.
+<!-- A matrix is said to be orthonormal if they are 1) orthogonal, that is all column pairs are independent, having a cross product of 0, and 2) normal, each column has a norm length of 1. -->
 
 
 ## Principal component analysis
 
-Principal component analysis is a good baseline of comparison for linear projections because of its frequent and broad use across discipline. Principal component analysis (PCA) [@pearson_liii._1901] creates new components that are linear combinations of the original variables. The creation of these variables is ordered by decreasing variation which is orthogonally constrained to all previous components. While the full dimensionality is intact, the benefit comes from the ordered nature of the components. The first two or three components are typically used to approximate the variation multivariate data set, while the rest are discarded. We will allow participants to choose the components on the $x$ and $y$ axes from the first 4 principal components.
+Principal component analysis is a good baseline of comparison for linear projections because of its frequent and broad use across discipline. Principal component analysis (PCA) [@pearson_liii._1901] creates new components that are linear combinations of the original variables. The creation of these variables is ordered by decreasing variation which is orthogonally constrained to all previous components. While the full dimensionality is intact, the benefit comes from the ordered nature of the components. The first 2 or 3 components are typically used to approximate the variation multivariate data set, while the rest are discarded.
+
+
+## Scatterplot matrix
+
+<!-- Not Scatterplot matrices, PCP, want mapped to position -->
+An extension to showing only a few components, would be show pairs of components as a scatterplot matrix[@chambers_graphical_1983], where permutations of pairs of the components are looked displayed on the upper or lower triangle of matrix. This is very dense way to illustrate the data, but can obscure important features, by giving a large battery of plots to view in one go. 
+
+
+## Parallel coordinates plot
+
+Another common way to illustrate this data is with parallel coordinates plot [@ocagne_coordonnees_1885] (and its radial variants), plot observations by their quantile values for each variable and connected by lines to the quantile value in subsequent variables. This scales well with dimensionality, but suffering from couple issues. The main issue is the loss of mapping multiple variables to graphic position simultaneously as the $x$-axis (or angle) is being occupied by variables, which Munzner suggests[@munzner_visualization_2014] is the most important visual visual channel for human perception. Another issue is that parallel coordinates are asymmetry, as their interpretation is dependent on variable ordering.
+
 
 ## Data visualization tours
 
 <!-- tours intro -->
-A data visualization _tour_ is an animation of many linear projections across several identified target bases. One of the key features of the tour is the object permanence of the data points; that is to say by watching nearby frames one can track the relative changes of observations as the basis moves toward the next target basis. Various types of tours are enumerated by the selection or generation of their basis paths[lee_review_2021; cook_grand_2008]. To contrast with PCA, we compare with the _grand_ and _radial_ tours. Both of these methods use geodesically-interpolated orthonormal frames with a fixed step distance between frames.
+A data visualization _tour_ uses time to animate a continuous changes of the projection basis. One of the key features of the tour is the object permanence of the data points; that is to say by watching nearby frames one can track the relative changes of observations as the basis moves toward the next target basis. There are various types of tours that are distinguished by the selection or generation of their basis paths[lee_review_2021; cook_grand_2008]. To contrast with the discrete orientations of PCA, we compare with continuous changes of linear projection with _grand_ and _radial_ tours.
 
 ### Grand tours
 <!-- Grand tour -->
@@ -158,26 +165,40 @@ In a grand tour[@asimov_grand_1985] the target bases are selected randomly. The 
 ### Radial (manual) tours
 
 <!-- Manual tour -->
-The _manual_ tour [@cook_manual_1997; @spyrison_spinifex_2020] defines its basis path by manipulating the basis contribution of a selected variable. A manipulation dimension is appended onto the projection plane, with a full contribution given to the selected variable. The target bases are then selected based on rotating this newly created manipulation space. The target bases are then similarly orthogonally-interpolated, data projected and rendered into an animation. In order for the variables to remain independent of each other, the contributions of the other variables must also change, _ie._ dimension space should maintain its orthonormal structure. A key feature of the manual tour is that it affords users a way to control the variable contributions of the next target basis. This means that such manipulations can be selected and queued in advance or select on the spot for human-in-the-loop analysis [@karwowski_international_2006]. However, this navigation is relatively time-consuming due to the huge volume of $p$-space (an aspect of the curse of dimensionality [@bellman_dynamic_1957]) and the abstract method of steering the projection basis. It is advisable to first identify a basis of particular interest and then use a manual tour as a finer, local exploration tool to observe how the contributions of the selected variable do or do not contribute to the feature of interest.
+The _manual_ tour [@cook_manual_1997] defines its basis path by manipulating the basis contribution of a selected variable. A manipulation dimension is appended onto the projection plane, with a full contribution given to the selected variable. The target bases are then selected based on rotating this newly created manipulation space. The target bases are then similarly orthogonally restrained, data projected and rendered into an animation. In order for the variables to remain independent of each other, the contributions of the other variables must also change, _ie._ dimension space should maintain its orthonormal structure. A key feature of the manual tour is that it affords users a way to control the variable contributions of the next target basis. This means that such manipulations can be selected and queued in advance or select on the spot for human-in-the-loop analysis [@karwowski_international_2006]. However, this navigation is relatively time-consuming due to the huge volume of $p$-space (an aspect of the curse of dimensionality [@bellman_dynamic_1957]) and the abstract method of steering the projection basis. It is advisable to first identify a basis of particular interest and then use a manual tour as a finer, local exploration tool to observe how the contributions of the selected variable do or do not contribute to the feature of interest.
 
 <!-- radial tour variant -->
-To simplify the task and keep its duration realistic, we consider a variant of the manual tour, called a _radial_ tour. In a radial tour, the selected variable is allowed to change its magnitude of contribution, but not its angle; it must move along the direction of its original contribution radius. The radial tour benefits from both continuity of the data alongside grand tours, but also allows for user interaction similar to PCA.
+To simplify the task and keep its duration realistic, we consider a variant of the manual tour, called a _radial_ tour. In a radial tour, the selected variable is allowed to change its magnitude of contribution, but not its angle; it must move along the direction of its original contribution radius. The radial tour benefits from both continuity of the data alongside grand tours, but also allows for user to steer via choosing the variable to rotate.
 
-<!-- \begin{landscape} -->
-```{r figFactor, echo = F, out.width = '100%',fig.cap = "Example of the different visual factors. All use the same sort of biplot display to view linear projections of multivariate data. They differ in which bases are viewed which is influenced by the different factor inputs and whether or not are animated to convey the continuity of data points from 1 frame to the next."}
-if(F)
-  file.edit("./paper/R/fig_factor.r")
-knitr::include_graphics("./figures/figFactor.pdf")
+```{r}
+###TODO: add 1-3 factor visuals here, see notes from 07/05 meeting with Di:
+# - background: illustrate the factor difference better
+# -- PCA scatterplot matrix with biplot,
+# -- use standard biplots, make it look familary. 
+# -- tours show near by frames.
+# -- radial near by frames in selected dim. 
+
+warning("section 3.3. Factor application, contains a now missing reference to figFactor")
 ```
-<!-- \end{landscape} -->
+<!-- \begin{landscape} --> 
+<!-- ```{r figFactor, echo = F, out.width = '100%',fig.cap = "Example of the different visual factors. All use the same sort of biplot display to view linear projections of multivariate data. They differ in which bases are viewed which is influenced by the different factor inputs and whether or not are animated to convey the continuity of data points from 1 frame to the next."} -->
+<!-- if(F) -->
+<!--   file.edit("./paper/R/fig_factor.r") -->
+<!-- knitr::include_graphics("./figures/figFactor.pdf") -->
+<!-- ``` -->
+<!-- \end{landscape} --> 
 
-Figure \@ref(fig:figFactor) illustrates the different visualization factors, the control of biplot aesthetics, and where they differ. The leftmost column discusses their differences alongside 3 of their character bases, albeit it is more difficult to see the benefit of animation in print.
+<!-- Figure \@ref(fig:figFactor) illustrates the different visualization factors, the control of biplot aesthetics, and where they differ. The leftmost column discusses their differences alongside 3 of their character bases, albeit it is more difficult to see the benefit of animation in print. -->
+
+The more recent implementation in the R \pkg{spinifex}[@spyrison_spinifex_2020], allows for implementation manual tours (and radial sub varariant). It is also compatible with tours made via \pkg{tourr} [@wickham_tourr_2011], and facilitates their exporting to to .gif or .html widget, with recent graphic packages. Now that we have a readily available means to produce various tours, we want to see how they fair against traditional discrete display commonly used with PCA.
+
+
 
 # User study {#sec:userstudy}
 
 ## Objective {#sec:objective}
 
-From our experience and application of linear projections we have some expectations about the factors. PCA excels at finding features that are in-plane with the first principal component. Whereas, the animated transitions of tours conveys a lot of meaningful structural information. The grand tour is good for initial exploration and explores a lot of different angles very quickly. While the manual (and radial) tours are best used as a more local exploration tool, to test the sensitivity of structure. Then for some subset of tasks we expect to find that the radial tour performs most accurately. Secondly, it maybe the case that the task can be performed faster than the alternatives. We are less certain with this there is no optimization or functional goal in the grand tour's generation of bases; it is possible that we are shown the planes that completely avoid information needed to perform the task.
+From our experience and application of linear projections we have some expectations about the factors. PCA excels at finding features that are in-plane with the first principal component. Whereas, the animated transitions of tours conveys a lot of meaningful structural information. The grand tour is good for initial exploration and explores a lot of different angles very quickly. While the manual (and radial) tours are best used as a more local exploration tool, to test the sensitivity of structure. Then for some subset of tasks we expect to find that the radial tour performs most accurately. Secondly, it maybe the case that the task can be performed faster than the alternatives. We are less certain with this there is no optimization or functional goal in the grand tour's generation of bases; it is possible that we are shown the planes that completely avoid information needed to perform the task. However, given that the data dimensionality will be modest, it is at least plausible that grand tour leads to faster task time.
 
 We measure the accuracy and speed over 4 dimensions of block parameterizations. The null hypotheses can be stated as:
 
@@ -468,7 +489,7 @@ kableExtra::kbl(model_comp_tbl_ls[[2]], align = c("l", rep("r", 7)),
 
 ```{r timeCoefTbl, fig.cap = "Use the caption arg in kable(), not this."}
 kableExtra::kbl(coef_ls[[2]], booktabs = TRUE, linesep = "", format = "latex",
-                caption = "The model coeffients for $\\widehat{log(time)} = \\alpha * \\beta + \\gamma + \\delta$, with factor:pca, locaation0/100, and shapeEEE held as baselines. location50/50 is the fixed term with the strongest evidence and takes less time. In contrast, the interaction term location=50/50:shape=EEV has the most evidence and takes much longer on average.") %>%
+                caption = "The model coeffients for $\\widehat{log(time)} = \\alpha * \\beta + \\gamma + \\delta$, with factor=pca, locaation=0/100, and shape=EEE held as baselines. Location=50/50 is the fixed term with the strongest evidence and takes less time. In contrast, the interaction term location=50/50:shape=EEV has the most evidence and takes much longer on average.") %>%
   kableExtra::column_spec(column = 1, width = "5cm") %>%
   kableExtra::column_spec(column = 3, width = "1.6cm") %>%
   kableExtra::column_spec(column = c(2, 4:6), width = "1.4cm") %>%
