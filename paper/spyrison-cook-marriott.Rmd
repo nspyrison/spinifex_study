@@ -174,7 +174,7 @@ To simplify the task and keep its duration realistic, we consider a variant of t
 ###TODO: add 1-3 factor visuals here, see notes from 07/05 meeting with Di:
 # - background: illustrate the factor difference better
 # -- PCA scatterplot matrix with biplot,
-# -- use standard biplots, make it look familary. 
+# -- use standard biplots, make it look familiar. 
 # -- tours show near by frames.
 # -- radial near by frames in selected dim. 
 
