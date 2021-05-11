@@ -1,13 +1,18 @@
 ---
-title: "Untitled"
+title: "animated pdf example"
 author: "Nick Spyrison"
 date: "5/10/2021"
 output: 
-  html_document:
+  #html_document:
   #pdf_document: default
   bookdown::pdf_document2:
+    toc: true
 header-includes: 
   - \usepackage{animate}
+editor_options: 
+  chunk_output_type: console
+# figures:
+#   dev: grDevices::png
 ---
 
 ```{r setup, include=FALSE}
@@ -17,40 +22,48 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r, fig.show='animate', interval=1/2}
-for (i in 1:2) {
-  pie(c(i %% 2, 6), col = c('red', 'yellow'), labels = NA)
+# pacman example
+
+```{r pacmanExample, animation.hook='gifski', fig.show='animate', interval=1/4}
+for (i in 1:3) {
+  pie(c(i %% 3, 6), col = c('red', 'yellow'), labels = NA)
 }
 ```
 
-```{r, fig.show='animate', interval=1/2}
+# tourr
+```{r Tourr, animation.hook='gifski', fig.show='animate', interval=1/4}
+require(tourr)
+if(interactive() == T)
+  ?save_history
+
+t1 <- save_history(flea[, 1:6], max = 4)
+animate_xy(flea[, 1:6], planned_tour(t1))
+message("why only 2 frames!?")
+```
+
+# gganimate 
+```{r gganimate, dev='jpeg', fig.show='animate', interval=.2}
 require(gganimate)
+message("doesn't seem to use `interval` chunk option")
 
-# anim <- ggplot(airquality, aes(Day, Temp, group = Month)) + 
-#   geom_line() + 
-#   transition_reveal(Month)
-# 
-# ## Not run: 
-# # Explicitly animate using default (same as just printing the animation)
-# animate(anim)
+ggplot(airquality, aes(Day, Temp, group = Month)) +
+  geom_line() +
+  transition_reveal(Month)
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+# spinifex render_gganimate 
+```{r spinifex}
+require(spinifex)
+message("doesn't seem to use `interval` chunk option")
+#?play_tour_path
+dat_std <- scale_sd(flea[, 1:6])
+clas <- flea$species
+bas <- basis_pca(dat_std)
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+## Not run:
+## Tour history from tourr::save_history
+g_path <- tourr::save_history(dat_std, tour_path = tourr::grand_tour(), max = 3)
 
-```{r cars}
-summary(cars)
+play_tour_path(tour_path = g_path,  data = dat_std, render_type = render_gganimate)
 ```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
