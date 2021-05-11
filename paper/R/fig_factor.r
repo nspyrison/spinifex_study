@@ -130,7 +130,7 @@ if(F)
 str(dat)
 str(clas)
 pca_obj <- prcomp(dat)
-pca_proj1_3 <- as.data.frame(cbind(pca_obj$x[, 1:3], clas))
+pca_proj1_3 <- as.data.frame(cbind(pca_obj$x[, 1:3], as.factor(clas)))
 
 gg_pca <- GGally::ggpairs(pca_proj1_3,
                           mapping = aes(color = clas, shape = clas),

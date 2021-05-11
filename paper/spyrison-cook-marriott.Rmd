@@ -140,11 +140,17 @@ Section \@ref(sec:background) discusses the visualization methods. Section \@ref
 
 Principal component analysis is a good baseline of comparison for linear projections because of its frequent and broad use across discipline. Principal component analysis (PCA) [@pearson_liii._1901] creates new components that are linear combinations of the original variables. The creation of these variables is ordered by decreasing variation which is orthogonally constrained to all previous components. While the full dimensionality is intact, the benefit comes from the ordered nature of the components. The first 2 or 3 components are typically used to approximate the variation multivariate data set, while the rest are discarded.
 
+```{r figFactorPca, echo = F, out.width = '40%',fig.cap = "TODO."}
+if(F)
+  file.edit("./paper/R/fig_factor.r")
+knitr::include_graphics("./figures/figFactor_pca.pdf")
+```
+
 
 ## Scatterplot matrix
 
 <!-- Not Scatterplot matrices, PCP, want mapped to position -->
-An extension to showing only a few components, would be show pairs of components as a scatterplot matrix[@chambers_graphical_1983], where permutations of pairs of the components are looked displayed on the upper or lower triangle of matrix. This is very dense way to illustrate the data, but can obscure important features, by giving a large battery of plots to view in one go. 
+An extension to showing only a few components, would be show pairs of components as a scatterplot matrix[@chambers_graphical_1983], where permutations of pairs of the components are looked displayed on the upper or lower triangle of matrix. This is very dense way to illustrate the data, but can obscure important features, by giving a large battery of plots to view in one go. Figure \@ref(fig:figFactorPca) shows the orthogonal pairs of the first 3 components as a scatterplot matrix.
 
 
 ## Parallel coordinates plot
@@ -160,6 +166,8 @@ A data visualization _tour_ uses time to animate a continuous changes of the pro
 ### Grand tours
 <!-- Grand tour -->
 In a grand tour[@asimov_grand_1985] the target bases are selected randomly. The grand tour is the first and most widely known tour. It will serve as an intermediate unit of comparison which has continuity of data points in nearby frames along with the radial tour, but lacks the user control enjoyed by PCA and radial tours. This lack of control makes grand tours more of a generalist exploratory tool theoretically wouldn't excel at tasks with a pointed goal in mind.
+
+
 
 
 ### Radial (manual) tours
@@ -180,7 +188,7 @@ To simplify the task and keep its duration realistic, we consider a variant of t
 
 warning("section 3.3. Factor application, contains a now missing reference to figFactor")
 ```
-<!-- \begin{landscape} --> 
+<!-- <!-- \begin{landscape} -->  -->
 <!-- ```{r figFactor, echo = F, out.width = '100%',fig.cap = "Example of the different visual factors. All use the same sort of biplot display to view linear projections of multivariate data. They differ in which bases are viewed which is influenced by the different factor inputs and whether or not are animated to convey the continuity of data points from 1 frame to the next."} -->
 <!-- if(F) -->
 <!--   file.edit("./paper/R/fig_factor.r") -->
@@ -190,7 +198,7 @@ warning("section 3.3. Factor application, contains a now missing reference to fi
 
 <!-- Figure \@ref(fig:figFactor) illustrates the different visualization factors, the control of biplot aesthetics, and where they differ. The leftmost column discusses their differences alongside 3 of their character bases, albeit it is more difficult to see the benefit of animation in print. -->
 
-The more recent implementation in the R \pkg{spinifex}[@spyrison_spinifex_2020], allows for implementation manual tours (and radial sub varariant). It is also compatible with tours made via \pkg{tourr} [@wickham_tourr_2011], and facilitates their exporting to to .gif or .html widget, with recent graphic packages. Now that we have a readily available means to produce various tours, we want to see how they fair against traditional discrete display commonly used with PCA.
+The more recent implementation in the R \pkg{spinifex}[@spyrison_spinifex_2020], allows for implementation manual tours (and radial sub varariant). It is also compatible with tours made via \pkg{tourr} [@wickham_tourr:_2011], and facilitates their exporting to to .gif or .html widget, with recent graphic packages. Now that we have a readily available means to produce various tours, we want to see how they fair against traditional discrete display commonly used with PCA.
 
 
 
