@@ -2,17 +2,15 @@
 title: "animated pdf example"
 author: "Nick Spyrison"
 date: "5/10/2021"
-output: 
+output:
   #html_document:
-  #pdf_document: default
-  bookdown::pdf_document2:
+  pdf_document:
+  #bookdown::pdf_document2:
     toc: true
 header-includes: 
   - \usepackage{animate}
 editor_options: 
   chunk_output_type: console
-# figures:
-#   dev: grDevices::png
 ---
 
 ```{r setup, include=FALSE}
@@ -22,6 +20,8 @@ knitr::opts_chunk$set(
 )
 ```
 
+Keep an eye on YAML header and chunk options.
+
 # pacman example
 
 ```{r pacmanExample, animation.hook='gifski', fig.show='animate', interval=1/4}
@@ -30,7 +30,7 @@ for (i in 1:3) {
 }
 ```
 
-# tourr
+# tourr -- only 2 frames
 ```{r Tourr, animation.hook='gifski', fig.show='animate', interval=1/4}
 require(tourr)
 if(interactive() == T)
@@ -42,9 +42,9 @@ message("why only 2 frames!?")
 ```
 
 # gganimate 
-```{r gganimate, dev='jpeg', fig.show='animate', interval=.2}
+```{r gganimate, fig.show='animate', interval=.2}
 require(gganimate)
-message("doesn't seem to use `interval` chunk option")
+message("doesn't seem applly `interval` and spacing from gganimate as well.")
 
 ggplot(airquality, aes(Day, Temp, group = Month)) +
   geom_line() +
@@ -53,9 +53,9 @@ ggplot(airquality, aes(Day, Temp, group = Month)) +
 
 
 # spinifex render_gganimate 
-```{r spinifex}
+```{r spinifex, fig.show='animate', interval=.2}
 require(spinifex)
-message("doesn't seem to use `interval` chunk option")
+message("only works with an implicit call, but not with animate(), difference with print.gganim() and knit_print.gganim()??")
 #?play_tour_path
 dat_std <- scale_sd(flea[, 1:6])
 clas <- flea$species
@@ -65,5 +65,20 @@ bas <- basis_pca(dat_std)
 ## Tour history from tourr::save_history
 g_path <- tourr::save_history(dat_std, tour_path = tourr::grand_tour(), max = 3)
 
-play_tour_path(tour_path = g_path,  data = dat_std, render_type = render_gganimate)
+## recreate play_tour_path(render_gganimate)
+gg <- play_tour_path(tour_path = g_path,  data = dat_std, render_type = render_)
+fps = 8L;rewind = FALSE;start_pause = 0.5;end_pause = 1L;
+gif_filename = NULL;gif_path = NULL;gganimate_args = list();
+gga <- gg + gganimate::transition_states(frame, transition_length = 0L)
+class(gga)
+?gganimate:::print.gganim
+
+# gganimate::animate(gga, fps = fps, 
+#                    rewind = rewind, start_pause = fps * start_pause, 
+#                    end_pause = fps * end_pause, #device = 'png'
+#                    device = "pdf"
+#)
+
+
+# # gganimate::animate(anim)
 ```
