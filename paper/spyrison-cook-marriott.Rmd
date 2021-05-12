@@ -174,39 +174,27 @@ A data visualization _tour_ uses time to animate a continuous changes of the pro
 In a grand tour[@asimov_grand_1985] the target bases are selected randomly. The grand tour is the first and most widely known tour. It will serve as an intermediate unit of comparison which has continuity of data points in nearby frames along with the radial tour, but lacks the user control enjoyed by PCA and radial tours. This lack of control makes grand tours more of a generalist exploratory tool theoretically wouldn't excel at tasks with a pointed goal in mind.
 
 
-```{r gganimate, fig.show='animate', interval=.2, eval=T}
-#R> ! LaTeX Error: Environment Shaded undefined.
-require(gganimate)
+```{r figFactorGrand, echo=F,fig.cap="TODO GRAND.", fig.show='animate',interval=.2, eval=T}
+require("gganimate")
 
-ggplot(datasets::airquality, aes(Day, Temp, group = Month)) +
-  geom_line() +
-  transition_reveal(Month)
+## Data
+.sim_fp <- "./data/EEV_p6_0_1_rep3.rda"
+load(.sim_fp, envir = globalenv()) ## Load object `EEV_p6_0_1_rep3`
+dat <- EEV_p6_0_1_rep3
+clas <- as.factor(attr(dat, "cluster"))
+
+## Tour path
+.tpath_fp <- "./data/tpath_p6.rda"
+load(.tpath_fp, envir = globalenv()) ## Loads object `tpath_p6`
+
+## Manual spinifex::play_tour_path(render_gganimate) call
+.gg <- play_tour_path(tour_path = tpath_p6, data = dat,
+                      render_type = render_, angle = .1,
+                      aes_args = list(color = clas, shape = clas),
+                      identity_args = list(size = 1, alpha = .7)
+)
+.gg + gganimate::transition_states(frame, transition_length = 0L)
 ```
-
-
-<!-- # ```{r figFactorGrand, echo=F,fig.cap="TODO GRAND.", fig.show='animate',interval=.2, eval=F} -->
-<!-- # if(F) -->
-<!-- #   file.edit("./paper/R/fig_factor.r") -->
-<!-- #  -->
-<!-- # # .sim_fp <- "./data/EEV_p6_0_1_rep3.rda" -->
-<!-- # # dir("./data/") -->
-<!-- # # file.exists(.sim_fp) -->
-<!-- # require("gganimate") -->
-<!-- #  -->
-<!-- # ## Data -->
-<!-- # .sim_fp <- "./data/EEV_p6_0_1_rep3.rda" -->
-<!-- # load(.sim_fp, envir = globalenv()) ## Load object `EEV_p6_0_1_rep3` -->
-<!-- # dat <- EEV_p6_0_1_rep3 -->
-<!-- # clas <- as.factor(attr(dat, "cluster")) -->
-<!-- #  -->
-<!-- # ## Tour path -->
-<!-- # .tpath_fp <- "./data/tpath_p6.rda" -->
-<!-- # load(.tpath_fp, envir = globalenv()) ## Loads object `tpath_p6` -->
-<!-- #  -->
-<!-- # ## Manual spinifex::play_tour_path(render_gganimate) call -->
-<!-- # .gg <- play_tour_path(tour_path = tpath_p6,  data = dat, render_type = render_) -->
-<!-- # .gg + gganimate::transition_states(frame, transition_length = 0L) -->
-<!-- # ``` -->
 
 
 ### Radial (manual) tours
@@ -218,9 +206,22 @@ The _manual_ tour [@cook_manual_1997] defines its basis path by manipulating the
 To simplify the task and keep its duration realistic, we consider a variant of the manual tour, called a _radial_ tour. In a radial tour, the selected variable is allowed to change its magnitude of contribution, but not its angle; it must move along the direction of its original contribution radius. The radial tour benefits from both continuity of the data alongside grand tours, but also allows for user to steer via choosing the variable to rotate.
 
 ```{r figFactorRadial, echo = F, out.width = '40%',fig.cap = "TODO RADIAL.", eval=F}
-if(F)
-  file.edit("./paper/R/fig_factor.r")
-## LOAD new grand content here, replicate spinifex animation here
+## Data
+.sim_fp <- "./data/EEV_p6_0_1_rep3.rda"
+load(.sim_fp, envir = globalenv()) ## Load object `EEV_p6_0_1_rep3`
+dat <- EEV_p6_0_1_rep3
+clas <- as.factor(attr(dat, "cluster"))
+
+## Tour path
+?manual_tour
+manual_tour(basis = bas, manip_var = 1, angle = .8)
+
+.gg <- play_tour_path(tour_path = tpath_p6,  data = dat, render_type = render_)
+.gg + gganimate::transition_states(frame, transition_length = 0L)
+
+## Manual spinifex::play_tour_path(render_gganimate) call
+.gg <- play_tour_path(tour_path = tpath_p6,  data = dat, render_type = render_)
+.gg + gganimate::transition_states(frame, transition_length = 0L)
 ```
 
 ```{r, eval=F}
