@@ -167,8 +167,13 @@ message("want a backwards compatible expmple here, where we use spinifex::manual
 bas_p6 <- tourr::orthonormalise(.u_circ_p6)
 mv <- 6
 mt <- manual_tour(bas_p6, mv, ang = .29)
-animate_xy(dat,
-           tour_path = planned_tour(mt),
-           col = clas
-)
+
+
+## recreate play_tour_path(render_gganimate)
+gg <- play_tour_path(tour_path = mt,  data = dat_std, render_type = render_)
+fps = 8L;rewind = FALSE;start_pause = 0.5;end_pause = 1L;
+gif_filename = NULL;gif_path = NULL;gganimate_args = list();
+gga <- gg + gganimate::transition_states(frame, transition_length = 0L)
+class(gga)
+?gganimate:::print.gganim
 #R> Error in is_orthonormal(Fa) : is.matrix(x) is not TRUE
