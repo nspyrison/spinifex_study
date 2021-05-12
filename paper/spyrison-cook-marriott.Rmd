@@ -143,11 +143,12 @@ Section \@ref(sec:background) discusses the visualization methods. Section \@ref
 
 Principal component analysis is a good baseline of comparison for linear projections because of its frequent and broad use across discipline. Principal component analysis (PCA) [@pearson_liii._1901] creates new components that are linear combinations of the original variables. The creation of these variables is ordered by decreasing variation which is orthogonally constrained to all previous components. While the full dimensionality is intact, the benefit comes from the ordered nature of the components. The first 2 or 3 components are typically used to approximate the variation multivariate data set, while the rest are discarded.
 
-<!-- # ```{r figFactorPca, echo = F, out.width = '40%',fig.cap = "TODO _PCA."} -->
-<!-- # if(F) -->
-<!-- #   file.edit("./paper/R/fig_factor.r") -->
-<!-- # knitr::include_graphics("./figures/figFactor_pca.pdf") -->
-<!-- # ``` -->
+```{r figFactorPca, echo = F, out.width = '40%',fig.cap = "TODO PCA."}
+if(F)
+  file.edit("./paper/R/fig_factor.r")
+
+knitr::include_graphics("./figures/figFactor_pca.png")
+```
 
 
 ## Scatterplot matrix
@@ -170,7 +171,7 @@ A data visualization _tour_ uses time to animate a continuous changes of the pro
 <!-- Grand tour -->
 In a grand tour[@asimov_grand_1985] the target bases are selected randomly. The grand tour is the first and most widely known tour. It will serve as an intermediate unit of comparison which has continuity of data points in nearby frames along with the radial tour, but lacks the user control enjoyed by PCA and radial tours. This lack of control makes grand tours more of a generalist exploratory tool theoretically wouldn't excel at tasks with a pointed goal in mind.
 
-<!-- # ```{r figFactorGrand, echo=F,out.width='40%',fig.cap="TODO _GRAND.", fig.show='animate',interval=.2} -->
+<!-- # ```{r figFactorGrand, echo=F,out.width='40%',fig.cap="TODO GRAND.", fig.show='animate',interval=.2} -->
 <!-- # if(F) -->
 <!-- #   file.edit("./paper/R/fig_factor.r") -->
 <!-- #  -->
@@ -200,7 +201,7 @@ The _manual_ tour [@cook_manual_1997] defines its basis path by manipulating the
 <!-- radial tour variant -->
 To simplify the task and keep its duration realistic, we consider a variant of the manual tour, called a _radial_ tour. In a radial tour, the selected variable is allowed to change its magnitude of contribution, but not its angle; it must move along the direction of its original contribution radius. The radial tour benefits from both continuity of the data alongside grand tours, but also allows for user to steer via choosing the variable to rotate.
 
-```{r figFactorRadial, echo = F, out.width = '40%',fig.cap = "TODO _RADIAL.", eval=F}
+```{r figFactorRadial, echo = F, out.width = '40%',fig.cap = "TODO RADIAL.", eval=F}
 if(F)
   file.edit("./paper/R/fig_factor.r")
 ## LOAD new grand content here, replicate spinifex animation here
@@ -216,7 +217,7 @@ if(F)
 
 ### The following was original figFactor
 ```
-<!-- <!-- \begin{landscape} -->  -->
+<!-- <!-- \begin{landscape} --> 
 <!-- ```{r figFactor, echo = F, out.width = '100%',fig.cap = "Example of the different visual factors. All use the same sort of biplot display to view linear projections of multivariate data. They differ in which bases are viewed which is influenced by the different factor inputs and whether or not are animated to convey the continuity of data points from 1 frame to the next."} -->
 <!-- if(F) -->
 <!--   file.edit("./paper/R/fig_factor.r") -->
@@ -229,7 +230,6 @@ if(F)
 The more recent implementation in the R \pkg{spinifex}[@spyrison_spinifex_2020], allows for implementation manual tours (and radial sub varariant). It is also compatible with tours made via \pkg{tourr} [@wickham_tourr:_2011], and facilitates their exporting to to .gif or .html widget, with recent graphic packages. Now that we have a readily available means to produce various tours, we want to see how they fair against traditional discrete display commonly used with PCA.
 
 
-
 # User study {#sec:userstudy}
 
 ## Objective {#sec:objective}
@@ -239,9 +239,7 @@ From our experience and application of linear projections we have some expectati
 We measure the accuracy and speed over 4 dimensions of block parameterizations. The null hypotheses can be stated as:
 
 <!-- Hypothesis: null and alternative -->
-1, Accuracy) $\\$
-$~~~~~~H_0: \text{visualization factor does not impact task } \textit{accuracy}. \\$
-2, Speed) $\\$
+$~~~~~H_0: \text{visualization factor does not impact task } \textit{accuracy}. \\$
 $~~~~~~H_0: \text{visualization factor does not impact task } \textit{speed}. \\$
 
 <!-- Rational for standards of comparison -->

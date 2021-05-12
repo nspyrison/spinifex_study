@@ -65,20 +65,8 @@ bas <- basis_pca(dat_std)
 ## Tour history from tourr::save_history
 g_path <- tourr::save_history(dat_std, tour_path = tourr::grand_tour(), max = 3)
 
-## recreate play_tour_path(render_gganimate)
+## Recreate play_tour_path(render_gganimate)
 gg <- play_tour_path(tour_path = g_path,  data = dat_std, render_type = render_)
-fps = 8L;rewind = FALSE;start_pause = 0.5;end_pause = 1L;
-gif_filename = NULL;gif_path = NULL;gganimate_args = list();
 gga <- gg + gganimate::transition_states(frame, transition_length = 0L)
-class(gga)
-?gganimate:::print.gganim
-
-# gganimate::animate(gga, fps = fps, 
-#                    rewind = rewind, start_pause = fps * start_pause, 
-#                    end_pause = fps * end_pause, #device = 'png'
-#                    device = "pdf"
-#)
-
-
-# # gganimate::animate(anim)
+gga #gganimate::knit_print.gganim(gga)
 ```
