@@ -7,10 +7,12 @@ output:
   #pdf_document:
   bookdown::pdf_document2:
     toc: true
-header-includes: 
+header-includes:
   - \usepackage{animate}
 editor_options: 
   chunk_output_type: console
+# preamble: > ## LaTeX preamble, load packages
+#   \usepackage{animate}
 ---
 
 ```{r setup, include=FALSE}
@@ -20,7 +22,18 @@ knitr::opts_chunk$set(
 )
 ```
 
+# Setup
+
 Keep an eye on YAML header and chunk options.
+
+1) need YAML must load tex package `animate`, _ie._  header-includes:  - \\usepackage{animate}
+2) chunk option of the animation wants:  fig.show='animate', interval=1/fps and sometimes animation.hook='gifski'
+3) For `{rticles}` templates and other local templates, you may need to the following to the `template.tex` preamble:
+```{r, eval=F,echo=T}
+$if(highlighting-macros)$
+$highlighting-macros$
+$endif$
+```
 
 # Base
 
@@ -44,7 +57,7 @@ message("why only 2 frames!?")
 # gganimate
 ```{r gganimate, fig.show='animate', interval=.2}
 require(gganimate)
-message("doesn't seem applly `interval` and spacing from gganimate as well.")
+message("Seems to produce many intermediate frames, `interval` may not be be strightforard with gganimate")
 
 ggplot(datasets::airquality, aes(Day, Temp, group = Month)) +
   geom_line() +

@@ -38,6 +38,8 @@ preamble: > ## LaTeX preamble, load packages
   \usepackage{thumbpdf}
   \usepackage{bm}
   \usepackage{xcolor}
+header-includes:
+  - \usepackage{animate}
 keywords: 
   formatted: [multivariate data, exploratory data analysis, grand tour, manual tour, dimension reduction, linear projections, linear embeddings, "\\proglang{R}"]
   plain:     [multivariate data, exploratory data analysis, grand tour, manual tour, dimension reduction, linear projections, linear embeddings, R]
@@ -52,8 +54,10 @@ require("knitr")
 require("kableExtra")
 require("magrittr")
 ## PDF animations inline:
-require("spinifex")
 require("tourr")
+require("spinifex")
+require("gganimate")
+## chunk options
 knitr::opts_chunk$set(
   fig.align = "center",
   echo = FALSE,
@@ -64,9 +68,7 @@ knitr::opts_chunk$set(
   cache = FALSE,
   cache.lazy = FALSE
 )
-
-## Yihui hack for fixing an xcolor warning on window.
-#### not working
+## Yihui hack for fixing an xcolor warning on window. --- not working
 # options(kableExtra.latex.load_packages = FALSE)
 # knit_hooks$set(document = function(x) {
 #   sub('\\usepackage[]{color}', '\\usepackage{xcolor}', x, fixed = TRUE)
@@ -75,9 +77,9 @@ knitr::opts_chunk$set(
 
 <!-- Example figure -->
 ```{r EXCLUDEDfigExamp, echo = F, out.width = '100%',fig.cap = "Example case. Person 'A' is assigned to group 2, where they will use factor 2 (grand tour) for the first period. They perform 3 block difficulties of task 1 on simulations of increasing difficulty. Then 3 block difficulties of task 2 on unique simulations sampled from the same distributions of increasing difficulty. After this, they proceed to period 2, where they are use factor 3 (manual tour) to perform 3 block difficulties of each task. Lastly, in the third period, they use factor 1 (PCA) to perform the tasks.", eval = F}
-knitr::include_graphics("./figures/imageName.pdf") ## Note relative to the folder that the .rmd is in not the project dir()
+knitr::include_graphics("./figures/imageName.pdf") ## Note: fp relative to the folder that the .rmd is in not the project dir()
 ```
-<!-- Figure \@ref(fig:EXCLUDEDfigExamp) is an example of intext referencing the example figure. -->
+<!-- Figure \@ref(fig:EXCLUDEDfigExamp) is an example of inline text referencing the example figure. -->
 
 
 # Introduction
@@ -143,11 +145,11 @@ Section \@ref(sec:background) discusses the visualization methods. Section \@ref
 
 Principal component analysis is a good baseline of comparison for linear projections because of its frequent and broad use across discipline. Principal component analysis (PCA) [@pearson_liii._1901] creates new components that are linear combinations of the original variables. The creation of these variables is ordered by decreasing variation which is orthogonally constrained to all previous components. While the full dimensionality is intact, the benefit comes from the ordered nature of the components. The first 2 or 3 components are typically used to approximate the variation multivariate data set, while the rest are discarded.
 
-```{r figFactorPca, echo = F, out.width = '40%',fig.cap = "TODO PCA."}
+```{r figFactorPca, echo = F, out.width = '40%', fig.cap = "TODO PCA."}
 if(F)
   file.edit("./paper/R/fig_factor.r")
 
-knitr::include_graphics("./figures/figFactor_pca.png")
+knitr::include_graphics("./figures/figFactor_pca.pdf")
 ```
 
 
@@ -171,25 +173,39 @@ A data visualization _tour_ uses time to animate a continuous changes of the pro
 <!-- Grand tour -->
 In a grand tour[@asimov_grand_1985] the target bases are selected randomly. The grand tour is the first and most widely known tour. It will serve as an intermediate unit of comparison which has continuity of data points in nearby frames along with the radial tour, but lacks the user control enjoyed by PCA and radial tours. This lack of control makes grand tours more of a generalist exploratory tool theoretically wouldn't excel at tasks with a pointed goal in mind.
 
-<!-- # ```{r figFactorGrand, echo=F,out.width='40%',fig.cap="TODO GRAND.", fig.show='animate',interval=.2} -->
+
+```{r gganimate, fig.show='animate', interval=.2, eval=T}
+#R> ! LaTeX Error: Environment Shaded undefined.
+require(gganimate)
+
+ggplot(datasets::airquality, aes(Day, Temp, group = Month)) +
+  geom_line() +
+  transition_reveal(Month)
+```
+
+
+<!-- # ```{r figFactorGrand, echo=F,fig.cap="TODO GRAND.", fig.show='animate',interval=.2, eval=F} -->
 <!-- # if(F) -->
 <!-- #   file.edit("./paper/R/fig_factor.r") -->
 <!-- #  -->
-<!-- # # ls() -->
-<!-- # #ls("./data") -->
-<!-- # # ## Setup data -->
-<!-- # # .sim_fp <- "data/EEV_p6_0_1_rep3.rda" -->
-<!-- # # load(.sim_fp, envir = globalenv()) ## Load object `EEV_p6_0_1_rep3` -->
-<!-- # # dat <- EEV_p6_0_1_rep3 -->
-<!-- # # clas <- as.factor(attr(dat, "cluster")) -->
-<!-- # #  -->
-<!-- # # ## Setup tourpath -->
-<!-- # # .tpath_fp <- "apps_supplementary/data/tpath_p6.rda" -->
-<!-- # # load(.tpath_fp, envir = globalenv()) ## Loads object `tpath_p6` -->
-<!-- # #  -->
-<!-- # # ## Manual spinifex::play_tour_path(render_gganimate) call -->
-<!-- # # .gg <- play_tour_path(tour_path = .tpath_fp,  data = dat, render_type = render_) -->
-<!-- # # .gg + gganimate::transition_states(frame, transition_length = 0L) -->
+<!-- # # .sim_fp <- "./data/EEV_p6_0_1_rep3.rda" -->
+<!-- # # dir("./data/") -->
+<!-- # # file.exists(.sim_fp) -->
+<!-- # require("gganimate") -->
+<!-- #  -->
+<!-- # ## Data -->
+<!-- # .sim_fp <- "./data/EEV_p6_0_1_rep3.rda" -->
+<!-- # load(.sim_fp, envir = globalenv()) ## Load object `EEV_p6_0_1_rep3` -->
+<!-- # dat <- EEV_p6_0_1_rep3 -->
+<!-- # clas <- as.factor(attr(dat, "cluster")) -->
+<!-- #  -->
+<!-- # ## Tour path -->
+<!-- # .tpath_fp <- "./data/tpath_p6.rda" -->
+<!-- # load(.tpath_fp, envir = globalenv()) ## Loads object `tpath_p6` -->
+<!-- #  -->
+<!-- # ## Manual spinifex::play_tour_path(render_gganimate) call -->
+<!-- # .gg <- play_tour_path(tour_path = tpath_p6,  data = dat, render_type = render_) -->
+<!-- # .gg + gganimate::transition_states(frame, transition_length = 0L) -->
 <!-- # ``` -->
 
 
