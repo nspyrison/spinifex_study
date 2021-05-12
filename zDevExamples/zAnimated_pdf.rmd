@@ -11,8 +11,6 @@ header-includes:
   - \usepackage{animate}
 editor_options: 
   chunk_output_type: console
-# preamble: > ## LaTeX preamble, load packages
-#   \usepackage{animate}
 ---
 
 ```{r setup, include=FALSE}
@@ -22,11 +20,11 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Setup
+# Setup and gotchas
 
 Keep an eye on YAML header and chunk options.
 
-1) need YAML must load tex package `animate`, _ie._  header-includes:  - \\usepackage{animate}
+1) need YAML must load tex package `animate`, _ie._  `header-includes:  - \usepackage{animate}`
 2) chunk option of the animation wants:  fig.show='animate', interval=1/fps and sometimes animation.hook='gifski'
 3) For `{rticles}` templates and other local templates, you may need to the following to the `template.tex` preamble:
 ```{r, eval=F,echo=T}

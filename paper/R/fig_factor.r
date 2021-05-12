@@ -153,11 +153,6 @@ tpath_fp <- "./apps_supplementary/data/tpath_p6.rda"
 load(tpath_fp, envir = globalenv()) ## loads an obj, tpath_p6
 str(tpath_p6)
 
-## call this in r chunck with options
-animate_xy(dat,
-           tour_path = planned_tour(tpath_p6),
-           col = clas
-)
 
 
 ### radial ----
@@ -165,15 +160,22 @@ message("want a backwards compatible expmple here, where we use spinifex::manual
 .ang <- seq(0, pi, length.out = 7)[-7] ## p + 1
 .u_circ_p6 <- as.matrix(data.frame(x = sin(.ang), y = cos(.ang)))
 bas_p6 <- tourr::orthonormalise(.u_circ_p6)
-mv <- 6
+mv <- 1
 mt <- manual_tour(bas_p6, mv, ang = .29)
 
 
-## recreate play_tour_path(render_gganimate)
-gg <- play_tour_path(tour_path = mt,  data = dat_std, render_type = render_)
-fps = 8L;rewind = FALSE;start_pause = 0.5;end_pause = 1L;
-gif_filename = NULL;gif_path = NULL;gganimate_args = list();
-gga <- gg + gganimate::transition_states(frame, transition_length = 0L)
-class(gga)
-?gganimate:::print.gganim
-#R> Error in is_orthonormal(Fa) : is.matrix(x) is not TRUE
+
+## Data
+.sim_fp <- "./paper/data/EEV_p6_0_1_rep3.rda"
+load(.sim_fp, envir = globalenv()) ## Load object `EEV_p6_0_1_rep3`
+dat <- EEV_p6_0_1_rep3
+clas <- as.factor(attr(dat, "cluster"))
+bas <- basis_half_circle(dat)
+
+## Manual play_manual_tour(render_gganimate) call
+.gg <- play_manual_tour(bas, data = dat, manip_var = 1L,
+                        render_type = render_, angle = .1,
+                        aes_args = list(color = clas, shape = clas),
+                        identity_args = list(size = 1, alpha = .7)
+)
+.gg + gganimate::transition_states(frame, transition_length = 0L)
