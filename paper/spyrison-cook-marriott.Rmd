@@ -30,22 +30,15 @@ author:
       | Monash University
 abstract: |
   Principal component analysis and other eigenvalue decomposition enjoy wide when it comes to visualizing multivariate spaces. The grand tour adds the continuity of near-by linear projections while moving towards a randomly selected basis. The radial tours keep this continuity of projection space while offering a means of controlling this animation. We perform a between-participant user study evaluating these biplots of the above methods. We measure accuracy and speed for a task of supervised clusters where participants indicate which variables contain the separation between two target clusters. Prolific.co is used to crowdsourced N=108 participants across 648 task evaluations. We vary across 3 dimensions of block parameterizations: location, shape, and data dimensionality. In summary, we find that use of radial tour tends to increase accuracy compared with the alternatives. This increase is relatively large compared with the effect from block dimension, though relatively small compared to the random effect of the participant. The use of the grand tour decreases the time takenm, which is also of modest size compared with the effect of the participant. Participants subjectively prefer to use the radial tour for this task.
-preamble: > ## LaTeX preamble, load packages
-  \usepackage{amsmath}
-  \usepackage{graphicx}
-  \usepackage{pdflscape}
-  \usepackage{lmodern}
-  \usepackage{thumbpdf}
-  \usepackage{bm}
-  \usepackage{animate}
-  \PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}
-  \usepackage[hyphens]{url}
+##preamble: > ## Moved to /template/jdsssv_template.tex
 keywords:
   formatted: [multivariate data, exploratory data analysis, grand tour, manual tour, dimension reduction, linear projections, linear embeddings, "\\proglang{R}"]
   plain:     [multivariate data, exploratory data analysis, grand tour, manual tour, dimension reduction, linear projections, linear embeddings, R]
 bibliography: spyrison-cook-marriott.bib
 editor_options:
   chunk_output_type: console
+urlcolor: blue
+linkcolor: red
 ---
 \bibliography{spyrison-cook-marriott}
 
@@ -65,8 +58,8 @@ knitr::opts_chunk$set(
   message = FALSE,
   warning = FALSE,
   error = FALSE,
-  cache = TRUE,
-  cache.lazy = TRUE
+  cache = FALSE,
+  cache.lazy = FALSE
 )
 ```
 <!-- Example figure -->
@@ -168,7 +161,7 @@ A data visualization _tour_ uses time to animate a continuous changes of the pro
 In a grand tour[@asimov_grand_1985] the target bases are selected randomly. The grand tour is the first and most widely known tour. It will serve as an intermediate unit of comparison which has continuity of data points in nearby frames along with the radial tour, but lacks the user control enjoyed by PCA and radial tours. This lack of control makes grand tours more of a generalist exploratory tool theoretically wouldn't excel at tasks with a pointed goal in mind.
 
 
-```{r figFactorGrand,echo=F,fig.show='animate',interval=.2,results=F,fig.height=3, fig.cap="Animation of grand tour, a near continuous change over time as the projection basis approaches the next target basis through orthonormal interpolation. In the grand tour frames are selected randomly. Animating small changes in the basis conveys more information than discrete prjections alone. For instance we can better see how and when the sturcture of the differnt clusters separate. The animation is viewable on some pdf viewers including Adobe Acrobat Reader."}
+```{r figFactorGrand,echo=F,fig.show='animate',interval=.2,results=F,fig.height=4, fig.cap="Animation of grand tour, a near continuous change over time as the projection basis approaches the next target basis through orthonormal interpolation. In the grand tour frames are selected randomly. Animating small changes in the basis conveys more information than discrete prjections alone. For instance we can better see how and when the sturcture of the differnt clusters separate. The animation is viewable on some pdf viewers including Adobe Acrobat Reader."}
 require("gganimate")
 require("spinifex")
 
@@ -187,7 +180,7 @@ load(.tpath_fp, envir = globalenv()) ## Loads object `tpath_p6`
                       render_type = render_, 
                       angle = .1,  axes = "left",
                       aes_args = list(color = clas, shape = clas),
-                      identity_args = list(size = 1, alpha = .7),
+                      identity_args = list(size = 1.5, alpha = .7),
                       ggproto = list(theme_spinifex(), 
                                      theme(legend.position = "none"))
 )
@@ -203,7 +196,7 @@ The _manual_ tour [@cook_manual_1997] defines its basis path by manipulating the
 <!-- radial tour variant -->
 To simplify the task and keep its duration realistic, we consider a variant of the manual tour, called a _radial_ tour. In a radial tour, the selected variable is allowed to change its magnitude of contribution, but not its angle; it must move along the direction of its original contribution radius. The radial tour benefits from both continuity of the data alongside grand tours, but also allows for user to steer via choosing the variable to rotate.
 
-```{r figFactorRadial,echo=F,fig.show='animate',interval=.1,eval=T,fig.height=3, fig.cap="Animation of radial, manual tour. Instead of the target bases being selected at random, they instead vary the contribution of a selected variable. In this case variable 1 is rotated fully into and out of the projection plane. The animation is viewable on some pdf viewers including Adobe Acrobat Reader."}
+```{r figFactorRadial,echo=F,fig.show='animate',interval=.1,eval=T,fig.height=4, fig.cap="Animation of radial, manual tour. Instead of the target bases being selected at random, they instead vary the contribution of a selected variable. In this case variable 1 is rotated fully into and out of the projection plane. The animation is viewable on some pdf viewers including Adobe Acrobat Reader."}
 ## Interval wants to be half that of the grand tour, has duplicate frames despite the manual tour df's not having frames.
 
 ## Data
@@ -218,7 +211,7 @@ bas <- basis_half_circle(dat)
                         render_type = render_,
                         angle = .2, axes = "left",
                         aes_args = list(color = clas, shape = clas),
-                        identity_args = list(size = 1, alpha = .7),
+                        identity_args = list(size = 1.5, alpha = .7),
                         ggproto = list(theme_spinifex(),
                                        theme(legend.position = "none"))
 )
@@ -420,7 +413,7 @@ From pilot studies through a sample of convenience (consisting of information te
 
 Data was recorded by a \pkg{shiny} application and was written to a Google Sheet at the completion of each study period. Time is measured as the CPU time of the server. This could be made slightly more accurate by calculating the difference of system time at these points. Because the frequency of the participants from prolific was more then the server would handle, participants were manually accepted one or two at a time. We collected participants till we had 3 even evaluations. The processing steps were fairly minimal after formatting to tidy format and decoding values to a more human-readable state. After formatting, a flag is added to indicate if the survey had data from all 3 periods. We remove all partial studies and keep only the last 3 complete studies within each block parameterization, the studies which should have experienced the least adverse network conditions. This brings us to the 108 studies described in the paper, from which models and aggregation tables were built. The post-study surveys were similarly decoded to human-readable tidy format and then filtered to include only those 84 surveys that were associated with the final 108 studies. 
 
-The code, response files, their analyses, and the study application are publicly available at on GitHub [github.com/nspyrison/spinifex_study](https://github.com/nspyrison/spinifex_study).
+The code, response files, their analyses, and the study application are publicly available at on GitHub \url{https://github.com/nspyrison/spinifex_study}.
 
 
 # Results {#sec:results}
@@ -596,10 +589,9 @@ spinifex::run_app("primary")
 
 # Acknowledgments {#sec:acknowledgments}
 
-This research was supported by an Australian Government Research Training Program (RTP) Scholarship. This article was created in \proglang{R} [@r_core_team_r:_2020] and \pkg{rmarkdown} [@xie_r_2018]. Visuals were prepared with \pkg{spinifex}. All packages used are available from the Comprehensive \proglang{R} Archive Network (CRAN) at \url{https://CRAN.R-project.org/}. The source files for this article, application, data, and analysis can be found at [github.com/nspyrison/spinifex_study/](https://github.com/nspyrison/spinifex_study/). The source code for the \pkg{spinifex} package and accompanying shiny application can be found at [github.com/nspyrison/spinifex/](https://github.com/nspyrison/spinifex/).
+This research was supported by an Australian Government Research Training Program (RTP) Scholarship. This article was created in \proglang{R} [@r_core_team_r:_2020] and \pkg{rmarkdown} [@xie_r_2018]. Visuals were prepared with \pkg{spinifex}. All packages used are available from the Comprehensive \proglang{R} Archive Network (CRAN) at \url{https://CRAN.R-project.org/}. The source files for this article, application, data, and analysis can be found at \url{https://github.com/nspyrison/spinifex_study/}. The source code for the \pkg{spinifex} package and accompanying shiny application can be found at \url{https://github.com/nspyrison/spinifex/}.
 
-If you are looking for a vignette to reproduce animations in .gif, I have produced an a reproducible example here:
-[https://github.com/nspyrison/spinifex/animated_pdf.rmd](https://github.com/nspyrison/spinifex_study/blob/master/zDevExamples/zAnimated_pdf.rmd).
+If you are looking for a vignette to reproduce animations in for a pdf document from R with base or \pkg{gganimate} graphics, see the reproducible example: \url{https://github.com/nspyrison/spinifex_study/blob/master/zDevExamples/animated_pdf.rmd}.
 
 # Bibliography {#sec:bib}
 

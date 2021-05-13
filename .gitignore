@@ -21,6 +21,6 @@ output_SimDifficulty/
 /paper/spyrison-cook-marriott.out
 /paper/spyrison-cook-marriott.toc
 
-/zDevExamples/zAnimated_pdf_files/figure-latex/*
-/zDevExamples/zAnimated_pdf_files/*
+/zDevExamples/animated_pdf_files/figure-latex/*
+/zDevExamples/animated_pdf_files/*
 
