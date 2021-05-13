@@ -37,10 +37,10 @@ preamble: > ## LaTeX preamble, load packages
   \usepackage{lmodern}
   \usepackage{thumbpdf}
   \usepackage{bm}
-  \usepackage{xcolor}
-header-includes:
-  - \usepackage{animate}
-keywords: 
+  \usepackage{animate}
+  \PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}
+  \usepackage[hyphens]{url}
+keywords:
   formatted: [multivariate data, exploratory data analysis, grand tour, manual tour, dimension reduction, linear projections, linear embeddings, "\\proglang{R}"]
   plain:     [multivariate data, exploratory data analysis, grand tour, manual tour, dimension reduction, linear projections, linear embeddings, R]
 bibliography: spyrison-cook-marriott.bib
@@ -68,13 +68,7 @@ knitr::opts_chunk$set(
   cache = TRUE,
   cache.lazy = TRUE
 )
-## Yihui hack for fixing an xcolor warning on window. --- not working
-# options(kableExtra.latex.load_packages = FALSE)
-# knit_hooks$set(document = function(x) {
-#   sub('\\usepackage[]{color}', '\\usepackage{xcolor}', x, fixed = TRUE)
-# })
 ```
-
 <!-- Example figure -->
 ```{r EXCLUDEDfigExamp, echo = F, out.width = '100%',fig.cap = "Example case. Person 'A' is assigned to group 2, where they will use factor 2 (grand tour) for the first period. They perform 3 block difficulties of task 1 on simulations of increasing difficulty. Then 3 block difficulties of task 2 on unique simulations sampled from the same distributions of increasing difficulty. After this, they proceed to period 2, where they are use factor 3 (manual tour) to perform 3 block difficulties of each task. Lastly, in the third period, they use factor 1 (PCA) to perform the tasks.", eval = F}
 knitr::include_graphics("./figures/imageName.pdf") ## Note: fp relative to the folder that the .rmd is in not the project dir()
@@ -174,7 +168,7 @@ A data visualization _tour_ uses time to animate a continuous changes of the pro
 In a grand tour[@asimov_grand_1985] the target bases are selected randomly. The grand tour is the first and most widely known tour. It will serve as an intermediate unit of comparison which has continuity of data points in nearby frames along with the radial tour, but lacks the user control enjoyed by PCA and radial tours. This lack of control makes grand tours more of a generalist exploratory tool theoretically wouldn't excel at tasks with a pointed goal in mind.
 
 
-```{r figFactorGrand, echo=F, fig.cap="TODO GRAND.", fig.show='animate',interval=.2, results=F}
+```{r figFactorGrand,echo=F,fig.show='animate',interval=.2,results=F,fig.height=3, fig.cap="Animation of grand tour, a near continuous change over time as the projection basis approaches the next target basis through orthonormal interpolation. In the grand tour frames are selected randomly. Animating small changes in the basis conveys more information than discrete prjections alone. For instance we can better see how and when the sturcture of the differnt clusters separate. The animation is viewable on some pdf viewers including Adobe Acrobat Reader."}
 require("gganimate")
 require("spinifex")
 
@@ -190,7 +184,8 @@ load(.tpath_fp, envir = globalenv()) ## Loads object `tpath_p6`
 
 ## Manual spinifex::play_tour_path(render_gganimate) call
 .gg <- play_tour_path(tour_path = tpath_p6, data = dat,
-                      render_type = render_, angle = .1,
+                      render_type = render_, 
+                      angle = .1,  axes = "left",
                       aes_args = list(color = clas, shape = clas),
                       identity_args = list(size = 1, alpha = .7),
                       ggproto = list(theme_spinifex(), 
@@ -208,7 +203,9 @@ The _manual_ tour [@cook_manual_1997] defines its basis path by manipulating the
 <!-- radial tour variant -->
 To simplify the task and keep its duration realistic, we consider a variant of the manual tour, called a _radial_ tour. In a radial tour, the selected variable is allowed to change its magnitude of contribution, but not its angle; it must move along the direction of its original contribution radius. The radial tour benefits from both continuity of the data alongside grand tours, but also allows for user to steer via choosing the variable to rotate.
 
-```{r figFactorRadial, echo = F,fig.cap = "TODO RADIAL.", fig.show='animate',interval=.2, eval=T}
+```{r figFactorRadial,echo=F,fig.show='animate',interval=.1,eval=T,fig.height=3, fig.cap="Animation of radial, manual tour. Instead of the target bases being selected at random, they instead vary the contribution of a selected variable. In this case variable 1 is rotated fully into and out of the projection plane. The animation is viewable on some pdf viewers including Adobe Acrobat Reader."}
+## Interval wants to be half that of the grand tour, has duplicate frames despite the manual tour df's not having frames.
+
 ## Data
 .sim_fp <- "./data/EEV_p6_0_1_rep3.rda"
 load(.sim_fp, envir = globalenv()) ## Load object `EEV_p6_0_1_rep3`
@@ -217,13 +214,15 @@ clas <- as.factor(attr(dat, "cluster"))
 bas <- basis_half_circle(dat)
 
 ## Manual play_manual_tour(render_gganimate) call
-.gg <- play_manual_tour(bas, data = dat, manip_var = 1L,
-                        render_type = render_, angle = .2,
+.gg <- play_manual_tour(bas, data = dat, manip_var = 1L, manip_col = "blue",
+                        render_type = render_,
+                        angle = .2, axes = "left",
                         aes_args = list(color = clas, shape = clas),
                         identity_args = list(size = 1, alpha = .7),
-                        ggproto = list(theme_spinifex(), 
+                        ggproto = list(theme_spinifex(),
                                        theme(legend.position = "none"))
 )
+
 .gg + gganimate::transition_states(frame, transition_length = 0L)
 ```
 
@@ -444,7 +443,7 @@ In building a set of models to test we include all single term models, a model w
 <!-- 1) Eval parameters -->
 $$
 \begin{array}{ll}
-\textbf{Fixed effects:}          &\textbf{Expanded Mode:} \\
+\textbf{Fixed effects:}          &\textbf{Model:} \\
 \alpha                           &\widehat{marks} = \mu + \alpha_i + \textbf{Z} + \textbf{W} + \epsilon \\
 \alpha + \beta + \gamma + \delta &\widehat{marks} = \mu + \alpha_i + \beta_j + \gamma_k + \delta_l + \textbf{Z} + \textbf{W} + \epsilon \\
 \alpha * \beta + \gamma + \delta &\widehat{marks} = \mu + \alpha_i * \beta_j + \textbf{Z} + \textbf{W} + \epsilon \\
@@ -598,6 +597,9 @@ spinifex::run_app("primary")
 # Acknowledgments {#sec:acknowledgments}
 
 This research was supported by an Australian Government Research Training Program (RTP) Scholarship. This article was created in \proglang{R} [@r_core_team_r:_2020] and \pkg{rmarkdown} [@xie_r_2018]. Visuals were prepared with \pkg{spinifex}. All packages used are available from the Comprehensive \proglang{R} Archive Network (CRAN) at \url{https://CRAN.R-project.org/}. The source files for this article, application, data, and analysis can be found at [github.com/nspyrison/spinifex_study/](https://github.com/nspyrison/spinifex_study/). The source code for the \pkg{spinifex} package and accompanying shiny application can be found at [github.com/nspyrison/spinifex/](https://github.com/nspyrison/spinifex/).
+
+If you are looking for a vignette to reproduce animations in .gif, I have produced an a reproducible example here:
+[https://github.com/nspyrison/spinifex/animated_pdf.rmd](https://github.com/nspyrison/spinifex_study/blob/master/zDevExamples/zAnimated_pdf.rmd).
 
 # Bibliography {#sec:bib}
 
