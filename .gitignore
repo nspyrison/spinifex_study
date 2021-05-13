@@ -3,24 +3,24 @@
 .RData
 .Ruserdata
 .httr-oauth
-output_sim_clSep/
-output_SimDifficulty/
-**/*_cache/
-**/*_files/figure-latex/
+output_sim_clSep/*
+output_SimDifficulty/*
+**/*_cache/*
+**/*_files/figure-latex/*
 **/*__packages
-**figure-latex/
+**figure-latex/*
 .secrets
 
-paper/spyrison-cook-marriott_cache/latex/
-paper/spyrison-cook-marriott_cache/
-paper/spyrison-cook-marriott_files/figure-latex/
-paper/spyrison-cook-marriott_files/
-paper/spyrison-cook-marriott.log
-paper/spyrison-cook-marriott.tex
-paper/spyrison-cook-marriott.aux
-paper/spyrison-cook-marriott.out
-paper/spyrison-cook-marriott.toc
+/paper/spyrison-cook-marriott_cache/latex/
+/paper/spyrison-cook-marriott_cache/
+/paper/spyrison-cook-marriott_files/figure-latex/
+/paper/spyrison-cook-marriott_files/
+/paper/spyrison-cook-marriott.log
+/paper/spyrison-cook-marriott.tex
+/paper/spyrison-cook-marriott.aux
+/paper/spyrison-cook-marriott.out
+/paper/spyrison-cook-marriott.toc
 
-zDevExamples/zAnimated_pdf_files/figure-latex/
-zDevExamples/zAnimated_pdf_files/
+/zDevExamples/zAnimated_pdf_files/figure-latex/*
+/zDevExamples/zAnimated_pdf_files/*
 
