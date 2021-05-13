@@ -41,7 +41,6 @@ urlcolor: blue
 linkcolor: red
 ---
 \bibliography{spyrison-cook-marriott}
-
 ```{r setup_paper, include=FALSE}
 require("knitr")
 require("kableExtra")
@@ -62,12 +61,6 @@ knitr::opts_chunk$set(
   cache.lazy = FALSE
 )
 ```
-<!-- Example figure -->
-```{r EXCLUDEDfigExamp, echo = F, out.width = '100%',fig.cap = "Example case. Person 'A' is assigned to group 2, where they will use factor 2 (grand tour) for the first period. They perform 3 block difficulties of task 1 on simulations of increasing difficulty. Then 3 block difficulties of task 2 on unique simulations sampled from the same distributions of increasing difficulty. After this, they proceed to period 2, where they are use factor 3 (manual tour) to perform 3 block difficulties of each task. Lastly, in the third period, they use factor 1 (PCA) to perform the tasks.", eval = F}
-knitr::include_graphics("./figures/imageName.pdf") ## Note: fp relative to the folder that the .rmd is in not the project dir()
-```
-<!-- Figure \@ref(fig:EXCLUDEDfigExamp) is an example of inline text referencing the example figure. -->
-
 
 # Introduction
 
@@ -79,54 +72,17 @@ Multivariate data (and measure space) is ubiquitous. Yet exploratory data analys
 <!-- Wickham [@wickham_visualizing_2015] introduces the terminologies of data-space. -->
 
 <!-- Research gap -->
-Previous user studies in dimension reduction compare across embedding- and display- dimensionality [@gracia_new_2016; @wagner_filho_immersive_2018]. There are empirical metrics and comparisons used to describe non-linear reduction and how well and faithfully they embed the data [@bertini_quality_2011; @liu_visualizing_2017; @sedlmair_empirical_2013; @van_der_maaten_visualizing_2008]. <!-- Add comment about the ensemble graphics applications of multivariate visuals? -->There is a notable absence comparing linear techniques, finding which excel and under which contexts they should be employed, and when to best convey information to the audience. <!-- We have principles, grammar, and designs, yet these aid and guide composition of 2D plots, sometimes with perception ques into a 3rd spatial dimension, or by mapping variables to aesthetics such as color or shape.Visualizing multivariate data is an appreciable task. Doing so almost implies a trade-off between viewing large numbers of linear projection or highly obscuring and distorting the variable space to fit itself into a low dimension non-linear embedding.--> 
+Previous user studies in dimension reduction compare across embedding- and display- dimensionality [@gracia_new_2016; @wagner_filho_immersive_2018]. There are empirical metrics and comparisons used to describe non-linear reduction and how well and faithfully they embed the data [@bertini_quality_2011; @liu_visualizing_2017; @sedlmair_empirical_2013; @van_der_maaten_visualizing_2008]. <!-- Add comment about the ensemble graphics applications of multivariate visuals? -->There is a notable absence comparing linear techniques, finding which excel and under which contexts they should be employed, and when to best convey information to the audience.
 
 <!-- Add more gap and lit review here? Wants a better segue. -->
-Here, we compare and contrast the efficacy of 3 linear projection techniques through the application of a within-participant user study. Specific visualization is the primary factor of the study with a null hypothesis that visual has no impact on the accuracy nor the speed of evaluating a task. We design a task and measure evaluating its accuracy that involves participants indicating which variable(s) contain a difference in groups of different clusters. Data is simulated over several block parameterizations. 
-
-
-<!-- linear combinations of dimensions -->
-<!-- Using a linear combinations of variables will allow us to keep position in 2 display axes while peering into information not contained in any one dimension. The idea of using a combination of variables may appear daunting at first, however we do it almost exclusively in the spatial dimensions. That is to say we are rarely completely aligned with rectangular objects at any one point in time. Consider a book or a filing cabinet any orientation that isn't fully a 2D rectangle, you are seeing as a linear combination of its variables, height, width, and depth. Generalizing this to arbitrary dimensionality we can project or embed a 2D profile of $p$-dimensional data. Its worth noting that the number of these embedded profiles, and consequently the time it takes to explore them, increase exponentially with the dimensionality of the data. -->
-
-<!-- Exclude non-linear embeddings -->
-<!-- Non-linear embeddings, the compliment of the linear embedding, have also been well received recently especially with the emergence of t-Distributed stochastic neighbor embedding [@van_der_maaten_visualizing_2008]. Such techniques distort the fully dimensionality on to a low, typically 2D plane. The issue with doing so is that unit of distance is not consistent with location in the embedded space, which severely hinders the interoperability of these embeddings. Additionally they often have hyperparameters that need tuning. Doing so results in completely different or contradicting embeddings. Suffice it to say we exclude their consideration for such broad application for multivariate EDA. -->
-
-<!-- <!-- nonlinear projections precluded -->
-<!-- More recently there have been advances and fanfare in non-linear projections such as self-organizing maps [@kohonen_self-organizing_1990], and t-SNE [@maaten_visualizing_2008]. Because of the use of non-affine transformations, they offer arbitrary model spaces, without interoperability back to variable space. This precludes them as candidates for exploratory data analysis of the multivariate data in question. They can be useful for the rapid identification of possible candidates for outliers or classifications. However they can suffer from overfitting, and crucially cannot be interpreted in terms of the original variables.   -->
-
-<!-- Exclude class supervised examples -->
-<!-- Additionally there are many methods for supervised data, that is, with observation classes known a priori. Linear discriminant analysis [@fisher_use_1936], for instance, is an example of linear projection, which creates it's components based on the mean separation and covariance shape between known classes. Because we which to extrapolate to generalized EDA of multivariate space we will not use any such supervised techniques to initialize components in the study. -->
-
+Here, we compare and contrast the efficacy of 3 linear projection techniques through the application of a within-participant user study. Specific visualization is the primary factor of the study with a null hypothesis that visual has no impact on the accuracy nor the speed of evaluating a task. We design a task and measure evaluating its accuracy that involves participants indicating which variable(s) contain a difference in groups of different clusters. Data is simulated over several block parameterizations.
 
 
 <!-- structure of the paper -->
 Section \@ref(sec:background) discusses the visualization methods. Section \@ref(sec:userstudy) goes into the user study. Subsection \@ref(sec:task) digs into the task and its evaluation. The results of the study are in section \@ref(sec:results). Conclusion and future directions are  covered in section \@ref(sec:conclusion). An accompanying tool is discussed in section \@ref(sec:spinifex).
 
 
-# Background, visual methods {#sec:background}
-
-<!-- Arriving at linear projections or too meta? -->
-<!-- Considering that we want to explore multivariate data space while restricting. -->
-
-<!-- ## Linear projection notation -->
-
-<!-- Consider a numeric data matrix with $n$ observations of $p$ variables, -->
-
-<!-- \begin{gather*} -->
-<!--   \textbf{X}_{[n, p]} = (\textbf{x}_{1},~...~\textbf{x}_{p}) \\ -->
-<!--   \textbf{x}_{i} = (x_{1i},~...~ x_{ni})~|~i \in [1, p] -->
-<!-- \end{gather*} -->
-
-<!-- Let $Y_{n*d}$ be the $d$-dimensional projection or embedding of $\textbf{X}_{n*p}$ via matrix multiplication of a particular orthonormal basis matrix $\textbf{B}_{p*d}$. -->
-
-
-<!-- \begin{gather*} -->
-<!--   \textbf{Y}_{n \ast d} = \textbf{X}_{n \ast p} \textbf{B}_{p	\ast d}~|~\textbf{B}\text{ is orthonormal} \\ -->
-<!--   \textbf{y}_{j} = (y_{1j},~...~ y_{nj})~|~j \in [i, d] -->
-<!-- \end{gather*} -->
-
-<!-- A matrix is said to be orthonormal if they are 1) orthogonal, that is all column pairs are independent, having a cross product of 0, and 2) normal, each column has a norm length of 1. -->
-
+# Background {#sec:background}
 
 ## Principal component analysis
 
@@ -218,26 +174,6 @@ bas <- basis_half_circle(dat)
 
 .gg + gganimate::transition_states(frame, transition_length = 0L)
 ```
-
-```{r, eval=F}
-###TODO: add 1-3 factor visuals here, see notes from 07/05 meeting with Di:
-# - background: illustrate the factor difference better
-# -- PCA scatterplot matrix with biplot,
-# -- use standard biplots, make it look familiar. 
-# -- tours show near by frames.
-# -- radial near by frames in selected dim. 
-
-### The following was original figFactor
-```
-<!-- <!-- \begin{landscape} --> 
-<!-- ```{r figFactor, echo = F, out.width = '100%',fig.cap = "Example of the different visual factors. All use the same sort of biplot display to view linear projections of multivariate data. They differ in which bases are viewed which is influenced by the different factor inputs and whether or not are animated to convey the continuity of data points from 1 frame to the next."} -->
-<!-- if(F) -->
-<!--   file.edit("./paper/R/fig_factor.r") -->
-<!-- knitr::include_graphics("./figures/figFactor.pdf") -->
-<!-- ``` -->
-<!-- \end{landscape} --> 
-
-<!-- Figure \@ref(fig:figFactor) illustrates the different visualization factors, the control of biplot aesthetics, and where they differ. The leftmost column discusses their differences alongside 3 of their character bases, albeit it is more difficult to see the benefit of animation in print. -->
 
 The more recent implementation in the R \pkg{spinifex}[@spyrison_spinifex_2020], allows for implementation manual tours (and radial sub varariant). It is also compatible with tours made via \pkg{tourr} [@wickham_tourr:_2011], and facilitates their exporting to to .gif or .html widget, with recent graphic packages. Now that we have a readily available means to produce various tours, we want to see how they fair against traditional discrete display commonly used with PCA.
 
@@ -380,13 +316,6 @@ __Demographic:__ $\\$
 - Which age group do you belong to? [decline to answer, 18 to 24, 25 to 35, 36 to 45, 45 to 60, 60 and up]
 - What is your highest completed education? [decline to answer, Undergraduate degree (BA/BSc/other), Graduate degree (MA/MSc/MPhil/other), Doctorate degree (PhD/other); prolific.co participants were filtered to those stating they had at least an undergraduate degree]
 
-<!-- __Within participant bias:__ $\\$ -->
-<!-- Likert scale [1-5], least agreement to most agreement. -->
-
-<!-- - I understand how to perform the task. -->
-<!-- - I am experienced with data visualization. -->
-<!-- - I am educated in multivariate statistical analysis. -->
-
 __Subjective by factor:__ $\\$
 - I was already familiar with visualization.
 - I found this visualization easy to use.
@@ -436,7 +365,7 @@ In building a set of models to test we include all single term models, a model w
 <!-- 1) Eval parameters -->
 $$
 \begin{array}{ll}
-\textbf{Fixed effects:}          &\textbf{Model:} \\
+\textbf{Fixed effects:}          &\textbf{Full model:} \\
 \alpha                           &\widehat{marks} = \mu + \alpha_i + \textbf{Z} + \textbf{W} + \epsilon \\
 \alpha + \beta + \gamma + \delta &\widehat{marks} = \mu + \alpha_i + \beta_j + \gamma_k + \delta_l + \textbf{Z} + \textbf{W} + \epsilon \\
 \alpha * \beta + \gamma + \delta &\widehat{marks} = \mu + \alpha_i * \beta_j + \textbf{Z} + \textbf{W} + \epsilon \\
@@ -562,7 +491,7 @@ if(F)
 if(F) ## Creation and saving figure at:
   file.edit("./paper/R/fig_population_demographics.r")
 knitr::include_graphics("./figures/figSubjectiveMeasures_w.violin_hori.pdf")
-## Alternatively use:
+## Alternatively layouts:
 # figSubjectiveMeasures_vert.pdf
 # figSubjectiveMeasures_hori.pdf
 # figSubjectiveMeasures_w.violin_vert.pdf
@@ -593,12 +522,5 @@ This research was supported by an Australian Government Research Training Progra
 
 If you are looking for a vignette to reproduce animations in for a pdf document from R with base or \pkg{gganimate} graphics, see the reproducible example: \url{https://github.com/nspyrison/spinifex_study/blob/master/zDevExamples/animated_pdf.rmd}.
 
-# Bibliography {#sec:bib}
+# References {#sec:bib}
 
-\newpage
-
-<!-- # Supplemental material -->
-
-<!-- Consider: -->
-<!-- -residual plots -->
-<!-- -extending models with survey data; Di tends away from this, as they are not parameterization, they are aspects of the participant not known a priori.  -->
