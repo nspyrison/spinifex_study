@@ -3,12 +3,12 @@
 .RData
 .Ruserdata
 .httr-oauth
-output_sim_clSep/*
-output_SimDifficulty/*
-**/*_cache/*
-**/*_files/figure-latex/*
-**/*__packages
-**figure-latex/*
+output_sim_clSep/
+output_SimDifficulty/
+**_cache/
+**_files/figure-latex/
+**__packages
+**figure-latex/
 .secrets
 
 /paper/spyrison-cook-marriott_cache/latex/
