@@ -138,7 +138,7 @@ gg_pca <- GGally::ggpairs(
   columns = 1:3,
   #diag = "blank",
   upper = "blank",
-  lower = list(continuous = wrap("points", alpha = 0.7, size=1.5)),
+  lower = list(continuous = wrap("points", alpha = 0.7, size=1)),
   columnLabels = paste0("PC", 1:3)) + 
   # scale_fill_brewer("Dark2") + 
   # scale_color_brewer("Dark2") +

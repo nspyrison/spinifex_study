@@ -57,7 +57,7 @@ knitr::opts_chunk$set(
   message = FALSE,
   warning = FALSE,
   error = FALSE,
-  cache = FALSE,
+  cache = TRUE,
   cache.lazy = FALSE
 )
 ```
@@ -88,7 +88,7 @@ Section \@ref(sec:background) discusses the visualization methods. Section \@ref
 
 Principal component analysis is a good baseline of comparison for linear projections because of its frequent and broad use across discipline. Principal component analysis (PCA) [@pearson_liii._1901] creates new components that are linear combinations of the original variables. The creation of these variables is ordered by decreasing variation which is orthogonally constrained to all previous components. While the full dimensionality is intact, the benefit comes from the ordered nature of the components. The first 2 or 3 components are typically used to approximate the variation multivariate data set, while the rest are discarded.
 
-```{r figFactorPca, echo = F, out.width = '60%', fig.cap = "Scatterplot matrix of the first 3 principal components for an example simulation. This illustrates 6 of the 10 PCA pairings that participants are able to explore while evaluating a task under PCA."}
+```{r figFactorPca, echo = F, out.width = '60%', fig.cap = "Scatterplot matrix of the first 3 principal components for an example simulation. This illustrates 3 of the 6 PCA pairings that participants are able to explore while evaluating a task under PCA."}
 if(F)
   file.edit("./paper/R/fig_factor.r")
 knitr::include_graphics("./figures/figFactor_pca.pdf")
@@ -234,7 +234,7 @@ where
 
 
 <!-- W, weights -->
-We define weights, $W$ to be a vector explaining the variable-wise difference between 2 clusters. Namely the difference of each variable between clusters, as a proportion of the total difference, less $1/p$ the amount of difference each variable would hold if it were uniformly distributed. <!-- R, participant responses -->Participant responses, $R$ are a vector of logical values, whether or not participant thinks the variable separates the two clusters more than if the difference were uniformly distributed. Then $M$ is a vector of variable marks.
+We define weights, $W$ to be a vector explaining the variable-wise difference between 2 clusters. Namely the difference of each variable between clusters, as a proportion of the total difference, less $1/p$ the amount of difference each variable would hold if it were uniformly distributed. <!-- R, participant responses -->Participant responses, $R$ are a vector of logical values, whether or not participant thinks the variable separates the two clusters more than if the difference were uniformly distributed. Then $Y_1$ is a vector of variable marks.
 
 
 \begin{align*}
@@ -245,12 +245,13 @@ W_{j} &=\frac
 - \frac{1}{p} \\
 &= (w_1,~...~ w_p) \\
 \\
-M &= I(r_j) * sign(w_j) * \sqrt{|w_j|} \\
+Y_1 &= I(r_j) * sign(w_j) * \sqrt{|w_j|} \\
 &= (m_1, ~...~ m_p) \\
+\\
 \end{align*}
 
 
-where $I$ is the indicator function. Then the total marks for this task is the sum of this marks vector.
+where $I$ is the indicator function. Then the total marks for this task is the sum of this marks vector. We use time till last response as a secondary dependent variable $Y_2$.
 
 ```{r, figBiplotScoring, echo = F, out.width = '100%', fig.cap = "(L), PCA biplot of the components showing the most cluster separation with (R) illustration of the magnitude of cluster separation is for each variable (wide bar) and the weight of the marks given if a variable is selected (red/green line). The horizontal dashed line is 1 / dimensionality, the amount of separation each variable would have if evenly distributed. The weights equal the signed square of the difference between each variable value and the dashed line."}
 if(F)
@@ -365,11 +366,11 @@ In building a set of models to test we include all single term models, a model w
 $$
 \begin{array}{ll}
 \textbf{Fixed effects:}          &\textbf{Full model:} \\
-\alpha                           &\widehat{marks} = \mu + \alpha_i + \textbf{Z} + \textbf{W} + \epsilon \\
-\alpha + \beta + \gamma + \delta &\widehat{marks} = \mu + \alpha_i + \beta_j + \gamma_k + \delta_l + \textbf{Z} + \textbf{W} + \epsilon \\
-\alpha * \beta + \gamma + \delta &\widehat{marks} = \mu + \alpha_i * \beta_j + \textbf{Z} + \textbf{W} + \epsilon \\
-\alpha * \beta * \gamma + \delta &\widehat{marks} = \mu + \alpha_i * \beta_j * \gamma_k + \textbf{Z} + \textbf{W} + \epsilon \\
-\alpha * \beta * \gamma * \delta &\widehat{marks} = \mu + \alpha_i * \beta_j * \gamma_k * \delta_l + \textbf{Z} + \textbf{W} + \epsilon
+\alpha                           &\widehat{Y_1} = \mu + \alpha_i + \textbf{Z} + \textbf{W} + \epsilon \\
+\alpha + \beta + \gamma + \delta &\widehat{Y_1} = \mu + \alpha_i + \beta_j + \gamma_k + \delta_l + \textbf{Z} + \textbf{W} + \epsilon \\
+\alpha * \beta + \gamma + \delta &\widehat{Y_1} = \mu + \alpha_i * \beta_j + \textbf{Z} + \textbf{W} + \epsilon \\
+\alpha * \beta * \gamma + \delta &\widehat{Y_1} = \mu + \alpha_i * \beta_j * \gamma_k + \textbf{Z} + \textbf{W} + \epsilon \\
+\alpha * \beta * \gamma * \delta &\widehat{Y_1} = \mu + \alpha_i * \beta_j * \gamma_k * \delta_l + \textbf{Z} + \textbf{W} + \epsilon
 \end{array}
 $$
 $$
