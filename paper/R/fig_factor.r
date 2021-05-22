@@ -126,31 +126,36 @@ if(F)
 ## Going hack to base ----
 
 ### PCA -----
-
+col_pal <- RColorBrewer::brewer.pal(8, "Dark2")
 str(dat)
 str(clas)
 pca_obj <- prcomp(dat)
 pca_proj1_3 <- as.data.frame(cbind(pca_obj$x[, 1:3], as.factor(clas)))
 
-gg_pca <- GGally::ggpairs(pca_proj1_3,
-                          mapping = aes(color = clas, shape = clas),
-                          columns = 1:3,
-                          #diag = "blank",
-                          upper = "blank",
-                          columnLabels = paste0("PC", 1:3)
-) + 
+gg_pca <- GGally::ggpairs(
+  pca_proj1_3,
+  mapping = aes(color = clas, fill = clas, shape = clas),
+  columns = 1:3,
+  #diag = "blank",
+  upper = "blank",
+  lower = list(continuous = wrap("points", alpha = 0.7, size=1.5)),
+  columnLabels = paste0("PC", 1:3)) + 
+  # scale_fill_brewer("Dark2") + 
+  # scale_color_brewer("Dark2") +
+  # scale_color_manual(col_pal[1:4]) +
+  # scale_fill_manual(col_pal[1:4]) +
   theme_bw() +
   theme(axis.ticks = element_blank(), 
         axis.text = element_blank())
 
 if(F)
   ggsave("./paper/figures/figFactor_pca.pdf", gg_pca,
-         device = "pdf", width = .w/3, height = .w/3, units = .u)
+         device = "pdf", width = .w / 2, height = .w / 2, units = .u)
 
 ### Grand ----
 require("tourr")
 tpath_fp <- "./apps_supplementary/data/tpath_p6.rda"
-load(tpath_fp, envir = globalenv()) ## loads an obj, tpath_p6
+load(tpath_fp, envir = globalenv()) ## Loads an obj, tpath_p6
 str(tpath_p6)
 
 
@@ -164,18 +169,18 @@ mv <- 1
 mt <- manual_tour(bas_p6, mv, ang = .29)
 
 
-
-## Data
-.sim_fp <- "./paper/data/EEV_p6_0_1_rep3.rda"
-load(.sim_fp, envir = globalenv()) ## Load object `EEV_p6_0_1_rep3`
-dat <- EEV_p6_0_1_rep3
-clas <- as.factor(attr(dat, "cluster"))
-bas <- basis_half_circle(dat)
-
-## Manual play_manual_tour(render_gganimate) call
-.gg <- play_manual_tour(bas, data = dat, manip_var = 1L,
-                        render_type = render_, angle = .1,
-                        aes_args = list(color = clas, shape = clas),
-                        identity_args = list(size = 1, alpha = .7)
-)
-.gg + gganimate::transition_states(frame, transition_length = 0L)
+# 
+# ## Data
+# .sim_fp <- "./paper/data/EEV_p6_0_1_rep3.rda"
+# load(.sim_fp, envir = globalenv()) ## Load object `EEV_p6_0_1_rep3`
+# dat <- EEV_p6_0_1_rep3
+# clas <- as.factor(attr(dat, "cluster"))
+# bas <- basis_half_circle(dat)
+# 
+# ## Manual play_manual_tour(render_gganimate) call
+# .gg <- play_manual_tour(bas, data = dat, manip_var = 1L,
+#                         render_type = render_, angle = .1,
+#                         aes_args = list(color = clas, shape = clas),
+#                         identity_args = list(size = 1, alpha = .7)
+# )
+# .gg + gganimate::transition_states(frame, transition_length = 0L)

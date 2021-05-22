@@ -88,10 +88,9 @@ Section \@ref(sec:background) discusses the visualization methods. Section \@ref
 
 Principal component analysis is a good baseline of comparison for linear projections because of its frequent and broad use across discipline. Principal component analysis (PCA) [@pearson_liii._1901] creates new components that are linear combinations of the original variables. The creation of these variables is ordered by decreasing variation which is orthogonally constrained to all previous components. While the full dimensionality is intact, the benefit comes from the ordered nature of the components. The first 2 or 3 components are typically used to approximate the variation multivariate data set, while the rest are discarded.
 
-```{r figFactorPca, echo = F, out.width = '40%', fig.cap = "TODO PCA."}
+```{r figFactorPca, echo = F, out.width = '60%', fig.cap = "Scatterplot matrix of the first 3 principal components for an example simulation. This illustrates 6 of the 10 PCA pairings that participants are able to explore while evaluating a task under PCA."}
 if(F)
   file.edit("./paper/R/fig_factor.r")
-
 knitr::include_graphics("./figures/figFactor_pca.pdf")
 ```
 
