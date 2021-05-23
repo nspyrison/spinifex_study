@@ -14,7 +14,7 @@ ggproto_ans_plot <- function(
     ## Boxplot, signal
     ggplot2::geom_bar(ggplot2::aes(x = var_num, y = signal, fill = lab_fill),
                       resp_ans_longer, position = "dodge", stat = "identity",
-                      width = .5),
+                      width = .8),
     
     ## Titles and colors
     ggplot2::labs(x = "Variable number", y = "Value"),
@@ -35,7 +35,7 @@ ggproto_ans_plot <- function(
              ## Marks vertical line segment
              ggplot2::geom_segment(ggplot2::aes(x = var_num, xend = var_num,
                                                 y = 0, yend = weight),
-                                   resp_ans_longer, colour = mark_col, size = 2L),
+                                   resp_ans_longer, colour = mark_col, size = 1.5),
              ## 0 line
              ggplot2::geom_hline(yintercept = 0L, size = 1L),
              ## Uniform bar
@@ -43,7 +43,7 @@ ggproto_ans_plot <- function(
                                  resp_ans_longer,
                                  size = 1L, linetype = 2L),
              ## Uniform bar text
-             ggplot2::geom_text(ggplot2::aes(x = p + 1L, y = bar + .05,
+             ggplot2::geom_text(ggplot2::aes(x = p + 1L, y = bar + .07,
                                              label = paste0("1/p = ", round(bar, 2))),
                                 resp_ans_longer,
                                 size = 4L, hjust = 1L)

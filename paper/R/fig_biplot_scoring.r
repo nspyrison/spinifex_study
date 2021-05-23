@@ -8,6 +8,8 @@ load(tgt_fp, envir = globalenv())
 dat <- EEV_p6_33_66_rep2
 clas <- attr(dat, "cluster")
 source("./paper/R/ggproto_pca_biplot.r")
+if(F)
+  file.edit("./paper/R/ggproto_pca_biplot.r")
 
 
 gg1 <- ggplot() + theme_void() +
@@ -22,16 +24,21 @@ gg1 <- ggplot() + theme_void() +
 ans_tbl <- readRDS("./apps/spinifex_study/www/ans_tbl.rds")
 sub <- ans_tbl %>% dplyr::filter(sim_nm == tgt_sim_nm)
 source("./paper/R/clean_participant_data.r")
+if(F)
+  file.edit("./paper/R/clean_participant_data.r")
 sub_longer <- pivot_longer_resp_ans_tbl(dat = sub)
 
 source("./paper/R/ggproto_ans_plot.r")
+if(F)
+  file.edit("./paper/R/ggproto_ans_plot.r")
 gg2 <- ggplot() + theme_bw() +
   ggproto_ans_plot(sub_longer) +
   theme(plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5)) +
-  labs(title = "Cluster separation & weights")
+  labs(title = "Cluster separation & weights") + 
+  theme(legend.position = "off")
 
-(final <- cowplot::plot_grid(gg1, gg2 + theme(legend.position = "off"), scale = c(1, .7)))
+(final <- cowplot::plot_grid(gg1, gg2 , scale = c(1, .7)))
 .w = 6.25
 .h = 9
 .u = "in"
