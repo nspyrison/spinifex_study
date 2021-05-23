@@ -127,7 +127,8 @@ str(survey_wider)
 (demographic_heatmaps <- ggplot(survey_wider, aes(education, age)) +
     stat_bin2d(aes(fill = after_stat(count))) +
     geom_text(aes(label = after_stat(count)), stat = "bin2d") +
-    facet_grid(cols = vars(pronoun)) + theme_bw() +
+    facet_grid(cols = vars(pronoun), labeller = label_wrap_gen(width=18)) + 
+    theme_bw() +
     theme(axis.text.x = element_text(angle = 90, hjust = 1),
           # legend.position = "bottom",
           # legend.direction = "horizontal",
