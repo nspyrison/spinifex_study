@@ -8,9 +8,9 @@ output:
     template: template/jdssv_template.tex
     #citation_package: natbib
 title:
-  formatted: "The effect of user interaction for understanding variable contributions to structure in linear projections"
-  plain:     "The effect of user interaction for understanding variable contributions to structure in linear projections"
-  short:     "\\pkg{spinifex}: effect of user interaction in linear projections"
+  formatted: "A study examining the benefit of the user-controlled radial tour for understanding variable contributions to structure visible in linear projections of high-dimensional data"
+  plain:     "A study examining the benefit of the user-controlled radial tour for understanding variable contributions to structure visible in linear projections of high-dimensional data"
+  short:     "Study on the use of the radial tour for understanding variable importance"
 author:
   - name: Nicholas Spyrison
     affiliation: Monash University
@@ -29,7 +29,7 @@ author:
       | Faculty of Information Technology,
       | Monash University
 abstract: |
-  Principal component analysis and other eigenvalue decomposition enjoy wide when it comes to visualizing multivariate spaces. The grand tour adds the continuity of near-by linear projections while moving towards a randomly selected basis. The radial tours keep this continuity of projection space while offering a means of controlling this animation. We perform a between-participant user study evaluating these biplots of the above methods. We measure accuracy and speed for a task of supervised clusters where participants indicate which variables contain the separation between two target clusters. Prolific.co is used to crowdsourced N=108 participants across 648 task evaluations. We vary across 3 dimensions of block parameterizations: location, shape, and data dimensionality. In summary, we find that use of radial tour tends to increase accuracy compared with the alternatives. This increase is relatively large compared with the effect from block dimension, though relatively small compared to the random effect of the participant. The use of the grand tour decreases the time taken, which is also of modest size compared with the effect of the participant. Participants subjectively prefer to use the radial tour for this task.
+  Radial tours make it possible for a user to interact with a linear projection of data, by rotating a variable in or out. This paper describes a user study examining the use of the radial tour in comparison to two existing methods, principal component analysis and a grand tour, for understanding variable importance. Accuracy and speed is measured for tasks in supervised classification where participants indicate which variables most contribute to the separation between two target clusters. Data was collected from 108 subjects, who completed 648 tasks, using a crowd-sourcing service.  The results suggest that the radial tour tends to increase accuracy. Participants also preferred to use the radial tour for the tasks provided.
 ##preamble: > ## Moved to /template/jdsssv_template.tex
 keywords:
   formatted: [multivariate data, exploratory data analysis, grand tour, manual tour, dimension reduction, linear projections, linear embeddings, "\\proglang{R}"]
@@ -64,22 +64,26 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-<!-- creative writing use case -->
+<!-- creative writing use case 
 Imagine, it is that time of year, again. Your favorite data event is right around the corner. They did a great job tantalizing releasing new information piece by piece. You know the topic, you have your tool belt is at the ready. Your plan of attack is sound and thought-through. But what about the communication, you've seen this before, so-many measures to look at and digest let alone to convey to others. The audience reading your submission also needs to be rapidly brought up to speed on such a complex problem. The visualizations you use can make or break your submission, or more dangerously may even obscure an insight to the author.
+DC: Don't think this helps
+-->
 
-<!-- Multivariate spaces and EDA -->
-Multivariate data (and measure space) is ubiquitous. Yet exploratory data analysis (EDA) [@tukey_exploratory_1977] of such spaces becomes difficult, increasingly so as dimension increases. Numeric statistic summarization of data often doesn't explain the full complexity of the data or worse can lead to missing obvious visual patterns [@anscombe_graphs_1973; @coleman_geometric_1986; @goodman_dirty_2008; @matejka_same_2017]. Ideally, data would be visually explored, in its original variable-space, before and after model application, and statistical summarization. This is crucial to validating assumptions, identify outliers, finding visual peculiarities, and galvanizing insight in the best direction to take a study.
+<!-- Multivariate spaces and EDA - black-box models-->
+Multivariate data underlies most classification problems. Yet exploratory data analysis (EDA) [@tukey_exploratory_1977] of such spaces is difficult, increasingly so as dimension increases, and often leads to the consideration of models for these problems being considered to be black-boxes. There is increasing emphasis on the need to provide explainers or interpretability for black-box models (XXX add some references for XAI, LIME, DALEX, ... and @wickham_visualizing_2015). Visualization is an important part of providing interpretations [@anscombe_graphs_1973; @coleman_geometric_1986; @goodman_dirty_2008; @matejka_same_2017]. Tour methods [XXX references] provide ways to visualize linear projections of high-dimensional spaces, to obtain an overview of shape (distributions and associations) and anomalies (outliers, clusters). The recently introduced radial tour provides a user controlled manual rotation of variables into and out of a projection, which might especially be useful for studying variable importance.
+
+<!-- Numerical summaries of data often doesn't explain the full complexity of the data or worse can lead to missing obvious visual patterns [@anscombe_graphs_1973; @coleman_geometric_1986; @goodman_dirty_2008; @matejka_same_2017]. Ideally, data would be visually explored, in its original variable-space, before and after model application, and statistical summarization. This is crucial to validating assumptions, identify outliers, finding visual peculiarities, and galvanizing insight in the best direction to take a study.--> 
 <!-- Wickham [@wickham_visualizing_2015] introduces the terminologies of data-space. -->
 
 <!-- Research gap -->
-Previous user studies in dimension reduction compare across embedding- and display- dimensionality [@gracia_new_2016; @wagner_filho_immersive_2018]. There are empirical metrics and comparisons used to describe non-linear reduction and how well and faithfully they embed the data [@bertini_quality_2011; @liu_visualizing_2017; @sedlmair_empirical_2013; @van_der_maaten_visualizing_2008]. <!-- Add comment about the ensemble graphics applications of multivariate visuals? -->There is a notable absence comparing linear techniques, finding which excel and under which contexts they should be employed, and when to best convey information to the audience.
+Dimension reduction is commonly used in conjunction with visualization to provide informative low-dimensional summaries of high-dimensional data. There have been several user studies
+for dimension reduction comparing across embeddings and display dimensionality [@gracia_new_2016; @wagner_filho_immersive_2018]. There are also empirical metrics and comparisons used to describe non-linear reduction and how well and faithfully they embed the data [@bertini_quality_2011; @liu_visualizing_2017; @sedlmair_empirical_2013; @van_der_maaten_visualizing_2008]. <!-- Add comment about the ensemble graphics applications of multivariate visuals? -->There is an absence of studies comparing techniques for assessing variable importance, particularly, how best to convey information to the viewer.
 
 <!-- Add more gap and lit review here? Wants a better segue. -->
-Here, we compare and contrast the efficacy of 3 linear projection techniques through the application of a within-participant user study. Specific visualization is the primary factor of the study with a null hypothesis that visual has no impact on the accuracy nor the speed of evaluating a task. We design a task and measure evaluating its accuracy that involves participants indicating which variable(s) contain a difference in groups of different clusters. Data is simulated over several block parameterizations.
-
+This paper describes a user study conducted to assess the benefit of the radial tour, in comparison with principal component analysis and a grand tour for understanding variable importance. The experiment is a within-participant user study. The type of visualization is the primary factor of the study, corresponding to a null hypothesis that all techniques provide similar ability for the user to determine variable importance. The techniques are compared by having subjects complete several tasks, where accuracy and speed is recorded. 
 
 <!-- structure of the paper -->
-Section \@ref(sec:background) discusses the visualization methods. Section \@ref(sec:userstudy) goes into the user study. Subsection \@ref(sec:task) digs into the task, its evaluation, and measures used. The results of the study are in section \@ref(sec:results). Conclusion and future directions are  covered in section \@ref(sec:conclusion). An accompanying tool is discussed in section \@ref(sec:spinifex).
+The paper is structured as follows. Section \@ref(sec:background) provides the background on the visualization methods being compared. Section \@ref(sec:userstudy) describes the user study, the tasks, evaluation, and measures used. The results of the study are in Section \@ref(sec:results). Conclusions and potential future directions are discussed in Section \@ref(sec:conclusion). The software used for the study is described in Section \@ref(sec:spinifex).
 
 
 # Background {#sec:background}
