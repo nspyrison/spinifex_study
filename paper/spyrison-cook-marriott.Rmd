@@ -64,16 +64,8 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-<!-- creative writing use case 
-Imagine, it is that time of year, again. Your favorite data event is right around the corner. They did a great job tantalizing releasing new information piece by piece. You know the topic, you have your tool belt is at the ready. Your plan of attack is sound and thought-through. But what about the communication, you've seen this before, so-many measures to look at and digest let alone to convey to others. The audience reading your submission also needs to be rapidly brought up to speed on such a complex problem. The visualizations you use can make or break your submission, or more dangerously may even obscure an insight to the author.
-DC: Don't think this helps
--->
-
 <!-- Multivariate spaces and EDA - black-box models-->
-Multivariate data underlies most classification problems. Yet exploratory data analysis (EDA) [@tukey_exploratory_1977] of such spaces is difficult, increasingly so as dimension increases, and often leads to the consideration of models for these problems being considered to be black-boxes. There is increasing emphasis on the need to provide explainers or interpretability for black-box models (XXX add some references for XAI, LIME, DALEX, ... and @wickham_visualizing_2015). Visualization is an important part of providing interpretations [@anscombe_graphs_1973; @coleman_geometric_1986; @goodman_dirty_2008; @matejka_same_2017]. Tour methods [XXX references] provide ways to visualize linear projections of high-dimensional spaces, to obtain an overview of shape (distributions and associations) and anomalies (outliers, clusters). The recently introduced radial tour provides a user controlled manual rotation of variables into and out of a projection, which might especially be useful for studying variable importance.
-
-<!-- Numerical summaries of data often doesn't explain the full complexity of the data or worse can lead to missing obvious visual patterns [@anscombe_graphs_1973; @coleman_geometric_1986; @goodman_dirty_2008; @matejka_same_2017]. Ideally, data would be visually explored, in its original variable-space, before and after model application, and statistical summarization. This is crucial to validating assumptions, identify outliers, finding visual peculiarities, and galvanizing insight in the best direction to take a study.--> 
-<!-- Wickham [@wickham_visualizing_2015] introduces the terminologies of data-space. -->
+Multivariate data underlies most classification problems. Yet exploratory data analysis [EDA, @tukey_exploratory_1977] of such spaces is difficult, increasingly so as dimension increases, and often leads to the consideration of models for these problems being considered to be black-boxes. There is increasing emphasis on the need to provide explainers to improve the interpretability for black-box models [@biecek_dalex_2018; @biecek_explanatory_2021; @lundberg_unified_2017; @ribeiro_why_2016; @wickham_visualizing_2015]. Visualization is an important part of providing interpretations [@anscombe_graphs_1973; @coleman_geometric_1986; @goodman_dirty_2008; @matejka_same_2017]. Tour methods [@lee_review_2021; @cook_grand_2008] provide ways to visualize linear projections of high-dimensional spaces, to obtain an overview of shape (distributions and associations) and anomalies (outliers, clusters). The recently introduced radial tour provides a user controlled manual rotation of variables into and out of a projection, which might especially be useful for studying variable importance.
 
 <!-- Research gap -->
 Dimension reduction is commonly used in conjunction with visualization to provide informative low-dimensional summaries of high-dimensional data. There have been several user studies
@@ -90,7 +82,7 @@ The paper is structured as follows. Section \@ref(sec:background) provides the b
 
 ## Principal component analysis
 
-Principal component analysis is a good baseline of comparison for linear projections because of its frequent and broad use across disciplines. Principal component analysis (PCA) [@pearson_liii._1901] creates new components that are linear combinations of the original variables. The creation of these variables is ordered by decreasing variation which is orthogonally constrained to all previous components. While the full dimensionality is intact, the benefit comes from the ordered nature of the components. The first 2 or 3 components are typically used to approximate the variation multivariate data set, while the rest are discarded.
+Principal component analysis is a good baseline of comparison for linear projections because of its frequent and broad use across disciplines. Principal component analysis [PCA, @pearson_liii._1901] creates new components that are linear combinations of the original variables. The creation of these variables is ordered by decreasing variation which is orthogonally constrained to all previous components. While the full dimensionality is intact, the benefit comes from the ordered nature of the components. The first 2 or 3 components are typically used to approximate the variation multivariate data set, while the rest are discarded.
 
 ```{r figFactorPca, echo = F, out.width = '60%', fig.cap = "Scatterplot matrix of the first 3 principal components for an example simulation. This illustrates 3 of the 6 PCA pairings that participants can explore while evaluating a task under PCA."}
 if(F)
@@ -102,12 +94,12 @@ knitr::include_graphics("./figures/figFactor_pca.pdf")
 ## Scatterplot matrix
 
 <!-- Not Scatterplot matrices, PCP, want mapped to position -->
-An extension to showing only a few components would be to show pairs of components as a scatterplot matrix[@chambers_graphical_1983], where permutations of pairs of the components are looked displayed on the upper or lower triangles of the matrix. This is a very dense way to illustrate the data and can obscure important features, by giving a large battery of plots to view simultaneously . Figure \@ref(fig:figFactorPca) shows the orthogonal pairs of the first 3 components as a scatterplot matrix.
+An extension to showing only a few components would be to show pairs of components as a scatterplot matrix [@chambers_graphical_1983], where permutations of pairs of the components are looked displayed on the upper or lower triangles of the matrix. This is a very dense way to illustrate the data and can obscure important features, by giving a large battery of plots to view simultaneously . Figure \@ref(fig:figFactorPca) shows the orthogonal pairs of the first 3 components as a scatterplot matrix.
 
 
 ## Parallel coordinates plot
 
-Another common way to illustrate this data is with a parallel coordinates plot [@ocagne_coordonnees_1885] (or its polar coordinate variants), plot observations by their quantile values for each variable and connected by lines to the quantile value in subsequent variables. They scales well with dimensionality, but suffers a from couple of issues. The main issue is the loss of mapping multiple variables to graphic position simultaneously as the $x$-axis is being occupied by variables, which Munzner suggests[@munzner_visualization_2014] is the most important visual  channel for human perception. Another issue is that parallel coordinates are asymmetric, as their interpretation is dependent on variable ordering.
+Another common way to illustrate this data is with a parallel coordinates plot [@ocagne_coordonnees_1885] (or its polar coordinate variants), plot observations by their quantile values for each variable and connected by lines to the quantile value in subsequent variables. They scales well with dimensionality, but suffers a from couple of issues. The main issue is the loss of mapping multiple variables to graphic position simultaneously as the $x$-axis is being occupied by variables, which Munzner suggests [@munzner_visualization_2014] is the most important visual  channel for human perception. Another issue is that parallel coordinates are asymmetric, as their interpretation is dependent on variable ordering.
 
 
 ## Data visualization tours
@@ -117,7 +109,7 @@ A data visualization _tour_ uses time to animate local changes in the projection
 
 ### Grand tours
 <!-- Grand tour -->
-In a grand tour[@asimov_grand_1985] the target bases are selected randomly. The grand tour is the first and most widely known tour. It will serve as an intermediate unit of comparison which has continuity of data points in nearby frames along with the radial tour, but lacks the user control enjoyed by PCA and radial tours. This lack of control makes grand tours more of a generalist exploratory tool theoretically wouldn't excel at tasks with a pointed goal in mind.
+In a grand tour [@asimov_grand_1985] the target bases are selected randomly. The grand tour is the first and most widely known tour. It will serve as an intermediate unit of comparison which has continuity of data points in nearby frames along with the radial tour, but lacks the user control enjoyed by PCA and radial tours. This lack of control makes grand tours more of a generalist exploratory tool theoretically wouldn't excel at tasks with a pointed goal in mind.
 
 
 ```{r figFactorGrand,echo=F,fig.show='animate',interval=.2,results=F,fig.height=4, fig.cap="Animation of grand tour, a near-continuous change over time as the projection basis approaches the next target basis through orthonormal interpolation. In the grand tour frames are selected randomly. Animating small changes in the basis conveys more information than discrete projections alone. For instance, we can better see how and when the structure of the different clusters separate. The animation is viewable on some pdf viewers including Adobe Acrobat Reader."}
@@ -178,7 +170,7 @@ bas <- basis_half_circle(dat)
 .gg + gganimate::transition_states(frame, transition_length = 0L)
 ```
 
-The more recent implementation in the R \pkg{spinifex}[@spyrison_spinifex_2020], allows for implementation manual tours (and radial sub varariant). It is also compatible with tours made via \pkg{tourr} [@wickham_tourr:_2011], and facilitates their exporting to .gif or .html widget, with recent graphic packages. Now that we have a readily available means to produce various tours, we want to see how they fare against traditional discrete display commonly used with PCA.
+The more recent implementation in the R \pkg{spinifex} [@spyrison_spinifex_2020], allows for implementation manual tours (and radial sub varariant). It is also compatible with tours made via \pkg{tourr} [@wickham_tourr:_2011], and facilitates their exporting to .gif or .html widget, with recent graphic packages. Now that we have a readily available means to produce various tours, we want to see how they fare against traditional discrete display commonly used with PCA.
 
 
 # User study {#sec:userstudy}
@@ -310,23 +302,6 @@ With this setup, we test the parameter space $dimension \in (4,~ 6),~shape \in(E
 In addition to the explicitly controlled block parameters, we will also be discussing each participant's evaluation order regardless of factor or location experiences. This will expose a learning effect from the repetition of being exposed to this data or problem. Keep in mind that the shape and location are always experienced in order of increasing difficulty.
 
 
-## Post-study survey {#sec:survey}
-
-<!-- placement and Likert scale -->
-After the evaluation section of the study, participants were given a short survey containing questions gauging demographics, experience, and subjective evaluation of each factor on a 5-point Likert scale. The questions and possible responses are as follows:
-
-__Demographic:__ $\\$
-- What are your preferred pronouns? [decline to answer, he/him, she/her, they/them or other]
-- Which age group do you belong to? [decline to answer, 18 to 24, 25 to 35, 36 to 45, 45 to 60, 60 and up]
-- What is your highest completed education? [decline to answer, Undergraduate degree (BA/BSc/other), Graduate degree (MA/MSc/MPhil/other), Doctorate degree (PhD/other); prolific.co participants were filtered to those stating they had at least an undergraduate degree]
-
-__Subjective by factor:__ $\\$
-- I was already familiar with visualization.
-- I found this visualization easy to use.
-- I felt confident in my answers with this visualization.
-- I liked using this visualization.
-<!-- see Tory 2006 for example of ease/confidence/likability -->
-
 
 ## Sampling population {#sec:population}
 
@@ -351,7 +326,7 @@ The code, response files, their analyses, and the study application are publicly
 
 # Results {#sec:results}
 
-To recap, the primary response variable is task marks as defined in section \@ref(sec:task), and the log of response time will be used as a secondary response variable. We have 2 primary data sets; the user study evaluations and post-study survey. The former is contains the 108 trials with explanatory variables: _factor_, _location_ of the cluster separation signal, the _shape_ of variance-covariance matrix, and the _dim_-ensionality of the data. Block parameterization and randomization were discussed in section \@ref(sec:blocks). The survey was completed for 84 of these 108 trials and contains demographic information (preferred pronoun, age, and education), and subjective measures for each of the factors (*preference*, *familiarity*, *ease of use*, and *confidence*). The survey was covered in more detail in \@ref(sec:survey).
+To recap, the primary response variable is task marks as defined in section \@ref(sec:task), and the log of response time will be used as a secondary response variable. We have 2 primary data sets; the user study evaluations and post-study survey. The former is contains the 108 trials with explanatory variables: _factor_, _location_ of the cluster separation signal, the _shape_ of variance-covariance matrix, and the _dim_-ensionality of the data. Block parameterization and randomization were discussed in section \@ref(sec:blocks). The survey was completed for 84 of these 108 trials and contains demographic information (preferred pronoun, age, and education), and subjective measures for each of the factors (*preference*, *familiarity*, *ease of use*, and *confidence*).
 
 Below we look at the marginal performance of the block parameters and survey responses. After that, we build a battery of regression models to explore the variables and their interactions. Lastly, we look at the subjective measures between the factors.
 
@@ -423,7 +398,7 @@ rownames(coef_ls[[1]]) <- rownames(coef_ls[[2]]) <-
 if(F)
   browseURL("https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html#Group_rows_via_labeling")
 kableExtra::kbl(coef_ls[[1]], booktabs = TRUE, linesep = "", format = "latex",
-                caption = "The model coefficients for $\\widehat{marks} = \\alpha * \\beta + \\gamma + \\delta$, with factor=pca, location=0/100, and shape=EEE held as baselines. Factor being radial is the fixed term with the strongest evidence in support of the hypothesis. When crossing factor with location radial performs worse with 33/66 percent mixing relative to the PCA with no mixing. The model fit is based on the 648 evaluations by the 108 participants.") %>%
+                caption = "The task accuracy model coefficients for $\\widehat{Y_1} = \\alpha * \\beta + \\gamma + \\delta$, with factor=pca, location=0/100, and shape=EEE held as baselines. Factor being radial is the fixed term with the strongest evidence in support of the hypothesis. When crossing factor with location radial performs worse with 33/66 percent mixing relative to the PCA with no mixing. The model fit is based on the 648 evaluations by the 108 participants.") %>%
   kableExtra::column_spec(column = 1, width = "5cm") %>%
   kableExtra::column_spec(column = 3, width = "1.6cm") %>%
   kableExtra::column_spec(column = c(2, 4:6), width = "1.4cm") %>%
@@ -459,7 +434,7 @@ As a secondary explanatory variable, we also want to look at time. First, we tak
 ```{r timeCompTbl, fig.cap = "Use the caption arg in kable(), not this."}
 ## 1) Eval parameters
 kableExtra::kbl(model_comp_tbl_ls[[2]], align = c("l", rep("r", 7)),
-             booktabs = TRUE, linesep = "", caption = "Model comparisons for $\\widehat{log(time)}$ random effect models, where each model includes random effect terms for participants and simulations. We see the same trade-off where the simplest factor model is perferred by AIC/BIC, while R2 and RMSE perform best with the full multiplicative model. We again select the model $\\alpha * \\beta + \\gamma + \\delta$ to explore further as it has relatively high marginal R2 while having much less complexity than the full model.") %>%
+             booktabs = TRUE, linesep = "", caption = "Model comparisons for log(time) models, $\\widehat{Y_2}$ random effect models, where each model includes random effect terms for participants and simulations. We see the same trade-off where the simplest factor model is perferred by AIC/BIC, while R2 and RMSE perform best with the full multiplicative model. We again select the model $\\alpha * \\beta + \\gamma + \\delta$ to explore further as it has relatively high marginal $R^2$ while having much less complexity than the full model.") %>%
   kableExtra::column_spec(column = 1, width = "1.5cm") %>%
   column_spec(column = c(2:3), width = "1cm") %>%
   column_spec(column = c(4:8), width = "1.5cm") %>%
@@ -468,7 +443,7 @@ kableExtra::kbl(model_comp_tbl_ls[[2]], align = c("l", rep("r", 7)),
 
 ```{r timeCoefTbl, fig.cap = "Use the caption arg in kable(), not this."}
 kableExtra::kbl(coef_ls[[2]], booktabs = TRUE, linesep = "", format = "latex",
-                caption = "The model coeffients for $\\widehat{log(time)} = \\alpha * \\beta + \\gamma + \\delta$, with factor=pca, location=0/100, and shape=EEE held as baselines. Location=50/50 is the fixed term with the strongest evidence and takes less time. In contrast, the interaction term location=50/50:shape=EEV has the most evidence and takes much longer on average.") %>%
+                caption = "The log(time) model coeffients for $Y_2 = \\alpha * \\beta + \\gamma + \\delta$, with factor=pca, location=0/100, and shape=EEE held as baselines. Location=50/50 is the fixed term with the strongest evidence and takes less time. In contrast, the interaction term location=50/50:shape=EEV has the most evidence and takes much longer on average.") %>%
   kableExtra::column_spec(column = 1, width = "5cm") %>%
   kableExtra::column_spec(column = 3, width = "1.6cm") %>%
   kableExtra::column_spec(column = c(2, 4:6), width = "1.4cm") %>%
@@ -495,11 +470,6 @@ if(F)
 if(F) ## Creation and saving figure at:
   file.edit("./paper/R/fig_population_demographics.r")
 knitr::include_graphics("./figures/figSubjectiveMeasures_w.violin_hori.pdf")
-## Alternatively layouts:
-# figSubjectiveMeasures_vert.pdf
-# figSubjectiveMeasures_hori.pdf
-# figSubjectiveMeasures_w.violin_vert.pdf
-# figSubjectiveMeasures_w.violin_hori.pdf
 ```
 
 
@@ -526,4 +496,3 @@ This research was supported by an Australian Government Research Training Progra
 If you are looking for a vignette to reproduce animations in for a pdf document from R with base or \pkg{gganimate} graphics, see the reproducible example: \url{https://github.com/nspyrison/spinifex_study/blob/master/zDevExamples/animated_pdf.rmd}.
 
 # References {#sec:bib}
-

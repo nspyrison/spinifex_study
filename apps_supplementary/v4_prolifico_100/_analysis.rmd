@@ -15,13 +15,13 @@ editor_options:
 ---
 ```{r setup, include=FALSE}
 require("tidyverse")
-require("dplyr")
 require("ggpubr") ## for tests on the plot
 require("cowplot") ## for aggregating plots
 require("lme4") ## Random Effects (RE) model creation
 require("lmerTest") ## p val interpretation of lme4 tests
 require("merTools")
 require("performance") ## tidy model eval
+require("dplyr")
 
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 rel_path <- function(rel_path = "."){
@@ -167,7 +167,7 @@ my_ggpubr_facet <- function(..., facet = "location"){
 }
 ```
   
-  ______
+______
   
 # Results
 
@@ -180,7 +180,7 @@ Let's look at the distribution of quality evaluations by full_perm_num.
 ## instance_agg
 instance_agg <- dat_task_agg %>%
   group_by(instance_id, participant_num, `parameter permutation`, participant) %>%
-  summarise(`n instance evals` = n() / 6) %>%
+  dplyr::summarise(`n instance evals` = n() / 6) %>%
   ungroup() %>%
   mutate(is_instance_even = if_else(`n instance evals` == 1, TRUE, FALSE)) %>%
   arrange(desc(`n instance evals`))
@@ -196,13 +196,13 @@ dat_qual <- dat_task_agg %>%
 ## participant aggregate table
 participant_agg <- dat_qual %>%
   group_by(participant, `is even instance`) %>%
-  summarise(`even evaluations` = n() / 6) %>%
+  dplyr::summarise(`even evaluations` = n() / 6) %>%
   ungroup() %>%
   arrange(desc(`even evaluations`))
 ## perm_num aggregate table
 perm_num_agg <- dat_qual %>%
   group_by(`parameter permutation`, `is even instance`) %>%
-  summarise(`even evaluations` = n() / 6) %>%
+  dplyr::summarise(`even evaluations` = n() / 6) %>%
   ungroup() %>%
   arrange(desc(`even evaluations`))
 
@@ -210,7 +210,7 @@ perm_num_agg <- dat_qual %>%
 ## Identify participants that have performed more than 1 even eval from
 participant_blacklist <- participant_agg %>%
   group_by(participant) %>%
-  summarise(`even evaluations` = sum(`even evaluations`)) %>%
+  dplyr::summarise(`even evaluations` = sum(`even evaluations`)) %>%
   ungroup() %>%
   filter(`even evaluations` > 1) %>%
   pull(participant)
@@ -242,7 +242,7 @@ instance_id_whitelist <- dat_qual %>%
   filter(`is even instance` == TRUE) %>%
   arrange(`parameter permutation`, removal_priority, desc(write_dt)) %>%
   group_by(`parameter permutation`, instance_id) %>%
-  summarise(`even evaluations` = 1) %>%
+  dplyr::summarise(`even evaluations` = 1) %>%
   mutate(wi_perm_instance_rn = row_number()) %>%
   filter(wi_perm_instance_rn < 4) %>%
   pull(instance_id)
@@ -287,7 +287,7 @@ print("Note: Training removed, partial evaluations removed, only the evaluations
 #### Now update perm agg and plot
 perm_num_agg2 <- dat_qual %>%
   group_by(`parameter permutation`, `is even instance`) %>%
-  summarise(`even evaluations` = n() / 6) %>%
+  dplyr::summarise(`even evaluations` = n() / 6) %>%
   ungroup()
 
 (gg_eval_by_perm_num_removed <- perm_num_agg2 %>%
@@ -498,7 +498,7 @@ ABcd_coef <- model2coef(ABcd)
 
 ggEffectRanges <- plotREsim(REsim(ABcd)) +
   ggtitle("Effect range, CI mean marks of participants and simulations",
-          "model: marks^ = \u03b1 * \u03b2 + \u03b3 + \u03b4      confidence: \u03b1 = .95") +
+          "model, marks: Y1^ = \u03b1 * \u03b2 + \u03b3 + \u03b4      confidence: \u03b1 = .95") +
   theme(axis.title.x = element_blank()) +
   labs(y = "effect range")
 
@@ -607,12 +607,12 @@ tabc <-  lmer(log_sec_last_resp ~ factor + location + shape + (1 | participant) 
 tabd <-  lmer(log_sec_last_resp ~ factor + location + dim + (1 | participant) + (1 | simulation), data = dat_qual)
 tacd <-  lmer(log_sec_last_resp ~ factor + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
 tabcd <- lmer(log_sec_last_resp ~ factor + location + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-tABcd <-   lmer(log_sec_last_resp ~ factor * location + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-tACbd <-   lmer(log_sec_last_resp ~ factor * shape + location + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-tADbc <-   lmer(log_sec_last_resp ~ factor * dim + location + shape + (1 | participant) + (1 | simulation), data = dat_qual)
-tABCd <-  lmer(log_sec_last_resp ~ factor * location * shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-tABDc <-  lmer(log_sec_last_resp ~ factor * location * dim + shape +(1 | participant) + (1 | simulation), data = dat_qual)
-tACDb <-  lmer(log_sec_last_resp ~ factor * shape * dim + location + (1 | participant) + (1 | simulation), data = dat_qual)
+tABcd <- lmer(log_sec_last_resp ~ factor * location + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
+tACbd <- lmer(log_sec_last_resp ~ factor * shape + location + dim + (1 | participant) + (1 | simulation), data = dat_qual)
+tADbc <- lmer(log_sec_last_resp ~ factor * dim + location + shape + (1 | participant) + (1 | simulation), data = dat_qual)
+tABCd <- lmer(log_sec_last_resp ~ factor * location * shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
+tABDc <- lmer(log_sec_last_resp ~ factor * location * dim + shape +(1 | participant) + (1 | simulation), data = dat_qual)
+tACDb <- lmer(log_sec_last_resp ~ factor * shape * dim + location + (1 | participant) + (1 | simulation), data = dat_qual)
 tABCD <- lmer(log_sec_last_resp ~ factor * location * shape * dim + (1 | participant) + (1 | simulation), data = dat_qual)
 
 t_model_ls <-
@@ -676,7 +676,7 @@ my_theme <- list(
 
 ggEffectRanges <- plotREsim(REsim(tABcd)) +
   ggtitle("Effect range, CI mean log(time) of participants and simulations",
-          "model: log(time)^ = \u03b1 * \u03b2 + \u03b3 + \u03b4      confidence: \u03b1 = .95")
+          "model log(time): Y2^ = \u03b1 * \u03b2 + \u03b3 + \u03b4      confidence: \u03b1 = .95")
   theme(axis.title.x = element_blank()) +
   ylab("effect range")
 
