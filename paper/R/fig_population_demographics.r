@@ -279,16 +279,16 @@ figSubjectiveMeasures <-
 
 if(F){
   require("ggplot2")
-  ggsave("./paper/figures/figSubjectiveMeasures_vert.pdf", subjectiveMeasures,
-         device = "pdf", width = .w, height = .w * .66, units = "in")
-  ggsave("./paper/figures/figSubjectiveMeasures_hori.pdf",
-         subjectiveMeasures +
-           ## Convert to horizontal:
-           coord_flip(),
-         device = "pdf", width = .w, height = .w * 1, units = "in")
-  ggsave("./paper/figures/figSubjectiveMeasures_w.violin_vert.pdf",
-         cowplot::plot_grid(subjectiveMeasures, measure_violins, ncol = 2),
-         device = "pdf", width = .w, height = .w * .66, units = "in")
+  # ggsave("./paper/figures/figSubjectiveMeasures_vert.pdf", subjectiveMeasures,
+  #        device = "pdf", width = .w, height = .w * .66, units = "in")
+  # ggsave("./paper/figures/figSubjectiveMeasures_hori.pdf",
+  #        subjectiveMeasures +
+  #          ## Convert to horizontal:
+  #          coord_flip(),
+  #        device = "pdf", width = .w, height = .w * 1, units = "in")
+  # ggsave("./paper/figures/figSubjectiveMeasures_w.violin_vert.pdf",
+  #        cowplot::plot_grid(subjectiveMeasures, measure_violins, ncol = 2),
+  #        device = "pdf", width = .w, height = .w * .66, units = "in")
   ggsave("./paper/figures/figSubjectiveMeasures_w.violin_hori.pdf",
          cowplot::plot_grid(subjectiveMeasures +
                               coord_flip() +
