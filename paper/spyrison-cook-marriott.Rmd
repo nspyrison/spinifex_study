@@ -65,7 +65,7 @@ knitr::opts_chunk$set(
 # Introduction
 
 <!-- Multivariate spaces and EDA - black-box models-->
-Multivariate data underlies most classification problems. Yet exploratory data analysis [EDA, @tukey_exploratory_1977] of such spaces is difficult, increasingly so as dimension increases, and often leads to the consideration of models for these problems being considered to be black-boxes. There is increasing emphasis on the need to provide explainers to improve the interpretability for black-box models [@biecek_dalex_2018; @biecek_explanatory_2021; @lundberg_unified_2017; @ribeiro_why_2016; @wickham_visualizing_2015]. Visualization is an important part of providing interpretations [@anscombe_graphs_1973; @coleman_geometric_1986; @goodman_dirty_2008; @matejka_same_2017]. Tour methods [@lee_review_2021; @cook_grand_2008] provide ways to visualize linear projections of high-dimensional spaces, to obtain an overview of shape (distributions and associations) and anomalies (outliers, clusters). The recently introduced radial tour provides a user controlled manual rotation of variables into and out of a projection, which might especially be useful for studying variable importance.
+Multivariate data underlies most classification problems. Yet exploratory data analysis [EDA, @tukey_exploratory_1977] of such spaces is difficult, increasingly so as dimension increases, and often leads to the consideration of models for these problems being considered to be black-boxes. There is increasing emphasis on the need to provide explainers to improve the interpretability for black-box models [@biecek_dalex_2018; @biecek_explanatory_2021; @lundberg_unified_2017; @ribeiro_why_2016; @wickham_visualizing_2015]. Visualization is an important part of providing interpretations [@anscombe_graphs_1973; @coleman_geometric_1986; @goodman_dirty_2008; @matejka_same_2017]. Tour methods [@lee_review_2021; @cook_grand_2008] provide ways to visualize linear projections of high-dimensional spaces, to obtain an overview of shape (distributions and associations) and anomalies (outliers, clusters). The recently introduced radial tour [@spyrison_spinifex_2020] provides a user controlled manual rotation of variables into and out of a projection, which might especially be useful for studying variable importance.
 
 <!-- Research gap -->
 Dimension reduction is commonly used in conjunction with visualization to provide informative low-dimensional summaries of high-dimensional data. There have been several user studies
@@ -94,12 +94,12 @@ knitr::include_graphics("./figures/figFactor_pca.pdf")
 ## Scatterplot matrix
 
 <!-- Not Scatterplot matrices, PCP, want mapped to position -->
-An extension to showing only a few components would be to show pairs of components as a scatterplot matrix [@chambers_graphical_1983], where permutations of pairs of the components are looked displayed on the upper or lower triangles of the matrix. This is a very dense way to illustrate the data and can obscure important features, by giving a large battery of plots to view simultaneously . Figure \@ref(fig:figFactorPca) shows the orthogonal pairs of the first 3 components as a scatterplot matrix.
+An extension to showing only a few components is to to show pairs of components as a scatterplot matrix [@chambers_graphical_1983], where permutations of pairs of the components are looked displayed on the upper or lower triangles of the matrix. This is a very dense way to illustrate the data and can obscure important features, by giving a large battery of plots to view simultaneously . Figure \@ref(fig:figFactorPca) shows the orthogonal pairs of the first 3 components as a scatterplot matrix.
 
 
 ## Parallel coordinates plot
 
-Another common way to illustrate this data is with a parallel coordinates plot [@ocagne_coordonnees_1885] (or its polar coordinate variants), plot observations by their quantile values for each variable and connected by lines to the quantile value in subsequent variables. They scales well with dimensionality, but suffers a from couple of issues. The main issue is the loss of mapping multiple variables to graphic position simultaneously as the $x$-axis is being occupied by variables, which Munzner suggests [@munzner_visualization_2014] is the most important visual  channel for human perception. Another issue is that parallel coordinates are asymmetric, as their interpretation is dependent on variable ordering.
+Another common way to illustrate this data is with a parallel coordinates plot [@ocagne_coordonnees_1885] (or its polar coordinate variants), plot observations by their quantile values for each variable and connected by lines to the quantile value in subsequent variables. This scales well with dimensionality, but suffers a from couple of issues. The main issue is the loss of mapping multiple variables to graphic position simultaneously as the $x$-axis is being occupied by variables, which Munzner suggests [@munzner_visualization_2014] is the most important visual  channel for human perception. Another issue is that parallel coordinates are asymmetric, as their interpretation is dependent on variable ordering.
 
 
 ## Data visualization tours
@@ -109,7 +109,7 @@ A data visualization _tour_ uses time to animate local changes in the projection
 
 ### Grand tours
 <!-- Grand tour -->
-In a grand tour [@asimov_grand_1985] the target bases are selected randomly. The grand tour is the first and most widely known tour. It will serve as an intermediate unit of comparison which has continuity of data points in nearby frames along with the radial tour, but lacks the user control enjoyed by PCA and radial tours. This lack of control makes grand tours more of a generalist exploratory tool theoretically wouldn't excel at tasks with a pointed goal in mind.
+In a grand tour [@asimov_grand_1985] the target bases are selected randomly. The grand tour is the first and most widely known tour. It will serve as an intermediate unit of comparison which has continuity of data points in nearby frames along with the radial tour, but lacks the user control enjoyed by PCA and radial tours. This lack of control makes grand tours more of a generalist exploratory tool.
 
 
 ```{r figFactorGrand,echo=F,fig.show='animate',interval=.2,results=F,fig.height=4, fig.cap="Animation of grand tour, a near-continuous change over time as the projection basis approaches the next target basis through orthonormal interpolation. In the grand tour frames are selected randomly. Animating small changes in the basis conveys more information than discrete projections alone. For instance, we can better see how and when the structure of the different clusters separate. The animation is viewable on some pdf viewers including Adobe Acrobat Reader."}
@@ -170,33 +170,25 @@ bas <- basis_half_circle(dat)
 .gg + gganimate::transition_states(frame, transition_length = 0L)
 ```
 
-The more recent implementation in the R \pkg{spinifex} [@spyrison_spinifex_2020], allows for implementation manual tours (and radial sub varariant). It is also compatible with tours made via \pkg{tourr} [@wickham_tourr:_2011], and facilitates their exporting to .gif or .html widget, with recent graphic packages. Now that we have a readily available means to produce various tours, we want to see how they fare against traditional discrete display commonly used with PCA.
+The recent implementation of manual tours us the the R package \pkg{spinifex} [@spyrison_spinifex_2020], which facilitates manual tours (and radial variant). It is also compatible with tours made via \pkg{tourr} [@wickham_tourr:_2011], and improves exporting to .gif or .html widget, with recent graphic packages. Now that we have a readily available means to produce various tours, we want to see how they fare against traditional discrete display commonly used with PCA.
 
 
 # User study {#sec:userstudy}
 
 ## Objective {#sec:objective}
 
-PCA shows orthogonal views of pairs of their components. Whereas, the animated transitions of tours convey a lot of meaningful structural information. The grand tour is good for initial exploration and explores a lot of different angles very quickly. While the manual (and radial) tours are best used as a more local exploration tool, to test the sensitivity of structure. Then for some subset of tasks, we expect to find that the radial tour performs most accurately. Secondly, it may be the case that the task can be performed faster than the alternatives. We are less certain with this there is no optimization or functional goal in the grand tour's generation of bases; it is possible that we are shown the planes that completely avoid information needed to perform the task. However, given that the data dimensionality will be modest, it is at least plausible that grand tour leads to faster task time.
-
 We measure the accuracy and speed over 4 dimensions of block parameterizations. The null hypotheses can be stated as:
 
 <!-- Hypothesis: null and alternative -->
-$~~~~~H_0: \text{visualization factor does not impact task } \textit{accuracy}. \\$
-$~~~~~~H_0: \text{visualization factor does not impact task } \textit{speed}. \\$
+$~~~~~H_0: \text{visualization factor does not impact task } \textit{accuracy}, Y_1. \\$
+$~~~~~~H_0: \text{visualization factor does not impact task } \textit{speed}, Y_2. \\$
 
 <!-- Rational for standards of comparison -->
 PCA will be used as a baseline for comparison as it is the most common linear embedding. The grand tour will act as a secondary control that will help evaluate the benefit of animation, where the object permanence of the data points, but without the ability to influence its path. Lastly, the radial tour should perform best as it benefits both from animation and being able to select an individual variable to change the contribution of.
 
-<!-- \begin{center} -->
-<!-- \begin{tabular}{ c | p{2.2cm} p{2.2cm} } -->
-<!-- factor & animated \newline transition & user \newline interaction \\ -->
-<!-- \hline -->
-<!-- pca &  & Yes \\ -->
-<!-- grand & Yes &  \\ -->
-<!-- radial & Yes & Yes \\ -->
-<!-- \end{tabular} -->
-<!-- \end{center} -->
+<!-- Possible expectations -->
+<!-- PCA shows orthogonal views of pairs of their components. Whereas, the animated transitions of tours convey a lot of meaningful structural information. The grand tour is good for initial exploration and explores a lot of different angles very quickly. While the manual (and radial) tours are best used as a more local exploration tool, to test the sensitivity of structure.  -->
+Then for some subset of tasks, we expect to find that the radial tour performs most accurately with greater control to explore specific variable. Secondly, it may be the case that grand is performs faster than the alternatives with it's absence of inputs all the users attention can focus on interpreting the fixed path. We are less certain with this there is no optimization or functional goal in the grand tour's generation of bases; it is possible that. by chance, the planes completely avoid information needed. However, given that the data dimensionality will be modest, it is at least plausible that grand tour  regularly crosses frames with the correct information to perform the task quickly.
 
 
 ## Task and evaluation {#sec:task}
@@ -230,7 +222,7 @@ where
 
 
 <!-- W, weights -->
-We define weights, $W$ to be a vector explaining the variable-wise difference between 2 clusters. Namely the difference of each variable between clusters, as a proportion of the total difference, less $1/p$ the amount of difference each variable would hold if it were uniformly distributed. <!-- R, participant responses -->Participant responses, $R$ are a vector of logical values, whether or not participant thinks the variable separates the two clusters more than if the difference were uniformly distributed. Then $Y_1$ is a vector of variable marks.
+We define weights, $W$ to be a vector explaining the variable-wise difference between 2 clusters. Namely the difference of each variable between clusters, as a proportion of the total difference, less $1/p$, the amount of difference each variable would hold if it were uniformly distributed. <!-- R, participant responses -->Participant responses, $R$, are in the form of a boolean value for each variable, whether or not participant thinks each variable separates the two clusters more than if the difference were uniformly distributed. Then $Y_1$ is a vector of variable marks.
 
 
 \begin{align*}
@@ -262,7 +254,7 @@ Each of the 3 periods introduced the participant to a new factor, where particip
 ## Factor application {#sec:factors}
 
 <!-- Background for methodology, application here -->
-Section \@ref(sec:background) gives the sources and a description of the visual factors PCA, grand tours, and radial manual tours. The factors are tested within-participant, with each factor being evaluated by each participant. The order that factors are experienced in is controlled with the block assignment as illustrated below in Figure \@ref(fig:figParmeterizationExample). Below we cover the aesthetic standardization, as well the unique input and display within each factor.
+Section \@ref(sec:background) gives the sources and a description of the visual factors PCA, grand tours, and radial manual tours. The factors are tested within-participant, with each factor being evaluated by each participant. The order that factors are experienced in is controlled with the block assignment as illustrated below in Figure \@ref(fig:figParmeterizationExample). Below we cover the visual design standardization, as well the unique input and display within each factor.
 
 <!-- aesthetic standardization -->
 The visualization methods were standardized wherever possible. each factor was shown as a biplot, with variable contributions displayed on a unit circle. All aesthetic values (colors, shapes, sizes, absence of legend, and absence axis titles) were held consistent. Variable contributions were always shown left of the scatterplot embeddings with their aesthetic values consistent as well. What did vary between factors were their inputs which caused a discrete jump to another pair or principal components, were absent for the grand tour with target bases to animate through selected at random, or for the radial tour which variable should have its contribution animated.
@@ -319,7 +311,7 @@ From pilot studies through a sample of convenience (consisting of information te
 
 ## Data capture and processing
 
-Data was recorded by a \pkg{shiny} application and was written to a Google Sheet after each study period. Time is measured as the CPU time of the server. This could be made slightly more accurate by calculating the difference of system time at these points. Because the frequency of the participants from prolific was more then the server would handle, participants were manually accepted one or two at a time. We collected participants till we had 3 even evaluations. The processing steps were fairly minimal after formatting to tidy format and decoding values to a more human-readable state. After formatting, a flag is added to indicate if the survey had data from all 3 periods. We remove all partial studies and keep only the last 3 complete studies within each block parameterization, the studies which should have experienced the least adverse network conditions. This brings us to the 108 studies described in the paper, from which models and aggregation tables were built. The post-study surveys were similarly decoded to human-readable tidy format and then filtered to include only those 84 surveys that were associated with the final 108 studies. 
+Data was recorded by a \pkg{shiny} application and was written to a Google Sheet after each study period. Time is measured as the CPU time of the server. This could be made slightly more accurate by calculating the difference of system time at these points. Because the frequency of the participants from prolific was more then the server would handle, participants were manually accepted one or two at a time. We collected participants till we had 3 evaluations of each parameter permutation. The processing steps were fairly minimal after formatting to tidy format and decoding values to a more human-readable state. After formatting, a flag is added to indicate if the survey had data from all 3 periods. We remove all partial studies and keep only the last 3 complete studies within each block parameterization, the studies which should have experienced the least adverse network conditions. This brings us to the 108 studies described in the paper, from which models and aggregation tables were built. The post-study surveys were similarly decoded to human-readable tidy format and then filtered to include only those 84 surveys that were associated with the final 108 studies. 
 
 The code, response files, their analyses, and the study application are publicly available at on GitHub \url{https://github.com/nspyrison/spinifex_study}.
 
@@ -369,11 +361,12 @@ $$
 if(F) ## Creation and saving at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 model_comp_tbl_ls <- readRDS("./figures/modelCompLs.rds")
+
 model_comp_tbl_ls[[1]]$`Fixed effects` <- model_comp_tbl_ls[[2]]$`Fixed effects` <-
   c("a", "a+b+c+d", "a*b+c+d", "a*b*c+d", "a*b*c*d")
 ## 1) Eval parameters
 kableExtra::kbl(
-  model_comp_tbl_ls[[1]], align = c("l", rep("r", 7)),
+  model_comp_tbl_ls[[1]], "latex", align = c("l", rep("l", 2), rep("c", 5)),
   booktabs = TRUE, linesep = "", caption = "Model comparison of our random effect models regressing marks. Each model includes a random effect term of the participant, which explains the individual's influence on their marks. Complex models perform better in terms of R2 and RMSE, yet AIC and BIC penalize their large number of fixed effects in favor of the much simpler model containing only factor.") %>%
   kableExtra::column_spec(column = 1, width = "1.5cm") %>%
   column_spec(column = c(2:3), width = "1cm") %>%
@@ -388,6 +381,8 @@ kableExtra::kbl(
 if(F) ## Creation and saving at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 coef_ls <- readRDS("./figures/modelCoefLs.rds")
+
+## Formatting
 rownames(coef_ls[[1]]) <- rownames(coef_ls[[2]]) <-
   c("(Intercept)" ,"fct=grand" ,"fct=radial"
     ,"loc=33_66"  ,"loc=50_50" ,"shp=EEV"
@@ -397,7 +392,7 @@ rownames(coef_ls[[1]]) <- rownames(coef_ls[[2]]) <-
 ## For grouping rows see:
 if(F)
   browseURL("https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html#Group_rows_via_labeling")
-kableExtra::kbl(coef_ls[[1]], booktabs = TRUE, linesep = "", format = "latex",
+kableExtra::kbl(coef_ls[[1]], format = "latex", booktabs = TRUE, linesep = "",
                 caption = "The task accuracy model coefficients for $\\widehat{Y_1} = \\alpha * \\beta + \\gamma + \\delta$, with factor=pca, location=0/100, and shape=EEE held as baselines. Factor being radial is the fixed term with the strongest evidence in support of the hypothesis. When crossing factor with location radial performs worse with 33/66 percent mixing relative to the PCA with no mixing. The model fit is based on the 648 evaluations by the 108 participants.") %>%
   kableExtra::column_spec(column = 1, width = "5cm") %>%
   kableExtra::column_spec(column = 3, width = "1.6cm") %>%
@@ -433,8 +428,9 @@ As a secondary explanatory variable, we also want to look at time. First, we tak
 
 ```{r timeCompTbl, fig.cap = "Use the caption arg in kable(), not this."}
 ## 1) Eval parameters
-kableExtra::kbl(model_comp_tbl_ls[[2]], align = c("l", rep("r", 7)),
-             booktabs = TRUE, linesep = "", caption = "Model comparisons for log(time) models, $\\widehat{Y_2}$ random effect models, where each model includes random effect terms for participants and simulations. We see the same trade-off where the simplest factor model is perferred by AIC/BIC, while R2 and RMSE perform best with the full multiplicative model. We again select the model $\\alpha * \\beta + \\gamma + \\delta$ to explore further as it has relatively high marginal $R^2$ while having much less complexity than the full model.") %>%
+kableExtra::kbl(
+  model_comp_tbl_ls[[2]], "latex", align = c("l", rep("l", 2), rep("c", 5)), 
+  booktabs = TRUE, linesep = "", caption = "Model comparisons for log(time) models, $\\widehat{Y_2}$ random effect models, where each model includes random effect terms for participants and simulations. We see the same trade-off where the simplest factor model is perferred by AIC/BIC, while R2 and RMSE perform best with the full multiplicative model. We again select the model $\\alpha * \\beta + \\gamma + \\delta$ to explore further as it has relatively high marginal $R^2$ while having much less complexity than the full model.") %>%
   kableExtra::column_spec(column = 1, width = "1.5cm") %>%
   column_spec(column = c(2:3), width = "1cm") %>%
   column_spec(column = c(4:8), width = "1.5cm") %>%
@@ -475,16 +471,17 @@ knitr::include_graphics("./figures/figSubjectiveMeasures_w.violin_hori.pdf")
 
 # Conclusion {#sec:conclusion}
 
-Above we conducted a with-in participant user study comparing the efficacy of 3 linear projection techniques. The participants performed a supervised cluster task, specifically the identification of which variables contribute to the separation between 2 target clusters. In summary, we that use of the radial tours increases accuracy while the use of the grand tour decreases the time it takes to perform this task. These effects are large relative to the other block parameterizations, but smaller than the random effect of the participant. Radial tour was subjectively most preferred, leads to more confidence in answers, and is easier to use than alternatives.
+Above we discussed an $n=108$, with-in participant user study comparing the efficacy of 3 linear projection techniques. The participants performed a supervised cluster task, specifically the identification of which variables contribute to the separation between 2 target clusters. This was evaluated evenly over 4 block parameterizations. In summary, we find that radial tours increases accuracy while the grand tour decreases the time it takes to perform this task. These effects are large relative to the other block parameterizations, but smaller than the random effect of the participant. Radial tour was subjectively most preferred, lead to more confidence in answers, and is easier to use than alternatives.
 
-There are several that this study could be extended. In addition to expanding the support of the block parameterizations, more interesting directions include: type of the task, factors used, and experience level of the target population. It is difficult to achieve good coverage given the number of possible permutations. Be sure to step back and plan what the target support, visuals, and task are. Keep in mind the volume and quality of responses from participants especially when crowdsourcing. These planning steps are useful for navigating when the complexity of the application details.
+<!-- Discussion and goint further -->
+There are several ways that this study could be extended. In addition to expanding the support of the block parameterizations, more interesting directions include: type of the task, visualizations used, and experience level of the target population. It is difficult to achieve good coverage given the number of possible permutations. Be sure to step back and plan what the target support of your block parameters. Keep in mind the volume and quality of responses from participants especially when crowdsourcing. These planning steps are useful for navigating when the complexity of the application details.
 
 
-# Accompanying tool: spinifex application {#sec:spinifex}
+# Accompanying tool: radial manual tour application {#sec:spinifex}
 
 To accompany this study we have produced a more general use tool to perform such exploratory analysis of high dimensional data. The \proglang{R} package, \pkg{spinifex}, [@spyrison_spinifex_2020] contains a free, open-source \pkg{shiny} [@chang_shiny_2020] application. The application allows users to upload, process, and interactively explore their data. Users can quickly traverse global and local extrema and then explore the nearby space with the radial tour as similarly applied in the user study. Limited implementations of grand, little, and local tours are also made available. Data can be imported in .csv and .rda format, and projections or animations can be saved as .png, .gif, and .csv formats where applicable. Run the following \proglang{R} code for help getting started.
 
-```{r getting_started, eval = F, include=TRUE}
+```{r getting_started, eval=FALSE, echo=TRUE}
 install.packages("spinifex", dependencies = TRUE)
 spinifex::run_app("intro")
 ```

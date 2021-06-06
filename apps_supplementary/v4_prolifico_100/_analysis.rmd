@@ -632,15 +632,14 @@ mute <- lapply(seq_along(t_model_ls), function(i){
   t_fixef_vec[i] <<- length(fixef(this_model))
 })
 .t_perf_df <- dplyr::bind_rows(performance_ls)
-t_model_comp_tbl <- tibble(names(t_model_ls),
-                         t_factors_vec,
-                         t_fixef_vec,
-                         round(.t_perf_df[, 1]),
-                         round(.t_perf_df[, 2]),
-                         round(.t_perf_df[, 3], 3),
-                         round(.t_perf_df[, 4], 3),
-                         round(.t_perf_df[, 6], 3),
-                         round(.t_perf_df[, 3], 3) / round(.t_perf_df[, 4], 3))
+t_model_comp_tbl <- data.frame(names(t_model_ls),
+                               t_factors_vec,
+                               t_fixef_vec,
+                               round(.t_perf_df[, 1]),
+                               round(.t_perf_df[, 2]),
+                               round(.t_perf_df[, 3], 3),
+                               round(.t_perf_df[, 4], 3),
+                               round(.t_perf_df[, 6], 3))
 colnames(t_model_comp_tbl) <- .model_comp_colnms
 
 ## Latex formatting
