@@ -29,7 +29,7 @@ author:
       | Faculty of Information Technology,
       | Monash University
 abstract: |
-  Radial tours make it possible for a user to interact with a linear projection of data, by rotating a variable in or out. This paper describes a user study examining the use of the radial tour in comparison to two existing methods, principal component analysis and a grand tour, for understanding variable importance. Accuracy and speed is measured for tasks in supervised classification where participants indicate which variables most contribute to the separation between two target clusters. Data was collected from 108 subjects, who completed 648 tasks, using a crowd-sourcing service.  The results suggest that the radial tour tends to increase accuracy. Participants also preferred to use the radial tour for the tasks provided.
+  Radial tours make it possible for a user to interact with a linear projection of data, by rotating a variable in or out. This paper describes a user study examining the use of the radial tour in comparison to two existing methods, principal component analysis, and a grand tour, for understanding variable importance. Accuracy and speed are measured for a supervised classification task where participants indicate which variables most contribute to the separation between two target clusters. Data were collected from 108 subjects, who completed 648 tasks, using a crowd-sourcing service. The results suggest that the radial tour tends to increase accuracy. Participants also preferred to use the radial tour for the tasks provided.
 ##preamble: > ## Moved to /template/jdsssv_template.tex
 keywords:
   formatted: [multivariate data, exploratory data analysis, grand tour, manual tour, dimension reduction, linear projections, linear embeddings, "\\proglang{R}"]
@@ -42,6 +42,15 @@ linkcolor: red
 ---
 \bibliography{spyrison-cook-marriott}
 ```{r setup_paper, include=FALSE}
+## Install latest CRAN ver of  packages used in compiling paper
+if(F){ ## Manually run
+  install.packages("knitr")
+  install.packages("kableExtra")
+  install.packages("magrittr")
+  install.packages("tourr")
+  install.packages("spinifex")
+  install.packages("gganimate")
+}
 require("knitr")
 require("kableExtra")
 require("magrittr")
@@ -65,14 +74,14 @@ knitr::opts_chunk$set(
 # Introduction
 
 <!-- Multivariate spaces and EDA - black-box models-->
-Multivariate data underlies most classification problems. Yet exploratory data analysis [EDA, @tukey_exploratory_1977] of such spaces is difficult, increasingly so as dimension increases, and often leads to the consideration of models for these problems being considered to be black-boxes. There is increasing emphasis on the need to provide explainers to improve the interpretability for black-box models [@biecek_dalex_2018; @biecek_explanatory_2021; @lundberg_unified_2017; @ribeiro_why_2016; @wickham_visualizing_2015]. Visualization is an important part of providing interpretations [@anscombe_graphs_1973; @coleman_geometric_1986; @goodman_dirty_2008; @matejka_same_2017]. Tour methods [@lee_review_2021; @cook_grand_2008] provide ways to visualize linear projections of high-dimensional spaces, to obtain an overview of shape (distributions and associations) and anomalies (outliers, clusters). The recently introduced radial tour [@spyrison_spinifex_2020] provides a user controlled manual rotation of variables into and out of a projection, which might especially be useful for studying variable importance.
+Multivariate data underlies most classification problems. Yet exploratory data analysis [EDA, @tukey_exploratory_1977] of such spaces is difficult, increasingly so as dimension increases, and often leads to the consideration of models for these problems being considered to be black-boxes. There is increasing emphasis on the need to provide explainers to improve the interpretability for black-box models [@biecek_dalex_2018; @biecek_explanatory_2021; @lundberg_unified_2017; @ribeiro_why_2016; @wickham_visualizing_2015]. Visualization is an important part of providing interpretations [@anscombe_graphs_1973; @coleman_geometric_1986; @goodman_dirty_2008; @matejka_same_2017]. Tour methods [@lee_review_2021; @cook_grand_2008] provide ways to visualize linear projections of high-dimensional spaces, to obtain an overview of shape (distributions and associations) and anomalies (outliers, clusters). The recently introduced radial tour [@spyrison_spinifex_2020] provides a user-controlled manual rotation of variables into and out of a projection, which might especially be useful for studying variable importance.
 
 <!-- Research gap -->
 Dimension reduction is commonly used in conjunction with visualization to provide informative low-dimensional summaries of high-dimensional data. There have been several user studies
 for dimension reduction comparing across embeddings and display dimensionality [@gracia_new_2016; @wagner_filho_immersive_2018]. There are also empirical metrics and comparisons used to describe non-linear reduction and how well and faithfully they embed the data [@bertini_quality_2011; @liu_visualizing_2017; @sedlmair_empirical_2013; @van_der_maaten_visualizing_2008]. <!-- Add comment about the ensemble graphics applications of multivariate visuals? -->There is an absence of studies comparing techniques for assessing variable importance, particularly, how best to convey information to the viewer.
 
 <!-- Add more gap and lit review here? Wants a better segue. -->
-This paper describes a user study conducted to assess the benefit of the radial tour, in comparison with principal component analysis and a grand tour for understanding variable importance. The experiment is a within-participant user study. The type of visualization is the primary factor of the study, corresponding to a null hypothesis that all techniques provide similar ability for the user to determine variable importance. The techniques are compared by having subjects complete several tasks, where accuracy and speed is recorded. 
+This paper describes a user study conducted to assess the benefit of the radial tour, in comparison with principal component analysis and a grand tour for understanding variable importance. The experiment is a within-participant user study. The type of visualization is the primary factor of the study, corresponding to a null hypothesis that all techniques provide a similar ability for the user to determine variable importance. The techniques are compared by having subjects complete several tasks, where accuracy and speed are recorded. 
 
 <!-- structure of the paper -->
 The paper is structured as follows. Section \@ref(sec:background) provides the background on the visualization methods being compared. Section \@ref(sec:userstudy) describes the user study, the tasks, evaluation, and measures used. The results of the study are in Section \@ref(sec:results). Conclusions and potential future directions are discussed in Section \@ref(sec:conclusion). The software used for the study is described in Section \@ref(sec:spinifex).
@@ -94,25 +103,25 @@ knitr::include_graphics("./figures/figFactor_pca.pdf")
 ## Scatterplot matrix
 
 <!-- Not Scatterplot matrices, PCP, want mapped to position -->
-An extension to showing only a few components is to to show pairs of components as a scatterplot matrix [@chambers_graphical_1983], where permutations of pairs of the components are looked displayed on the upper or lower triangles of the matrix. This is a very dense way to illustrate the data and can obscure important features, by giving a large battery of plots to view simultaneously . Figure \@ref(fig:figFactorPca) shows the orthogonal pairs of the first 3 components as a scatterplot matrix.
+An extension to showing only a few components is to show pairs of components as a scatterplot matrix [@chambers_graphical_1983], where permutations of pairs of the components are looked displayed on the upper or lower triangles of the matrix. This is a very dense way to illustrate the data and can obscure important features, by giving a large battery of plots to view simultaneously. Figure \@ref(fig:figFactorPca) shows the orthogonal pairs of the first 3 components as a scatterplot matrix.
 
 
 ## Parallel coordinates plot
 
-Another common way to illustrate this data is with a parallel coordinates plot [@ocagne_coordonnees_1885] (or its polar coordinate variants), plot observations by their quantile values for each variable and connected by lines to the quantile value in subsequent variables. This scales well with dimensionality, but suffers a from couple of issues. The main issue is the loss of mapping multiple variables to graphic position simultaneously as the $x$-axis is being occupied by variables, which Munzner suggests [@munzner_visualization_2014] is the most important visual  channel for human perception. Another issue is that parallel coordinates are asymmetric, as their interpretation is dependent on variable ordering.
+Another common way to illustrate this data is with a parallel coordinates plot [@ocagne_coordonnees_1885] (or its polar coordinate variants), plot observations by their quantile values for each variable and connected by lines to the quantile value in subsequent variables. This scales well with dimensionality but suffers from a couple of issues. The main issue is the loss of mapping multiple variables to graphic position simultaneously as the $x$-axis is being occupied by variables, which Munzner suggests [@munzner_visualization_2014] is the most important visual  channel for human perception. Another issue is that parallel coordinates are asymmetric, as their interpretation is dependent on variable ordering.
 
 
 ## Data visualization tours
 
 <!-- tours intro -->
-A data visualization _tour_ uses time to animate local changes in the projection basis. One of the key features of the tour is the object permanence of the data points; that is to say by watching nearby frames one can track the relative changes of observations as the basis moves toward the next target basis. There are various types of tours which are distinguished by the selection or generation of their basis paths [@lee_review_2021; @cook_grand_2008]. To contrast with the discrete orientations of PCA, we compare with continuous changes of linear projection with _grand_ and _radial_ tours.
+A data visualization _tour_ uses time to animate local changes in the projection basis. One of the key features of the tour is the object permanence of the data points; that is to say by watching nearby frames one can track the relative changes of observations as the basis moves toward the next target basis. There are various types of tours that are distinguished by the selection or generation of their basis paths [@lee_review_2021; @cook_grand_2008]. To contrast with the discrete orientations of PCA, we compare with continuous changes of linear projection with _grand_ and _radial_ tours.
 
 ### Grand tours
 <!-- Grand tour -->
-In a grand tour [@asimov_grand_1985] the target bases are selected randomly. The grand tour is the first and most widely known tour. It will serve as an intermediate unit of comparison which has continuity of data points in nearby frames along with the radial tour, but lacks the user control enjoyed by PCA and radial tours. This lack of control makes grand tours more of a generalist exploratory tool.
+In a grand tour [@asimov_grand_1985] the target bases are selected randomly. The grand tour is the first and most widely known tour. It will serve as an intermediate unit of comparison which has continuity of data points in nearby frames along with the radial tour but lacks the user control enjoyed by PCA and radial tours. This lack of control makes grand tours more of a generalist exploratory tool.
 
 
-```{r figFactorGrand,echo=F,fig.show='animate',interval=.2,results=F,fig.height=4, fig.cap="Animation of grand tour, a near-continuous change over time as the projection basis approaches the next target basis through orthonormal interpolation. In the grand tour frames are selected randomly. Animating small changes in the basis conveys more information than discrete projections alone. For instance, we can better see how and when the structure of the different clusters separate. The animation is viewable on some pdf viewers including Adobe Acrobat Reader."}
+```{r figFactorGrand,echo=F,fig.show='animate',interval=.2,results=F,fig.height=4, fig.cap="Animation a of grand tour, a near-continuous change over time as the projection basis approaches the next target basis through orthonormal interpolation. In the grand tour, frames are selected randomly. Animating small changes in the basis conveys more information than discrete projections alone. For instance, we can better see how and when the structure of the different clusters separate. The animation is viewable on some pdf viewers including Adobe Acrobat Reader."}
 require("gganimate")
 require("spinifex")
 
@@ -142,12 +151,12 @@ load(.tpath_fp, envir = globalenv()) ## Loads object `tpath_p6`
 ### Radial (manual) tours
 
 <!-- Manual tour -->
-The _manual_ tour [@cook_manual_1997] defines its basis path by manipulating the basis contribution of a selected variable. A manipulation dimension is appended onto the projection plane, with a full contribution given to the selected variable. The target bases are then selected based on rotating this newly created manipulation space. The target bases are then similarly orthogonally restrained, data projected and rendered into an animation. In order for the variables to remain independent of each other, the contributions of the other variables must also change, _ie._ dimension space should maintain its orthonormal structure. A key feature of the manual tour is that it affords users a way to control the variable contributions of the next target basis. This means that such manipulations can be selected and queued in advance or select on the spot for human-in-the-loop analysis [@karwowski_international_2006]. However, this navigation is relatively time-consuming due to the huge volume of $p$-space (an aspect of the curse of dimensionality [@bellman_dynamic_1957]) and the abstract method of steering the projection basis. It is advisable to first identify a basis of particular interest and then use a manual tour as a finer, local exploration tool to observe how the contributions of the selected variable do or do not contribute to the feature of interest.
+The _manual_ tour [@cook_manual_1997] defines its basis path by manipulating the basis contribution of a selected variable. A manipulation dimension is appended onto the projection plane, with a full contribution given to the selected variable. The target bases are then selected based on rotating this newly created manipulation space. The target bases are then similarly orthogonally restrained, data projected and rendered into an animation. For the variables to remain independent of each other, the contributions of the other variables must also change, _ie._ dimension space should maintain its orthonormal structure. A key feature of the manual tour is that it affords users a way to control the variable contributions of the next target basis. This means that such manipulations can be selected and queued in advance or select on the spot for human-in-the-loop analysis [@karwowski_international_2006]. However, this navigation is relatively time-consuming due to the huge volume of $p$-space (an aspect of the curse of dimensionality [@bellman_dynamic_1957]) and the abstract method of steering the projection basis. It is advisable to first identify a basis of particular interest and then use a manual tour as a finer, local exploration tool to observe how the contributions of the selected variable do or do not contribute to the feature of interest.
 
 <!-- radial tour variant -->
 To simplify the task and keep its duration realistic, we consider a variant of the manual tour, called a _radial_ tour. In a radial tour, the selected variable is allowed to change its magnitude of contribution, but not its angle; it must move along the direction of its original contribution radius. The radial tour benefits from both continuity of the data alongside grand tours, but also allows the user to steer via choosing the variable to rotate.
 
-```{r figFactorRadial,echo=F,fig.show='animate',interval=.1,eval=T,fig.height=4, fig.cap="Animation of the radial, manual tour. Instead of the target bases being selected at random, they instead vary the contribution of a selected variable. In this case variable 1 is rotated fully into and out of the projection plane. The animation is viewable on some pdf viewers including Adobe Acrobat Reader."}
+```{r figFactorRadial,echo=F,fig.show='animate',interval=.1,eval=T,fig.height=4, fig.cap="Animation of the radial, manual tour. Instead of the target bases being selected at random, they instead vary the contribution of a selected variable. In this case, variable 1 is rotated fully into and out of the projection plane. The animation is viewable on some pdf viewers including Adobe Acrobat Reader."}
 ## Interval wants to be half that of the grand tour, has duplicate frames despite the manual tour df's not having frames.
 
 ## Data
@@ -155,6 +164,7 @@ To simplify the task and keep its duration realistic, we consider a variant of t
 load(.sim_fp, envir = globalenv()) ## Load object `EEV_p6_0_1_rep3`
 dat <- EEV_p6_0_1_rep3
 clas <- as.factor(attr(dat, "cluster"))
+d <- ncol(dat)
 bas <- basis_half_circle(dat)
 
 ## Manual play_manual_tour(render_gganimate) call
@@ -170,7 +180,7 @@ bas <- basis_half_circle(dat)
 .gg + gganimate::transition_states(frame, transition_length = 0L)
 ```
 
-The recent implementation of manual tours us the the R package \pkg{spinifex} [@spyrison_spinifex_2020], which facilitates manual tours (and radial variant). It is also compatible with tours made via \pkg{tourr} [@wickham_tourr:_2011], and improves exporting to .gif or .html widget, with recent graphic packages. Now that we have a readily available means to produce various tours, we want to see how they fare against traditional discrete display commonly used with PCA.
+The recent implementation of manual tours us the the R package \pkg{spinifex} [@spyrison_spinifex_2020], which facilitates manual tours (and radial variant). It is also compatible with tours made with \pkg{tourr} [@wickham_tourr:_2011], and facilitates exporting to .gif or .html widget, with recent graphic packages. Now that we have a readily available means to produce various tours, we want to see how they fare against traditional discrete displays commonly used with PCA.
 
 
 # User study {#sec:userstudy}
@@ -184,11 +194,11 @@ $~~~~~H_0: \text{visualization factor does not impact task } \textit{accuracy}, 
 $~~~~~~H_0: \text{visualization factor does not impact task } \textit{speed}, Y_2. \\$
 
 <!-- Rational for standards of comparison -->
-PCA will be used as a baseline for comparison as it is the most common linear embedding. The grand tour will act as a secondary control that will help evaluate the benefit of animation, where the object permanence of the data points, but without the ability to influence its path. Lastly, the radial tour should perform best as it benefits both from animation and being able to select an individual variable to change the contribution of.
+PCA will be used as a baseline for comparison as it is the most common linear embedding. The grand tour will act as a secondary control that will help evaluate the benefit of animation, where the object permanence of the data points, but without the ability to influence its path. Lastly, the radial tour should perform best as it benefits both from animation and being able to select an individual variable to change the contribution.
 
 <!-- Possible expectations -->
 <!-- PCA shows orthogonal views of pairs of their components. Whereas, the animated transitions of tours convey a lot of meaningful structural information. The grand tour is good for initial exploration and explores a lot of different angles very quickly. While the manual (and radial) tours are best used as a more local exploration tool, to test the sensitivity of structure.  -->
-Then for some subset of tasks, we expect to find that the radial tour performs most accurately with greater control to explore specific variable. Secondly, it may be the case that grand is performs faster than the alternatives with it's absence of inputs all the users attention can focus on interpreting the fixed path. We are less certain with this there is no optimization or functional goal in the grand tour's generation of bases; it is possible that. by chance, the planes completely avoid information needed. However, given that the data dimensionality will be modest, it is at least plausible that grand tour  regularly crosses frames with the correct information to perform the task quickly.
+Then for some subset of tasks, we expect to find that the radial tour performs most accurately with greater control to explore specific variables. Secondly, it may be the case that grand performs faster than the alternatives with its absence of inputs all the users attention can focus on interpreting the fixed path. We are less certain with this there is no optimization or functional goal in the grand tour's generation of bases; it is possible that, by chance, the planes completely avoid the information needed. However, given that the data dimensionality will be modest, it is at least plausible that grand tour  regularly crosses frames with the correct information to perform the task quickly.
 
 
 ## Task and evaluation {#sec:task}
@@ -222,7 +232,7 @@ where
 
 
 <!-- W, weights -->
-We define weights, $W$ to be a vector explaining the variable-wise difference between 2 clusters. Namely the difference of each variable between clusters, as a proportion of the total difference, less $1/p$, the amount of difference each variable would hold if it were uniformly distributed. <!-- R, participant responses -->Participant responses, $R$, are in the form of a boolean value for each variable, whether or not participant thinks each variable separates the two clusters more than if the difference were uniformly distributed. Then $Y_1$ is a vector of variable marks.
+We define weights, $W$ to be a vector explaining the variable-wise difference between 2 clusters. Namely the difference of each variable between clusters, as a proportion of the total difference, less $1/p$, the amount of difference each variable would hold if it were uniformly distributed. <!-- R, participant responses -->Participant responses, $R$, are in the form of a boolean value for each variable, whether or not the participant thinks each variable separates the two clusters more than if the difference were uniformly distributed. Then $Y_1$ is a vector of variable marks.
 
 
 \begin{align*}
@@ -239,7 +249,7 @@ Y_1 &= I(r_j) * sign(w_j) * \sqrt{|w_j|} \\
 \end{align*}
 
 
-where $I$ is the indicator function. Then the total marks for this task is the sum of this marks vector. We use time till the last response as a secondary dependent variable $Y_2$.
+where $I$ is the indicator function. Then the total marks for this task is the sum of this marks vector. We use the time till the last response as a secondary dependent variable $Y_2$.
 
 ```{r, figBiplotScoring, echo = F, out.width = '100%', fig.cap = "(L), PCA biplot of the components showing the most cluster separation with (R) illustration of the magnitude of cluster separation is for each variable (wide bar) and the weight of the marks given if a variable is selected (red/green line). The horizontal dashed line is 1 / dimensionality, the amount of separation each variable would have if evenly distributed. The weights equal the signed square of the difference between each variable value and the dashed line."}
 if(F)
@@ -248,16 +258,16 @@ knitr::include_graphics("./figures/figBiplotScoring.pdf")
 ```
 
 <!-- Period order: Training, eval, eval -->
-Each of the 3 periods introduced the participant to a new factor, where participants were first able to explore an untimed task with data under the simplest parameterizations. The training allows the participant to become familiar with the inputs and visual specific to the factor. Upon clicking a button to proceed text containing the correct answer displays with visual still intact to explore further. After the training, each participant performed 2 evaluation trials. After 60 seconds the display was turned off, though few participants elapsed this time. These evaluation trials were performed under different parameterizations as explained in section \@ref(sec:blocks).
+Each of the 3 periods introduced the participant to a new factor, where participants were first able to explore an untimed task with data under the simplest parameterizations. The training allows the participant to become familiar with the inputs and visual specific to the factor. Upon clicking a button to proceed text containing the correct answer displays with visual still intact to explore further. After the training, each participant performed 2 evaluated trials. After 60 seconds the display was turned off, though few participants elapsed this time. These evaluation trials were performed under different parameterizations as explained in section \@ref(sec:blocks).
 
 
 ## Factor application {#sec:factors}
 
 <!-- Background for methodology, application here -->
-Section \@ref(sec:background) gives the sources and a description of the visual factors PCA, grand tours, and radial manual tours. The factors are tested within-participant, with each factor being evaluated by each participant. The order that factors are experienced in is controlled with the block assignment as illustrated below in Figure \@ref(fig:figParmeterizationExample). Below we cover the visual design standardization, as well the unique input and display within each factor.
+Section \@ref(sec:background) gives the sources and a description of the visual factors PCA, grand tours, and radial manual tours. The factors are tested within-participant, with each factor being evaluated by each participant. The order that factors are experienced is controlled with the block assignment as illustrated below in Figure \@ref(fig:figParmeterizationExample). Below we cover the visual design standardization, as well the input and display within each factor.
 
 <!-- aesthetic standardization -->
-The visualization methods were standardized wherever possible. each factor was shown as a biplot, with variable contributions displayed on a unit circle. All aesthetic values (colors, shapes, sizes, absence of legend, and absence axis titles) were held consistent. Variable contributions were always shown left of the scatterplot embeddings with their aesthetic values consistent as well. What did vary between factors were their inputs which caused a discrete jump to another pair or principal components, were absent for the grand tour with target bases to animate through selected at random, or for the radial tour which variable should have its contribution animated.
+The visualization methods were standardized wherever possible. each factor was shown as a biplot, with variable contributions displayed on a unit circle. All aesthetic values (colors, shapes, sizes, absence of legend, and absence axis titles) were held constant. Variable contributions were always shown left of the scatterplot embeddings with their aesthetic values consistent as well. What did vary between factors were their inputs which caused a discrete jump to another pair or principal components, were absent for the grand tour with target bases to animate through selected at random, or for the radial tour which variable should have its contribution animated.
 
 <!-- PCA -->
 PCA inputs allowed for users to select between the top 4 principal components for both the x and y-axis regardless of the data dimensionality (either 4 or 6). <!-- Grand tours -->There was no user input for the grand tour, users were instead shown a 15-second animation of the same randomly selected path. Users were able to view the same clip up to 4 times within the time limit. <!-- Radial tours -->Radial tours were also displayed at 5 frames per second within the interpolation step size of 0.1 radians. Users were able to swap between variables, upon which the display would change the start of radially increasing the contribution of the selected variable till it was full, zeroed, and then back to its initial contribution. The complete animation of any variable takes about 20 seconds and is almost fully in the projection frame at around 6 seconds. The starting basis of each is initialized to a half-clock design, where the variables were evenly distributed in half of the circle which is then orthonormalized. This design was created to be variable agnostic while maximizing the independence of the variables.
@@ -274,7 +284,7 @@ Dimensionality is tested at 2 modest levels, namely, in 4 dimensions containing 
 <!-- Shape, vc matrix -->
 For choosing the shape of the clusters we follow the convention given by Scrucca, [@scrucca_mclust_2016] who named and categorize 14 variants of model families containing 3 clusters. The name of the model family is the abbreviation of its respective volume, shape, and orientation, which are either equal or vary. We use the models EEE, EEV, and EVV, the latter is further modified by moving 4 fifths of the data out in a "V" or banana-like shape. Figure \@ref(fig:figModelFamilies) shows the principal component biplot of the 3 model variants applied here. The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in the order of increasing difficulty. The evaluation periods use EEE, EEV, and EVV-banana respectively in increasing order of difficulty.
 
-```{r figModelFamilies, echo = F, out.width = '100%', fig.cap = "Ellipses of the isodensity of the model families used. Family labels are are the abbreviation for the clusters volume, shape, and orientation respectively, which are either equal or vary. We further change the EVV model by shifting fifths of the data in banana or chevron arrow shape."}
+```{r figModelFamilies, echo = F, out.width = '100%', fig.cap = "Ellipses of the isodensity of the model families used. Family labels are are the abbreviation for the clusters volume, shape, and orientation respectively, which are either equal or vary. We further change the EVV model by shifting fifths of the data in banana or chevron arrow-like shape."}
 if(F)
   file.edit("./paper/R/fig_model_families.r")
 knitr::include_graphics("./figures/figModelFam.pdf")
@@ -307,11 +317,11 @@ knitr::include_graphics("./figures/figSurveyDemographics.pdf")
 
 ## Evenness of block evaluation
 
-From pilot studies through a sample of convenience (consisting of information technology and statistics Ph.D. students attending Monash University), we predict that we wanted 3 even block evaluations to support differences in our factor and block parameterizations. Given that factor and location, each have 6 permutations we targeted $N = 108 = 3 * (6 * 6)$ evaluations before data were collected. In data collection, we experienced several adverse conditions, primarily: limited control of application server network configuration, throughput thresholds on data read/write API, and repeat attempts from users when experiencing disconnects. To mitigate this we over-collect survey trials, exclude all partial trials and remove the oldest attempts (mostly likely to experience adverse network conditions) from over evaluated permutations until we have our desired evaluations under each permutation.
+From pilot studies through a sample of convenience (consisting of information technology and statistics Ph.D. students attending Monash University), we predict that we wanted 3 even block evaluations to support differences in our factor and block parameterizations. Given that factor and location, each have 6 permutations we targeted $N = 108 = 3 * (6 * 6)$ evaluations before data were collected. In data collection, we experienced several adverse conditions, primarily: limited control of application server network configuration, throughput thresholds on data read/write API, and repeat attempts from users when experiencing disconnects. To mitigate this we over-collect survey trials, then exclude all partial trials and remove the oldest attempts (mostly likely to experience adverse network conditions) from over evaluated permutations until we have our desired evaluations under each permutation.
 
 ## Data capture and processing
 
-Data was recorded by a \pkg{shiny} application and was written to a Google Sheet after each study period. Time is measured as the CPU time of the server. This could be made slightly more accurate by calculating the difference of system time at these points. Because the frequency of the participants from prolific was more then the server would handle, participants were manually accepted one or two at a time. We collected participants till we had 3 evaluations of each parameter permutation. The processing steps were fairly minimal after formatting to tidy format and decoding values to a more human-readable state. After formatting, a flag is added to indicate if the survey had data from all 3 periods. We remove all partial studies and keep only the last 3 complete studies within each block parameterization, the studies which should have experienced the least adverse network conditions. This brings us to the 108 studies described in the paper, from which models and aggregation tables were built. The post-study surveys were similarly decoded to human-readable tidy format and then filtered to include only those 84 surveys that were associated with the final 108 studies. 
+Data was recorded by a \pkg{shiny} application and was written to a Google Sheet after each study period. Time is measured as the CPU time of the server. This could be made slightly more accurate by calculating the difference of system time at these points. Because the frequency of the participants from prolific was more than the server would handle, participants were manually accepted one or two at a time. We collected participants till we had 3 evaluations of each parameter permutation. The processing steps were fairly minimal after formatting to tidy format and decoding values to a more human-readable state. After formatting, a flag is added to indicate if the survey had data from all 3 periods. We remove all partial studies and keep only the last 3 complete studies within each block parameterization, the studies which should have experienced the least adverse network conditions. This brings us to the 108 studies described in the paper, from which models and aggregation tables were built. The post-study surveys were similarly decoded to human-readable tidy format and then filtered to include only those 84 surveys that were associated with the final 108 studies. 
 
 The code, response files, their analyses, and the study application are publicly available at on GitHub \url{https://github.com/nspyrison/spinifex_study}.
 
@@ -367,7 +377,7 @@ model_comp_tbl_ls[[1]]$`Fixed effects` <- model_comp_tbl_ls[[2]]$`Fixed effects`
 ## 1) Eval parameters
 kableExtra::kbl(
   model_comp_tbl_ls[[1]], "latex", align = c("l", rep("l", 2), rep("c", 5)),
-  booktabs = TRUE, linesep = "", caption = "Model comparison of our random effect models regressing marks. Each model includes a random effect term of the participant, which explains the individual's influence on their marks. Complex models perform better in terms of R2 and RMSE, yet AIC and BIC penalize their large number of fixed effects in favor of the much simpler model containing only factor.") %>%
+  booktabs = TRUE, linesep = "", caption = "Model comparison of our random effect models regressing marks. Each model includes a random effect term of the participant, which explains the individual's influence on their marks. Complex models perform better in terms of R2 and RMSE, yet AIC and BIC penalize their large number of fixed effects in favor of the much simpler model containing only the visual factor.") %>%
   kableExtra::column_spec(column = 1, width = "1.5cm") %>%
   column_spec(column = c(2:3), width = "1cm") %>%
   column_spec(column = c(4:8), width = "1.5cm") %>%
@@ -430,7 +440,7 @@ As a secondary explanatory variable, we also want to look at time. First, we tak
 ## 1) Eval parameters
 kableExtra::kbl(
   model_comp_tbl_ls[[2]], "latex", align = c("l", rep("l", 2), rep("c", 5)), 
-  booktabs = TRUE, linesep = "", caption = "Model comparisons for log(time) models, $\\widehat{Y_2}$ random effect models, where each model includes random effect terms for participants and simulations. We see the same trade-off where the simplest factor model is perferred by AIC/BIC, while R2 and RMSE perform best with the full multiplicative model. We again select the model $\\alpha * \\beta + \\gamma + \\delta$ to explore further as it has relatively high marginal $R^2$ while having much less complexity than the full model.") %>%
+  booktabs = TRUE, linesep = "", caption = "Model comparisons for log(time) models, $\\widehat{Y_2}$ random effect models, where each model includes random effect terms for participants and simulations. We see the same trade-off where the simplest factor model is preferred by AIC/BIC, while R2 and RMSE perform prefers the full multiplicative model. We again select the model $\\alpha * \\beta + \\gamma + \\delta$ to explore further as it has relatively high marginal $R^2$ while having much less complexity than the full model.") %>%
   kableExtra::column_spec(column = 1, width = "1.5cm") %>%
   column_spec(column = c(2:3), width = "1cm") %>%
   column_spec(column = c(4:8), width = "1.5cm") %>%
@@ -471,10 +481,10 @@ knitr::include_graphics("./figures/figSubjectiveMeasures_w.violin_hori.pdf")
 
 # Conclusion {#sec:conclusion}
 
-Above we discussed an $n=108$, with-in participant user study comparing the efficacy of 3 linear projection techniques. The participants performed a supervised cluster task, specifically the identification of which variables contribute to the separation between 2 target clusters. This was evaluated evenly over 4 block parameterizations. In summary, we find that radial tours increases accuracy while the grand tour decreases the time it takes to perform this task. These effects are large relative to the other block parameterizations, but smaller than the random effect of the participant. Radial tour was subjectively most preferred, lead to more confidence in answers, and is easier to use than alternatives.
+Above we discussed an $n=108$, with-in participant user study comparing the efficacy of 3 linear projection techniques. The participants performed a supervised cluster task, specifically the identification of which variables contribute to the separation between 2 target clusters. This was evaluated evenly over 4 block parameterizations. In summary, we find that radial tour increases accuracy while the grand tour decreases the time it takes to perform this task. These effects are large relative to the other block parameterizations, but smaller than the random effect of the participant. Radial tour was subjectively most preferred, lead to more confidence in answers, and is easier to use than alternatives.
 
-<!-- Discussion and goint further -->
-There are several ways that this study could be extended. In addition to expanding the support of the block parameterizations, more interesting directions include: type of the task, visualizations used, and experience level of the target population. It is difficult to achieve good coverage given the number of possible permutations. Be sure to step back and plan what the target support of your block parameters. Keep in mind the volume and quality of responses from participants especially when crowdsourcing. These planning steps are useful for navigating when the complexity of the application details.
+<!-- Discussion and going further -->
+There are several ways that this study could be extended. In addition to expanding the support of the block parameterizations, more interesting directions include: type of the task, visualizations used, and experience level of the target population. It is difficult to achieve good coverage given the number of possible permutations. Be sure to step back and plan the target support of your block parameters. Keep in mind the volume and quality of responses from participants especially when crowdsourcing. These planning steps are useful for navigating when the complexity of the application details.
 
 
 # Accompanying tool: radial manual tour application {#sec:spinifex}
