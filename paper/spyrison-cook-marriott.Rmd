@@ -443,7 +443,7 @@ We also want to visually explore the conditional variables in the model. Figure 
 
 ```{r, figMarksABcd, echo = F, out.width = '100%', fig.cap = "Violin plots of terms of the model $\\widehat{Y_1} = \\alpha * \\beta + \\gamma + \\delta$. Overlaid with global significance from the Kruskal-Wallis test, and pairwise significance from the Wilcoxon test, both are non-parametric, ranked sum tests suitable for handling discrete data. Participants are more confident and find the radial easier to use relative to the grand tour. Participants claim low familiarity as we expect from crowdsourced participants. Radial is more preferred compared with either alternative for this task."}
 if(F) ## Creation and saving figure at:
-  file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
+file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 knitr::include_graphics("./figures/figMarksABcd.pdf")
 ```
 
