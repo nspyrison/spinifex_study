@@ -187,6 +187,20 @@ The recent implementation of manual tours us the the R package \pkg{spinifex} [@
 
 # User study {#sec:userstudy}
 
+<!-- overview -->
+An experiment was constructed to assess the performance of the radial tour relative to the tour and scatterplots of principal components for interpreting the importance of variables to class separations. 
+
+The three methods were examined for three different cluster shapes, using different combinations of contributing variables, and data dimension. Data was collected using a specially constructed web app, through the crowd-sourcing platform, politico. XXX Maybe more brief overview is needed.
+
+## Experimental factors
+
+<row plots of the three vis types, showing clearly the factor name in the study>
+
+<row of variance-covariance parametrizations, using factor name used in study, currently fig 5>
+
+<row of three location types, 0/1, 33/67, 50/50>
+
+
 ## Objective {#sec:objective}
 
 We measure the accuracy and speed over 4 dimensions of block parameterizations. The null hypotheses can be stated as:
