@@ -93,9 +93,9 @@ The paper is structured as follows. Section \@ref(sec:background) provides the b
 
 Principal component analysis is a good baseline of comparison for linear projections because of its frequent and broad use across disciplines. Principal component analysis [PCA, @pearson_liii._1901] creates new components that are linear combinations of the original variables. The creation of these variables is ordered by decreasing variation which is orthogonally constrained to all previous components. While the full dimensionality is intact, the benefit comes from the ordered nature of the components. The first 2 or 3 components are typically used to approximate the variation multivariate data set, while the rest are discarded.
 
-```{r figFactorPca, echo = F, out.width = '60%', fig.cap = "Scatterplot matrix of the first 3 principal components for an example simulation. This illustrates 3 of the 6 PCA pairings that participants can explore while evaluating a task under PCA."}
+```{r figFactorPca, echo = F, out.width = '60%', fig.cap = "Scatterplot matrix of the first 3 principal components for simulated data. There are three classes in the data, and the biggest difference between classes can be seen in the first two PCs."}
 if(F)
-  file.edit("./paper/R/fig_factor.r")
+file.edit("./paper/R/fig_factor.r")
 knitr::include_graphics("./figures/figFactor_pca.pdf")
 ```
 
@@ -103,12 +103,14 @@ knitr::include_graphics("./figures/figFactor_pca.pdf")
 ## Scatterplot matrix
 
 <!-- Not Scatterplot matrices, PCP, want mapped to position -->
-An extension to showing only a few components is to show pairs of components as a scatterplot matrix [@chambers_graphical_1983], where permutations of pairs of the components are looked displayed on the upper or lower triangles of the matrix. This is a very dense way to illustrate the data and can obscure important features, by giving a large battery of plots to view simultaneously. Figure \@ref(fig:figFactorPca) shows the orthogonal pairs of the first 3 components as a scatterplot matrix.
+An extension to showing only a few components is to show pairs of components as a scatterplot matrix [@chambers_graphical_1983], where all pairs of the components are displayed on the upper or lower triangles of matrix layout. This is a convenient way to fit many plots onto a page, but when there are many variables there is insufficient space on a page to dispay them all. Figure \@ref(fig:figFactorPca) shows the first three components of simulated data as a scatterplot matrix.
 
 
 ## Parallel coordinates plot
 
-Another common way to illustrate this data is with a parallel coordinates plot [@ocagne_coordonnees_1885] (or its polar coordinate variants), plot observations by their quantile values for each variable and connected by lines to the quantile value in subsequent variables. This scales well with dimensionality but suffers from a couple of issues. The main issue is the loss of mapping multiple variables to graphic position simultaneously as the $x$-axis is being occupied by variables, which Munzner suggests [@munzner_visualization_2014] is the most important visual  channel for human perception. Another issue is that parallel coordinates are asymmetric, as their interpretation is dependent on variable ordering.
+Another common way to display multivariate data is with a parallel coordinates plot [@ocagne_coordonnees_1885], which displays observations by their quantile values for each variable with connected by lines to the quantile value in subsequent variables. This scales well with dimensionality but suffers from different interpretations depending on the order of variables on the axis. 
+
+<!--a couple of issues. The main issue is the loss of mapping multiple variables to graphic position simultaneously as the $x$-axis is being occupied by variables, which Munzner [@munzner_visualization_2014] suggests is the most important visual  channel for human perception. Another issue is that parallel coordinates are asymmetric, as their interpretation is dependent on variable ordering.-->
 
 
 ## Data visualization tours
