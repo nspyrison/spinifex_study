@@ -1,0 +1,9 @@
+<!-- Do not add YAML header to child document. -->
+<!-- # Appendix {#sec:appendix} listed in parent document -->
+
+Content here.
+
+```{r}
+plot(0)
+```
+

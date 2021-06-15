@@ -6,7 +6,8 @@ output:
     keep_tex: true
     toc: false
     template: template/jdssv_template.tex
-    #citation_package: natbib
+appendix:
+  - "appendix-1.Rmd"
 title:
   formatted: "A study examining the benefit of the user-controlled radial tour for understanding variable contributions to structure visible in linear projections of high-dimensional data"
   plain:     "A study examining the benefit of the user-controlled radial tour for understanding variable contributions to structure visible in linear projections of high-dimensional data"
@@ -517,5 +518,14 @@ spinifex::run_app("intro")
 This research was supported by an Australian Government Research Training Program (RTP) Scholarship. This article was created in \proglang{R} [@r_core_team_r:_2020] and \pkg{rmarkdown} [@xie_r_2018]. Visuals were prepared with \pkg{spinifex}. All packages used are available from the Comprehensive \proglang{R} Archive Network (CRAN) at \url{https://CRAN.R-project.org/}. The source files for this article, application, data, and analysis can be found at \url{https://github.com/nspyrison/spinifex_study/}. The source code for the \pkg{spinifex} package and accompanying shiny application can be found at \url{https://github.com/nspyrison/spinifex/}.
 
 If you are looking for a vignette to reproduce animations in for a pdf document from R with base or \pkg{gganimate} graphics, see the reproducible example: \url{https://github.com/nspyrison/spinifex_study/blob/master/zDevExamples/animated_pdf.rmd}.
+
+
+
+# Appendix {#sec:appendix}
+
+```{r, child="appendix.rmd"}
+```
+
+
 
 # References {#sec:bib}
