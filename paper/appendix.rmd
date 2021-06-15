@@ -1,9 +1,29 @@
 <!-- Do not add YAML header to child document. -->
 <!-- # Appendix {#sec:appendix} listed in parent document -->
 
-Content here.
+## Survey participant demographics
 
-```{r}
-plot(0)
+The target population is relatively educated people as such linear projections may be difficult for generalized consumption. Hence we restrict Prolific.co participants to those with an undergraduate degree (58,700 of the 150,400 users at the time of study). We found our sample of 108 participants from this group. Of these participants, 84 submitted the post-study survey, who are represented in the heatmap. All participants were compensated for their time at \pounds 7.50 per hour, with the mean time of about 16 minutes.
+
+```{r, figSurveyDemographics, echo = F, out.width = '100%', fig.cap = "Heatmaps of participant demographics, counts of age group by completed education as faceted across preferred pronoun. Our sample tended to be between 18 and 35 years of age with an undergraduate or graduate degree."}
+if(F) ## Creation and saving figure at:
+  file.edit("./paper/R/fig_population_demographics.r")
+knitr::include_graphics("./figures/figSurveyDemographics.pdf")
 ```
 
+## Random effect ranges
+
+<!-- Random effects vs Mean Mark CI by participant and sim -->
+Residual plots have no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figEffectRange) illustrates (T) the effect size of the random terms participant and simulation, or more accurately, the 95\% CI from Gelman simulation of their posterior distribution. The effect size of the participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha = .95$, while none of the simulation effects significantly deviate from the null of having no effect size on the marks. In comparison, (B) 95\% confidence intervals of the mean marks for participation and simulation respectively.
+
+```{r figEffectRange, out.width="100%", fig.show='asis', fig.cap="(T) Estimated effect ranges of the random effect terms participant and data simulation of the accuracy model, $Y_1 = \\alpha * \\beta + \\gamma + \\delta$. Confidence intervals are created with Gelman simulation on the effect posterior distributions. The effect size of the participant is relatively large, with several significant extrema. None of the simulations deviate significantly. (B) The ordered distributions of the CI of mean marks follow the same general pattern and give the additional context of how much variation is in the data, an upper limit to the effect range. The effect ranges capture about 2/3 of the range of the data without the model. All intervals for $\\alpha = .95$ confidence."}
+if(F) ## Creation and saving figure at:
+  file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
+knitr::include_graphics("./figures/figEffectRange.pdf")
+```
+
+```{r figTeffectRange, out.width="100%", fig.show='asis', fig.cap='(T) The effect ranges of Gelman resimulation on posterior distributions for the time model, $Y_2 = \\alpha * \\beta + \\gamma + \\delta$. These show the magnitude and distributions of particular participants and simulations. Simulation has a relatively small effect on response time. (B) Confidence intervals for mean log(time) by participant and simulation. The marginal density shows that the response times are left-skewed after log transformation. Interpreting back to linear time there is quite the spread of response times: $e^{1}=2.7$, $e^{2.75}=15.6$, $e^{3.75}=42.5$ seconds. Considering simulations, on the right, the bottom has a large variation of time, relative to the effect ranges which means that the variation is explained in the terms of the model and not by the simulation itself.'}
+if(F) ## Creation and saving figure at:
+  file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
+knitr::include_graphics("./figures/figTeffectRange.pdf")
+```
