@@ -194,15 +194,41 @@ The recent implementation of manual tours us the the R package \pkg{spinifex} [@
 <!-- overview -->
 An experiment was constructed to assess the performance of the radial tour relative to the tour and scatterplots of principal components for interpreting the importance of variables to class separations. 
 
-The three methods were examined for three different cluster shapes, using different combinations of contributing variables, and data dimension. Data was collected using a specially constructed web app, through the crowd-sourcing platform, politico. XXX Maybe more brief overview is needed.
+The three methods were examined for three different cluster shapes, using different combinations of contributing variables, and data dimension. Data was collected using a specially constructed web app, through crowd-sourced with prolific.co [@palan_prolific_2018].
 
-## Experimental factors
+## Experimental factors {#sec:blocks}
+<!-- <row plots of the three vis types, showing clearly the factor name in the study> -->
+<!-- <row of variance-covariance parametrizations, using factor name used in study, currently fig 5> -->
+<!-- <row of three location types, 0/1, 33/67, 50/50> -->
+<!-- ## Blocks and parameterization  -->
 
-<row plots of the three vis types, showing clearly the factor name in the study>
+<!-- intro to blocks -->
+In addition to visual factor, we vary the data across 3 aspects: 1) The _location_ of the difference between clusters, by mixing a signal and a noise variable at different ratios, we control which variables contain cluster separation, 2) the _shape_ of the clusters, by changing the variance-covariance matrices, and 3) the _dim_-ensionality of the data.
 
-<row of variance-covariance parametrizations, using factor name used in study, currently fig 5>
+<!-- Location mixing -->
+The separation of any pair of clusters is currently contained fully within a single variable at this point. To test the sensitivity to this we mix a noise variable with the signal-containing variable such that the difference in the clusters is mixed at the following percentages: 0/100 (not mixed), 33/66, 50/50 (evenly mixed). The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in the order of increasing difficulty. The training data does not mix signal Location mixing within an evaluation period is held constant and rotated through the 6 permutations of their order. Randomizing the order of the location mixing is controlled by iterating once after each of the 6-factor order permutations are evaluated. This is illustrated in Figure \@ref(fig:figParmeterizationExample).
 
-<row of three location types, 0/1, 33/67, 50/50>
+<!-- Shape, vc matrix -->
+For choosing the shape of the clusters we follow the convention given by Scrucca, [@scrucca_mclust_2016] who named and categorize 14 variants of model families containing 3 clusters. The name of the model family is the abbreviation of its respective volume, shape, and orientation, which are either equal or vary. We use the models EEE, EEV, and EVV, the latter is further modified by moving 4 fifths of the data out in a "V" or banana-like shape. Figure \@ref(fig:figModelFamilies) shows the principal component biplot of the 3 model variants applied here. The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in the order of increasing difficulty. The evaluation periods use EEE, EEV, and EVV-banana respectively in increasing order of difficulty.
+
+```{r figModelFamilies, echo = F, out.width = '100%', fig.cap = "Ellipses of the isodensity of the model families used. Family labels are are the abbreviation for the clusters volume, shape, and orientation respectively, which are either equal or vary. We further change the EVV model by shifting fifths of the data in banana or chevron arrow-like shape."}
+if(F)
+  file.edit("./paper/R/fig_model_families.r")
+knitr::include_graphics("./figures/figModelFam.pdf")
+```
+
+<!-- Dimensionality -->
+Dimensionality is tested at 2 modest levels, namely, in 4 dimensions containing 3 clusters and 6 dimensions with 4 clusters. Each cluster samples 140 observations. Each dimension is originally distributed as $\mathcal{N}(2 * I(signal), 1)~|~\text{covariance}~\Sigma$, before applying location mixing and standardizing by standard deviation). Signal variables have a correlation of 0.9 when they have equal orientation and -0.9 when their orientations vary. Noise variables were restricted to 0 correlation. Within each factor-period dimension is fixed with increasing difficulty, 4 then 6.
+
+```{r figParmeterizationExample, echo = F, out.width = '100%', fig.cap = "Illustration of how a hypothetical participant 63 is assigned factor and block parameterizations. Each of the 6-factor order permutations is exhausted before iterating to the next permutation of location order."}
+knitr::include_graphics("./figures/figParmeterizationExample.png") ## this is .pttx screen cap, .png ok.
+```
+
+<!-- Eval evaluation, selection of size -->
+With this setup, we test the parameter space $dimension \in (4,~ 6),~shape \in(EEE,~ EEV,~ EVV-banana),~location ~\in~ (0/100,~ 33/66,~ 50/50)$ percent noise/signal mixing to evaluate the graphic display across the $factors~\in~(PCA,~grand,~radial).$ As we iterate through the possible permutations of these factors and location we perform an even evaluation of the full parameter space every 36 participants. Via pilot studies, we estimate that 3 even block evaluations should be sufficient to identify the difference between the factors; we targeted for $N = 108$ participants.
+
+<!-- Learning effect -->
+In addition to the explicitly controlled block parameters, we will also be discussing each participant's evaluation order regardless of factor or location experiences. This will expose a learning effect from the repetition of being exposed to this data or problem. Keep in mind that the shape and location are always experienced in order of increasing difficulty.
 
 
 ## Objective {#sec:objective}
@@ -291,38 +317,6 @@ The visualization methods were standardized wherever possible. each factor was s
 
 <!-- PCA -->
 PCA inputs allowed for users to select between the top 4 principal components for both the x and y-axis regardless of the data dimensionality (either 4 or 6). <!-- Grand tours -->There was no user input for the grand tour, users were instead shown a 15-second animation of the same randomly selected path. Users were able to view the same clip up to 4 times within the time limit. <!-- Radial tours -->Radial tours were also displayed at 5 frames per second within the interpolation step size of 0.1 radians. Users were able to swap between variables, upon which the display would change the start of radially increasing the contribution of the selected variable till it was full, zeroed, and then back to its initial contribution. The complete animation of any variable takes about 20 seconds and is almost fully in the projection frame at around 6 seconds. The starting basis of each is initialized to a half-clock design, where the variables were evenly distributed in half of the circle which is then orthonormalized. This design was created to be variable agnostic while maximizing the independence of the variables.
-
-
-## Blocks and parameterization {#sec:blocks}
-
-<!-- volume of parameter space -->
-In addition to visual factor, we vary the data across 3 aspects: 1) The location of the difference between clusters, by mixing a signal and a noise variable at different ratios, we control which variables contain cluster separation, 2) the shapes of the clusters, by changing the variance-covariance matrices, and 3) the dimensionality of the data.
-
-<!-- Dimensionality -->
-Dimensionality is tested at 2 modest levels, namely, in 4 dimensions containing 3 clusters and 6 dimensions with 4 clusters. Each cluster samples 140 observations. Each dimension is originally distributed as $\mathcal{N}(2 * I(signal), 1)~|~\text{covariance}~\Sigma$, before applying location mixing and standardizing by standard deviation). Signal variables have a correlation of 0.9 when they have equal orientation and -0.9 when their orientations vary. Noise variables were restricted to 0 correlation. Within each factor-period dimension is fixed with increasing difficulty, 4 then 6.
-
-<!-- Shape, vc matrix -->
-For choosing the shape of the clusters we follow the convention given by Scrucca, [@scrucca_mclust_2016] who named and categorize 14 variants of model families containing 3 clusters. The name of the model family is the abbreviation of its respective volume, shape, and orientation, which are either equal or vary. We use the models EEE, EEV, and EVV, the latter is further modified by moving 4 fifths of the data out in a "V" or banana-like shape. Figure \@ref(fig:figModelFamilies) shows the principal component biplot of the 3 model variants applied here. The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in the order of increasing difficulty. The evaluation periods use EEE, EEV, and EVV-banana respectively in increasing order of difficulty.
-
-```{r figModelFamilies, echo = F, out.width = '100%', fig.cap = "Ellipses of the isodensity of the model families used. Family labels are are the abbreviation for the clusters volume, shape, and orientation respectively, which are either equal or vary. We further change the EVV model by shifting fifths of the data in banana or chevron arrow-like shape."}
-if(F)
-  file.edit("./paper/R/fig_model_families.r")
-knitr::include_graphics("./figures/figModelFam.pdf")
-```
-
-<!-- Location mixing -->
-The separation of any pair of clusters is currently contained fully within a single variable at this point. To test the sensitivity to this we mix a noise variable with the signal-containing variable such that the difference in the clusters is mixed at the following percentages: 0/100 (not mixed), 33/66, 50/50 (evenly mixed). The training always uses 4 dimensions, while the 2 evaluations always contain 4 and 6 dimensions in the order of increasing difficulty. The training data does not mix signal Location mixing within an evaluation period is held constant and rotated through the 6 permutations of their order. Randomizing the order of the location mixing is controlled by iterating once after each of the 6-factor order permutations are evaluated. This is illustrated in Figure \@ref(fig:figParmeterizationExample).
-
-```{r figParmeterizationExample, echo = F, out.width = '100%', fig.cap = "Illustration of how a hypothetical participant 63 is assigned factor and block parameterizations. Each of the 6-factor order permutations is exhausted before iterating to the next permutation of location order."}
-knitr::include_graphics("./figures/figParmeterizationExample.png") ## this is .pttx screen cap, .png ok.
-```
-
-<!-- Eval evaluation, selection of size -->
-With this setup, we test the parameter space $dimension \in (4,~ 6),~shape \in(EEE,~ EEV,~ EVV-banana),~location ~\in~ (0/100,~ 33/66,~ 50/50)$ percent noise/signal mixing to evaluate the graphic display across the $factors~\in~(PCA,~grand,~radial).$ As we iterate through the possible permutations of these factors and location we perform an even evaluation of the full parameter space every 36 participants. Via pilot studies, we estimate that 3 even block evaluations should be sufficient to identify the difference between the factors; we targeted for $N = 108$ participants.
-
-<!-- Learning effect -->
-In addition to the explicitly controlled block parameters, we will also be discussing each participant's evaluation order regardless of factor or location experiences. This will expose a learning effect from the repetition of being exposed to this data or problem. Keep in mind that the shape and location are always experienced in order of increasing difficulty.
-
 
 
 ## Sampling population {#sec:population}
