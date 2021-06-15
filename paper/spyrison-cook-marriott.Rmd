@@ -16,19 +16,22 @@ author:
   - name: Nicholas Spyrison
     affiliation: Monash University
     address: |
-      | Faculty of Information Technology,
-      | Monash University
+      | Faculty of Information Technology
+      | ORCiD: 0000-0002-8417-0212
     email: \email{nicholas.spyrison@monash.edu}
+    orcid: 0000-0002-8417-0212
   - name: Dianne Cook
     affiliation: Monash University
     address: |
       | Department of Econometrics & Business Statistics,
-      | Monash University
+      | ORCiD: 000-0002-3813-7155
+    orcid: 000-0002-3813-7155
   - name: Kimbal Marriott
     affiliation: Monash University
     address: |
       | Faculty of Information Technology,
-      | Monash University
+      | ORCiD: 0000-0002-9813-0377
+    orcid: 0000-0002-9813-0377
 abstract: |
   Radial tours make it possible for a user to interact with a linear projection of data, by rotating a variable in or out. This paper describes a user study examining the use of the radial tour in comparison to two existing methods, principal component analysis, and a grand tour, for understanding variable importance. Accuracy and speed are measured for a supervised classification task where participants indicate which variables most contribute to the separation between two target clusters. Data were collected from 108 subjects, who completed 648 tasks, using a crowd-sourcing service. The results suggest that the radial tour tends to increase accuracy. Participants also preferred to use the radial tour for the tasks provided.
 ##preamble: > ## Moved to /template/jdsssv_template.tex
@@ -521,11 +524,15 @@ If you are looking for a vignette to reproduce animations in for a pdf document 
 
 
 
-# Appendix {#sec:appendix}
-
-```{r, child="appendix.rmd"}
-```
-
 
 
 # References {#sec:bib}
+
+
+
+# Appendix {#sec:appendix}
+
+```{r, child="appendix.rmd", echo=F}
+if(F)
+  file.edit("./paper/appendix.rmd")
+```
