@@ -107,7 +107,7 @@ knitr::include_graphics("./figures/figFactor_pca.pdf")
 ## Scatterplot matrix
 
 <!-- Not Scatterplot matrices, PCP, want mapped to position -->
-An extension to showing only a few components is to show pairs of components as a scatterplot matrix [@chambers_graphical_1983], where all pairs of the components are displayed on the upper or lower triangles of matrix layout. This is a convenient way to fit many plots onto a page, but when there are many variables there is insufficient space on a page to dispay them all. Figure \@ref(fig:figFactorPca) shows the first three components of simulated data as a scatterplot matrix.
+An extension to showing only a few components is to show pairs of components as a scatterplot matrix [@chambers_graphical_1983], where all pairs of the components are displayed on the upper or lower triangles of the matrix. This is a convenient way to fit many plots onto a page, but when there are many variables there is insufficient space on a page to display them all. Figure \@ref(fig:figFactorPca) shows the first three components of simulated data as a scatterplot matrix.
 
 
 ## Parallel coordinates plot
@@ -127,7 +127,7 @@ A data visualization _tour_ uses time to animate local changes in the projection
 In a grand tour [@asimov_grand_1985] the target bases are selected randomly. The grand tour is the first and most widely known tour. It will serve as an intermediate unit of comparison which has continuity of data points in nearby frames along with the radial tour but lacks the user control enjoyed by PCA and radial tours. This lack of control makes grand tours more of a generalist exploratory tool.
 
 
-```{r figFactorGrand,echo=F,fig.show='animate',interval=.2,results=F,fig.height=4, fig.cap="Animation a of grand tour, a near-continuous change over time as the projection basis approaches the next target basis through orthonormal interpolation. In the grand tour, frames are selected randomly. Animating small changes in the basis conveys more information than discrete projections alone. For instance, we can better see how and when the structure of the different clusters separate. The animation is viewable on some pdf viewers including Adobe Acrobat Reader."}
+```{r figFactorGrand,echo=F,fig.show='animate',interval=.2,results=F,fig.height=4, fig.cap="Animation of a grand tour, a near-continuous change of the projection basis over time. In the grand tour, target bases are selected randomly and geodesically interpolated between. Animating small changes in the basis conveys more information than discrete projections alone. For instance, we can better see how and when the structure of the different clusters separate. The animation is viewable on some pdf viewers including Adobe Acrobat Reader."}
 require("gganimate")
 require("spinifex")
 
@@ -157,7 +157,7 @@ load(.tpath_fp, envir = globalenv()) ## Loads object `tpath_p6`
 ### Radial (manual) tours
 
 <!-- Manual tour -->
-The _manual_ tour [@cook_manual_1997] defines its basis path by manipulating the basis contribution of a selected variable. A manipulation dimension is appended onto the projection plane, with a full contribution given to the selected variable. The target bases are then selected based on rotating this newly created manipulation space. The target bases are then similarly orthogonally restrained, data projected and rendered into an animation. For the variables to remain independent of each other, the contributions of the other variables must also change, _ie._ dimension space should maintain its orthonormal structure. A key feature of the manual tour is that it affords users a way to control the variable contributions of the next target basis. This means that such manipulations can be selected and queued in advance or select on the spot for human-in-the-loop analysis [@karwowski_international_2006]. However, this navigation is relatively time-consuming due to the huge volume of $p$-space (an aspect of the curse of dimensionality [@bellman_dynamic_1957]) and the abstract method of steering the projection basis. It is advisable to first identify a basis of particular interest and then use a manual tour as a finer, local exploration tool to observe how the contributions of the selected variable do or do not contribute to the feature of interest.
+The _manual_ tour [@cook_manual_1997] defines its basis path by manipulating the basis contribution of a selected variable. A manipulation dimension is appended onto the projection plane, with a full contribution given to the selected variable. The target bases are then selected based on rotating this newly created manipulation space. The target bases are then similarly orthogonally restrained, data projected, and rendered into an animation. For the variables to remain independent of each other, the contributions of the other variables must also change, _ie._ dimension space should maintain its orthonormal structure. A key feature of the manual tour is that it affords users a way to control the variable contributions of the next target basis. This means that such manipulations can be selected and queued in advance or select on the spot for human-in-the-loop analysis [@karwowski_international_2006]. However, this navigation is relatively time-consuming due to the huge volume of $p$-space (an aspect of the curse of dimensionality [@bellman_dynamic_1957]) and the abstract method of steering the projection basis. It is advisable to first identify a basis of particular interest and then use a manual tour as a finer, local exploration tool to observe how the contributions of the selected variable do or do not contribute to the feature of interest.
 
 <!-- radial tour variant -->
 To simplify the task and keep its duration realistic, we consider a variant of the manual tour, called a _radial_ tour. In a radial tour, the selected variable is allowed to change its magnitude of contribution, but not its angle; it must move along the direction of its original contribution radius. The radial tour benefits from both continuity of the data alongside grand tours, but also allows the user to steer via choosing the variable to rotate.
@@ -186,7 +186,7 @@ bas <- basis_half_circle(dat)
 .gg + gganimate::transition_states(frame, transition_length = 0L)
 ```
 
-The recent implementation of manual tours us the the R package \pkg{spinifex} [@spyrison_spinifex_2020], which facilitates manual tours (and radial variant). It is also compatible with tours made with \pkg{tourr} [@wickham_tourr:_2011], and facilitates exporting to .gif or .html widget, with recent graphic packages. Now that we have a readily available means to produce various tours, we want to see how they fare against traditional discrete displays commonly used with PCA.
+The recent implementation of manual tours us the R package \pkg{spinifex} [@spyrison_spinifex_2020], which facilitates manual tours (and radial variant). It is also compatible with tours made with \pkg{tourr} [@wickham_tourr:_2011] and facilitates exporting to .gif or .html widget, with recent graphic packages. Now that we have a readily available means to produce various tours, we want to see how they fare against traditional discrete displays commonly used with PCA.
 
 
 # User study {#sec:userstudy}
@@ -194,25 +194,25 @@ The recent implementation of manual tours us the the R package \pkg{spinifex} [@
 <!-- overview -->
 An experiment was constructed to assess the performance of the radial tour relative to the tour and scatterplots of principal components for interpreting the importance of variables to class separations. 
 
-The three methods were examined for three different cluster shapes, using different combinations of contributing variables, and data dimension. Data was collected using a specially constructed web app, through crowd-sourced with prolific.co [@palan_prolific_2018].
+The three methods were examined for three different cluster shapes, using different combinations of contributing variables, and data dimensionality. Data was collected using a specially constructed web app, through crowd-sourced with prolific.co [@palan_prolific_2018].
 
 ## Experimental factors {#sec:blocks}
 
 <!-- Introduction to blocks -->
-In addition to visual factor, we vary the data across 3 aspects: 1) The _location_ of the difference between clusters, by mixing a signal and a noise variable at different ratios, we control which variables contain cluster separation, 2) the _shape_ of the clusters, by changing the variance-covariance matrices, and 3) the _dim_-ensionality of the data.
+In addition to visual factor, we vary the data across 3 aspects: 1) The _location_ of the difference between clusters, by mixing a signal and a noise variable at different ratios, we control which variables contain cluster separation, 2) the _shape_ of the clusters, by changing the variance-covariance matrices, and 3) the _dimen_-sionality of the data.
 
 <!-- Illustration of blocks -->
-```{r figExpFactors, echo = F, out.width = '100%', fig.cap = "Illustration of the experimental factors, the parameter space of the independant variables, the mathematical support of our study."}
+```{r figExpFactors, echo = F, out.width = '100%', fig.cap = "Illustration of the experimental factors, the parameter space of the independent variables, the mathematical support of our study."}
 if(F)
   file.edit("./paper/R/fig_model_families.r")
 knitr::include_graphics("./figures/figExpFactors.pdf")
 ```
 
 <!-- Location mixing -->
-The _location_ of the separation of the clusters is a crucial aspect of analysis, it is the variables or combination their of that is important to the explanation of sturcture. To test the sensitivity to this we mix a noise-variable with the signal-containing variable such that the difference in the clusters is mixed at the following percentages: 0/100% (not mixed), 33/66%, 50/50% (evenly mixed).
+The _location_ of the separation of the clusters is a crucial aspect of analysis, it is the variables or combination their of that is important to the explanation of the structure. To test the sensitivity to this we mix a noise-variable with the signal-containing variable such that the difference in the clusters is mixed at the following percentages: 0/100% (not mixed), 33/66%, 50/50% (evenly mixed).
 
 <!-- Shape, vc matrix -->
-In selecting _shape_ of the clusters we follow the convention given by @scrucca_mclust_2016, where 14 variants of model families containing 3 clusters are defined. The name of the model family is the abbreviation of its respective volume, shape, and orientation of the cluster, which are either equal or vary. We use the models EEE, EEV, and EVV, the latter is further modified by moving 4 fifths of the data out in a "V" or banana-like shape. Figure \@ref(fig:figExpFactors) shows the principal component isodensities of the 3 model variants applied here.
+In selecting the _shape_ of the clusters we follow the convention given by @scrucca_mclust_2016, where 14 variants of model families containing 3 clusters are defined. The name of the model family is the abbreviation of its respective volume, shape, and orientation of the cluster, which are either equal or vary. We use the models EEE, EEV, and EVV, the latter is further modified by moving 4 fifths of the data out in a "V" or banana-like shape. Figure \@ref(fig:figExpFactors) shows the principal component isodensity of the 3 model variants applied here.
 
 <!-- Dimensionality -->
 _Dimension_-ality is tested at 2 modest levels, namely, in 4 dimensions containing 3 clusters and 6 dimensions with 4 clusters. We must do so to bound the difficult and search space for outsourcing. 
@@ -225,7 +225,7 @@ _Dimension_-ality is tested at 2 modest levels, namely, in 4 dimensions containi
 PCA will be used as a baseline for comparison as it is the most common linear embedding. The grand tour will act as a secondary control that will help evaluate the benefit of animation, where the object permanence of the data points, but without the ability to influence its path. Lastly, the radial tour should perform best as it benefits both from animation and being able to select an individual variable to change the contribution.
 
 <!-- Prior expectations -->
-Then for some subset of tasks, we expect to find that the radial tour performs most accurately with greater control to explore specific variables. Secondly, it may be the case that grand performs faster than the alternatives with its absence of inputs all the users attention can focus on interpreting the fixed path. We are less certain with this there is no optimization or functional goal in the grand tour's generation of bases; it is possible that, by chance, the planes completely avoid the information needed. However, given that the data dimensionality will be modest, it is at least plausible that grand tour regularly crosses frames with the correct information to perform the task quickly.
+Then for some subset of tasks, we expect to find that the radial tour performs most accurately with greater control to explore specific variables. Secondly, it may be the case that grand performs faster than the alternatives with its absence of inputs all the users attention can focus on interpreting the fixed path. We are less certain about this there is no optimization or functional goal in the grand tour's generation of bases; it is possible that, by chance, the planes completely avoid the information needed. However, given that the data dimensionality will be modest, it is at least plausible that grand tour regularly crosses frames with the correct information to perform the task quickly.
 
 <!-- Explicit hypothesis tests -->
 We measure the accuracy and speed over 4 dimensions of block parameterizations. The null hypotheses can be stated as:
@@ -293,7 +293,7 @@ knitr::include_graphics("./figures/figBiplotScoring.pdf")
 ```
 
 <!-- Period order: Training, eval, eval -->
-Each of the 3 periods introduced the participant to a new factor, where participants were first able to explore an untimed task with data under the simplest parameterizations. The training allows the participant to become familiar with the inputs and visual specific to the factor. Upon clicking a button to proceed text containing the correct answer displays with visual still intact to explore further. After the training, each participant performed 2 evaluated trials. After 60 seconds the display was turned off, though few participants elapsed this time. These evaluation trials were performed under different parameterizations as explained in section \@ref(sec:blocks).
+Each of the 3 periods introduced the participant to a new factor, where participants were first able to explore an untimed task with data under the simplest parameterizations. The training allows the participant to become familiar with the input and visual specific to the factor. Upon clicking a button to proceed text containing the correct answer displays with visual still intact to explore further. After the training, each participant performed 2 evaluated trials. After 60 seconds the display was turned off, though few participants elapsed this time. These evaluation trials were performed under different parameterizations as explained in section \@ref(sec:blocks).
 
 
 ## Visual design standardization {#sec:standardization}
@@ -302,7 +302,7 @@ Each of the 3 periods introduced the participant to a new factor, where particip
 Section \@ref(sec:background) gives the sources and a description of the visual factors PCA, grand tours, and radial manual tours. The factors are tested within-participant, with each factor being evaluated by each participant. The order that factors are experienced is controlled with the block assignment as illustrated below in Figure \@ref(fig:figParmeterizationExample). Below we cover the visual design standardization, as well the input and display within each factor.
 
 <!-- aesthetic standardization -->
-The visualization methods were standardized wherever possible. each factor was shown as a biplot, with variable contributions displayed on a unit circle. All aesthetic values (colors, shapes, sizes, absence of legend, and absence axis titles) were held constant. Variable contributions were always shown left of the scatterplot embeddings with their aesthetic values consistent as well. What did vary between factors were their inputs which caused a discrete jump to another pair or principal components, were absent for the grand tour with target bases to animate through selected at random, or for the radial tour which variable should have its contribution animated.
+The visualization methods were standardized wherever possible. each factor was shown as a biplot, with variable contributions displayed on a unit circle. All aesthetic values (colors, shapes, sizes, absence of legend, and absence of axis titles) were held constant. Variable contributions were always shown left of the scatterplot embeddings with their aesthetic values consistent as well. What did vary between factors were their inputs which caused a discrete jump to another pair or principal components, were absent for the grand tour with target bases to animate through selected at random, or for the radial tour which variable should have its contribution animated.
 
 <!-- PCA -->
 PCA inputs allowed for users to select between the top 4 principal components for both the x and y-axis regardless of the data dimensionality (either 4 or 6). <!-- Grand tours -->There was no user input for the grand tour, users were instead shown a 15-second animation of the same randomly selected path. Users were able to view the same clip up to 4 times within the time limit. <!-- Radial tours -->Radial tours were also displayed at 5 frames per second within the interpolation step size of 0.1 radians. Users were able to swap between variables, upon which the display would change the start of radially increasing the contribution of the selected variable till it was full, zeroed, and then back to its initial contribution. The complete animation of any variable takes about 20 seconds and is almost fully in the projection frame at around 6 seconds. The starting basis of each is initialized to a half-clock design, where the variables were evenly distributed in half of the circle which is then orthonormalized. This design was created to be variable agnostic while maximizing the independence of the variables.
@@ -311,33 +311,32 @@ PCA inputs allowed for users to select between the top 4 principal components fo
 ## Data simulation, task
 
 <!-- Clusters and correlation -->
-Each dimension is originally distributed as $\mathcal{N}(2 * I(signal), 1)~|~\text{covariance}~\Sigma$, a function of the _shape_. Signal variables have a correlation of 0.9 when they have equal orientation and -0.9 when their orientations vary. Noise variables were restricted to 0 correlation.Each cluster is simulated with 140 observations, and is off-set in a variable that does not separate previous variables. 
+Each dimension is originally distributed as $\mathcal{N}(2 * I(signal), 1)~|~\text{covariance}~\Sigma$, a function of the _shape_. Signal variables have a correlation of 0.9 when they have equal orientation and -0.9 when their orientations vary. Noise variables were restricted to 0 correlation. Each cluster is simulated with 140 observations and is offset in a variable that does not separate previous variables. 
  
 <!-- Apply shape and location transformations -->
-Cluster of the EVV _shape_ are transformed to the banana-chevron shape. Then _location_ mixing is applied by post-multiplying a (2x2) rotation matrix to the signal variable and a noise variable for the clusters in question.
+Clusters of the EVV _shape_ are transformed to the banana-chevron shape. Then _location_ mixing is applied by post-multiplying a (2x2) rotation matrix to the signal variable and a noise variable for the clusters in question.
 
-<!-- preprocess and replicate and save -->
-All variables are then standardized by standard deviation. The rows and columns of matrix are then shuffled for randomization. The observation's cluster and order of shuffling are attached to the data and saved. Every permutation of _location_, _shape_, and _dimension_ are  replicate this process 3 times in total. 
+<!-- Preprocess and replicate and save -->
+All variables are then standardized by standard deviation. The rows and columns are then shuffled randomly. The observation's cluster and order of shuffling are attached to the data and saved.
+<!-- Every permutation of _location_, _shape_, and _dimension_ is replicated 3 times. -->
 
-<!-- From pilot studies through a sample of convenience (consisting of information technology and statistics Ph.D. students attending Monash University), we predict that we wanted 3 even block evaluations to support differences in our factor and block parameterizations. Given that factor and location, each have 6 permutations we targeted $N = 108 = 3 * (6 * 6)$ evaluations before data were collected. -->
-
-<!-- iterating over factor -->
-Each of these replications are then iterated with each level of _factor_. For PCA, the every pair of the top 4 principal components and saved as 12 plots. For the grand tour we first save 2 basis paths (for 4 and 6 dimension), each replication is then projected through the common basis path as the variable(s) containing the were previously shuffled. The resulting animations were saved as .gif files. For the radial tour, starts at either the 4 or 6-variable "half-clock" basis, where each variable has uniform contribution, and no variable contributing in the opposite direction (to minimize variable dependence), radial tour is then produced and saved as a .gif for each variable in the data.
+<!-- Iterating over factor -->
+Each of these replications are then iterated with each level of the _factor_. For PCA, every pair of the top 4 principal components and saved as 12 plots. For the grand tour, we first save 2 basis paths (for 4 and 6 dimension), each replication is then projected through the common basis path as the variable(s) containing the were previously shuffled. The resulting animations were saved as .gif files. The radial tour starts at either the 4 or 6-variable "half-clock" basis, where each variable has a uniform contribution, and no variable contributing in the opposite direction (to minimize variable dependence), a radial tour is then produced for each variable and saved as a .gif.
 
 
 ## Data collection, and factor assignment
 
 <!-- Introduction -->
-Now, with simulation and their artifacts in hand. We explain how the experimental factors are assignment, and illustrate how this is experienced from a participant's perpective.
+Now, with simulation and their artifacts in hand. We explain how the experimental factors are assignment, and illustrate how this is experienced from a participant's perspective.
 
 <!-- periods, block assignment -->
 We section the study into 3 periods, each period is linked to a randomized level of both the  _factor_ visualization and the _location_. The order of _dimension_ and _shape_ are of secondary interest and are held constant in increasing order of difficultly; 4 then 6 dimensions and EEE, EEV, then EVV-banana respectively. 
 
 <!-- training and evaluation -->
-The period starts with a training task at the simplest remaining block parameterization; location = 0/100%, shape = EEE, and 4 dimensions with 3 clusters. This serves to introduce and familiarize participants with input and visual differences. After the training, the participant is evaluated on 2 tasks with the same factor \* location level, across increasing difficulty of dimension \* shape.
+The period starts with a training task at the simplest remaining block parameterization; location = 0/100%, shape = EEE, and 4 dimensions with 3 clusters. This serves to introduce and familiarize participants with input and visual differences. After the training, the participant is evaluated on 2 tasks with the same factor \* location level, across the increasing difficulty of dimension \* shape.
 
 <!-- factor*location nested latin square -->
-The order of the levels of factor and location are randomized with a nested latin-square where all levels of factor are exhausted before advancing to the next level of location. That means we need $3!^2 = 36$ participants to perform a full block evaluation. This randomization is important to control of any potential learning effects the participant may receive. Figure \@ref(fig:figParmeterizationExample) illustrates how an arbitrary participant experiences the experimental factors.
+The order of the levels of the factor and location is randomized with a nested Latin square where all levels of factor are exhausted before advancing to the next level of location. That means we need $3!^2 = 36$ participants to perform a full block evaluation. This randomization is important to control for any potential learning effects the participant may receive. Figure \@ref(fig:figParmeterizationExample) illustrates how an arbitrary participant experiences the experimental factors.
 
 <!-- Nested latin square assignment -->
 ```{r figParmeterizationExample, echo = F, out.width = '100%', fig.cap = "Illustration of how a hypothetical participant 63 is assigned factor and block parameterizations. Each of the 6-factor order permutations is exhausted before iterating to the next permutation of location order."}
@@ -350,12 +349,12 @@ Through pilot studies sampled by convenience (information technology and statist
 
 ## Population sampling {#sec:population}
 
-We recruited $N = 108$ via prolific.co [@palan_prolific_2018]. We make the assumption that interpretation of biplot displays used will not be commonly used for consumption by the general population and apply a single filter on education; that participants have completed at least an undergraduate degree (some 58,700 of the 150,400 users at the time). There is also the implicit filter that Prolific participants must be at least 18 years of age. Participants were compensated for their time at \pounds 7.50 per hour, whereas the mean duration of the survey was about 16 minutes. We can't preclude previous knowledge or experience with the factors, but validate this assumption in the follow up survey where we ask about familiarity with the factors (see Figure \@ref(fig:figSubjectiveMeasures)[figure x]). In the Appendix, Figure \@ref(fig:figSurveyDemographics) shows a heatmap distributions of age and education paneled across preferred pronouns of the participants that completed the survey, who are relatively young and well educated.
+We recruited $N = 108$ via prolific.co [@palan_prolific_2018]. We make the assumption that interpretation of biplot displays used will not be commonly used for consumption by the general population and apply a single filter on education; that participants have completed at least an undergraduate degree (some 58,700 of the 150,400 users at the time). There is also the implicit filter that Prolific participants must be at least 18 years of age. Participants were compensated for their time at \pounds 7.50 per hour, whereas the mean duration of the survey was about 16 minutes. We can't preclude previous knowledge or experience with the factors, but validate this assumption in the follow-up survey where we ask about familiarity with the factors (see Figure \@ref(fig:figSubjectiveMeasures)[figure x]). In the Appendix, Figure \@ref(fig:figSurveyDemographics) shows a heatmap distribution of age and education paneled across preferred pronouns of the participants that completed the survey, who are relatively young and well educated.
 
 
 ## Collecting participant data
 
-Data were recorded by a \pkg{shiny} application and was written to a Google Sheet after each study period. Especially at the start of the study, participants experienced adverse network conditions due to the volume of participants hitting the application with modest allocated resources. In addition to this and API read/write limitations further hindered data collection. To mitigate this we throttled the volume of participant and over-collect survey trials until we had received our target 3 evaluations of our 36 permutation levels
+Data were recorded by a \pkg{shiny} application and were written to a Google Sheet after each study period. Especially at the start of the study, participants experienced adverse network conditions due to the volume of participants hitting the application with modest allocated resources. In addition to this and API read/write limitations further hindered data collection. To mitigate this we throttled the volume of participant and over-collect survey trials until we had received our target 3 evaluations of our 36 permutation levels
 
 The processing steps were minimal. First format to tidy format and decoding values to a more human-readable state. After formatting, a flag is added to indicate if the survey had data from all 3 periods. We filter out all partial studies and keep only the latest 3 complete studies within each block parameterization, those which should have experienced the least adverse network conditions. This brings us to the 108 studies described in the paper, from which models and aggregation tables were built. The post-study surveys were similarly decoded to human-readable tidy format and then filtered to include only those 84 surveys that were associated with the final 108 studies. 
 
@@ -467,7 +466,7 @@ As a secondary explanatory variable, we also want to look at time. First, we tak
 ## 1) Eval parameters
 kableExtra::kbl(
   model_comp_tbl_ls[[2]], "latex", align = c("l", rep("l", 2), rep("c", 5)), 
-  booktabs = TRUE, linesep = "", caption = "Model comparisons for log(time) models, $\\widehat{Y_2}$ random effect models, where each model includes random effect terms for participants and simulations. We see the same trade-off where the simplest factor model is preferred by AIC/BIC, while R2 and RMSE perform prefers the full multiplicative model. We again select the model $\\alpha * \\beta + \\gamma + \\delta$ to explore further as it has relatively high marginal $R^2$ while having much less complexity than the full model.") %>%
+  booktabs = TRUE, linesep = "", caption = "Model comparisons for log(time) models, $\\widehat{Y_2}$ random effect models, where each model includes random effect terms for participants and simulations. We see the same trade-off where the simplest factor model is preferred by AIC/BIC, while R2 and RMSE prefers the full multiplicative model. We again select the model $\\alpha * \\beta + \\gamma + \\delta$ to explore further as it has relatively high marginal $R^2$ while having much less complexity than the full model.") %>%
   kableExtra::column_spec(column = 1, width = "1.5cm") %>%
   column_spec(column = c(2:3), width = "1cm") %>%
   column_spec(column = c(4:8), width = "1.5cm") %>%

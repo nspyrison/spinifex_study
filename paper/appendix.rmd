@@ -4,7 +4,7 @@
 
 ## Survey participant demographics {-}
 
-The target population is relatively educated people as such linear projections may be difficult for generalized consumption. Hence we restrict Prolific.co participants to those with an undergraduate degree (58,700 of the 150,400 users at the time of study). We found our sample of 108 participants from this group. Of these participants, 84 submitted the post-study survey, who are represented in the heatmap. All participants were compensated for their time at \pounds 7.50 per hour, with the mean time of about 16 minutes.
+The target population is relatively educated people as such linear projections may be difficult for generalized consumption. Hence we restrict Prolific.co participants to those with an undergraduate degree (58,700 of the 150,400 users at the time of the study). We found our sample of 108 participants from this group. Of these participants, 84 submitted the post-study survey, who are represented in the heatmap. All participants were compensated for their time at \pounds 7.50 per hour, with a mean time of about 16 minutes.
 
 ```{r, figSurveyDemographics, echo = F, out.width = '100%', fig.cap = "Heatmaps of participant demographics, counts of age group by completed education as faceted across preferred pronoun. Our sample tended to be between 18 and 35 years of age with an undergraduate or graduate degree."}
 if(F) ## Creation and saving figure at:

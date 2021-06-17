@@ -46,7 +46,7 @@ fct3 <- spinifex::view_frame(
   identity_args = list(size = 1.5, alpha = .7)) +
   this_theme + 
   theme(axis.title =  element_text()) +
-  labs(x = "Varable 2, full contribution", y = "", subtitle = "radial tour")
+  labs(x = "Variable 2, full contribution", y = "", subtitle = "radial tour")
 
 
 ###### Location ------
