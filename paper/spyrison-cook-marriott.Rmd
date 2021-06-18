@@ -199,7 +199,7 @@ The three methods were examined for three different cluster shapes, using differ
 ## Experimental factors {#sec:blocks}
 
 <!-- Introduction to blocks -->
-In addition to visual factor, we vary the data across 3 aspects: 1) The _location_ of the difference between clusters, by mixing a signal and a noise variable at different ratios, we control which variables contain cluster separation, 2) the _shape_ of the clusters, by changing the variance-covariance matrices, and 3) the _dimen_-sionality of the data.
+In addition to visual factor, we vary the data across 3 aspects: 1) The _location_ of the difference between clusters, by mixing a signal and a noise variable at different ratios, we vary the number of variables and their magnitude of cluster separation, 2) the _shape_ of the clusters, to reflect different distributions of the data, and 3) the _dimension_-ality of the data.
 
 <!-- Illustration of blocks -->
 ```{r figExpFactors, echo = F, out.width = '100%', fig.cap = "Illustration of the experimental factors, the parameter space of the independent variables, the mathematical support of our study."}
@@ -215,40 +215,41 @@ The _location_ of the separation of the clusters is a crucial aspect of analysis
 In selecting the _shape_ of the clusters we follow the convention given by @scrucca_mclust_2016, where 14 variants of model families containing 3 clusters are defined. The name of the model family is the abbreviation of its respective volume, shape, and orientation of the cluster, which are either equal or vary. We use the models EEE, EEV, and EVV, the latter is further modified by moving 4 fifths of the data out in a "V" or banana-like shape. Figure \@ref(fig:figExpFactors) shows the principal component isodensity of the 3 model variants applied here.
 
 <!-- Dimensionality -->
-_Dimension_-ality is tested at 2 modest levels, namely, in 4 dimensions containing 3 clusters and 6 dimensions with 4 clusters. We must do so to bound the difficult and search space for outsourcing. 
-<!-- trade off projection-space, interprebility, ... The dimensionality of linear projects is the difference of data space and projection space, $p - d$, -->
+_Dimension_-ality is tested at 2 modest levels, namely, in 4 dimensions containing 3 clusters and 6 dimensions with 4 clusters. We must do so to bound the difficulty and search space to keep the task realistic for crowdsourcing.
 
 
 ## Objective {#sec:objective}
 
 <!-- Rational for factor levels -->
-PCA will be used as a baseline for comparison as it is the most common linear embedding. The grand tour will act as a secondary control that will help evaluate the benefit of animation, where the object permanence of the data points, but without the ability to influence its path. Lastly, the radial tour should perform best as it benefits both from animation and being able to select an individual variable to change the contribution.
+PCA will be used as a baseline for comparison as it is the most common linear embedding. The grand tour will act as a secondary control that will help evaluate the benefit of animation, with the persistence of the data points across changes in basis, but without the ability to influence its path. Lastly, the radial tour should perform best as it benefits both from animation and being able to select an individual variable to change the contribution. Next we cover how we expect them to perform and state the hypothesis to test.
 
 <!-- Prior expectations -->
-Then for some subset of tasks, we expect to find that the radial tour performs most accurately with greater control to explore specific variables. Secondly, it may be the case that grand performs faster than the alternatives with its absence of inputs all the users attention can focus on interpreting the fixed path. We are less certain about this there is no optimization or functional goal in the grand tour's generation of bases; it is possible that, by chance, the planes completely avoid the information needed. However, given that the data dimensionality will be modest, it is at least plausible that grand tour regularly crosses frames with the correct information to perform the task quickly.
+Then for some subset of tasks, we expect to find that the radial tour performs most accurately, as it enjoys both the persistence of points and input control to explore specific variables. Secondly, it may be the case that grand performs faster than the alternatives with its absence of inputs, users can focus all of their attention on interpreting the fixed path. Conversely, we are less certain about the accuracy of such a limited grand tours as there is no objective function in the target bases; it is possible that, by chance, the planes completely avoid the information needed. However, given that the data dimensionality will be modest, it seems likely that grand tour regularly crosses frames with the correct information to perform the task quickly.
 
 <!-- Explicit hypothesis tests -->
-We measure the accuracy and speed over 4 dimensions of block parameterizations. The null hypotheses can be stated as:
+We measure the accuracy and speed over the support of the discussed experimental factors. The null hypotheses can be stated as:
 
 $~~~~~H_0: \text{visualization factor does not impact task } \textit{accuracy}, Y_1. \\$
 $~~~~~~H_0: \text{visualization factor does not impact task } \textit{speed}, Y_2. \\$
 
 
 
-
 ## Task and evaluation {#sec:task}
 
+<!-- segue to task and evaluation -->
+With our hypothesis formulated let's turn our attention to the task and how to evaluate it.
+Recall that the display was a 2D scatterplot with axis biplot to its left. Observations were supervised with the cluster level coded by color and shape.
+
 <!-- Geom, clusters, explicit task -->
-The display was a 2D scatterplot with observations supervised. Cluster membership was mapped to shape and color. There were either 3 or 4 clusters each with a constant number of observations within each cluster. Participants were asked to 'check any/all variables that contribute more than average to the cluster separation green circles and orange triangles', which was further explained in the explanatory video as 'mark and all variable that carries more than their fair share of the weight, or 1 quarter in the case of 4 variables'.
+Participants were asked to 'check any/all variables that contribute more than average to the cluster separation green circles and orange triangles', which was further explained in the explanatory video as 'mark and all variable that carries more than their fair share of the weight, or 1 quarter in the case of 4 variables'.
 
 <!-- Instruction and video -->
 The instructions iterated several times in the video was: 1) Use the input controls to find a frame that contains separation between the clusters of green circles and orange triangles, 2) look at the orientation of the variable contributions in the gray circle, a visual depiction of basis, and 3) select all variables that contribute more than average in the direction of the separation in the scatterplot. Regardless of factor and block values participants were limited to 60 seconds for each evaluation of this task.
 
 <!-- Evaluating measure -->
-The evaluation measure of this task was designed with a couple of features in mind: 1) the sum of squares of the individual variable marks should be 1, and 2) symmetric about 0. With these in mind, we define the following measure for evaluating the task.
+The evaluation measure of this task was designed with a couple of features in mind: 1) the sum of squares of the individual variable marks should be 1, and 2) symmetric about 0, without preference to under- or over-guessing. With these in mind, we define the following measure for evaluating the task.
 
 Let a dataset $\textbf{X}$ be a simulation containing clusters of observations of different distributions. Let $\textbf{X}_k$ be the subset of observations in cluster $k$ containing the $p$ variables.
-
 
 \begin{align*}
   &\textbf{X}_{n\*p} = (x_1,~...~x_p) \\
@@ -256,9 +257,7 @@ Let a dataset $\textbf{X}$ be a simulation containing clusters of observations o
     ~|~ n_k \in [1, n], \text{ is an observation subset of } \textbf{X}
 \end{align*}
 
-
 where
-
 
 \begin{align*}
   x_{i, j, k} \text{ is scalar; the observation } i \in [1,~...~n],
@@ -301,7 +300,7 @@ Each of the 3 periods introduced the participant to a new factor, where particip
 <!-- Background for methodology, application here -->
 Section \@ref(sec:background) gives the sources and a description of the visual factors PCA, grand tours, and radial manual tours. The factors are tested within-participant, with each factor being evaluated by each participant. The order that factors are experienced is controlled with the block assignment as illustrated below in Figure \@ref(fig:figParmeterizationExample). Below we cover the visual design standardization, as well the input and display within each factor.
 
-<!-- aesthetic standardization -->
+<!-- Aesthetic standardization -->
 The visualization methods were standardized wherever possible. each factor was shown as a biplot, with variable contributions displayed on a unit circle. All aesthetic values (colors, shapes, sizes, absence of legend, and absence of axis titles) were held constant. Variable contributions were always shown left of the scatterplot embeddings with their aesthetic values consistent as well. What did vary between factors were their inputs which caused a discrete jump to another pair or principal components, were absent for the grand tour with target bases to animate through selected at random, or for the radial tour which variable should have its contribution animated.
 
 <!-- PCA -->
@@ -349,14 +348,16 @@ Through pilot studies sampled by convenience (information technology and statist
 
 ## Population sampling {#sec:population}
 
-We recruited $N = 108$ via prolific.co [@palan_prolific_2018]. We make the assumption that interpretation of biplot displays used will not be commonly used for consumption by the general population and apply a single filter on education; that participants have completed at least an undergraduate degree (some 58,700 of the 150,400 users at the time). There is also the implicit filter that Prolific participants must be at least 18 years of age. Participants were compensated for their time at \pounds 7.50 per hour, whereas the mean duration of the survey was about 16 minutes. We can't preclude previous knowledge or experience with the factors, but validate this assumption in the follow-up survey where we ask about familiarity with the factors (see Figure \@ref(fig:figSubjectiveMeasures)[figure x]). In the Appendix, Figure \@ref(fig:figSurveyDemographics) shows a heatmap distribution of age and education paneled across preferred pronouns of the participants that completed the survey, who are relatively young and well educated.
+We recruited $N = 108$ participants via prolific.co [@palan_prolific_2018]. We filtered participants based on their claimed education requiring that they have completed at least an undergraduate degree (some 58,700 of the 150,400 users at the time); we apply this filter under the premise that linear projections and biplot displays used will not be regularly used for consumption by general audiences. There is also the implicit filter that Prolific participants must be at least 18 years of age and location/language bias associated with . Participants were compensated for their time at \pounds 7.50 per hour, whereas the mean duration of the survey was about 16 minutes. We can't preclude previous knowledge or experience with the factors, but validate this assumption in the follow-up survey where we ask about familiarity with the factors (see Figure \@ref(fig:figSubjectiveMeasures)[figure x]). In the Appendix, Figure \@ref(fig:figSurveyDemographics) shows a heatmap distribution of age and education paneled across preferred pronouns of the participants that completed the survey, who are relatively young and well educated.
 
 
 ## Collecting participant data
 
-Data were recorded by a \pkg{shiny} application and were written to a Google Sheet after each study period. Especially at the start of the study, participants experienced adverse network conditions due to the volume of participants hitting the application with modest allocated resources. In addition to this and API read/write limitations further hindered data collection. To mitigate this we throttled the volume of participant and over-collect survey trials until we had received our target 3 evaluations of our 36 permutation levels
+<!-- app, data collection, network issues -->
+Data were recorded by a \pkg{shiny} application and were written to a Google Sheet after each third of the study. Especially at the start of the study, participants experienced adverse network conditions due to the volume of participants hitting the application with modest allocated resources. In addition to this, API read/write limitations further hindered data collection. To mitigate this we throttled the volume of participant and over-collect survey trials until we had received our target 3 evaluations of our 36 permutation levels.
 
-The processing steps were minimal. First format to tidy format and decoding values to a more human-readable state. After formatting, a flag is added to indicate if the survey had data from all 3 periods. We filter out all partial studies and keep only the latest 3 complete studies within each block parameterization, those which should have experienced the least adverse network conditions. This brings us to the 108 studies described in the paper, from which models and aggregation tables were built. The post-study surveys were similarly decoded to human-readable tidy format and then filtered to include only those 84 surveys that were associated with the final 108 studies. 
+<!-- Preprocessing steps -->
+The processing steps were minimal. First, we format to an analysis ready form, decoding values to a more human-readable state, and add a flag to indicate if the survey had complete data. We filter to only the latest 3 complete studies of each block parameterization, those which should have experienced the least adverse network conditions. Of the studies removed the bulk were partial data and a few of over sampled permutations. This brings us to the 108 studies described in the paper, from which models and aggregation tables were built. The post-study surveys were similarly decoded to human-readable format and then filtered to include only those 84 surveys that were associated with the final 108 studies.
 
 The code, response files, their analyses, and the study application are publicly available at on GitHub \url{https://github.com/nspyrison/spinifex_study}.
 
