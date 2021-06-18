@@ -294,6 +294,7 @@ knitr::include_graphics("./figures/figParmeterizationExample.png")
 <!-- Pilot study; 3 even evaluations of each -->
 Through pilot studies sampled by convenience (information technology and statistics Ph.D. students attending Monash University), we predict that we need 3 full evaluations to properly power our study; we set out to crowdsource $N = 3 * 3!^2 = 108$ participants.
 
+
 ## Recruiting subjects {#sec:subjects}
 
 We recruited $N = 108$ participants via prolific.co [@palan_prolific_2018]. We filtered participants based on their claimed education requiring that they have completed at least an undergraduate degree (some 58,700 of the 150,400 users at the time); we apply this filter under the premise that linear projections and biplot displays used will not be regularly used for consumption by general audiences. There is also the implicit filter that Prolific participants must be at least 18 years of age and location/language bias associated with. Participants were compensated for their time at \pounds 7.50 per hour, whereas the mean duration of the survey was about 16 minutes. We can't preclude previous knowledge or experience with the factors, but validate this assumption in the follow-up survey where we ask about familiarity with the factors (see Figure \@ref(fig:figSubjectiveMeasures)). The appendix contains a heatmap distribution of age and education paneled across preferred pronouns of the participants that completed the survey, who are relatively young and well educated.
@@ -480,7 +481,6 @@ If you are looking for a vignette to reproduce animations in for a pdf document 
 
 
 # References {#sec:bib}
-
 
 
 <!-- # Appendix {#sec:appendix} -->
