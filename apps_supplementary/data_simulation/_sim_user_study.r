@@ -203,12 +203,9 @@ sim_user_study <- function(cl_obs = 140,
                                 0,  0,  0,  0,  sd, 0,
                                 0,  0,  0,  0,  0,  sd),
                               ncol = 6, byrow = TRUE)
-  .a <- .9
-  .b <- -.9
-  .c <- -.9
-  cov_elipse_neg_p6 <- matrix(c(sd, .a, .b, 0,  0,  0,
-                                .a, sd, .c, 0,  0,  0,
-                                .b, .c, sd, 0,  0,  0,
+  cov_elipse_neg_p6 <- matrix(c(sd, .9, -.9, 0,  0,  0,
+                                .9, sd, -.9, 0,  0,  0,
+                                -.9, -.9, sd, 0,  0,  0,
                                 0,  0,  0,  sd, 0,  0,
                                 0,  0,  0,  0,  sd, 0,
                                 0,  0,  0,  0,  0,  sd),

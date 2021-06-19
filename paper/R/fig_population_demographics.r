@@ -68,7 +68,7 @@ if(F){
     )
   ## Rename the levels of the factors
   
-  survey_wider <- survey_wider %>% 
+  survey_wider <- survey_wider %>%
     mutate(
       pronoun = plyr::mapvalues(
         pronoun, from = levels(pronoun),
@@ -149,15 +149,15 @@ str(survey_wider)
   radial_longer <- survey_wider %>%
     dplyr::select(instance_id, radial_familar:radial_like) %>%
     tidyr::pivot_longer(radial_familar:radial_like,
-                 names_to = "factor", values_to = "value")
+                        names_to = "factor", values_to = "value")
   grand_longer <- survey_wider %>%
     dplyr::select(instance_id, grand_familar:grand_like) %>%
     tidyr::pivot_longer(grand_familar:grand_like,
-                 names_to = "factor", values_to = "value")
+                        names_to = "factor", values_to = "value")
   pca_longer <- survey_wider %>%
     dplyr::select(instance_id, pca_familar:pca_like) %>%
     tidyr::pivot_longer(pca_familar:pca_like,
-                 names_to = "factor", values_to = "value")
+                        names_to = "factor", values_to = "value")
   ## Combine and split measure from factor
   subjective_longer <- rbind(radial_longer, grand_longer, pca_longer) %>%
     tidyr::separate(factor, c("factor", "measure"), sep = "_")
