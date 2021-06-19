@@ -2,6 +2,7 @@ require("ggforce")
 require("ggplot2")
 require("ggExtra")
 require("magrittr")
+require("spinifex")
 palette(RColorBrewer::brewer.pal(8, "Dark2"))
 this_theme <- list(
   theme_bw(),
@@ -25,28 +26,31 @@ bas3_st <- basis_half_circle(EEE_p4_0_1_rep1)
 mt <- manual_tour(bas3_st, manip_var = 2)
 bas3 <- mt[,, 17]
 
-fct1 <- spinifex::view_frame(
-  bas1, EEE_p4_0_1_rep1, axes = "left",
+df <- data.frame(c(-1,1),c(-1,1),c(-1,1),c(-1,1))
+fct1 <- spinifex::view_frame(bas1, EEE_p4_0_1_rep1,
   aes_args = list(color = clas, shape = clas),
-  identity_args = list(size = 1.5, alpha = .7)) +
-  this_theme + 
+  identity_args = list(size = 1.5, alpha = 0)) +
+  this_theme +
   theme(axis.title =  element_text()) +
-  labs(x = "PC1", y = "PC2", subtitle = "PCA")
-fct2 <- spinifex::view_frame(
-  bas2, EEE_p4_0_1_rep1, axes = "left",
+  labs(x = expression(paste(PC_j)), y = expression(paste(PC_k)), subtitle = "PCA \n\n Discrete jump to \n selected pair")# +
+  #geom_text(aes(x = 0, y = .7, label = "Discrete jump to selected PC"), size = 3)
+fct2 <- spinifex::view_frame(bas2, EEE_p4_0_1_rep1,
   aes_args = list(color = clas, shape = clas),
-  identity_args = list(size = 1.5, alpha = .7)) +
-  this_theme + 
-  theme(axis.title =  element_text()) +
-  labs(x = "Random basis", y = "", subtitle = "grand tour")
+  identity_args = list(size = 1.5, alpha = 0)) +
+  this_theme +
+  #theme(axis.title =  element_text()) +
+  labs(subtitle = "grand tour \n\n Animation through \n random bases") #+
+  # geom_text(aes(x = 0, y = .7, label = "Animation through random \n  
+  #               target bases"), size = 3)
 fct3 <- spinifex::view_frame(
-  bas3, EEE_p4_0_1_rep1, 
-  axes = "left", manip_var = 2,
+  bas3, EEE_p4_0_1_rep1, manip_var = 2,
   aes_args = list(color = clas, shape = clas),
-  identity_args = list(size = 1.5, alpha = .7)) +
-  this_theme + 
-  theme(axis.title =  element_text()) +
-  labs(x = "Variable 2, full contribution", y = "", subtitle = "radial tour")
+  identity_args = list(size = 1.5, alpha = 0)) +
+  this_theme +
+  #theme(axis.title =  element_text()) +
+  labs(subtitle = "radial tour \n\n Animation changing \n contribution of \n selected variable")# +
+  # geom_text(aes(x = 0, y = .7, label = "Animation changing contribution \n 
+  #               of selected variable"), size = 3)
 
 
 ###### Location ------
@@ -63,20 +67,22 @@ location_df <- data.frame( ## angles are 0, 30, 45 respectively
   signal = c(cos(0)*x + sin(0)*y, cos(pi/6)*x + sin(pi/6)*y, cos(pi/4)*x + sin(pi/4)*y),
   noise  = c(-sin(0)*x + cos(0)*y, -sin(pi/6)*x + cos(pi/6)*y, -sin(pi/4)*x + cos(pi/4)*y)
 )
+.rang <- range(location_df$signal)
 lvls <- levels(location_df$name)
-x_nms <- c("V1 (signal)", "cos(30)*V1 + sin(30)*V2", "cos(45)*V1 + sin(45)*V2")
-y_nms <- c("V2 (noise)", "-sin(30)*V1 + cos(30)*V2", "-sin(45)*V1 + cos(45)*V2")
+x_nms <- c("1*V1 + 0*V2 \n (signal & noise respectively)", ".866*V1 + .5*V2", ".7071*V1 + .7071*V2")
+# y_nms <- c("V2 (noise)", "-sin(30)*V1 + cos(30)*V2", "-sin(45)*V1 + cos(45)*V2")
 for(i in 1:length(lvls)){
-  g <- location_df[location_df$name==lvls[i], ] %>% 
-    ggplot(data = ) +
-    geom_point(aes(signal, noise, color = cluster, shape = cluster), size = 1.5) +
-    #facet_wrap(vars(name)) +
-    coord_fixed() +
-    this_theme + 
+  g <- location_df[location_df$name==lvls[i], ] %>%
+    ggplot() +
+    geom_vline(xintercept = 0, linetype=1) +
+    geom_vline(xintercept = 2, linetype=2) +
+    geom_density(aes(signal, fill = cluster), alpha = .5) +
+    this_theme +
     theme(axis.title =  element_text()) +
-    ggplot2::labs(x = x_nms[i], y = y_nms[i]) +
-    labs(subtitle = lvls[i])
-  assign(paste0("loc", i), ggMarginal(g, groupFill = TRUE), envir = globalenv())
+    ggplot2::labs(x = x_nms[i], y = "") +
+    labs(subtitle = lvls[i]) +
+    xlim(.rang)
+  assign(paste0("loc", i), g, envir = globalenv())
 }
 
 
@@ -100,10 +106,11 @@ for(i in 1:length(lvls)){
     ggplot() +
     geom_ellipse(aes(x0 = x, y0 = y, a = a, b = b,
                      angle = angle, color = cluster), size = 1.5) +
-    geom_text(aes(x = x, y = y, label = cluster, color = cluster), size = 8) +
     coord_fixed() +
     this_theme +
     labs(subtitle = lvls[i])
+  if(i != length(lvls)) ## Add text on first 2, but not the last one.
+    g <- g + geom_text(aes(x = x, y = y, label = cluster, color = cluster), size = 8)
   assign(paste0("shp", i), g, envir = globalenv())
 }
 shp3
@@ -114,24 +121,22 @@ shp3
 load("./apps_supplementary/data/EEE_p4_0_1_rep1.rda") ## load obj EEE_p4_0_1_rep1
 load("./apps_supplementary/data/EEE_p6_0_1_rep1.rda") ## load obj EEE_p5_0_1_rep1
 str(EEE_p4_0_1_rep1)
-bas4 <- spinifex::basis_pca(EEE_p4_0_1_rep1)
-bas6 <- spinifex::basis_pca(EEE_p6_0_1_rep1)
+bas4 <- spinifex::basis_half_circle(EEE_p4_0_1_rep1)
+bas6 <- spinifex::basis_half_circle(EEE_p6_0_1_rep1)
 clas4 <- attr(EEE_p4_0_1_rep1, "cluster")
 clas6 <- attr(EEE_p6_0_1_rep1, "cluster")
 dim4 <- spinifex::view_frame(
-  bas4, EEE_p4_0_1_rep1, axes = "left",
+  bas4, EEE_p4_0_1_rep1,
   aes_args = list(color = clas4, shape = clas4),
-  identity_args = list(size = 1.5, alpha = .7)) +
+  identity_args = list(size = 1.5, alpha = 0)) +
   this_theme + 
-  theme(axis.title =  element_text()) +
-  ggplot2::labs(x = "PC1", y = "PC2", subtitle = "3 cluster in 4 dim")
+  ggplot2::labs(subtitle = "3 cluster in 4 dim")
 dim6 <- spinifex::view_frame(
-  bas6, EEE_p6_0_1_rep1, axes = "left",
+  bas6, EEE_p6_0_1_rep1,
   aes_args = list(color = clas6, shape = clas6),
-  identity_args = list(size = 1.5, alpha = .7)) +
+  identity_args = list(size = 1.5, alpha = 0)) +
   this_theme + 
-  theme(axis.title =  element_text()) +
-  ggplot2::labs(x = "PC1", y = "PC2", subtitle = "4 cluster in 6 dim")
+  ggplot2::labs(subtitle = "4 cluster in 6 dim")
 
 ### Cowplot munging ------
 require("cowplot")
@@ -141,7 +146,7 @@ loc_row <- plot_grid(loc1, loc2, loc3, nrow = 1)
 shp_row <- plot_grid(shp1, shp2, shp3, nrow = 1)
 dim_row <- plot_grid(dim4, dim6, .gg_empty, nrow = 1)
 gc()
-gg_matrix <- plot_grid(fct_row, loc_row, shp_row, dim_row, ncol = 1, rel_heights = c(1,1,.7,1))
+gg_matrix <- plot_grid(fct_row, loc_row, shp_row, dim_row, ncol = 1, rel_heights = c(1,.8,.8,1))
 
 header_row <- ggplot() + 
   labs(title = "Levels of the block") + 
@@ -149,27 +154,24 @@ header_row <- ggplot() +
   theme(plot.title = element_text(hjust = 0.5))
 header_matrix <- plot_grid(header_row, gg_matrix, ncol = 1, rel_heights = c(0.03, 1))
 
-# t_blk <- ggplot() + 
-#   labs(subtitle = "Experimental factors:") + 
-#   theme_void()+
-#   theme(plot.title = element_text(hjust = 0.5))
+
 t_fct <- ggplot() + 
-  labs(title = "factor") + 
+  labs(title = "factor") +
   theme_void()+
-  theme(plot.title = element_text(hjust = 0.5, vjust = .5, angle = 90))
-t_loc <- ggplot() + 
-  labs(title = "location") + 
+  theme(plot.title = element_text(angle = 90))
+t_loc <- ggplot() +
+  labs(title = "location") +
   theme_void()+
-  theme(plot.title = element_text(hjust = 0.5, vjust = .5, angle = 90))
-t_shp <- ggplot() + 
-  labs(title = "shape") + 
+  theme(plot.title = element_text(angle = 90))
+t_shp <- ggplot() +
+  labs(title = "shape") +
   theme_void()+
-  theme(plot.title = element_text(hjust = 0.5, vjust = .5, angle = 90))
-t_dim <- ggplot() + 
-  labs(title = "dimension") + 
-  theme_void()+
-  theme(plot.title = element_text(hjust = 0.5, vjust = .5, angle = 90))
-tbl_col <- plot_grid(.gg_empty, t_fct, t_loc, t_shp, t_dim, ncol = 1, rel_heights = c(.7, 1.3,1.3,1,1))
+  theme(plot.title = element_text(angle = 90))
+t_dim <- ggplot() +
+  labs(title = "dimension") +
+  theme_void() +
+  theme(plot.title = element_text(angle = 90))
+tbl_col <- plot_grid(.gg_empty, t_fct, t_loc, t_shp, t_dim, ncol = 1, rel_heights = c(.8, 1.2,1.2,1,1))
 
 final <- plot_grid(tbl_col, header_matrix, nrow = 1, rel_widths = c(0.05, 1))
 
