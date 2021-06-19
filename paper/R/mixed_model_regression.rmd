@@ -21,6 +21,7 @@ require("lme4") ## Random Effects (RE) model creation
 require("lmerTest") ## p val interpretation of lme4 tests
 require("merTools")
 require("performance") ## tidy model eval
+require("plyr")
 require("dplyr")
 
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
@@ -225,7 +226,7 @@ dat_qual <- dat_qual %>%
 #### where removal_priority get 1 each for perm and participant being over evaled.
 instance_id_whitelist <- dat_qual %>%
   dplyr::filter(`is even instance` == TRUE) %>%
-  arrange(`parameter permutation`, removal_priority, desc(write_dt)) %>%
+  arrange(`parameter permutation`, removal_priority) %>% #,desc(write_dt)) %>%
   group_by(`parameter permutation`, instance_id) %>%
   dplyr::summarise(`even evaluations` = 1) %>%
   mutate(wi_perm_instance_rn = row_number()) %>%
@@ -236,7 +237,7 @@ instance_id_whitelist <- dat_qual %>%
 dat_qual <- dat_qual %>%
   filter(instance_id %in% instance_id_whitelist)
 if(interactive() == TRUE)
-  saveRDS(dat_qual, "./apps_supplementary/v4_prolifico_100/data/dat_qual.rds")
+  saveRDS(dat_qual, "./paper/dat_study/dat_qual.rds")
 
 N <- length(unique(dat_qual$instance_id))
 print(paste0("N = ", N, " unique instance_id."))
@@ -333,7 +334,6 @@ See the paper for latex terminology, but keep in mind:
     browseURL("http://www.cookbook-r.com/Manipulating_data/Summarizing_data/")
   summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
                         conf.interval=.95, .drop=TRUE){
-    require(plyr)
     # New version of length which can handle NA's: if na.rm==T, don't count them
     
     length2 <- function (x, na.rm=FALSE){
