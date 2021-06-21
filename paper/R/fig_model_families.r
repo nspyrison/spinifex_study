@@ -100,20 +100,42 @@ shape_df <- data.frame(
             rep(pi / 4, 2), -pi / 4,  ## EEV
             0, 0, -pi / 4, rep(0, 4)) ## EVV_banana
 )
+clust_d <- data.frame(
+  name = c("EEI", "EEI", "EVI"),
+  cluster = rep("(d)", 3),
+  x = rep(-1, 3),
+  y = rep(-1, 3),
+  a = rep(.425, 3),
+  b = rep(.425, 3),
+  angle = rep(0, 3)
+)
 lvls <- levels(shape_df$name)
 for(i in 1:length(lvls)){
   g <- shape_df[shape_df$name == lvls[i],] %>%
     ggplot() +
+    ## Clusters a:c
     geom_ellipse(aes(x0 = x, y0 = y, a = a, b = b,
-                     angle = angle, color = cluster), size = 1.5) +
+                     angle = angle, color = cluster), size = 1) +
+    ## Cluster d
+    geom_ellipse(aes(x0 = x, y0 = y, a = a, b = b,
+                     angle = angle, color = cluster),
+                 data = clust_d[i, ],
+                 size = .6, linetype = 2, alpha = .5) +
     coord_fixed() +
     this_theme +
     labs(subtitle = lvls[i])
   if(i != length(lvls)) ## Add text on first 2, but not the last one.
-    g <- g + geom_text(aes(x = x, y = y, label = cluster, color = cluster), size = 8)
+    
+    g <- g + 
+      ## Cluster letters a-c
+      geom_text(aes(x = x, y = y, label = cluster, color = cluster), size = 7) +
+      ## Cluster letter d
+      geom_text(aes(x = x - .5, y = y + .5, color = cluster),
+                data = clust_d[i, ], size = 4, alpha =.7,
+                label = "(d)")
   assign(paste0("shp", i), g, envir = globalenv())
 }
-shp3
+shp2
 
 
 ###### Dim ------
@@ -137,14 +159,19 @@ dim6 <- spinifex::view_frame(
   identity_args = list(size = 1.5, alpha = 0)) +
   this_theme + 
   ggplot2::labs(subtitle = "4 cluster in 6 dim")
-
+dim_txt <- ggplot() +
+  geom_text(aes(0, 0), size = 3,
+    label = "Cluster 'd', above, only exists \n when there are 6 dim, is \n spherical like the noise dim, \n but has cluster separation \n behind the plane of the \n other 3 isodensities.") +
+  theme_void() +
+  theme(text = element_text(hjust = .5, vjust = .5))
+  
 ### Cowplot munging ------
 require("cowplot")
 .gg_empty <- ggplot() + theme_void()
 fct_row <- plot_grid(fct1, fct2, fct3, nrow = 1)
 loc_row <- plot_grid(loc1, loc2, loc3, nrow = 1)
 shp_row <- plot_grid(shp1, shp2, shp3, nrow = 1)
-dim_row <- plot_grid(dim4, dim6, .gg_empty, nrow = 1)
+dim_row <- plot_grid(dim4, dim6, dim_txt, nrow = 1)
 gc()
 gg_matrix <- plot_grid(fct_row, loc_row, shp_row, dim_row, ncol = 1, rel_heights = c(1,.8,.8,1))
 
