@@ -1,6 +1,19 @@
 <!-- Do not add YAML header to child document. -->
 <!-- # Appendix {#sec:appendix} listed in parent document -->
 <!-- {-} means unumbered section, alternatively {.unnumbered #section-id} -->
+```{r chunkOpts, include=FALSE}
+## Chunk options
+knitr::opts_chunk$set(
+  fig.align = "center",
+  echo = FALSE,
+  collapse = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  error = FALSE,
+  cache = TRUE,
+  cache.lazy = FALSE
+)
+```
 
 ## Survey participant demographics {-}
 
@@ -28,3 +41,26 @@ if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 knitr::include_graphics("./figures/figTeffectRange.pdf")
 ```
+
+
+## Radial tour application details {-}
+
+Below we describe the \pkg{shiny} app made available in the \pkg{spinifex} package which is then run locally. It streamlines the process to creating and interacting with radial tours, related to, but more interactive than the application used in the user study.
+
+```{r radialTourAppPg1, out.width="100%", fig.show='asis', fig.cap='Process data tab, interactively load or select data, check which variables to project, and opptionally scale columns by standard deviation.'}
+## Manual screen capture via: spinifex::run_app()
+knitr::include_graphics("./figures/app_pg1.png")
+```
+
+In the initial tab, users upload their own (.csv, .rds, or .rda) data or select from predefined data sets. The numeric columns appear as a list of variables to include in the projection. Below that, a line displays whether or not NA rows were removed. Scaling by standard deviation is included by default, as this is a common transformation used to explore linear projections of spaces. Alternatively, the user can perform their own transformations before exporting and toggle this transformation off. Summaries of the raw data, and processed numeric data to project are displayed to better illustrate how the data was read and what will be projected.
+
+```{r radialTourAppPg2, out.width="100%", fig.show='asis', fig.cap='Radial tour tab, interactively creates radial tours, changing the variable of manipulation, and color or shape of the resulting manual tour. Here, the palmer penguins data is being explored, bill_length was selected to manipulate as it is the only variable separating the green cluster from the orange. By mapping shape to island of observation, we also notice that the species in green lives on 3 islands, while of the other spieces live only on one of the islands.'}
+## Manual screen capture via: spinifex::run_app()
+knitr::include_graphics("./figures/app_pg2.png")
+```
+
+The second tab contains interaction for selecting the manipulation variable and non-numeric columns can be used to change the color and shape of the data points in the projection. The radial tour is then created in real time animating as an interactive \pkg{plotly} .html widget.
+
+Including such an application offers users a fast, intuitive introduction of what is going on and some of the features offered. for more help getting started on applying your own tours see the help documentation or follow along with our  vignettes.
+
+

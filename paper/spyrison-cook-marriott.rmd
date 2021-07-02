@@ -463,13 +463,13 @@ Above we discussed an $n=108$, with-in participant user study comparing the effi
 There are several ways that this study could be extended. In addition to expanding the support of the block parameterizations, more interesting directions include: type of the task, visualizations used, and experience level of the target population. It is difficult to achieve good coverage given the number of possible permutations. Be sure to step back and plan the target support of your block parameters. Keep in mind the volume and quality of responses from participants especially when crowdsourcing. These planning steps are useful for navigating when the complexity of the application details.
 
 
-# Accompanying tool: radial manual tour application {#sec:spinifex}
+# Accompanying tool: radial tour application {#sec:spinifex}
 
-To accompany this study we have produced a more general use tool to perform such exploratory analysis of high dimensional data. The \proglang{R} package, \pkg{spinifex}, [@spyrison_spinifex_2020] contains a free, open-source \pkg{shiny} [@chang_shiny_2020] application. The application allows users to upload, process, and interactively explore their data. Users can quickly traverse global and local extrema and then explore the nearby space with the radial tour as similarly applied in the user study. Limited implementations of grand, little, and local tours are also made available. Data can be imported in .csv and .rda format, and projections or animations can be saved as .png, .gif, and .csv formats where applicable. Run the following \proglang{R} code for help getting started.
+To accompany this study we have produced a more general use tool to perform such exploratory analysis of high dimensional data. The \proglang{R} package, \pkg{spinifex}, [@spyrison_spinifex_2020] contains a free, open-source \pkg{shiny} [@chang_shiny_2020] application. The application allows users to upload, perform limited preprocessing, and interactively explore their data via interactive radial tour. The .html widget produced is a more interactive variant relative to the application in the user study. Screencaptures and more details are provided in the appendix. Data can be imported from .csv, .rds, or .rda format, and projections. Run the following \proglang{R} code to run the application locally.
 
 ```{r getting_started, eval=FALSE, echo=TRUE}
 install.packages("spinifex", dependencies = TRUE)
-spinifex::run_app("intro")
+spinifex::run_app("radial_tour")
 ```
 
 # Acknowledgments {#sec:acknowledgments}
