@@ -223,11 +223,8 @@ W_{j} &=\frac
 (\overline{X_{j=p, k=1}} - \overline{X_{j=p, k=2}})}
 {\sum_{j=1}^{p}(|\overline{X_{j,k=1}} - \overline{X_{j,k=2}}|)}
 - \frac{1}{p} \\
-&= (w_1,~...~ w_p) \\
 \\
-Y_1 &= I(r_j) * sign(w_j) * \sqrt{|w_j|} \\
-&= (m_1, ~...~ m_p) \\
-\\
+\text{Accuracy}, Y &= \sum_{j=1}^{p}I(r_j) * sign(w_j) * \sqrt{|w_j|}  \\
 \end{align*}
 
 

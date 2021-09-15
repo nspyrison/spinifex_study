@@ -1,5 +1,6 @@
 require("ggplot2")
 require("spinifex")
+require("magrittr")
 
 tgt_sim_nm <- "EEV_p6_33_66_rep2"
 tgt_fp <- paste0("./apps_supplementary/data/", tgt_sim_nm, ".rda") 
@@ -7,9 +8,9 @@ tgt_fp <- paste0("./apps_supplementary/data/", tgt_sim_nm, ".rda")
 load(tgt_fp, envir = globalenv())
 dat <- EEV_p6_33_66_rep2
 clas <- attr(dat, "cluster")
-source("./paper/R/ggproto_pca_biplot.r")
+source("./paper/R/9_util_funcs.r") ## previously ggproto_pca_biplot.r
 if(F)
-  file.edit("./paper/R/ggproto_pca_biplot.r")
+  file.edit("./paper/R/9_util_funcs.r")
 
 
 gg1 <- ggplot() + theme_void() +
@@ -17,20 +18,22 @@ gg1 <- ggplot() + theme_void() +
   theme(axis.title = element_text(),
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5)) +
-  labs(title = "factor=pca, location:33/66%, \n shape=EEV, dim=6",
+  labs(title = "factor=PCA, location=33/66%, \n shape=EEV, dimension=6&4 clusters",
        x = "PC1", y = "PC4")
 
 ## Make ans_plot
 ans_tbl <- readRDS("./apps/spinifex_study/www/ans_tbl.rds")
 sub <- ans_tbl %>% dplyr::filter(sim_nm == tgt_sim_nm)
-source("./paper/R/9_util_clean_participant_data.r")
-if(F)
-  file.edit("./paper/R/9_util_clean_participant_data.r")
+# source("./paper/R/9_util_clean_participant_data.r")
+# if(F)
+#   file.edit("./paper/R/9_util_clean_participant_data.r")
 sub_longer <- pivot_longer_resp_ans_tbl(dat = sub)
+sub_longer$weight[c(3,5)] <- sub_longer$weight[c(3,5)] / sum(sub_longer$weight[c(3,5)])
+sub_longer$weight[c(-3,-5)] <- -sub_longer$weight[c(-3,-5)] / sum(sub_longer$weight[c(-3,-5)])
 
-source("./paper/R/ggproto_ans_plot.r")
-if(F)
-  file.edit("./paper/R/ggproto_ans_plot.r")
+# source("./paper/R/ggproto_ans_plot.r")
+# if(F)
+#   file.edit("./paper/R/ggproto_ans_plot.r")
 gg2 <- ggplot() + theme_bw() +
   ggproto_ans_plot(sub_longer) +
   theme(plot.title = element_text(hjust = 0.5),
@@ -42,7 +45,10 @@ gg2 <- ggplot() + theme_bw() +
 .w = 6.25
 .h = 9
 .u = "in"
-if(F)
+if(F){
   ggsave("./paper/figures/figBiplotScoring.pdf", final,
          device = "pdf", width = .w, height = .w / 2, units = .u)
+  ggsave("./paper/figures/figBiplotScoring.png", final,
+         device = "png", width = .w, height = .w / 2, units = .u)
+}
 

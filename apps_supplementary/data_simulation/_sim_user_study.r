@@ -1,7 +1,6 @@
-# OLD source("./R/sim_tidyverse.r")) ## For banana_tform() and rotate()
-
-## NOTE:  rotate_mtvnorm() & banana_tform_mtvnorm()
-#### have been dissolved into sim_mvtnorm_cl(), below.
+## NOTE: For banana_tform() and rotate() 
+#### from the OLD file source("./R/sim_tidyverse.r")
+#### have since been dissolved into sim_mvtnorm_cl(), below.
 
 #' Creates a data frame of multivariate data with clusters via mvnorm::rmvnorm().
 #'
@@ -16,7 +15,6 @@
 #' (loosely ~quin-nomial) 2D 'V' shape.
 #' @param ang The angle (in radians) to rotate the V1 and V4. Defaults to 0, 
 #' no rotation. (hardcoded to V1/V4 for 3cl in 4-dim, and 4cl in 6-dim).
-
 #' @param do_shuffle Boolean specifying if order sampling/shuffling should be 
 #' applied to the rows and columns, such that cluster rows are not all together
 #' and signal columns are not in the same order.
@@ -79,7 +77,6 @@ sim_mvtnorm_cl <- function(means,  ## Required
     b_df[fif3, 2] <- b_df[fif3, 2] + 1
     b_df[fif4, 1] <- b_df[fif4, 1] - 1
     b_df[fif4, 2] <- b_df[fif4, 2] - 1
-    
     df_sim[cluster == "cl b", ] <- b_df
   }
   
