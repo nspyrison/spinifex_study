@@ -1,7 +1,0 @@
-// Create your own .css functions, like there for changing body text:
-.larger  { font-size: 140% } // not working after changes, but can nest 
-.large   { font-size: 120% }
-.small   { font-size: 80%  }
-.smaller { font-size: 60%  }
-.col{color: #FFDAB9 !important;}
-

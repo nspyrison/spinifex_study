@@ -24,7 +24,8 @@ gt <- tourr::save_history(EEE_p4_0_1_rep1, tour_path = grand_tour(), max_bases =
 bas2 <- matrix(gt[[1]], nrow=4, ncol=2)
 bas3_st <- basis_half_circle(EEE_p4_0_1_rep1)
 mt <- manual_tour(bas3_st, manip_var = 2)
-bas3 <- mt[,, 17]
+bas3 <- spinifex:::interpolate_manual_tour(mt, .05)[,,17]
+
 
 df <- data.frame(c(-1,1),c(-1,1),c(-1,1),c(-1,1))
 fct1 <- spinifex::view_frame(bas1, EEE_p4_0_1_rep1,
@@ -139,7 +140,6 @@ shp2
 
 
 ###### Dim ------
-##     Cluster A         Cluster B
 load("./apps_supplementary/data/EEE_p4_0_1_rep1.rda") ## load obj EEE_p4_0_1_rep1
 load("./apps_supplementary/data/EEE_p6_0_1_rep1.rda") ## load obj EEE_p5_0_1_rep1
 str(EEE_p4_0_1_rep1)

@@ -25,9 +25,9 @@ tgt_fp <- paste0("./apps_supplementary/data/", tgt_sim_nm, ".rda")
 load(tgt_fp, envir = globalenv())
 dat <- EEV_p6_0_1_rep3
 clas <- as.factor(attr(dat, "cluster"))
-source("./paper/R/ggproto_pca_biplot.r")
+source("./paper/R/9_util_funcs.r")
 if(F)
-  file.edit("./paper/R/ggproto_pca_biplot.r")
+  file.edit("./paper/R/9_util_funcs.r")
 
 
 ### PCA -----
@@ -140,10 +140,6 @@ gg_pca <- GGally::ggpairs(
   upper = "blank",
   lower = list(continuous = wrap("points", alpha = 0.7, size=1)),
   columnLabels = paste0("PC", 1:3)) + 
-  # scale_fill_brewer("Dark2") + 
-  # scale_color_brewer("Dark2") +
-  # scale_color_manual(col_pal[1:4]) +
-  # scale_fill_manual(col_pal[1:4]) +
   theme_bw() +
   theme(axis.ticks = element_blank(), 
         axis.text = element_blank())
@@ -168,19 +164,3 @@ bas_p6 <- tourr::orthonormalise(.u_circ_p6)
 mv <- 1
 mt <- manual_tour(bas_p6, mv, ang = .29)
 
-
-# 
-# ## Data
-# .sim_fp <- "./paper/data/EEV_p6_0_1_rep3.rda"
-# load(.sim_fp, envir = globalenv()) ## Load object `EEV_p6_0_1_rep3`
-# dat <- EEV_p6_0_1_rep3
-# clas <- as.factor(attr(dat, "cluster"))
-# bas <- basis_half_circle(dat)
-# 
-# ## Manual play_manual_tour(render_gganimate) call
-# .gg <- play_manual_tour(bas, data = dat, manip_var = 1L,
-#                         render_type = render_, angle = .1,
-#                         aes_args = list(color = clas, shape = clas),
-#                         identity_args = list(size = 1, alpha = .7)
-# )
-# .gg + gganimate::transition_states(frame, transition_length = 0L)
