@@ -99,7 +99,7 @@ Principal component analysis is a good baseline of comparison for linear project
 
 ```{r figFactorPca, echo = F, out.width = '60%', fig.cap = "Scatterplot matrix of the first 3 principal components for simulated data. There are three classes in the data, and the biggest difference between classes can be seen in the first two PCs."}
 if(F)
-file.edit("./paper/R/fig_factor.r")
+  file.edit("./paper/R/fig_factor.r")
 knitr::include_graphics("./figures/figFactor_pca.pdf")
 ```
 
@@ -350,26 +350,32 @@ $$
 <!-- Y1 model comparisons further discuss model ABcd -->
 ```{r marksCompTbl, fig.cap = "Use the caption arg in kable(), not this."}
 if(F) ## Creation and saving at:
-  file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
+  file.edit("./paper/apps_supplementary/v4_prolifico_100/_analysis.rmd")
 model_comp_tbl_ls <- readRDS("./figures/modelCompLs.rds")
 
 model_comp_tbl_ls[[1]]$`Fixed effects` <- model_comp_tbl_ls[[2]]$`Fixed effects` <-
   c("a", "a+b+c+d", "a*b+c+d", "a*b*c+d", "a*b*c*d")
+saveRDS(model_comp_tbl_ls, "./ch4_tab1_model_comp_ls.rds")
 ## 1) Eval parameters
-kableExtra::kbl(
+model_comp <- kableExtra::kbl(
   model_comp_tbl_ls[[1]], "latex", align = c("l", rep("l", 2), rep("c", 5)),
   booktabs = TRUE, linesep = "", caption = "Model comparison of our random effect models regressing marks. Each model includes a random effect term of the participant, which explains the individual's influence on their marks. Complex models perform better in terms of R2 and RMSE, yet AIC and BIC penalize their large number of fixed effects in favor of the much simpler model containing only the visual factor.") %>%
   kableExtra::column_spec(column = 1, width = "1.5cm") %>%
   column_spec(column = c(2:3), width = "1cm") %>%
   column_spec(column = c(4:8), width = "1.5cm") %>%
   kable_styling(bootstrap_options = "striped", font_size = 10)
+if(F)
+  saveRDS(object = model_comp,
+          "./paper/figures/model_comp_y1.rds")
+## obj <- readRDS("<FP>")
+model_comp
 ```
 
 
 <!-- Y1 coefficients of the selected model, ABcd -->
 ```{r marksCoefTbl, fig.cap = "Use the caption arg in kable(), not this."}
 if(F) ## Creation and saving at:
-  file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
+  file.edit("./paper/apps_supplementary/v4_prolifico_100/_analysis.rmd")
 coef_ls <- readRDS("./figures/modelCoefLs.rds")
 
 ## Formatting
@@ -399,7 +405,7 @@ We also want to visually explore the conditional variables in the model. Figure 
 <!-- Violin plots and test overlay for Y1 factors -->
 ```{r, figMarksABcd, echo = F, out.width = '100%', fig.cap = "Violin plots of terms of the model $\\widehat{Y_1} = \\alpha * \\beta + \\gamma + \\delta$. Overlaid with global significance from the Kruskal-Wallis test, and pairwise significance from the Wilcoxon test, both are non-parametric, ranked sum tests suitable for handling discrete data. Participants are more confident and find the radial easier to use relative to the grand tour. Participants claim low familiarity as we expect from crowdsourced participants. Radial is more preferred compared with either alternative for this task."}
 if(F) ## Creation and saving figure at:
-file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
+file.edit("./paper/apps_supplementary/v4_prolifico_100/_analysis.rmd")
 knitr::include_graphics("./figures/figMarksABcd.pdf")
 ```
 
