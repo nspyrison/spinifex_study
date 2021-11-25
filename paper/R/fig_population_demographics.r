@@ -110,13 +110,13 @@ if(F){
         factor(plyr::mapvalues(survey_wider$radial_like, from = 1:5, to = .l_lvls))
     )
   ## Save task aggregated data.
-  saveRDS(survey_wider, "./apps_supplementary/survey/survey_wider.rds")
+  saveRDS(survey_wider, "./paper/data_survey/survey_wider.rds")
 }
 
 #### Load and plot as demographic heatmap ----
 ## Load aggregated data. filter to only surveys in the 108 instances in the analysis
-survey_wider <- readRDS("./apps_supplementary/survey/survey_wider.rds")
-instance_id_whitelist <- readRDS("./apps_supplementary/v4_prolifico_100/instance_id_whitelist.rds")
+survey_wider <- readRDS("./paper/data_survey/survey_wider.rds")
+instance_id_whitelist <- readRDS("./paper/data_study/instance_id_whitelist.rds")
 ## Only Prolific participants that were in the 108 instance_ids in the analysis
 survey_wider <- survey_wider %>%
   filter(nchar(as.character(prolific_id)) == 24,

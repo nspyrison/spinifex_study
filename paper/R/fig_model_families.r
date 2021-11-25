@@ -136,7 +136,7 @@ for(i in 1:length(lvls)){
                 label = "(d)")
   assign(paste0("shp", i), g, envir = globalenv())
 }
-shp2
+
 
 
 ###### Dim ------

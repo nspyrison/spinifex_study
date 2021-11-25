@@ -229,15 +229,17 @@ instance_id_whitelist <- dat_qual %>%
   arrange(`parameter permutation`, removal_priority) %>% #,desc(write_dt)) %>%
   group_by(`parameter permutation`, instance_id) %>%
   dplyr::summarise(`even evaluations` = 1) %>%
-  mutate(wi_perm_instance_rn = row_number()) %>%
-  filter(wi_perm_instance_rn < 4) %>%
+  dplyr::mutate(wi_perm_instance_rn = 1:n()) %>%
+  dplyr::filter(wi_perm_instance_rn < 4) %>%
   pull(instance_id)
  
 ## Apply the final white list, the last 3 even evaluations of each perm
 dat_qual <- dat_qual %>%
   filter(instance_id %in% instance_id_whitelist)
+.lvls = c("0/100%", "33/66%", "50/50%")
+dat_qual$location <- factor(.lvls[as.integer(dat_qual$location)], levels = .lvls)
 if(interactive() == TRUE)
-  saveRDS(dat_qual, "./paper/dat_study/dat_qual.rds")
+  saveRDS(dat_qual, "./paper/data_study/dat_qual.rds")
 
 N <- length(unique(dat_qual$instance_id))
 print(paste0("N = ", N, " unique instance_id."))
@@ -422,8 +424,8 @@ mute <- lapply(seq_along(model_ls), function(i){
 })
 .perf_df <- dplyr::bind_rows(performance_ls)
 .model_comp_colnms <- c("Fixed effects", "No. levels", "No. terms",
-                        "AIC", "BIC", "R2 cond. (on RE)",
-                        "R2 marg. (w/o RE)", "RMSE")
+                        "AIC", "BIC", "R2 cond.",
+                        "R2 marg.", "RMSE")
 model_comp_tbl <- tibble(names(model_ls),
                          factors_vec,
                          fixef_vec,
@@ -522,6 +524,8 @@ botCis <-
 ### Model alpha * beta + gamma + delta
 
 ```{r}
+if(F)
+  saveRDS(dat_qual, "./dat_qual.rds")
 .factor <- my_ggpubr(dat_qual, x = "factor", y = "marks")
 .location <- my_ggpubr(dat_qual, x = "location", y = "marks")
 .shape <- my_ggpubr(dat_qual, x = "shape", y = "marks")
