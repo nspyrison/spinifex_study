@@ -181,8 +181,7 @@ my_theme <- list(
   geom_hline(yintercept = 0L),
   theme(legend.position = "bottom",
         legend.box = "vertical",
-        legend.margin = margin(-6))
-)
+        legend.margin = margin(-6)))
 my_ggpubr <- function(df, x = "factor", y = "value", title = waiver(), subtitle = waiver()){
   ## Find height of global significance test text.
   .x_lvls <- df %>% pull({{x}}) %>% levels()
@@ -193,7 +192,7 @@ my_ggpubr <- function(df, x = "factor", y = "value", title = waiver(), subtitle 
   
   ## Plot
   ggviolin(df, x = x, y = y, fill = x, alpha = .6,
-           palette = "Dark2", shape = x,
+           palette = "Dark2", shape = x, trim = TRUE,
            add = c("mean"), ## Black circle, can change size, but not shape or alpha?
            draw_quantiles = c(.25, .5, .75)) +
     stat_compare_means(method = "wilcox.test",
@@ -203,7 +202,7 @@ my_ggpubr <- function(df, x = "factor", y = "value", title = waiver(), subtitle 
     #                    method = "wilcox.test", ref.group = .x_lvls[1]) + ## Test each lvl w.r.t. first level.
     stat_compare_means( ## Global test
       label.y = .lab.y,
-      aes(label = paste0("Kruskal-p=", ..p.format..))
+      aes(label = paste0("p=", ..p.format..))
     ) + ## custom label
     my_theme +
     ggtitle(title, subtitle)
@@ -266,37 +265,23 @@ length(unique(survey_wider$instance_id))
     # Reverse order that fill is displayed in legend.
     guides(fill = guide_legend(reverse = TRUE)) +
     # x as % rather than rate.
-    scale_x_continuous(labels = scales::percent)
-)
+    scale_x_continuous(labels = scales::percent) + 
+    coord_flip() +
+    theme(legend.direction = "vertical") +
+    guides(fill = guide_legend(reverse = FALSE)))
 
 
 
 ### SAVING ------
 ## Cowplot and bringing it together
 require("cowplot")
-figSubjectiveMeasures <-
-  cowplot::plot_grid(subjectiveMeasures, measure_violins, ncol = 2)
 
 if(F){
-  require("ggplot2")
-  # ggsave("./paper/figures/figSubjectiveMeasures_vert.pdf", subjectiveMeasures,
-  #        device = "pdf", width = .w, height = .w * .66, units = "in")
-  # ggsave("./paper/figures/figSubjectiveMeasures_hori.pdf",
-  #        subjectiveMeasures +
-  #          ## Convert to horizontal:
-  #          coord_flip(),
-  #        device = "pdf", width = .w, height = .w * 1, units = "in")
-  # ggsave("./paper/figures/figSubjectiveMeasures_w.violin_vert.pdf",
-  #        cowplot::plot_grid(subjectiveMeasures, measure_violins, ncol = 2),
-  #        device = "pdf", width = .w, height = .w * .66, units = "in")
+  figSubjectiveMeasures_w.violin_hori <-  cowplot::plot_grid(
+    subjectiveMeasures, measure_violins, ncol = 2)
   ggsave("./paper/figures/figSubjectiveMeasures_w.violin_hori.pdf",
-         cowplot::plot_grid(subjectiveMeasures +
-                              coord_flip() +
-                              theme(legend.direction = "vertical") +
-                              guides(fill = guide_legend(reverse = FALSE)),
-                            measure_violins,
-                            ncol = 2),
-         device = "pdf", width = .w, height = .w * 1, units = "in")
+         figSubjectiveMeasures_w.violin_hori, device = "pdf",
+         width = .w, height = .w * 1, units = "in")
 }
 
 ### Significance testing: ------
