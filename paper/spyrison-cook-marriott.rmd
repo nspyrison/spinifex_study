@@ -81,6 +81,8 @@ knitr::opts_chunk$set(
 )
 ```
 
+\newpage
+
 # Introduction
 
 <!-- Multivariate spaces and EDA -->
@@ -146,16 +148,36 @@ The _manual_ tour [@cook_manual_1997] defines its basis path by manipulating the
 <!-- Radial tour variant -->
 To simplify the task and keep its duration realistic, we consider a variant of the manual tour, called a _radial_ tour. In a radial tour, the selected variable is allowed to change its magnitude of contribution, but not its angle; it must move along the direction of its original contribution radius. The radial tour benefits from both continuity of the data alongside grand tours, but also allows the user to steer via choosing the variable to rotate.
 
+<!-- spinifex -->
 The recent implementation of manual tours us the R package \pkg{spinifex} [@spyrison_spinifex_2020], which facilitates manual tours (and radial variant). It is also compatible with tours made with \pkg{tourr} [@wickham_tourr:_2011] and facilitates exporting to .gif or .html widget, with recent graphic packages. Now that we have a readily available means to produce various tours, we want to see how they fare against traditional discrete displays commonly used with PCA.
 
 
 # User study {#sec:userstudy}
 
 <!-- Overview of visual -->
-An experiment was constructed to assess the performance of the radial tour relative to the tour and scatterplots of principal components for interpreting the importance of variables to class separations. 
+An experiment was constructed to assess the performance of the radial tour relative to the grand tour tour and PCA for interpreting the the variable attribution contributing to separation between two clusters. 
 
 <!-- Introduce blocks -->
 The three methods were examined for three different cluster shapes, using different combinations of contributing variables, and data dimensionality. Data was collected using a specially constructed web app, through crowd-sourced with prolific.co [@palan_prolific_2018].
+
+
+## Objective {#sec:objective}
+
+<!-- Rational for factor levels -->
+PCA will be used as a baseline for comparison as it is the most common linear embedding. The grand tour will act as a secondary control that will help evaluate the benefit of animation, but without the ability to influence its path. Lastly, the radial tour should perform best as it benefits both from animation and being user-control of contribution of individual variables.
+
+<!-- Prior expectations -->
+Then for some subset of tasks, we expect to find that the radial tour performs most accurately, as it enjoys both the persistence of points and input control to explore specific variables. Secondly, it may be the case that grand performs faster than the alternatives with its absence of inputs, users can focus all of their attention on interpreting the fixed path. Conversely, we are less certain about the accuracy of such a limited grand tours as there is no objective function in the selection of the bases; it is possible that, by chance, the planes completely avoid the information needed. However, given that the data dimensionality will be modest, it seems likely that grand tour regularly crosses frames with the correct information to perform the task quickly.
+
+<!-- Explicit hypothesis tests -->
+We measure the accuracy and response time over the support of the discussed experimental factors. The null hypotheses can be stated as:
+
+$~~~~~H_0: y_1, \text{task accuracy does not vary with the visualization method} \\$
+$~~~~~H_\alpha: y_1, \text{task accuracy does vary with thevisualization method} \\$
+$~~~~~H_0: y_2, \text{task response time does not vary with the visualization method} \\$
+$~~~~~H_\alpha:, y_2 \text{task response time does vary with the visualization method} \\$
+
+
 
 ## Experimental factors {#sec:blocks}
 
@@ -179,28 +201,11 @@ In selecting the _shape_ of the clusters we follow the convention given by @scru
 _Dimension_-ality is tested at 2 modest levels, namely, in 4 dimensions containing 3 clusters and 6 dimensions with 4 clusters. We must do so to bound the difficulty and search space to keep the task realistic for crowdsourcing.
 
 
-## Objective {#sec:objective}
-
-<!-- Rational for factor levels -->
-PCA will be used as a baseline for comparison as it is the most common linear embedding. The grand tour will act as a secondary control that will help evaluate the benefit of animation, with the persistence of the data points across changes in basis, but without the ability to influence its path. Lastly, the radial tour should perform best as it benefits both from animation and being able to select an individual variable to change the contribution. Next, we cover how we expect them to perform and state the hypothesis to test.
-
-<!-- Prior expectations -->
-Then for some subset of tasks, we expect to find that the radial tour performs most accurately, as it enjoys both the persistence of points and input control to explore specific variables. Secondly, it may be the case that grand performs faster than the alternatives with its absence of inputs, users can focus all of their attention on interpreting the fixed path. Conversely, we are less certain about the accuracy of such a limited grand tours as there is no objective function in the selection of the bases; it is possible that, by chance, the planes completely avoid the information needed. However, given that the data dimensionality will be modest, it seems likely that grand tour regularly crosses frames with the correct information to perform the task quickly.
-
-<!-- Explicit hypothesis tests -->
-We measure the accuracy and response time over the support of the discussed experimental factors. The null hypotheses can be stated as:
-
-$~~~~~H_0: y_1, \text{task accuracy does not vary with the visualization method} \\$
-$~~~~~H_\alpha: y_1, \text{task accuracy does vary with thevisualization method} \\$
-$~~~~~H_0: y_2, \text{task response time does not vary with the visualization method} \\$
-$~~~~~H_\alpha:, y_2 \text{task response time does vary with the visualization method} \\$
-
 
 ## Task and evaluation {#sec:task}
 
 <!-- segue to task and evaluation -->
-With our hypothesis formulated let's turn our attention to the task and how to evaluate it.
-Regardless of visual method the elements of the display are held constant a 2D scatterplot with axis biplot to its left. Observations were supervised with the cluster level mapped to color and shape.
+With our hypothesis formulated let's turn our attention to the task and how to evaluate it. Regardless of visual method the elements of the display are held constant a 2D scatterplot with axis biplot to its left. Observations were supervised with the cluster level mapped to color and shape.
 
 <!-- Geom, clusters, explicit task -->
 Participants were asked to 'check any/all variables that contribute more than average to the cluster separation green circles and orange triangles', which was further explained in the explanatory video as 'mark and all variable that carries more than their fair share of the weight, or 1 quarter in the case of 4 variables'.
@@ -219,7 +224,7 @@ Let a dataset $\textbf{X}$ be a simulation containing clusters of observations o
 \end{align*}
 
 <!-- W, weights -->
-We define weights, $W$ to be a vector explaining the variable-wise difference between 2 clusters. Namely the difference of each variable between clusters, as a proportion of the total difference, less $1/p$, the amount of difference each variable would hold if it were uniformly distributed. <!-- R, participant responses -->Participant responses, $R$, are in the form of a boolean value for each variable, whether or not the participant thinks each variable separates the two clusters more than if the difference were uniformly distributed. Then $Y_1$ is a vector of variable accuracy.
+We define weights, $W$ to be a vector explaining the variable-wise difference between 2 clusters. Namely the difference of each variable between clusters, as a proportion of the total difference, less $1/p$, the amount of difference each variable would hold if it were uniformly distributed. <!-- R, participant responses -->Participant responses, are a logical value for each variable, whether or not the participant thinks each variable separates the two clusters more than if the difference were uniformly distributed. Then $Y_1$ is a vector of variable accuracy.
 
 
 \begin{align*}
@@ -351,14 +356,11 @@ $$
 if(F) ## Creation and saving at:
   file.edit("./paper/apps_supplementary/v4_prolifico_100/_analysis.rmd")
 model_comp_tbl_ls <- readRDS("./figures/modelCompLs.rds")
-model_comp_tbl_ls[[1]]$`Fixed effects` <- model_comp_tbl_ls[[2]]$`Fixed effects` <- 
-  c("a", "a+b+c+d", "a*b+c+d", "a*b*c+d", "a*b*c*d")
 
-saveRDS(model_comp_tbl_ls, "./ch4_tab1_model_comp_ls.rds")
 ## 1) Eval parameters
 model_comp <- kableExtra::kbl(
   model_comp_tbl_ls[[1]], "latex", align = c("l", rep("l", 2), rep("c", 5)),
-  booktabs = TRUE, linesep = "", caption = "Model comparison of our random effect models regressing accruacy. Each model includes a random effect term of the participant, which explains the individual's influence on their accruacy. Complex models perform better in terms of $R^2$ and RMSE, yet AIC and BIC penalize their large number of fixed effects in favor of the much simpler model containing only the visual factor.") %>%
+  booktabs = TRUE, linesep = "", caption = "Model performance of random effect models regressing accruacy. Each model includes a random effect term of the participant, which explains the individual's influence on their accruacy. Complex models perform better in terms of $R^2$ and RMSE, yet AIC and BIC penalize their large number of fixed effects in favor of the much simpler model containing only the visual factor. Conditional $R^2$ includes the random effects, while marginal does not.") %>%
   # kableExtra::column_spec(column = 1, width = "1.5cm") %>%
   # kableExtra::column_spec(column = c(2:3), width = "1cm") %>%
   # kableExtra::column_spec(column = c(4:8), width = "1.5cm") %>%
@@ -410,7 +412,7 @@ knitr::include_graphics("./figures/figMarksABcd.pdf")
 
 ## response time regression
 
-<!-- Time as secondary intrest, Y2 -->
+<!-- Time as secondary interest, Y2 -->
 As a secondary explanatory variable, we also want to look at time. First, we take the log transformation of time as it is right-skewed. Now we repeat the same modeling procedure, namely: 1) build a battery of all additive and multiplicative models. 2) Compare their performance, reporting some top performers. 3) Select a model to examine its coefficients.
 
 <!-- Y2 model comparisons, continue to use ABcd -->
@@ -418,7 +420,7 @@ As a secondary explanatory variable, we also want to look at time. First, we tak
 ## 1) Eval parameters
 kableExtra::kbl(
   model_comp_tbl_ls[[2]], "latex", align = c("l", rep("l", 2), rep("c", 5)),
-  booktabs = TRUE, linesep = "", caption = "Model comparisons for log(time), $\\widehat{Y_2}$ random effect models, where each model includes random effect terms for participants and simulations. We see the same trade-off where the simplest factor model is preferred by AIC/BIC, while $R^2$ and RMSE prefers the full multiplicative model. We again select the model $\\alpha * \\beta + \\gamma + \\delta$ to explore further as it has relatively high marginal $R^2$ while having much less complexity than the full model.") %>%
+  booktabs = TRUE, linesep = "", row.names = FALSE, caption = "Model proformance regressing on log response time [seconds], $\\widehat{Y_2}$ random effect models, where each model includes random effect terms for participants and simulations. We see the same trade-off where the simplest factor model is preferred by AIC/BIC, while $R^2$ and RMSE prefers the full multiplicative model. We again select the model $\\alpha * \\beta + \\gamma + \\delta$ to explore further as it has relatively high marginal $R^2$ while having much less complexity than the full model. Conditional $R^2$ includes the random effects, while marginal does not.") %>%
   # kableExtra::column_spec(column = 1, width = "1.5cm") %>%
   # kableExtra::column_spec(column = c(2:3), width = "1cm") %>%
   # kableExtra::column_spec(column = c(4:8), width = "1.5cm") %>%
@@ -428,7 +430,7 @@ kableExtra::kbl(
 <!-- Y2 coeffiecients -->
 ```{r timeCoefTbl, fig.cap = "Use the caption arg in kable(), not this."}
 kableExtra::kbl(coef_ls[[2]], booktabs = TRUE, linesep = "", format = "latex",
-                caption = "The log(time) model coeffients for $\\widehat{Y_2} = \\alpha * \\beta + \\gamma + \\delta$, with factor=pca, location=0/100\\%, and shape=EEE held as baselines. Location=50/50\\% is the fixed term with the strongest evidence and takes less time. In contrast, the interaction term location=50/50\\%:shape=EEV has the most evidence and takes much longer on average.") %>%
+                caption = "Model coeffients for log response time [seconds] $\\widehat{Y_2} = \\alpha * \\beta + \\gamma + \\delta$, with factor=pca, location=0/100\\%, and shape=EEE held as baselines. Location=50/50\\% is the fixed term with the strongest evidence and takes less time. In contrast, the interaction term location=50/50\\%:shape=EEV has the most evidence and takes much longer on average.") %>%
   # kableExtra::column_spec(column = 1, width = "5cm") %>%
   # kableExtra::column_spec(column = 3, width = "1.6cm") %>%
   # kableExtra::column_spec(column = c(2, 4:6), width = "1.4cm") %>%

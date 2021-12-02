@@ -423,12 +423,13 @@ colnames(model_comp_tbl) <- .model_comp_colnms
 
 
 ## Latex formatting
-model_comp_tbl <- model_comp_tbl %>%
-  format_column_extrema(4, min) %>%
-  format_column_extrema(5, min) %>%
-  format_column_extrema(6, max) %>%
-  format_column_extrema(7, max) %>%
-  format_column_extrema(8, min)
+#### But then these are treated as character; centered and not latex formatted...
+# model_comp_tbl <- model_comp_tbl %>%
+#   format_column_extrema(4, min) %>%
+#   format_column_extrema(5, min) %>%
+#   format_column_extrema(6, max) %>%
+#   format_column_extrema(7, max) %>%
+#   format_column_extrema(8, min)
 ## Subset to 5 models to include in write up.
 .r_idx <- which(pull(model_comp_tbl[, 1]) %in%
                   c("a", "abcd", "ABcd", "ABCd", "ABCD"))
@@ -582,24 +583,25 @@ mute <- lapply(seq_along(t_model_ls), function(i){
   t_fixef_vec[i] <<- length(fixef(this_model))
 })
 .t_perf_df <- dplyr::bind_rows(performance_ls)
-t_model_comp_tbl <- data.frame(names(t_model_ls),
-                               t_factors_vec,
-                               t_fixef_vec,
-                               round(.t_perf_df[, 1]),
-                               round(.t_perf_df[, 2]),
-                               round(.t_perf_df[, 3], 3),
-                               round(.t_perf_df[, 4], 3),
-                               round(.t_perf_df[, 6], 3))
+t_model_comp_tbl <- tibble::tibble(names(t_model_ls),
+                                   t_factors_vec,
+                                   t_fixef_vec,
+                                   round(.t_perf_df[, 1]),
+                                   round(.t_perf_df[, 2]),
+                                   round(.t_perf_df[, 3], 3),
+                                   round(.t_perf_df[, 4], 3),
+                                   round(.t_perf_df[, 6], 3))
 colnames(t_model_comp_tbl) <- .model_comp_colnms
 
 ## Latex formatting
-t_model_comp_tbl <- t_model_comp_tbl %>%
-  format_column_extrema(4, min) %>%
-  format_column_extrema(5, min) %>%
-  format_column_extrema(6, max) %>%
-  format_column_extrema(7, max) %>%
-  format_column_extrema(8, min)
-.r_idx <- which(t_model_comp_tbl[, 1] %in%
+#### But then these are treated as character; centered and not latex formatted...
+# t_model_comp_tbl <- t_model_comp_tbl %>%
+#   format_column_extrema(4, min) %>%
+#   format_column_extrema(5, min) %>%
+#   format_column_extrema(6, max) %>%
+#   format_column_extrema(7, max) %>%
+#   format_column_extrema(8, min)
+.r_idx <- which(pull(t_model_comp_tbl[, 1]) %in%
                   c("ta", "tabcd", "tABcd", "tABCd", "tABCD"))
 t_model_comp_tbl <- t_model_comp_tbl[.r_idx, 1:8]
 
@@ -680,8 +682,11 @@ if(F){
           file = "./paper/data_study/instance_id_whitelist.rds")
   
   ## Model table
+  rownames(model_comp_tbl) <- rownames(t_model_comp_tbl) <- NULL
   model_comp_tbl_ls <- list(modelComp_MarksByEval = model_comp_tbl,
                             modelComp_TimeByEval = t_model_comp_tbl)
+  model_comp_tbl_ls[[1]]$`Fixed effects` <- model_comp_tbl_ls[[2]]$`Fixed effects` <-
+    c("a", "a+b+c+d", "a*b+c+d", "a*b*c+d", "a*b*c*d")
   saveRDS(model_comp_tbl_ls, file = "./paper/figures/modelCompLs.rds")
   ## Selected models: marks ~ ABC, log_sec_to_resp ~ ABC
   #### format coefficients
