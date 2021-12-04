@@ -41,7 +41,7 @@ rel_path <- function(rel_path = "."){
 if(F){
   raw <- readRDS(rel_path("../data_study/raw.rds"))
   ## Only plot_active rows 
-  ## AND Only participants (rows where nchar(participant) == 24 charcters long)
+  ## AND Only participants (rows where nchar(Participant) == 24 charcters long)
   dat_active <- raw %>% filter(nchar(stringr::str_trim(prolific_id)) == 24) 
   source(file = rel_path("./9_util_funcs.r"),
          local = TRUE, echo = FALSE)
@@ -58,16 +58,16 @@ if(F){
   ## Fix observeEvent() over count of radial input_inter.
   dat_task_agg <- dat_task_agg %>%
     mutate(task_input_inter =
-             if_else(factor == "radial", task_input_inter -1, task_input_inter))
+             if_else(Factor == "radial", task_input_inter -1, task_input_inter))
   ## Plot friendly titles
   dat_task_agg <- dat_task_agg %>%
     mutate(prolific_id = stringr::str_trim(prolific_id),
            instance_id = paste(sep = "_", participant_num, full_perm_num, prolific_id)) %>%
-    rename(simulation = sim_nm,
+    rename(Simulation = sim_nm,
            shape = vc,
            dim = p_dim,
            order = eval,
-           participant = prolific_id,
+           Participant = prolific_id,
            `is training` = is_training,
            `# response interactions` = task_resp_inter,
            `seconds to last response` = max_sec_to_resp,
@@ -81,7 +81,17 @@ if(F){
 ## load aggregated data.
 dat_task_agg <- readRDS(rel_path("../data_study/dat_task_agg.rds"))
 ## filter out raining data for now; is even eval is the new color/fill go to.
-dat_task_agg <- dat_task_agg %>% filter(`is training` == FALSE)
+dat_task_agg <- dat_task_agg %>%
+  filter(`is training` == FALSE) %>%
+  ## Display capitalization
+  dplyr::rename(
+    Participant = participant,
+    Simulation  = simulation, 
+    Factor      = factor,
+    Shape       = shape,
+    Dim         = dim,
+    Location   = location,
+    Marks       = marks)
 
 ## Local functions -----
 
@@ -99,7 +109,7 @@ my_theme <- list(
 ## indirect (via ggpubr/cowplot) ggplot2 helpers
 #' @examples
 #' df=dat_qual;x="factor";y="marks";title = waiver(); subtitle = waiver(); facet = NULL
-my_ggpubr <- function(df, x = "factor", y = "marks", title = waiver(), subtitle = waiver(), facet = NULL){
+my_ggpubr <- function(df, x = "Factor", y = "Marks", title = waiver(), subtitle = waiver(), facet = NULL){
   ## Find height of global significance test text.
   .x_lvls <- df %>% pull({{x}}) %>% levels()
   .y_range <- diff(range(df[y]))
@@ -132,7 +142,7 @@ my_ggpubr <- function(df, x = "factor", y = "marks", title = waiver(), subtitle 
     ggtitle(title, subtitle) +
     ggplot2::xlab(paste0(x, "\n(n=", nrow(df)/(.no_x_lvls * .facet_lvls), " ea.)"))
 }
-my_ggpubr_facet <- function(..., facet = "location"){
+my_ggpubr_facet <- function(..., facet = "Location"){
   .facet <- facet
   facet(my_ggpubr(..., facet = .facet), facet.by = .facet)
 }
@@ -149,7 +159,7 @@ ______
 #### Aggregation tables
 ## instance_agg
 instance_agg <- dat_task_agg %>%
-  group_by(instance_id, participant_num, `parameter permutation`, participant) %>%
+  group_by(instance_id, participant_num, `parameter permutation`, Participant) %>%
   dplyr::summarise(`n instance evals` = n() / 6) %>%
   ungroup() %>%
   mutate(is_instance_even = if_else(`n instance evals` == 1, TRUE, FALSE)) %>%
@@ -162,10 +172,11 @@ instance_id_is_even_whitelist <- instance_agg %>%
 dat_qual <- dat_task_agg %>%
   mutate(`is even instance` =
            if_else(instance_id %in% instance_id_is_even_whitelist, TRUE, FALSE))
-  
+
+
 ## participant aggregate table
 participant_agg <- dat_qual %>%
-  group_by(participant, `is even instance`) %>%
+  group_by(Participant, `is even instance`) %>%
   dplyr::summarise(`even evaluations` = n() / 6) %>%
   ungroup() %>%
   arrange(desc(`even evaluations`))
@@ -179,11 +190,11 @@ perm_num_agg <- dat_qual %>%
 #### Identify and remove instances with over evaled perms AND participants.
 ## Identify participants that have performed more than 1 even eval from
 participant_blacklist <- participant_agg %>%
-  group_by(participant) %>%
+  group_by(Participant) %>%
   dplyr::summarise(`even evaluations` = sum(`even evaluations`)) %>%
   ungroup() %>%
   filter(`even evaluations` > 1) %>%
-  pull(participant)
+  pull(Participant)
 ## Identify over evaled perm numbers
 perm_num_blacklist <- perm_num_agg %>%
   filter(`is even instance` == TRUE,
@@ -196,14 +207,14 @@ instance_id_in_survey <- unique(survey_wider$instance_id)
 ## Decode the original dataset by evenness of instance_id.
 dat_qual <- dat_qual %>%
   mutate(is_particiapnat_blacklisted =
-           if_else(participant %in% participant_blacklist, TRUE, FALSE),
+           if_else(Participant %in% participant_blacklist, TRUE, FALSE),
          is_perm_num_blacklisted =
            if_else(`parameter permutation` %in% perm_num_blacklist, TRUE, FALSE),
          is_instance_id_in_survey =
            if_else(instance_id %in% instance_id_in_survey, TRUE, FALSE),
          removal_priority = if_else(is_instance_id_in_survey == TRUE, -1L,
            is_particiapnat_blacklisted + is_perm_num_blacklisted),
-         perm_prolific_id = paste(sep = "_", `parameter permutation`, participant))
+         perm_prolific_id = paste(sep = "_", `parameter permutation`, Participant))
 
 ## Identify the final results to keep as prioritized with the first 3 evals of:
 #### arrange(`parameter permutation`, removal_priority, desc(write_dt))
@@ -221,8 +232,8 @@ instance_id_whitelist <- dat_qual %>%
 dat_qual <- dat_qual %>%
   filter(instance_id %in% instance_id_whitelist)
 .lvls = c("0/100%", "33/66%", "50/50%")
-dat_qual$location <- factor(.lvls[as.integer(dat_qual$location)], levels = .lvls)
-if(interactive() == TRUE)
+dat_qual$Location <- factor(.lvls[as.integer(dat_qual$Location)], levels = .lvls)
+if(F)
   saveRDS(dat_qual, "./paper/data_study/dat_qual.rds")
 
 N <- length(unique(dat_qual$instance_id))
@@ -277,19 +288,6 @@ See the paper for latex terminology, but keep in mind:
   mod_anova_gt_f <- function(mod, gt_f = 1){
     .anova <- anova(mod) %>% data.frame() ## tibble failed
     .anova %>% filter(abs(F.value) > gt_f)
-  }
-  ## A residual plot with marginal density, ggplot2 obj
-  plot_residual <- function(model){
-    .df <- data.frame(predicted  = predict(model),
-                      residual = residuals(model),
-                      factor = dat_qual$factor)
-    p <- ggplot(.df, aes(x = predicted, y = residual, color = factor, shape = factor)) +
-      geom_point(alpha = .33) + my_theme + ggtitle("Residual plot") +
-      theme(legend.position = "bottom",
-            legend.box = "vertical",
-            legend.margin = margin(-6))
-    p <- ggExtra::ggMarginal(p, type = "density", fill = "grey80")
-    return(p)
   }
   ## A qq plot of the Random Effect simulation
   plot_REsim_qq <- function(model){
@@ -375,21 +373,21 @@ if(F)
 # c == shape
 # d == dim
 ## The Models:
-a <-    lmer(marks ~ factor + (1 | participant) + (1 | simulation), data = dat_qual)
-ab <-   lmer(marks ~ factor + location + (1 | participant) + (1 | simulation), data = dat_qual)
-ac <-   lmer(marks ~ factor + shape + (1 | participant) + (1 | simulation), data = dat_qual)
-ad <-   lmer(marks ~ factor + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-abc <-  lmer(marks ~ factor + location + shape + (1 | participant) + (1 | simulation), data = dat_qual)
-abd <-  lmer(marks ~ factor + location + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-acd <-  lmer(marks ~ factor + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-abcd <- lmer(marks ~ factor + location + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-ABcd <- lmer(marks ~ factor * location + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-ACbd <- lmer(marks ~ factor * shape + location + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-ADbc <- lmer(marks ~ factor * dim + location + shape + (1 | participant) + (1 | simulation), data = dat_qual)
-ABCd <- lmer(marks ~ factor * location * shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-ABDc <- lmer(marks ~ factor * location * dim + shape + (1 | participant) + (1 | simulation), data = dat_qual)
-ACDb <- lmer(marks ~ factor * shape * dim + location + (1 | participant) + (1 | simulation), data = dat_qual)
-ABCD <- lmer(marks ~ factor * location * shape * dim + (1 | participant) + (1 | simulation), data = dat_qual)
+a <-    lmer(Marks ~ Factor + (1 | Participant) + (1 | Simulation), data = dat_qual)
+ab <-   lmer(Marks ~ Factor + Location + (1 | Participant) + (1 | Simulation), data = dat_qual)
+ac <-   lmer(Marks ~ Factor + Shape + (1 | Participant) + (1 | Simulation), data = dat_qual)
+ad <-   lmer(Marks ~ Factor + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
+abc <-  lmer(Marks ~ Factor + Location + Shape + (1 | Participant) + (1 | Simulation), data = dat_qual)
+abd <-  lmer(Marks ~ Factor + Location + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
+acd <-  lmer(Marks ~ Factor + Shape + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
+abcd <- lmer(Marks ~ Factor + Location + Shape + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
+ABcd <- lmer(Marks ~ Factor * Location + Shape + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
+ACbd <- lmer(Marks ~ Factor * Shape + Location + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
+ADbc <- lmer(Marks ~ Factor * Dim + Location + Shape + (1 | Participant) + (1 | Simulation), data = dat_qual)
+ABCd <- lmer(Marks ~ Factor * Location * Shape + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
+ABDc <- lmer(Marks ~ Factor * Location * Dim + Shape + (1 | Participant) + (1 | Simulation), data = dat_qual)
+ACDb <- lmer(Marks ~ Factor * Shape * Dim + Location + (1 | Participant) + (1 | Simulation), data = dat_qual)
+ABCD <- lmer(Marks ~ Factor * Location * Shape * Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
 
 model_ls <-
   list(a=a, ab=ab, ac=ac, ad=ad, abc=abc, abd=abd, acd=acd, abcd=abcd,
@@ -408,8 +406,7 @@ mute <- lapply(seq_along(model_ls), function(i){
 })
 .perf_df <- dplyr::bind_rows(performance_ls)
 .model_comp_colnms <- c("Fixed effects", "No. levels", "No. terms",
-                        "AIC", "BIC", "R2 cond.",
-                        "R2 marg.", "RMSE")
+                        "AIC", "BIC", "R2 cond.", "R2 marg.", "RMSE")
 model_comp_tbl <- tibble(names(model_ls),
                          factors_vec,
                          fixef_vec,
@@ -446,19 +443,19 @@ knitr::kable(model_comp_tbl)
 #### EXPLORE SELECTED MODEL ----
 ############################
 ABcd_coef <- model2coef(ABcd)
-
+ABcd
 ggEffectRanges <- plotREsim(REsim(ABcd)) +
-  ggtitle(label = "", subtitle = "accuracy: Y1^ = \u03b1 * \u03b2 + \u03b3 + \u03b4      confidence: \u03b1 = .95") +
+  ggtitle(label = "", subtitle = "Accuracy model: Y1^ = \u03b1 * \u03b2 + \u03b3 + \u03b4      confidence: \u03b1 = .95") +
   theme(axis.title.x = element_blank()) +
-  labs(y = "effect range")
+  labs(y = "Effect range")
 
 #### If you want to show boxplots cannot aggregate over evaluation, 
 ## By participant
-participant_agg <- summarySE(dat_qual, "marks", "participant") %>%
-  mutate(participant = forcats::fct_reorder(participant, marks))
+participant_agg <- summarySE(dat_qual, "Marks", "Participant") %>%
+  mutate(Participant = forcats::fct_reorder(Participant, Marks))
 ggParticipantRanges <- ggplot(participant_agg) +
-  geom_point(aes(participant, marks), alpha = .2, size = 2) +
-  geom_linerange(aes(participant, ymin = marks - ci, ymax = marks + ci), alpha = .3) +
+  geom_point(aes(Participant, Marks), alpha = .2, size = 2) +
+  geom_linerange(aes(Participant, ymin = Marks - ci, ymax = Marks + ci), alpha = .3) +
   my_theme +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
@@ -466,15 +463,15 @@ ggParticipantRanges <- ggplot(participant_agg) +
         panel.grid.minor = element_blank()) +
   coord_cartesian(ylim = c(-1, 1)) +
   ylab("CI mean marks") +
-  xlab("participant (n=6 ea.)")
+  xlab("Participant (n=6 ea.)")
 ggParticipantRanges <-
   ggExtra::ggMarginal(ggParticipantRanges, type = "density", fill = "grey80")
 ## By simulation
-simulation_agg <- summarySE(dat_qual, "marks", "simulation") %>%
-  mutate(simulation = forcats::fct_reorder(simulation, marks))
+simulation_agg <- summarySE(dat_qual, "Marks", "Simulation") %>%
+  mutate(Simulation = forcats::fct_reorder(Simulation, Marks))
 ggSimulationRanges <- ggplot(simulation_agg) +
-  geom_point(aes(simulation, marks), alpha = .2, size = 2) +
-  geom_linerange(aes(simulation, ymin = marks - ci, ymax = marks + ci), alpha = .3) +
+  geom_point(aes(Simulation, Marks), alpha = .2, size = 2) +
+  geom_linerange(aes(Simulation, ymin = Marks - ci, ymax = Marks + ci), alpha = .3) +
   my_theme +
   theme(axis.text = element_blank(),
         axis.ticks = element_blank(),
@@ -482,7 +479,7 @@ ggSimulationRanges <- ggplot(simulation_agg) +
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()) +
   coord_cartesian(ylim = c(-1, 1)) +
-  xlab("simulation (n=36 ea.)")
+  xlab("Simulation (n=36 ea.)")
 ggSimulationRanges <-
   ggExtra::ggMarginal(ggSimulationRanges, type = "density", fill = "grey80")
 ## Bringing it all together
@@ -501,8 +498,8 @@ botCis <-
 ```{r}
 (marks_by_factor <-
    my_ggpubr(dat_qual,
-             x = "factor", y = "marks",
-             title = "Marks by factor"))
+             x = "Factor", y = "Marks",
+             title = "Accuracy by factor")) + ylab("Accuracy")
 ```
 
 ### Model alpha * beta + gamma + delta
@@ -512,12 +509,16 @@ botCis <-
 .yl <- ylab("")
 if(F)
   saveRDS(dat_qual, "./dat_qual.rds")
-.factor   <- my_ggpubr(dat_qual, x = "factor",   y = "marks") + .lp
-.location <- my_ggpubr(dat_qual, x = "location", y = "marks") + .lp + .yl
-.shape    <- my_ggpubr(dat_qual, x = "shape",    y = "marks") + .lp + .yl
-.dim      <- my_ggpubr(dat_qual, x = "dim",      y = "marks") + .lp + .yl
+.factor   <- my_ggpubr(dat_qual, x = "Factor",    y = "Marks") + .lp + ylab("Accuracy")
+.lvls <- c("0/100", "33/66", "50/50%")
+dat_qual_loc <- dat_qual %>%
+  mutate(Location = factor(.lvls[as.integer(Location)], levels = .lvls))
+levels(dat_qual_loc$Location)
+.location <- my_ggpubr(dat_qual_loc, x = "Location", y = "Marks") + .lp + .yl
+.shape    <- my_ggpubr(dat_qual,     x = "Shape",     y = "Marks") + .lp + .yl
+.dim      <- my_ggpubr(dat_qual,     x = "Dim",       y = "Marks") + .lp + .yl
 .FactorLocation <- my_ggpubr_facet(
-                       dat_qual, x = "factor", y = "marks", facet = "location")
+  dat_qual, x = "Factor", y = "Marks", facet = "Location") + ylab("Accuracy")
 
 title <- cowplot::ggdraw() +
   cowplot::draw_label(
@@ -550,21 +551,21 @@ As a secondary explanatory variable we also want to look at time. First we take 
 dat_qual <- dat_qual %>%
   mutate(log_sec_last_resp = log(`seconds to last response`))
 ## The Models:
-ta <-    lmer(log_sec_last_resp ~ factor + (1 | participant) + (1 | simulation), data = dat_qual)
-tab <-   lmer(log_sec_last_resp ~ factor + location + (1 | participant) + (1 | simulation), data = dat_qual)
-tac <-   lmer(log_sec_last_resp ~ factor + shape + (1 | participant) + (1 | simulation), data = dat_qual)
-tad <-   lmer(log_sec_last_resp ~ factor + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-tabc <-  lmer(log_sec_last_resp ~ factor + location + shape + (1 | participant) + (1 | simulation), data = dat_qual)
-tabd <-  lmer(log_sec_last_resp ~ factor + location + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-tacd <-  lmer(log_sec_last_resp ~ factor + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-tabcd <- lmer(log_sec_last_resp ~ factor + location + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-tABcd <- lmer(log_sec_last_resp ~ factor * location + shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-tACbd <- lmer(log_sec_last_resp ~ factor * shape + location + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-tADbc <- lmer(log_sec_last_resp ~ factor * dim + location + shape + (1 | participant) + (1 | simulation), data = dat_qual)
-tABCd <- lmer(log_sec_last_resp ~ factor * location * shape + dim + (1 | participant) + (1 | simulation), data = dat_qual)
-tABDc <- lmer(log_sec_last_resp ~ factor * location * dim + shape +(1 | participant) + (1 | simulation), data = dat_qual)
-tACDb <- lmer(log_sec_last_resp ~ factor * shape * dim + location + (1 | participant) + (1 | simulation), data = dat_qual)
-tABCD <- lmer(log_sec_last_resp ~ factor * location * shape * dim + (1 | participant) + (1 | simulation), data = dat_qual)
+ta <-    lmer(log_sec_last_resp ~ Factor + (1 | Participant) + (1 | Simulation), data = dat_qual)
+tab <-   lmer(log_sec_last_resp ~ Factor + Location + (1 | Participant) + (1 | Simulation), data = dat_qual)
+tac <-   lmer(log_sec_last_resp ~ Factor + Shape + (1 | Participant) + (1 | Simulation), data = dat_qual)
+tad <-   lmer(log_sec_last_resp ~ Factor + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
+tabc <-  lmer(log_sec_last_resp ~ Factor + Location + Shape + (1 | Participant) + (1 | Simulation), data = dat_qual)
+tabd <-  lmer(log_sec_last_resp ~ Factor + Location + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
+tacd <-  lmer(log_sec_last_resp ~ Factor + Shape + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
+tabcd <- lmer(log_sec_last_resp ~ Factor + Location + Shape + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
+tABcd <- lmer(log_sec_last_resp ~ Factor * Location + Shape + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
+tACbd <- lmer(log_sec_last_resp ~ Factor * Shape + Location + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
+tADbc <- lmer(log_sec_last_resp ~ Factor * Dim + Location + Shape + (1 | Participant) + (1 | Simulation), data = dat_qual)
+tABCd <- lmer(log_sec_last_resp ~ Factor * Location * Shape + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
+tABDc <- lmer(log_sec_last_resp ~ Factor * Location * Dim + Shape +(1 | Participant) + (1 | Simulation), data = dat_qual)
+tACDb <- lmer(log_sec_last_resp ~ Factor * Shape * Dim + Location + (1 | Participant) + (1 | Simulation), data = dat_qual)
+tABCD <- lmer(log_sec_last_resp ~ Factor * Location * Shape * Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
 
 t_model_ls <-
   list(ta = ta, tab = tab, tac = tac, tad = tad, tabc = tabc, tabd = tabd, tacd = tacd,
@@ -626,16 +627,16 @@ my_theme <- list(
 )
 
 ggEffectRanges <- plotREsim(REsim(tABcd)) +
-  ggtitle("", subtitle="log response time [seconds]: Y2^ = \u03b1 * \u03b2 + \u03b3 + \u03b4      confidence: \u03b1 = .95") +
+  ggtitle("", subtitle="Log response time [seconds] model: Y2^ = \u03b1 * \u03b2 + \u03b3 + \u03b4      confidence: \u03b1 = .95") +
   theme(axis.title.x = element_blank()) +
-  ylab("effect range")
+  ylab("Effect range")
 
 ## By participant
-participant_agg <- summarySE(dat_qual, "log_sec_last_resp", "participant") %>%
-  mutate(participant = forcats::fct_reorder(participant, log_sec_last_resp ))
+participant_agg <- summarySE(dat_qual, "log_sec_last_resp", "Participant") %>%
+  mutate(Participant = forcats::fct_reorder(Participant, log_sec_last_resp ))
 ggParticipantRanges <- ggplot(participant_agg) +
-  geom_point(aes(participant, log_sec_last_resp), alpha = .2, size = 2) +
-  geom_linerange(aes(participant, ymin = log_sec_last_resp  - ci,
+  geom_point(aes(Participant, log_sec_last_resp), alpha = .2, size = 2) +
+  geom_linerange(aes(Participant, ymin = log_sec_last_resp  - ci,
                      ymax = log_sec_last_resp + ci), alpha = .3) +
   my_theme +
   theme(axis.text.x = element_blank(),
@@ -643,16 +644,16 @@ ggParticipantRanges <- ggplot(participant_agg) +
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()) +
   geom_hline(yintercept = mean(participant_agg$log_sec_last_resp)) +
-  xlab("participant (n=6 ea.)") +
+  xlab("Participant (n=6 ea.)") +
   ylab("CI mean log last response [seconds]")
 ggParticipantRanges <-
   ggExtra::ggMarginal(ggParticipantRanges, type = "density", fill = "grey80")
 ## By simulation
-simulation_agg <- summarySE(dat_qual, "log_sec_last_resp", "simulation") %>%
-  mutate(simulation = forcats::fct_reorder(simulation, log_sec_last_resp))
+simulation_agg <- summarySE(dat_qual, "log_sec_last_resp", "Simulation") %>%
+  mutate(Simulation = forcats::fct_reorder(Simulation, log_sec_last_resp))
 ggSimulationRanges <- ggplot(simulation_agg) +
-  geom_point(aes(simulation, log_sec_last_resp), alpha = .2, size = 2) +
-  geom_linerange(aes(simulation, ymin = log_sec_last_resp - ci,
+  geom_point(aes(Simulation, log_sec_last_resp), alpha = .2, size = 2) +
+  geom_linerange(aes(Simulation, ymin = log_sec_last_resp - ci,
                      ymax = log_sec_last_resp + ci), alpha = .3) +
   my_theme +
   theme(axis.text = element_blank(),
@@ -661,7 +662,7 @@ ggSimulationRanges <- ggplot(simulation_agg) +
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()) +
   geom_hline(yintercept = mean(simulation_agg$log_sec_last_resp)) +
-  xlab("simulation (n=36 ea.)")
+  xlab("Simulation (n=36 ea.)")
 ggSimulationRanges <-
   ggExtra::ggMarginal(ggSimulationRanges, type = "density", fill = "grey80")
 ## Bringing it all together
@@ -707,7 +708,6 @@ if(F){
   ## Marks by violin of factor faceting on location and shape
   ggsave("figMarksABcd.pdf", violin_ABcd, path = "./paper/figures",
          device = cairo_pdf, width = .w, height = .w, unit = .u)
-  
 }
 ```
 

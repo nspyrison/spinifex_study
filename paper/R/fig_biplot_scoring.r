@@ -31,7 +31,7 @@
         plot.subtitle = element_text(hjust = 0.5),
         legend.position = "off",
         axis.title.y = element_text(angle = 90)) +
-  labs(subtitle = "factor: PCA, location: 33/66%, \n shape: EEV, dimension: 6 & 4 clusters",
+  labs(subtitle = "Factor: PCA, location: 33/66%, \n Shape: EEV, dimension: 6 & 4 clusters",
        x = "PC1", y = "PC4", color = "color", shape = "shape") +
   #coord_fixed(xlim = c(-8, 3), ylim = c(-1.5, 6)))
   #ylim(-.5, 7)) 
@@ -60,7 +60,7 @@ gg2 <- ggplot() + theme_bw() +
   ggproto_ans_plot(sub_longer) +
   theme(plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5)) +
-  labs(y = "bars: obsevered cluster separation\nlines: accuracy weights if selected", x = "Variable") + 
+  labs(y = "Bars: observed cluster separation\nLines: accuracy weights if selected", x = "Variable") + 
   theme(legend.position = "off")
 
 (final <- cowplot::plot_grid(gg1, gg2 + theme(aspect.ratio = 8/6), rel_widths = c(1.2, 1)))

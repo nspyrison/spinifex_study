@@ -140,7 +140,7 @@ if(F)
          plot = demographic_heatmaps, device = "pdf", width = .w, height = .w/2)
 
 
-## Subjective measures, BOXPLOTS -----
+## Subjective measures, Boxplots -----
 survey_wider <- readRDS("./apps_supplementary/survey/survey_wider.rds")
 str(survey_wider)
 
@@ -210,10 +210,11 @@ my_ggpubr <- function(df, x = "factor", y = "value", title = waiver(), subtitle 
 my_ggpubr_facet <- function(..., facet = "measure"){
   facet(my_ggpubr(...), facet.by = facet)
 }
-(measure_violins <- my_ggpubr_facet(df = subjective_longer, x = "factor", y = "value"))
+(measure_violins <- my_ggpubr_facet(df = subjective_longer, x = "factor", y = "value")
+  + labs(x = "Factor", y = "Response", fill = "Factor"))
 
 
-#### Subjective measures, LIKERT PLOTS -----
+#### Subjective measures, Likert plots -----
 ### Try to create my own likert barplots and signif tables: likert and this seem to want preaggregated format
 length(unique(survey_wider$instance_id))
 
@@ -221,6 +222,7 @@ length(unique(survey_wider$instance_id))
 ## creates df obj survey_agg and likert, a subset
 # script_survey_wider_to_survey_agg <- function(col_idx = 8:22){ 
 {
+  .l_lvls <- c("most disagree", "disagree", "neutral", "agree", "most agree")
   col_idx <- 8:22
   col_nms <- colnames(survey_wider[, col_idx])
   survey_agg <- tibble()
@@ -265,10 +267,12 @@ length(unique(survey_wider$instance_id))
     # Reverse order that fill is displayed in legend.
     guides(fill = guide_legend(reverse = TRUE)) +
     # x as % rather than rate.
-    scale_x_continuous(labels = scales::percent) + 
+    scale_x_continuous(labels = scales::percent) +
     coord_flip() +
     theme(legend.direction = "vertical") +
-    guides(fill = guide_legend(reverse = FALSE)))
+    guides(fill = guide_legend(reverse = FALSE)) +
+    labs(x = "Factor", y = "Response rate", fill = "Response")
+)
 
 
 
