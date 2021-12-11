@@ -21,7 +21,7 @@
 ## Make figBiplotScoring.pdf -----
 
 ### Left pane ----
-## TODO: explore existance issue.
+## explore existence issue in spinifex/buildignore/zexamples/geom pressence issue.r
 (gg1 <- ggtour(bas, dat) +
   proto_point(aes_args = list(shape = clas, color = clas)) +
   proto_basis() + ## removes cluster d when used....
