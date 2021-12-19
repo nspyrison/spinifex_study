@@ -29,7 +29,7 @@
   clas <- attr(EEE_p4_0_1_rep1, "cluster")
   bas1 <- spinifex::basis_pca(EEE_p4_0_1_rep1)
   gt <- tourr::save_history(EEE_p4_0_1_rep1, tour_path = grand_tour(), max_bases = 1)
-  bas2 <- matrix(gt[[2]], nrow=4, ncol=2, dimnames = list(colnames(dat)))
+  bas2 <- matrix(gt[[1]], nrow=4, ncol=2, dimnames = list(colnames(dat)))
   bas3_st <- basis_half_circle(EEE_p4_0_1_rep1)
   mt <- manual_tour(bas3_st, manip_var = 2)
   bas3 <- spinifex:::interpolate_manual_tour(mt, .05)[,,17]
@@ -112,7 +112,7 @@ shape_df <- data.frame(
             rep(pi / 4, 2), -pi / 4,  ## EEV
             0, 0, -pi / 4, rep(0, 4)) ## EVV_banana
 )
-ellipse_d <- data.frame(
+ellipse_df <- data.frame(
   name = c("EEI", "EEI", "EVI"),
   cluster = rep("(d)", 3),
   x = rep(-1, 3),
@@ -143,7 +143,7 @@ for(i in 1:length(lvls)){
       geom_text(aes(x = x, y = y, label = cluster, color = cluster), size = 7) +
       ## Cluster letter d
       geom_text(aes(x = x - .5, y = y + .5, color = cluster),
-                data = clust_d[i, ], size = 4, alpha =.7,
+                data = ellipse_df[i, ], size = 4, alpha =.7,
                 label = "(d)")
   assign(paste0("shp", i), g, envir = globalenv())
 }
@@ -169,10 +169,6 @@ dim6 <- ggtour(bas4) +
   proto_basis() +
   this_theme + 
   ggplot2::labs(subtitle = "4 clusters in 6 dimensions")
-
-
-### Cowplot munging ------
-
 ## text block about cluster d
 dim_txt <- ggplot() +
   geom_text(aes(0, 0), size = 3.3,
@@ -180,6 +176,7 @@ dim_txt <- ggplot() +
   theme_void() +
   theme(text = element_text(hjust = .5, vjust = .5))
 
+### Cowplot munging ------
 .gg_empty <- ggplot() + theme_void()
 fct_row <- plot_grid(fct1, fct2, fct3, nrow = 1)
 loc_row <- plot_grid(loc1, loc2, loc3, nrow = 1)

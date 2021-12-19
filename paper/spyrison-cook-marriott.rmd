@@ -22,8 +22,8 @@ author:
     affiliation: Monash University
     address: |
       | Department of Econometrics & Business Statistics,
-      | ORCiD: 000-0002-3813-7155
-    orcid: 000-0002-3813-7155
+      | ORCiD: 0000-0002-3813-7155
+    orcid: 0000-0002-3813-7155
   - name: Kimbal Marriott
     affiliation: Monash University
     address: |
@@ -31,7 +31,7 @@ author:
       | ORCiD: 0000-0002-9813-0377
     orcid: 0000-0002-9813-0377
 abstract: |
-  Principal component analysis is a long-standing go-to method for exploring multivariate data. Data visualization _tours_ are a class of  linear projections animated over small changes in the projection basis. The radial tour is one instance that rotates the contribution of a select variable. Does this variable-level control help an analyst explore multivariate data? This paper describes a user study evaluating the efficacy of the use of the radial tour in comparison to two existing methods, principal component analysis, and the grand tour. We devise a supervised classification task where participants evaluate variable attribution of the separation between two classes. Accuracy and response time are measured as response variables. Data were collected from 108 crowd-sourced participants, who perform two trials of each visual for a total of 648 trials. There is strong evidence that the radial tour increases accuracy. Participants also preferred to use the radial tour over alternatives for this task.
+  Principal component analysis is a long-standing go-to method for exploring multivariate data. Data visualization _tours_ are a class of linear projections animated over small changes in the projection basis. The radial tour is one instance that rotates the contribution of a select variable. This paper describes a winthin participants user study evaluating the efficacy of the use of the radial tour in comparison with principal component analysis and the grand tour. We devise a supervised classification task where participants evaluate variable attribution of the separation between two classes. Accuracy and response time are measured as response variables. Data were collected from 108 crowd-sourced participants, who perform two trials of each visual for 648 trials in total. There is strong evidence that the radial tour increases accuracy for this task. Participants also preferred to use the radial tour over alternatives for this task.
 ##preamble: > ## Moved to /template/jdsssv_template.tex
 keywords:
   formatted: [multivariate data, exploratory data analysis, grand tour, manual tour, dimension reduction, linear projections, linear embeddings, "\\proglang{R}"]
@@ -133,7 +133,7 @@ knitr::include_graphics("./figures/fig_pca_splom.pdf")
 ## Animated linear projections, tours
 
 <!-- tours intro -->
-A data visualization _tour_ animates many linear projections over small changes in the projection basis. One of the key features of the tour is the object permanence of the data points; that is to say by watching nearby frames one can track the relative changes of observations as the basis moves toward the next target basis. Types of tours are distinguished by the selection of their basis paths [@lee_state---art_2021; @cook_grand_2008]. To contrast with the discrete orientations of PCA, we compare with continuous changes of linear projection with _grand_ and _radial_ tours.
+A data visualization _tour_ animates many linear projections over small changes in the projection basis. One of the key features of the tour is the object permanence of the data points; one can track the relative changes of observations as the basis moves, as opposed to discretely jumping to an orthogonal view with no intermediate information. Types of tours are distinguished by the selection of their basis paths [@lee_state_2021; @cook_grand_2008]. To contrast with the discrete orientations of PCA, we compare with continuous changes of linear projection with _grand_ and _radial_ tours.
 
 ### Grand tours
 <!-- Grand tour -->
@@ -142,10 +142,10 @@ In a grand tour [@asimov_grand_1985] the target bases are selected randomly. The
 ### Manual and radial tours
 
 <!-- segue, highlighting lack of control -->
-Whether an analyst uses a component space or the grand tour they have no way of influencing the basis. That is they cannot explore the structure identified or change the contribution of the variables. This means of user-control-steering is a key aspect of _manual_ tours that should facilitate testing variable attribution.
+Whether an analyst uses a component space or the grand tour they have no way of influencing the basis. They cannot explore the structure identified or change the contribution of the variables. This means of user-control-steering is a key aspect of _manual_ tours that should facilitate testing variable attribution.
 
 <!-- Manual tour -->
-The manual tour [@cook_manual_1997] defines its basis path by manipulating the basis contribution of a selected variable. A manipulation dimension is appended onto the projection plane, with a full contribution given to the selected variable. The target bases are then selected based on rotating this newly created manipulation space. The target bases are then similarly orthogonally restrained, data projected and rendered into an animation. For the variables to remain independent of each other, the contributions of the other variables must also change, _ie._ dimension space should maintain its orthonormal structure. A key feature of the manual tour is that it affords users a way to control the variable contributions of the next target basis. This means that such manipulations can be selected and queued in advance or selected on the spot for human-in-the-loop analysis [@karwowski_international_2006]. However, this navigation is relatively time-consuming due to the huge volume of $p$-space (an aspect of the curse of dimensionality, @bellman_dynamic_1957) and the abstract method of steering the projection basis. It is advisable to first identify a basis of particular interest and then use a manual tour as a finer, local exploration tool to observe how the contributions of the selected variable do or do not contribute to the feature of interest.
+The manual tour [@cook_manual_1997] defines its basis path by manipulating the basis contribution of a selected variable. A manipulation dimension is appended onto the projection plane, with a full contribution given to the selected variable. The target bases are then selected based on rotating this newly created manipulation space. The target bases are then similarly orthogonally restrained, data projected and rendered into an animation. For the variables to remain independent of each other, the contributions of the other variables must also change, _ie._ dimension space should maintain its orthonormal structure. A key feature of the manual tour is that it allows users to control the variable contributions to the basis. This means that such manipulations can be selected and queued in advance or selected on the spot for human-in-the-loop analysis [@karwowski_international_2006]. However, this navigation is relatively time-consuming due to the huge volume of $p$-space (an aspect of the curse of dimensionality, @bellman_dynamic_1957) and the abstract method of steering the projection basis. It is advisable to first identify a basis of particular interest and then use a manual tour as a finer, local exploration tool to observe how the contributions of the selected variable do or do not contribute to the feature of interest.
 
 <!-- Radial tour variant -->
 To simplify the task and keep its duration realistic, we consider a variant of the manual tour, called a _radial_ tour. In a radial tour, the selected variable is allowed to change its magnitude of contribution, but not its angle; it must move along the direction of its original contribution radius. The radial tour benefits from both continuity of the data alongside grand tours, but also allows the user to steer via choosing the variable to rotate.
@@ -187,7 +187,7 @@ $~~~~~H_\alpha: y_2, \text{task response time does vary with the visualization m
 In addition to visual factor, we vary the data across three aspects: 1) The _location_ of the difference between clusters, by mixing a signal and a noise variable at different ratios, we vary the number of variables and their magnitude of cluster separation, 2) the _shape_ of the clusters, to reflect different distributions of the data, and 3) the _dimension_-ality of the data. Below we describe the levels within each factor, while Figure \@ref(fig:figExpFactors) gives a visual representation.
 
 <!-- Illustration of blocks -->
-```{r figExpFactors, echo = F, out.width = '100%', fig.cap = "Illustration of the experimental factors, the parameter space of the independent variables, the mathematical support of our study."}
+```{r figExpFactors, echo = F, out.width = '100%', fig.cap = "Illustration of the experimental factors, the parameter space of the independent variables, the support of our study."}
 if(F)
   file.edit("./paper/R/fig_model_families.r")
 knitr::include_graphics("./figures/figExpFactors.pdf")
@@ -200,7 +200,7 @@ The _location_ of the separation of the clusters is a crucial aspect of analysis
 In selecting the _shape_ of the clusters we follow the convention given by @scrucca_mclust_2016, where 14 variants of model families containing three clusters are defined. The name of the model family is the abbreviation of its respective volume, shape, and orientation of the cluster, which are either equal or vary. We use the models EEE, EEV, and EVV, the latter is further modified by moving four fifths of the data out in a "V" or banana-like shape.
 
 <!-- Dimensionality -->
-_Dimension_-ality is tested at two modest levels, namely, in four dimensions containing three clusters and siz dimensions with four clusters. We must do so to bound the difficulty and search space to keep the task realistic for crowdsourcing.
+_Dimension_-ality is tested at two modest levels, namely, in four dimensions containing three clusters and six dimensions with four clusters. We must do so to bound the difficulty and search space to keep the task realistic for crowdsourcing.
 
 
 ## Task and evaluation {#sec:task}
@@ -261,10 +261,9 @@ Each dimension is originally distributed as $\mathcal{N}(2 * I(signal), 1)~|~\te
  
 <!-- Apply shape and location transformations -->
 Clusters of the EVV shape are transformed to the banana-chevron shape. Then location mixing is applied by post-multiplying a (2x2) rotation matrix to the signal variable and a noise variable for the clusters in question.<!-- Preprocess and replicate and save --> All variables are then standardized by standard deviation. The rows and columns are then shuffled randomly. The observation's cluster and order of shuffling are attached to the data and saved.
-<!-- Every permutation of _location_, _shape_, and _dimension_ is replicated 3 times. -->
 
 <!-- Iterating over factor -->
-Each of these replications is then iterated with each level of the factor. For PCA, every pair of the top four principal components and saved as 12 plots. For the grand tour, we first save two basis paths of differing dimenion before each replication is projected through the common basis path, while each repetition's variable order were previously shuffled. The resulting animations were saved as .gif files. The radial tour starts at either the four or six variable "half-clock" basis, where each variable has a uniform contribution, and no variable contributing in the opposite direction (to minimize variable dependence), a radial tour is then produced for each variable and saved as a .gif.
+Each of these replications is then iterated with each level of the factor. For PCA, every pair of the top four principal components and saved as 12 plots. For the grand tour, we first save two basis paths of differing dimension before each replication is projected through the common basis path, while each repetition's variable order were previously shuffled. The resulting animations were saved as .gif files. The radial tour starts at either the four or six variable "half-clock" basis, where each variable has a uniform contribution, and no variable contributing in the opposite direction (to minimize variable dependence), a radial tour is then produced for each variable and saved as a .gif.
 
 
 ## Randomized factor assignment
@@ -314,10 +313,9 @@ To recap, the primary response variable is task accuracy as defined in section \
 Below we look at the marginal performance of the block parameters and survey responses. After that, we build a battery of regression models to explore the variables and their interactions. Lastly, we look at the subjective measures between the factors.
 
 
-## Accuracy regression 
+## Accuracy regression
 
-<!-- Note that we list the measures at the top of the Results section -->
-<!-- Introduce regression model explaining accuracy, and the random effect term  -->
+<!-- Introduce regression model, explaining accuracy, and random effect term -->
 To more thoroughly examine explanatory variables, we regress against accuracy. All models have a random effect term on the participant, which captures the effect of the individual participant. After we look at models of the block parameters we extend to compare against survey variables. Last, we compare how adding a random effect for data and regressing against time till last response fares against benchmark models. The matrices for models with more than a few terms quickly become rank deficient; there is not enough information in the data to explain all of the effect terms. In which case the least impactful terms are dropped.
 
 <!-- Building a battery of models -->
@@ -346,19 +344,17 @@ $$
 &\delta_l \text{, fixed term for dimension}~|~l\in (\text{4 variables \& 3 cluster, 6 variables \& 4 clusters}) \\
 \end{array}
 $$
-<!-- Y1 model comparisons further discuss model ABcd -->
+<!-- Y1 model comparisons -->
 ```{r marksCompTbl, fig.cap = "Use the caption arg in kable(), not this."}
 if(F) ## Creation and saving at:
-  file.edit("./paper/apps_supplementary/v4_prolifico_100/_analysis.rmd")
+  file.edit("./paper/R/mixed_model_regression.rmd")
 model_comp_tbl_ls <- readRDS("./figures/modelCompLs.rds")
 
 ## 1) Eval parameters
 model_comp <- kableExtra::kbl(
   model_comp_tbl_ls[[1]], "latex", align = c("l", rep("l", 2), rep("c", 5)),
-  booktabs = TRUE, linesep = "", caption = "Model performance of random effect models regressing accuracy. Each model includes a random effect term of the participant, which explains the individual's influence on their accuracy. Complex models perform better in terms of $R^2$ and RMSE, yet AIC and BIC penalize their large number of fixed effects in favor of the much simpler model containing only the visual factor. Conditional $R^2$ includes the random effects, while marginal does not.") %>%
-  # kableExtra::column_spec(column = 1, width = "1.5cm") %>%
-  # kableExtra::column_spec(column = c(2:3), width = "1cm") %>%
-  # kableExtra::column_spec(column = c(4:8), width = "1.5cm") %>%
+  booktabs = TRUE, linesep = "",
+  caption = "Model performance of random effect models regressing accuracy. Each model includes a random effect term of the participant, which explains the individual's influence on their accuracy. Complex models perform better in terms of $R^2$ and RMSE, yet AIC and BIC penalize their large number of fixed effects in favor of the much simpler model containing only the visual factor. Conditional $R^2$ includes the random effects, while marginal does not.") %>%
   kableExtra::kable_styling(bootstrap_options = "striped", font_size = 10)
 if(F)
   saveRDS(object = model_comp,
@@ -368,27 +364,17 @@ model_comp
 ```
 
 
-<!-- Y1 coefficients of the selected model, ABcd -->
+<!-- Y1 coefficients of ABcd -->
 ```{r marksCoefTbl, fig.cap = "Use the caption arg in kable(), not this."}
 if(F) ## Creation and saving at:
-  file.edit("./paper/apps_supplementary/v4_prolifico_100/_analysis.rmd")
+  file.edit("./paper/R/mixed_model_regression.rmd")
 coef_ls <- readRDS("./figures/modelCoefLs.rds")
-
-## Formatting
-rownames(coef_ls[[1]]) <- rownames(coef_ls[[2]]) <-
-  c("(Intercept)", "fct=grand", "fct=radial",
-    "loc=33/66%", "loc=50/50%", "shp=EEV",
-    "shp=ban", "dim=6", "fct=grand:loc=33/66%",
-    "fct=radial:loc=33/66%", "fct=grand:loc=50/50%", "fct=radial:loc=50/50%")
 
 ## For grouping rows see:
 if(F)
   browseURL("https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html#Group_rows_via_labeling")
 kableExtra::kbl(coef_ls[[1]], format = "latex", booktabs = TRUE, linesep = "",
                 caption = "The task accuracy model coefficients for $\\widehat{Y_1} = \\alpha * \\beta + \\gamma + \\delta$, with factor=pca, location=0/100\\%, and shape=EEE held as baselines. Factor being radial is the fixed term with the strongest evidence in support of the hypothesis. When crossing factor with location radial performs worse with 33/66\\% mixing relative to the PCA with no mixing. The model fit is based on the 648 evaluations by the 108 participants.") %>%
-  # kableExtra::column_spec(column = 1, width = "5cm") %>%
-  # kableExtra::column_spec(column = 3, width = "1.6cm") %>%
-  # kableExtra::column_spec(column = c(2, 4:6), width = "1.4cm") %>%
   kableExtra::pack_rows("Factor", 2, 3) %>%
   kableExtra::pack_rows("Fixed effects", 4, 8) %>%
   kableExtra::pack_rows("Interactions", 9, 12) %>%
@@ -401,11 +387,11 @@ We also want to visually explore the conditional variables in the model. Figure 
 <!-- Violin plots and test overlay for Y1 factors -->
 ```{r, figMarksABcd, echo = F, out.width = '100%', fig.cap = "Violin plots of terms of the model $\\widehat{Y_1} = \\alpha * \\beta + \\gamma + \\delta$. Overlaid with global significance from the Kruskal-Wallis test, and pairwise significance from the Wilcoxon test, both are non-parametric, ranked sum tests suitable for handling discrete data. Participants are more confident and find the radial easier to use relative to the grand tour. Participants claim low familiarity as we expect from crowdsourced participants. Radial is more preferred compared with either alternative for this task."}
 if(F) ## Creation and saving figure at:
-  file.edit("./paper/apps_supplementary/v4_prolifico_100/_analysis.rmd")
+  file.edit("./paper/R/mixed_model_regression.rmd")
 knitr::include_graphics("./figures/figMarksABcd.pdf")
 ```
 
-## response time regression
+## Response time regression
 
 <!-- Time as secondary interest, Y2 -->
 As a secondary explanatory variable, we also want to look at time. First, we take the log transformation of time as it is right-skewed. Now we repeat the same modeling procedure, namely: 1) build a battery of all additive and multiplicative models. 2) Compare their performance, reporting some top performers. 3) Select a model to examine its coefficients.
@@ -416,9 +402,6 @@ As a secondary explanatory variable, we also want to look at time. First, we tak
 kableExtra::kbl(
   model_comp_tbl_ls[[2]], "latex", align = c("l", rep("l", 2), rep("c", 5)),
   booktabs = TRUE, linesep = "", row.names = FALSE, caption = "Model performance regressing on log response time [seconds], $\\widehat{Y_2}$ random effect models, where each model includes random effect terms for participants and simulations. We see the same trade-off where the simplest factor model is preferred by AIC/BIC, while $R^2$ and RMSE prefer the full multiplicative model. We again select the model $\\alpha * \\beta + \\gamma + \\delta$ to explore further as it has relatively high marginal $R^2$ while having much less complexity than the full model. Conditional $R^2$ includes the random effects, while marginal does not.") %>%
-  # kableExtra::column_spec(column = 1, width = "1.5cm") %>%
-  # kableExtra::column_spec(column = c(2:3), width = "1cm") %>%
-  # kableExtra::column_spec(column = c(4:8), width = "1.5cm") %>%
   kableExtra::kable_styling(bootstrap_options = "striped", font_size = 10)
 ```
 
@@ -426,9 +409,6 @@ kableExtra::kbl(
 ```{r timeCoefTbl, fig.cap = "Use the caption arg in kable(), not this."}
 kableExtra::kbl(coef_ls[[2]], booktabs = TRUE, linesep = "", format = "latex",
                 caption = "Model coefficients for log response time [seconds] $\\widehat{Y_2} = \\alpha * \\beta + \\gamma + \\delta$, with factor=pca, location=0/100\\%, and shape=EEE held as baselines. Location=50/50\\% is the fixed term with the strongest evidence and takes less time. In contrast, the interaction term location=50/50\\%:shape=EEV has the most evidence and takes much longer on average.") %>%
-  # kableExtra::column_spec(column = 1, width = "5cm") %>%
-  # kableExtra::column_spec(column = 3, width = "1.6cm") %>%
-  # kableExtra::column_spec(column = c(2, 4:6), width = "1.4cm") %>%
   kableExtra::pack_rows("Factor", 2, 3) %>%
   kableExtra::pack_rows("Fixed effects", 4, 8) %>%
   kableExtra::pack_rows("Interactions", 9, 12) %>%
@@ -440,10 +420,10 @@ kableExtra::kbl(coef_ls[[2]], booktabs = TRUE, linesep = "", format = "latex",
 
 ## Subjective measures
 
-<!--  introduce subjective measures from n=84 survey results, -->
+<!-- Introduce subjective measures from n=84 survey responses -->
 The 84 evaluations of the post-study survey also collect four subjective measures for each factor. Figure \@ref(fig:figSubjectiveMeasures) shows the Likert plots, or stacked percentage bar plots, alongside violin plots with the same non-parametric, ranked sum tests previously used. Participants preferred to use radial for this task. Participants were also more confident of their answers and found radial tours easier to use compared with the grand tour. All factors have reportedly low familiarity as we expected from crowdsourced participants.
 
-```{r figSubjectiveMeasures, out.width="100%", fig.show='asis', fig.cap='The subjective measures of the 84 responses of the post-study survey, 5 discrete Likert scale levels of agreement (L) Likert plots (stacked percent bar plots) with (R) violin plots of the same measures. Violin plots are overlaid with global significance from the Kruskal-Wallis test, and pairwise significance from the Wilcoxon test, both are non-parametric, ranked sum tests.'}
+```{r figSubjectiveMeasures, out.width="100%", fig.show="asis", fig.cap="The subjective measures of the 84 responses of the post-study survey, 5 discrete Likert scale levels of agreement (L) Likert plots (stacked percent bar plots) with (R) violin plots of the same measures. Violin plots are overlaid with global significance from the Kruskal-Wallis test, and pairwise significance from the Wilcoxon test, both are non-parametric, ranked sum tests."}
 if(F)
   browseURL("https://bookdown.org/Rmadillo/likert/is-there-a-significant-difference.html#permutation-mann-whitney-tests")
 
@@ -480,8 +460,6 @@ spinifex::run_app()
 
 This research was supported by an Australian government Research Training Program (RTP) scholarship. This article was created in \proglang{R} [@r_core_team_r:_2020] and \pkg{rmarkdown} [@xie_r_2018]. Visuals were prepared with \pkg{spinifex}. All packages used are available from the Comprehensive \proglang{R} Archive Network (CRAN) at \url{https://CRAN.R-project.org/}. The source files for this article, application, data, and analysis can be found at \url{https://github.com/nspyrison/spinifex_study/}. The source code for the \pkg{spinifex} package and accompanying shiny application can be found at \url{https://github.com/nspyrison/spinifex/}.
 
-<!-- If you are looking for a vignette to reproduce animations in for a pdf document from R with base or \pkg{gganimate} graphics, see the reproducible example: \url{https://github.com/nspyrison/spinifex_study/blob/master/zDevExamples/animated_pdf.rmd}. -->
-
 
 # References
 
@@ -489,5 +467,5 @@ This research was supported by an Australian government Research Training Progra
 
 # Appendix
 
-```{r, child=c('appendix.rmd')}
+```{r, child="appendix.rmd"}
 ```

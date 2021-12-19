@@ -1,6 +1,6 @@
 <!-- Do not add YAML header to child document. -->
 <!-- # Appendix {#sec:appendix} listed in parent document -->
-<!-- {-} means unumbered section, alternatively {.unnumbered #section-id} -->
+<!-- {-} means unnumbered section, alternatively {.unnumbered #section-id} -->
 ```{r chunkOpts, include=FALSE}
 ## Chunk options
 knitr::opts_chunk$set(
