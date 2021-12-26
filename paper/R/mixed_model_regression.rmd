@@ -14,15 +14,15 @@ editor_options:
   chunk_output_type: console
 ---
 ```{r setup, include=FALSE}
-require("tidyverse")
-require("ggpubr") ## for tests on the plot
-require("cowplot") ## for aggregating plots
-require("lme4") ## Random Effects (RE) model creation
-require("lmerTest") ## p val interpretation of lme4 tests
-require("merTools")
-require("performance") ## tidy model eval
-require("plyr")
-require("dplyr")
+library("tidyverse")
+library("ggpubr") ## for tests on the plot
+library("cowplot") ## for aggregating plots
+library("lme4") ## Random Effects (RE) model creation
+library("lmerTest") ## p val interpretation of lme4 tests
+library("merTools")
+library("performance") ## tidy model eval
+library("plyr")
+library("dplyr")
 
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 rel_path <- function(rel_path = "."){
@@ -39,6 +39,7 @@ rel_path <- function(rel_path = "."){
 ```{r LOAD_FORMAT_LOCAL_FUNCS}
 ## Load raw data, clean, and save
 if(F){
+  source("./paper/R/9_util_funcs.r") ## previously ggproto_pca_biplot.r
   raw <- readRDS(rel_path("../data_study/raw.rds"))
   ## Only plot_active rows 
   ## AND Only participants (rows where nchar(Participant) == 24 charcters long)
@@ -54,25 +55,24 @@ if(F){
     mutate(sec_to_resp =
              if_else(is.na(sec_to_resp), sec_on_pg - .mean_diff, sec_to_resp))
   ## Aggregate to task grain.
-  dat_task_agg <- aggregate_task_vars(dat_longer)
+  dat_task_agg <- aggregate_task_vars(dat_longer) %>%
   ## Fix observeEvent() over count of radial input_inter.
-  dat_task_agg <- dat_task_agg %>%
-    mutate(task_input_inter =
-             if_else(Factor == "radial", task_input_inter -1, task_input_inter))
+    mutate(
+      task_input_inter = if_else(
+        factor == "radial", task_input_inter -1, task_input_inter)) %>%
   ## Plot friendly titles
-  dat_task_agg <- dat_task_agg %>%
     mutate(prolific_id = stringr::str_trim(prolific_id),
            instance_id = paste(sep = "_", participant_num, full_perm_num, prolific_id)) %>%
-    rename(Simulation = sim_nm,
+    dplyr::rename(simulation = sim_nm,
            shape = vc,
            dim = p_dim,
            order = eval,
-           Participant = prolific_id,
+           participant = prolific_id,
            `is training` = is_training,
            `# response interactions` = task_resp_inter,
            `seconds to last response` = max_sec_to_resp,
-           `seconds on page` = max_sec_on_pg ,
-           `# of responses` = cnt_resp, 
+           `seconds on page` = max_sec_on_pg,
+           `# of responses` = cnt_resp,
            marks = task_marks,
            `parameter permutation` = full_perm_num)
   ## Save task aggregated data.
@@ -234,7 +234,7 @@ dat_qual <- dat_qual %>%
 .lvls = c("0/100%", "33/66%", "50/50%")
 dat_qual$Location <- factor(.lvls[as.integer(dat_qual$Location)], levels = .lvls)
 if(F)
-  saveRDS(dat_qual, "./paper/data_study/dat_qual.rds")
+  saveRDS(dat_qual, rel_path("../data_study/dat_qual.rds"))
 
 N <- length(unique(dat_qual$instance_id))
 print(paste0("N = ", N, " unique instance_id."))
@@ -262,6 +262,15 @@ perm_num_agg2 <- dat_qual %>%
   geom_hline(yintercept = 3, linetype = 2) +
   geom_text(aes(x = 33, y = 3.1, label = "target"), color = "black")
 )
+  
+library(dplyr)
+dat_qual %>% dplyr::select(Factor, Marks) %>%
+  group_by(Factor) %>%
+  dplyr::summarise(
+    min  = min(Marks),
+    max  = max(Marks),
+    mean = mean(Marks),
+    median = median(Marks))
 ```
 
 

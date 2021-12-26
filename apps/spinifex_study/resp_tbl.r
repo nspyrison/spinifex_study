@@ -201,7 +201,7 @@ make_save_ans_tbl <- function(){
     load(sim_fps[i]) ## private, not in global env
     sim_signal <- attr(get(sim_nms[i]), "var_mean_diff_ab")
     ## Normalize to fraction of total signal.
-    sim_signal <- sim_signal / sum(sim_signal)
+    sim_signal <- sim_signal / sum(abs(sim_signal))
     var_ind <- 1L:length(sim_signal) ## For sims of 4 dim
     
     ## var_signal, vector, the difference of the means of clusters A & B in given dim.
