@@ -38,29 +38,27 @@ rel_path <- function(rel_path = "."){
 ```
 ```{r LOAD_FORMAT_LOCAL_FUNCS}
 ## Load raw data, clean, and save
-if(F){
+if(FALSE){
   source("./paper/R/9_util_funcs.r") ## previously ggproto_pca_biplot.r
   raw <- readRDS(rel_path("../data_study/raw.rds"))
   ## Only plot_active rows 
   ## AND Only participants (rows where nchar(Participant) == 24 charcters long)
   dat_active <- raw %>% filter(nchar(stringr::str_trim(prolific_id)) == 24) 
-  source(file = rel_path("./9_util_funcs.r"),
-         local = TRUE, echo = FALSE)
-  ## pivot variables columns longer for task-grained aggregation.
-  dat_longer <- dat_active %>% pivot_longer_resp_ans_tbl()
+  ## pivot variables columns longer; each row is 1 variable
+  dat_longer <- pivot_longer_resp_ans_tbl(dat_active)
   ## Impute missing sec_to_resp, via mean diff with sec_on_pg, only 20 rows in 8330
-  .mean_diff <- mean(dat_longer$sec_on_pg, na.rm = TRUE) -
+  .mean_pg_resp_diff <- mean(dat_longer$sec_on_pg, na.rm = TRUE) -
     mean(dat_longer$sec_to_resp, na.rm = TRUE)
   dat_longer <- dat_longer %>%
-    mutate(sec_to_resp =
-             if_else(is.na(sec_to_resp), sec_on_pg - .mean_diff, sec_to_resp))
+    mutate(sec_to_resp = if_else(
+      is.na(sec_to_resp), sec_on_pg - .mean_pg_resp_diff, sec_to_resp))
   ## Aggregate to task grain.
   dat_task_agg <- aggregate_task_vars(dat_longer) %>%
-  ## Fix observeEvent() over count of radial input_inter.
+    ## Fix observeEvent() over count of radial input_inter.
     mutate(
       task_input_inter = if_else(
         factor == "radial", task_input_inter -1, task_input_inter)) %>%
-  ## Plot friendly titles
+    ## Plot friendly titles
     mutate(prolific_id = stringr::str_trim(prolific_id),
            instance_id = paste(sep = "_", participant_num, full_perm_num, prolific_id)) %>%
     dplyr::rename(simulation = sim_nm,
@@ -75,6 +73,15 @@ if(F){
            `# of responses` = cnt_resp,
            marks = task_marks,
            `parameter permutation` = full_perm_num)
+  ## Check same as raw.rds support; factor aggregation of Marks
+  dat_task_agg %>%
+    dplyr::select(factor, marks) %>%
+    dplyr::group_by(factor) %>%
+    dplyr::summarise(mean = mean(marks),
+                     sd   = sd(marks),
+                     min  = min(marks),
+                     max  = max(marks))
+  ## GOOD; Same as raw.rds; NOTE that this is all data, training, partial instances, and over evaled permutations
   ## Save task aggregated data.
   saveRDS(dat_task_agg, rel_path("../data_study/dat_task_agg.rds"))
 }
@@ -157,7 +164,7 @@ ______
 
 ```{r}
 #### Aggregation tables
-## instance_agg
+## instance_agg; instance is 1 trial
 instance_agg <- dat_task_agg %>%
   group_by(instance_id, participant_num, `parameter permutation`, Participant) %>%
   dplyr::summarise(`n instance evals` = n() / 6) %>%
@@ -233,14 +240,15 @@ dat_qual <- dat_qual %>%
   filter(instance_id %in% instance_id_whitelist)
 .lvls = c("0/100%", "33/66%", "50/50%")
 dat_qual$Location <- factor(.lvls[as.integer(dat_qual$Location)], levels = .lvls)
-if(F)
+if(interactive())
   saveRDS(dat_qual, rel_path("../data_study/dat_qual.rds"))
 
 N <- length(unique(dat_qual$instance_id))
 print(paste0("N = ", N, " unique instance_id."))
 
 ## Evaluations by parameter permutation
-.mn_val <- sum(perm_num_agg$`even evaluations`[perm_num_agg$`is even instance` == TRUE], na.rm = TRUE) / 36
+.mn_val <- sum(perm_num_agg$`even evaluations`[perm_num_agg$`is even instance` == TRUE], 
+               na.rm = TRUE) / 36
 
 ## Evaluation by parameter permutations with candidates removed
 print("After evaluating the evenness of participants, permutations, the probability of adverse network interactions we have selected 3 evaluations of each block permutation to perfom the analysis on:")
@@ -263,7 +271,7 @@ perm_num_agg2 <- dat_qual %>%
   geom_text(aes(x = 33, y = 3.1, label = "target"), color = "black")
 )
   
-library(dplyr)
+## Check w.r.t. raw.rds; significantlkt different means but we have removed training, partial instances and over sample permutations. Support is still realistic.  
 dat_qual %>% dplyr::select(Factor, Marks) %>%
   group_by(Factor) %>%
   dplyr::summarise(
@@ -323,7 +331,7 @@ See the paper for latex terminology, but keep in mind:
   ##   groupvars: a vector containing names of columns that contain grouping variables
   ##   na.rm: a boolean that indicates whether to ignore NA's
   ##   conf.interval: the percent range of the confidence interval (default is 95%)
-  if(F)
+  if(FALSE)
     browseURL("http://www.cookbook-r.com/Manipulating_data/Summarizing_data/")
   summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
                         conf.interval=.95, .drop=TRUE){
@@ -371,7 +379,7 @@ See the paper for latex terminology, but keep in mind:
 
 ## Mixed (fixed and random/variable) effects regression model
 ### following along with:
-if(F) 
+if(FALSE) 
   browseURL("https://m-clark.github.io/mixed-models-with-R/random_intercepts.html#running-a-mixed-model")
 
 ############################
@@ -516,7 +524,7 @@ botCis <-
 ```{r}
 .lp <- theme(legend.position = "off")
 .yl <- ylab("")
-if(F)
+if(interactive())
   saveRDS(dat_qual, "./dat_qual.rds")
 .factor   <- my_ggpubr(dat_qual, x = "Factor",    y = "Marks") + .lp + ylab("Accuracy")
 .lvls <- c("0/100", "33/66", "50/50%")
@@ -684,8 +692,10 @@ botCis <-
 ______
 
 # Saving paper figures (not auto-ran)
+
+Note that kniting .rmd file does not save figures and .rds files while interactive run all chunks will save new figures and .rds files.
 ```{r}
-if(F){
+if(interactive()){
   ## instance_id whitelist, the people kept for analysis.
   #### (instance_id is: participant_num "_" perm_num "_" prolific_id)
   saveRDS(instance_id_whitelist,
@@ -701,8 +711,10 @@ if(F){
   ## Selected models: marks ~ ABC, log_sec_to_resp ~ ABC
   #### format coefficients
   round_coef <- function(coef_df){
-    coef_df[, -6] <- round(coef_df[, -6], 2)
-    coef_df["df"] <- round(coef_df["df"], 1)
+    coef_df[,  5] <- round(coef_df[,  5], 3) ## Pr(>|t|)
+    coef_df[, -c(5, 6)] <- round(coef_df[, -c(5, 6)], 2) ## Except for Pr(>|t|), and stars
+    coef_df[, 3]  <- round(coef_df[, 3], 1)  ## further round degrees of freedom
+
     coef_df
   }
   coef_ls <- list(ABcd_coef = round_coef(ABcd_coef), t_ABcd_coef = round_coef(t_ABcd_coef))
@@ -718,5 +730,6 @@ if(F){
   ggsave("figMarksABcd.pdf", violin_ABcd, path = "./paper/figures",
          device = cairo_pdf, width = .w, height = .w, unit = .u)
 }
+.m <- gc()
 ```
 

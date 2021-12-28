@@ -26,10 +26,36 @@ knitr::include_graphics("./figures/figSurveyDemographics.pdf")
 ```
 
 
+## Response time regression
+
+<!-- Time as secondary interest, Y2 -->
+As a secondary explanatory variable, we also want to look at time. First, we take the log transformation of time as it is right-skewed. We repeat the same modeling procedure: 1) Compare the performance of a battery of all additive and multiplicative models. 2) Select the model with the same effect terms, $\alpha * \beta + \gamma + \delta$, and examine its coefficients.
+
+<!-- Y2 model comparisons, continue to use ABcd -->
+```{r timeCompTbl, fig.cap = "Use the caption arg in kable(), not this."}
+## 1) Eval parameters
+kableExtra::kbl(
+  model_comp_tbl_ls[[2]], "latex", align = c("l", rep("l", 2), rep("c", 5)),
+  booktabs = TRUE, linesep = "", row.names = FALSE,
+  caption = "Model performance regressing on log response time [seconds], $\\widehat{Y_2}$ random effect models, where each model includes random effect terms for participants and simulations. We see the same trade-off where the simplest factor model is preferred by AIC/BIC, while $R^2$ and RMSE is larest in the full multiplicative model. We again select the model $\\alpha * \\beta + \\gamma + \\delta$ to explore further as it has relatively high marginal $R^2$ while having much less complexity than the complete interaction model. Conditional $R^2$ includes the random effects, while marginal does not.") %>%
+  kableExtra::kable_styling(bootstrap_options = "striped", font_size = 10)
+```
+
+<!-- Y2 coeffiecients -->
+```{r timeCoefTbl, fig.cap = "Use the caption arg in kable(), not this."}
+kableExtra::kbl(
+  coef_ls[[2]], booktabs = TRUE, linesep = "", format = "latex", digits = 5,
+  caption = "Model coefficients for log response time [seconds] $\\widehat{Y_2} = \\alpha * \\beta + \\gamma + \\delta$, with factor=PCA, location=0/100\\%, and shape=EEE held as baselines. Location=50/50\\% is the fixed term with the strongest evidence and takes less time. In contrast, the interaction term location=50/50\\%:shape=EEV has the most evidence and takes much longer on average.") %>%
+  kableExtra::pack_rows("Factor", 2, 3) %>%
+  kableExtra::pack_rows("Fixed effects", 4, 8) %>%
+  kableExtra::pack_rows("Interactions", 9, 12) %>%
+  kableExtra::kable_styling(bootstrap_options = "striped", font_size = 10)
+```
+
 ## Random effect ranges {-}
 
 <!-- Random effects vs Mean Mark CI by participant and sim -->
-Residual plots have no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:ch4zappfig2) illustrates (T) the effect size of the random terms participant and simulation, or more accurately, the 95\% CI from Gelman simulation of their posterior distribution. The effect size of the participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha = .95$, while none of the simulation effects significantly deviate from the null of having no effect size on the marks. In comparison, (B) 95\% confidence intervals participation and simulation mean accuracy, respectively.
+Residual plots have no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figEffectRange) illustrates (T) the effect size of the random terms participant and simulation, or more accurately, the 95\% CI from Gelman simulation of their posterior distribution. The effect size of the participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha = .95$, while none of the simulation effects significantly deviate from the null of having no effect size on the marks. In comparison, (B) 95\% confidence intervals participation and simulation mean accuracy, respectively.
 
 
 ```{r figEffectRange, out.width="100%", fig.show="asis",fig.cap="(T) Estimated effect ranges of the random effect terms participant and data simulation of the accuracy model, $\\widehat{Y_1} = \\alpha * \\beta + \\gamma + \\delta$. Confidence intervals are created with Gelman simulation on the effect posterior distributions. The effect size of the participant is relatively large, with several significant extrema. None of the simulations deviate significantly. (B) The ordered distributions of the CI of mean marks follow the same general pattern and give the additional context of how much variation is in the data, an upper limit to the effect range. The effect ranges capture about two-thirds of the range of the data without the model. All intervals for $\\alpha = .95$ confidence."}
@@ -37,6 +63,8 @@ if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 knitr::include_graphics("./figures/figEffectRange.pdf")
 ```
+
+Similarly, figure \@ref(fig:figTeffectRange) shows the Gelman simulations and marginal effects of the simulation and participants for $Y_2$, the same model regressing on log response time.
 
 ```{r figTeffectRange, out.width="100%", fig.show="asis", fig.cap="(T) The effect ranges of Gelman resimulation on posterior distributions for the time model, $\\widehat{Y_2} = \\alpha * \\beta + \\gamma + \\delta$. These show the magnitude and distributions of particular participants and simulations. Simulation has a relatively small effect on response time. (B) Confidence intervals for mean log time by participant and simulation. The marginal density shows that the response times are left-skewed after log transformation. Interpreting back to linear time there is quite the spread of response times: $e^{1} = 2.7$, $e^{2.75} = 15.6$, $e^{3.75} = 42.5$ seconds. Of the simulations on the right, the bottom has a large variation in response time, relative to the effect ranges which means that the variation is explained in the terms of the model and not by the simulation itself."}
 if(F) ## Creation and saving figure at:

@@ -14,9 +14,6 @@
 \usepackage{booktabs}
 %%%% NS 
 \usepackage{graphicx}
-%\usepackage{pdflscape} %% Allow landscape layout, not used
-%\usepackage{lmodern} %% Already loaded, allows GB Pound sign
-\usepackage{animate} %% Needed for animations
 \PassOptionsToPackage{hyphens}{url}\usepackage{hyperref} %% Trying to wrap and format urls correctly
 
 %% new custom commands
@@ -88,7 +85,7 @@ $endfor$
 \everypar{\setlength{\hangindent}{\cslhangindent}}\ignorespaces}%
 {\par}
 
-%%%% NS: Give a means for pandoc to inject code highlighting environments, e.g. `Shaded` used in animation.
+%%%% NS: Give a means for pandoc to inject code highlighting environments, e.g. `Shaded`
 $if(highlighting-macros)$
 $highlighting-macros$
 $endif$

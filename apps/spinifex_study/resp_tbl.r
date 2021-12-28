@@ -192,7 +192,7 @@ make_save_ans_tbl <- function(){
   
   ## Initialize before looping
   n_sims <- length(sim_nms)
-  var_signal_mat <- var_diff_mat <- var_weight_mat <-
+  signal_mat <- weight_mat <- accuracy_mat <-
     matrix(NA, nrow = n_sims, ncol = 6L)
   bar_vect <- rep(NA, n_sims)
   ## Load and extracting measures, loop
@@ -202,35 +202,43 @@ make_save_ans_tbl <- function(){
     sim_signal <- attr(get(sim_nms[i]), "var_mean_diff_ab")
     ## Normalize to fraction of total signal.
     sim_signal <- sim_signal / sum(abs(sim_signal))
-    var_ind <- 1L:length(sim_signal) ## For sims of 4 dim
+    var_ind <- 1L:length(sim_signal) ## Handle sims of dim 4 & 6.
     
-    ## var_signal, vector, the difference of the means of clusters A & B in given dim.
-    var_signal_mat[i, var_ind] <- sim_signal
+    ## signal, vector, the difference of the means of clusters A & B in given dim.
+    signal_mat[i, var_ind] <- sim_signal
     ## bar, scalar, the average size of the signal per dim.
-    ##TODO VALIDATE BAR, / p? / (p-1)? / (p_noise)? z_check_weights all negative.
-    bar_vect[i] <-
-      sum(var_signal_mat[i, var_ind]) / length(sim_signal)
-    ## var_diff, vector, magnitude above bar of the signal in each dim
-    var_diff_mat[i, var_ind] <- var_signal_mat[i, var_ind] - bar_vect[i]
-    ## var_weight, vector, the weight assigned to each var if selected in response
-    var_weight_mat[i, var_ind] <-
-      sign(var_diff_mat[i, var_ind]) * sqrt(abs(var_diff_mat[i, var_ind]))
+    bar_vect[i] <- 1L / length(sim_signal)
+    ## weight, vector, magnitude above bar of the signal in each dim
+    weight_mat[i, var_ind] <- signal_mat[i, var_ind] - bar_vect[i]
+    ## Calculate weights now that sign of all elements found
+    pos_c_idx <- sign(weight_mat[i, var_ind]) == 1
+    pos_sum   <- sum( weight_mat[i,  pos_c_idx]^2, na.rm = TRUE)
+    neg_sum   <- sum( weight_mat[i, !pos_c_idx]^2, na.rm = TRUE)
+    
+    for(j in var_ind){ ## j numeric index of the variable
+      ## variable accurcay, vector, the weight assigned to each var if selected in response
+      if(sign(weight_mat[i, j]) == 1){ ## Positive elements
+        accuracy_mat[i, j] <- sign(weight_mat[i, j]) * weight_mat[i, j]^2 / pos_sum
+      }else{ ## Negative elements
+        accuracy_mat[i, j] <- sign(weight_mat[i, j]) * weight_mat[i, j]^2 / neg_sum
+      }
+    }
   }
   ## Make ans_tbl
   ans_tbl <- tibble::tibble(
     data.frame(
       sim_nms,
       bar_vect,
-      var_signal_mat,
-      var_diff_mat,
-      var_weight_mat
+      signal_mat,
+      weight_mat,
+      accuracy_mat
     )
   )
   ## Rename columns
   colnames(ans_tbl) <- c("sim_nm", "bar",
                          paste0("v", 1L:6L, "_signal"),
-                         paste0("v", 1L:6L, "_diff"),
-                         paste0("v", 1L:6L, "_weight")
+                         paste0("v", 1L:6L, "_weight"),
+                         paste0("v", 1L:6L, "_accuracy")
   )
   
   ## Save ans_tbl and wrap up

@@ -31,7 +31,7 @@ author:
       | ORCiD: 0000-0002-9813-0377
     orcid: 0000-0002-9813-0377
 abstract: |
-  Principal component analysis is a long-standing go-to method for exploring multivariate data. Data visualization _tours_ are a class of linear projections animated over small changes in the projection basis. The radial tour is one instance that rotates the contribution of a select variable. This paper describes a winthin participants user study evaluating the efficacy of using the radial tour in comparison with principal component analysis and the grand tour. We devise a supervised classification task where participants evaluate variable attribution of the separation between two classes. Accuracy and response time are measured as response variables. Data were collected from 108 crowdsourced participants, who performed two trials of each visual for 648 trials in total. There is strong evidence that the radial tour increases accuracy for this task. Participants also preferred to use the radial tour over alternatives for this task.
+  Principal component analysis is a long-standing go-to method for exploring multivariate data. Data visualization _tours_ are a class of linear projections animated over small changes in the projection basis. The radial tour is one instance that rotates the contribution of a select variable. This paper describes a winthin-participants user study evaluating the efficacy of using the radial tour in comparison with principal component analysis and the grand tour. We devise a supervised classification task where participants evaluate variable attribution of the separation between two classes. We define an accuracy measure as response variable. Data were collected from 108 crowdsourced participants, who performed two trials of each visual for 648 trials in total. Mixed model regression provides strong evidence that the radial tour increases accuracy over the alternative. Participants subjectively prefer the use of the radial tour.
 ##preamble: > ## Moved to /template/jdsssv_template.tex
 keywords:
   formatted: [multivariate data, exploratory data analysis, grand tour, manual tour, dimension reduction, linear projections, linear embeddings, "\\proglang{R}"]
@@ -40,6 +40,7 @@ bibliography: spyrison-cook-marriott.bib
 editor_options:
   chunk_output_type: console
 header-includes:
+    - \usepackage{amsmath}
     - \usepackage{hyperref}
     - \hypersetup{colorlinks = true, linkcolor = red, urlcolor = blue}
 ---
@@ -96,7 +97,7 @@ Dimension reduction is commonly used with visualization to provide informative l
 
 
 <!-- Overview of the study -->
-This paper describes a crowdsourced (by prolific.co), user study conducted to assess the efficacy of different visualization methods. Cluster data is simulated under several additional experimental factors, namely: location, shape, and dimensionality. We task participants with identifying the variables attributing to the separation between two clusters. We define an accuracy measure for this task and use response time as a response variable of secondary interest. We perform mixed-model regression on these measures and find radial tour has strong evidence for a large improvement in accuracy from using radial tour over alternatives Principal Component Analysis (PCA). We also find evidence for relatively small differences in response time with PCA being the fastest then grand then radial.
+This paper describes a crowdsourced (by prolific.co), user study conducted to assess the efficacy of different visualization methods. Cluster data is simulated under several additional experimental factors, namely: location, shape, and dimensionality. We task participants with identifying the variables attributing to the separation between two clusters. We define an accuracy measure for this task. We fit mixed-models regressing on this measure. There is strong evidence supporting the radial tour has for a large improvement in accuracy over alternatives Principal Component Analysis (PCA) and the grand tour.
 
 <!-- Structure of the paper -->
 The paper is structured as follows. Section \@ref(sec:background) discusses several visualization methods, including the ones compared in the study. Section \@ref(sec:userstudy) describes the experimental factors, tasks, and evaluation measures used. The results of the study are discussed in Section \@ref(sec:results). Conclusions and potential future directions are discussed in Section \@ref(sec:conclusion). The software used for the study is described in Section \@ref(sec:spinifex).
@@ -175,8 +176,6 @@ We measure the accuracy and response time over the support of the discussed expe
 
 $~~~~H_0: y_1, \text{task accuracy does not vary with the visualization method} \\$
 $~~~~~H_\alpha: y_1, \text{task accuracy does vary with the visualization method} \\$
-$~~~~~H_0: y_2, \text{task response time does not vary with the visualization method} \\$
-$~~~~~H_\alpha: y_2, \text{task response time does vary with the visualization method} \\$
 
 
 ## Experimental factors {#sec:blocks}
@@ -220,17 +219,31 @@ Let a data $\textbf{X}_{n\*p\*k}$ be a simulation containing clusters of observa
 <!-- W, weights -->
 We define weights, $W$ to be a vector explaining the variable-wise difference between two clusters. Namely, the difference of each variable between clusters, as a proportion of the total difference, less $1/p$, the amount of difference each variable would hold if it were uniformly distributed. <!-- R, participant responses -->Participant responses are a logical value for each variable, whether or not the participant thinks each variable separates the two clusters more than uniformly distributed separation. Then $Y_1$ is a vector of variable accuracy.
 
+<!-- __Old measure:__ -->
+<!-- \begin{align*} -->
+<!-- W_{j} &=\frac -->
+<!-- {(\overline{X_{j=1, k=1}} - \overline{X_{1, 2}}, ~...~ -->
+<!-- (\overline{X_{p, 1}} - \overline{X_{p, 2}})} -->
+<!-- {\sum_{j=1}^{p}(|\overline{X_{j, k=1}} - \overline{X_{j, k=2}}|)} -->
+<!-- - \frac{1}{p} \\ -->
+<!-- \\ -->
+<!-- \text{Accuracy}, Y &= \sum_{j=1}^{p}I(r_j) * sign(w_j) * \sqrt{|w_j|} \\ -->
+<!-- \end{align*} -->
+
+<!-- __Current measure:__ -->
 \begin{align*}
-W_{j} &=\frac
-{(\overline{X_{j=1, k=1}} - \overline{X_{1, 2}}, ~...~
-(\overline{X_{p, 1}} - \overline{X_{p, 2}})}
-{\sum_{j=1}^{p}(|\overline{X_{j, k=1}} - \overline{X_{j, k=2}}|)}
-- \frac{1}{p} \\
+  W_{i} &=\frac{(\overline{X_{i=1, k=1}} - \overline{X_{1, 2}}, ~...~ 
+    (\overline{X_{p, 1}} - \overline{X_{p, 2}})}
+    {\sum_{i=1}^{p}(|\overline{X_{i, k=1}} - \overline{X_{i, k=2}}|)} - \frac{1}{p} \\
 \\
-\text{Accuracy}, Y &= \sum_{j=1}^{p}I(r_j) * sign(w_j) * \sqrt{|w_j|} \\
+\text{Accuracy}, Y &= \sum_{i=1}^{p}I(r_i) * sign(w_i) * 
+  \left\{ \begin{aligned}
+    \frac{w_+^2}{\sum w_+^2}  &&\Bigg\vert w_+ \text{ the positive elements of } w \\
+    \frac{w_-^2}{\sum w_-^2}  &&\Bigg\vert w_- \text{ the negative elements of } w \\
+  \end{aligned} \right.
 \end{align*}
 
-Where $I$ is the indicator function. Then the task accuracy is the sum of this vector. We use the time till the last response as a secondary dependent variable $Y_2$.
+Where $I$ is the indicator function. Then the task accuracy is the sum of this vector.
 
 ```{r, figBiplotScoring, echo = F, out.width = '100%', fig.cap = "(L), PCA biplot of the components showing the most cluster separation with (R) illustration of the magnitude of cluster separation is for each variable (bars) and the weight of the variable accuracy if selected (red/green lines). The horizontal dashed line is $1 / p$, the amount of separation each variable would have if evenly distributed. The weights equal the signed square of the difference between each variable value and the dashed line."}
 if(F)
@@ -305,7 +318,7 @@ The code, response files, their analyses, and the study application are publicly
 
 # Results {#sec:results}
 
-To recap, the primary response variable is task accuracy, as defined in section \@ref(sec:task), and the log of response time will be used as a secondary response variable. We have two primary data sets; the user study evaluations and the post-study survey. The former is the 108 participants with the explanatory variables: visual factor, location of the cluster separation signal, the shape of variance-covariance matrix, and the dimensionality of the data. Block parameterization and randomization were discussed in section \@ref(sec:blocks). The survey was completed by 84 of these 108 people. It collected demographic information (preferred pronoun, age, and education), and subjective measures for each of the factors (preference, familiarity, ease of use, and confidence).
+To recap, the primary response variable is task accuracy, as defined in section \@ref(sec:task). The parrallel analysis of the log of response time is provided in the appendix. We have two primary data sets; the user study evaluations and the post-study survey. The former is the 108 participants with the explanatory variables: visual factor, location of the cluster separation signal, the shape of variance-covariance matrix, and the dimensionality of the data. Block parameterization and randomization were discussed in section \@ref(sec:blocks). The survey was completed by 84 of these 108 people. It collected demographic information (preferred pronoun, age, and education), and subjective measures for each of the factors (preference, familiarity, ease of use, and confidence).
 
 Below we look at the marginal performance of the block parameters and survey responses. After that, we build a battery of regression models to explore the variables and their interactions. Lastly, we look at the subjective measures between the factors.
 
@@ -370,8 +383,9 @@ coef_ls <- readRDS("./figures/modelCoefLs.rds")
 ## For grouping rows see:
 if(F)
   browseURL("https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html#Group_rows_via_labeling")
-kableExtra::kbl(coef_ls[[1]], format = "latex", booktabs = TRUE, linesep = "",
-                caption = "The task accuracy model coefficients for $\\widehat{Y_1} = \\alpha * \\beta + \\gamma + \\delta$, with factor=pca, location=0/100\\%, and shape=EEE held as baselines. Factor being radial is the fixed term with the strongest evidence supporting the hypothesis. When crossing factor with location radial performs worse with 33/66\\% mixing relative to the PCA with no mixing. The model fit is based on the 648 evaluations by the 108 participants.") %>%
+kableExtra::kbl(
+  coef_ls[[1]], format = "latex", booktabs = TRUE, linesep = "", digits = 5,
+  caption = "The task accuracy model coefficients for $\\widehat{Y_1} = \\alpha * \\beta + \\gamma + \\delta$, with factor=pca, location=0/100\\%, and shape=EEE held as baselines. Factor being radial is the fixed term with the strongest evidence supporting the hypothesis. When crossing factor with location radial performs worse with 33/66\\% mixing relative to the PCA with no mixing. The model fit is based on the 648 evaluations by the 108 participants.") %>%
   kableExtra::pack_rows("Factor", 2, 3) %>%
   kableExtra::pack_rows("Fixed effects", 4, 8) %>%
   kableExtra::pack_rows("Interactions", 9, 12) %>%
@@ -388,37 +402,11 @@ if(F) ## Creation and saving figure at:
 knitr::include_graphics("./figures/figMarksABcd.pdf")
 ```
 
-## Response time regression
-
-<!-- Time as secondary interest, Y2 -->
-As a secondary explanatory variable, we also want to look at time. First, we take the log transformation of time as it is right-skewed. We repeat the same modeling procedure: 1) build a battery of all additive and multiplicative models. 2) Compare their performance, reporting some top performers. 3) Select a model to examine its coefficients.
-
-<!-- Y2 model comparisons, continue to use ABcd -->
-```{r timeCompTbl, fig.cap = "Use the caption arg in kable(), not this."}
-## 1) Eval parameters
-kableExtra::kbl(
-  model_comp_tbl_ls[[2]], "latex", align = c("l", rep("l", 2), rep("c", 5)),
-  booktabs = TRUE, linesep = "", row.names = FALSE, caption = "Model performance regressing on log response time [seconds], $\\widehat{Y_2}$ random effect models, where each model includes random effect terms for participants and simulations. We see the same trade-off where the simplest factor model is preferred by AIC/BIC, while $R^2$ and RMSE is larest in the full multiplicative model. We again select the model $\\alpha * \\beta + \\gamma + \\delta$ to explore further as it has relatively high marginal $R^2$ while having much less complexity than the complete interaction model. Conditional $R^2$ includes the random effects, while marginal does not.") %>%
-  kableExtra::kable_styling(bootstrap_options = "striped", font_size = 10)
-```
-
-<!-- Y2 coeffiecients -->
-```{r timeCoefTbl, fig.cap = "Use the caption arg in kable(), not this."}
-kableExtra::kbl(coef_ls[[2]], booktabs = TRUE, linesep = "", format = "latex",
-                caption = "Model coefficients for log response time [seconds] $\\widehat{Y_2} = \\alpha * \\beta + \\gamma + \\delta$, with factor=PCA, location=0/100\\%, and shape=EEE held as baselines. Location=50/50\\% is the fixed term with the strongest evidence and takes less time. In contrast, the interaction term location=50/50\\%:shape=EEV has the most evidence and takes much longer on average.") %>%
-  kableExtra::pack_rows("Factor", 2, 3) %>%
-  kableExtra::pack_rows("Fixed effects", 4, 8) %>%
-  kableExtra::pack_rows("Interactions", 9, 12) %>%
-  kableExtra::kable_styling(bootstrap_options = "striped", font_size = 10)
-```
-
-<!-- No Y2 violin plots -->
-
 
 ## Subjective measures
 
 <!-- Introduce subjective measures from n=84 survey responses -->
-The 84 evaluations of the post-study survey also collect four subjective measures for each factor. Figure \@ref(fig:ch4fig6) shows the Likert plots, or stacked percentage bar plots, alongside violin plots with the same non-parametric, ranked sum tests previously used. Participants preferred to use radial for this task. Participants were also more confident of their answers and found radial tours easier than grand tours. All factors have reportedly low familiarity, as expected from crowdsourced participants.
+The 84 evaluations of the post-study survey also collect four subjective measures for each factor. Figure \@ref(fig:figSubjectiveMeasures) shows the Likert plots, or stacked percentage bar plots, alongside violin plots with the same non-parametric, ranked sum tests previously used. Participants preferred to use radial for this task. Participants were also more confident of their answers and found radial tours easier than grand tours. All factors have reportedly low familiarity, as expected from crowdsourced participants.
 
 ```{r figSubjectiveMeasures, out.width = "100%", fig.show = "asis", fig.cap = "The subjective measures of the 84 responses of the post-study survey, five discrete Likert scale levels of agreement (L) Likert plots (stacked percent bar plots) with (R) violin plots of the same measures. Violin plots are overlaid with global significance from the Kruskal-Wallis test, and pairwise significance from the Wilcoxon test, both are non-parametric, ranked sum tests."}
 if(F)
@@ -449,7 +437,7 @@ To accompany this study we have produced an application to illustrate the radial
 ```{r getting_started, eval=FALSE, echo=TRUE}
 ## Download:
 install.packages("spinifex", dependencies = TRUE)
-## Run shiny app:
+## Run interactive app demonstrating the radial tour:
 spinifex::run_app()
 ```
 
