@@ -1,4 +1,4 @@
-## All utility functions ------
+## utility functions ------
 ## Aggregated utility / local functions to abstract away coding complexity.
 require("dplyr")
 

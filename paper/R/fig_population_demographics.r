@@ -129,6 +129,7 @@ str(survey_wider)
     geom_text(aes(label = after_stat(count)), stat = "bin2d") +
     facet_grid(cols = vars(pronoun), labeller = label_wrap_gen(width=18)) + 
     theme_bw() +
+    labs(x = "Education", y = "Age", fill = "Count") +
     theme(axis.text.x = element_text(angle = 90, hjust = 1),
           # legend.position = "bottom",
           # legend.direction = "horizontal",

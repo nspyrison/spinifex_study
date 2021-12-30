@@ -180,3 +180,8 @@ dat_qual %>%
 ## Ok, good now bounded in [-1, 1]; but Means have changed a lot...
 
 ## Checking Logic getting to dat_qual, as Factor mean Marks have changed significantly.
+#### seem quite reasonable, keep in mind that this data has training, partial 
+#### trial and over sampled permutations that are removed in the analysis.
+
+#### The sizable differnce in means may be an effort effect or easy of training,
+#### resulting in much better performance
