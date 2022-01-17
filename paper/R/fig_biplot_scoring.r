@@ -51,15 +51,6 @@ if(F){
 ## Make figBiplotScoring.pdf -----
 
 ### Left pane ----
-## More issues with geom_existence issue, even after change to theme_spinifex;
-#### going back to ggplot2 approach
-# ggtour(bas, dat) +
-# proto_point(aes_args = list(shape = clas, color = clas)) +
-# proto_basis() + ## removes cluster d when used....
-# proto_origin() +
-# coord_fixed(xlim = c(-8, 3), ylim = c(-1.5, 6)))
-# ylim(-.5, 7))
-# expand_limits(x = c(-7, 3), y = c(-1.5, 7)))
 proj <- as.matrix(dat) %*% bas %>% as.data.frame()
 (gg1 <- ggplot(proj, aes(PC1, PC4)) +
     geom_point(aes(shape=clas, color=clas)) +
@@ -73,7 +64,7 @@ proj <- as.matrix(dat) %*% bas %>% as.data.frame()
     labs(subtitle = "Factor: PCA, location: 33/66%, \n Shape: EEV, dimension: 6 & 4 clusters",
          x = "PC1", y = "PC4", color = "color", shape = "shape"))
 
-## Make ans_plot
+###  right pane, ClSep and accuracy bars -----
 ans_tbl <- readRDS("./apps/spinifex_study/www/ans_tbl.rds")
 sub <- ans_tbl %>% dplyr::filter(sim_nm == tgt_sim_nm)
 sub_longer <- pivot_longer_resp_ans_tbl(dat = sub)
