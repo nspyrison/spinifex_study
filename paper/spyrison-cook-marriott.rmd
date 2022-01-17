@@ -43,6 +43,7 @@ header-includes:
     - \usepackage{amsmath}
     - \usepackage{hyperref}
     - \hypersetup{colorlinks = true, linkcolor = red, urlcolor = blue}
+    - \usepackage{mathtools} # for \shortintertext{} in aligned
 ---
 \bibliography{spyrison-cook-marriott}
 ```{r setup_paper, include=FALSE}
@@ -90,17 +91,21 @@ knitr::opts_chunk$set(
 Despite decades of research multivariate data continues to provide fascinating challenges for visualization. It is important because data visualization is an key element of exploratory data analysis, [EDA, @tukey_exploratory_1977], assessing model assumptions and diagnosing the fit, and as a cross-check on numerical summarization [@anscombe_graphs_1973; @matejka_same_2017; @yanai_hypothesis_2020]. One of the challenges is determining whether a new technique yields better perception of information than current practices, for multivariate data.
 
 <!-- Common options; few principal components -->
-Dimension reduction is commonly used with visualization to provide informative low-dimensional summaries of multivariate data. (Note that this is usually only appropriate when all variables are quantitative.) Principal component analysis [PCA, @pearson_liii._1901] is one of the first methods developed and it remains very popular. Visualization of PCA is typically in the form static scatterplots of a few of the leading components. This is usually accompanied by a representation of the original variables contribution to to the principal components, using a biplot (XXX REF).
+Dimension reduction is commonly used with visualization to provide informative low-dimensional summaries of multivariate data. (Note that this is usually only appropriate when all variables are quantitative.) Principal component analysis [PCA, @pearson_liii._1901] is one of the first methods developed and it remains very popular. Visualization of PCA is typically in the form static scatterplots of a few of the leading components. This is usually accompanied by a representation of the original variables contribution to to the principal components, using a biplot [@gabriel_biplot_1971].
 
 The class of dynamic linear projections known as _tours_ [@asimov_grand_1985], shown as scatterplots or biplots, can be used to animate multiple principal components. Instead of a static view of two orthogonal components, interpolations between multiple components can be viewed. Asimov originally animated between randomly selected bases (which could be cinsidered combinations of components) in the _grand_ tour. The _manual_ tour [@cook_manual_1997] uniquely allows for user-control over the basis changes. A selected variable (or component) can be rotated to the desired contribution. A radial tour [@spyrison_spinifex_2020] is a special version of the manual tour, available in the R package `spinifex`. The permanence of the data points from frame to frame and information held in intermediate interpolated frames or user-control of the basis could plausibly lead to more information perception than a static display. This is a hypothesis that could be assessed by a user study. 
 <!-- Related studies & research gap -->
 
-There have been several user studies comparing scatterplots across display dimensionality (XXX what does this mean? maybe jst say involving scatterplots?) in dimension-reduced spaces [@gracia_new_2016; @wagner_filho_immersive_2018]. There are also empirical statistics used to describe non-linear reduction and how well and faithfully they embed the data in a lower space [@bertini_quality_2011; @liu_visualizing_2017; @sedlmair_empirical_2013; @van_der_maaten_visualizing_2008]. @nelson even compared 2D with 3D scatterplots for detecting clusters, and dependence, in multivariate data. However, there is an absence of studies comparing different visual techniques.
+There have been several user studies comparing scatterplots of dimension-reduced spaces across 2D and 3D scatterplots on traditional 2D monitors [@gracia_new_2016; @wagner_filho_immersive_2018]. There are also empirical statistics used to describe non-linear reduction and how well and faithfully they embed the data in a lower space [@bertini_quality_2011; @liu_visualizing_2017; @sedlmair_empirical_2013; @van_der_maaten_visualizing_2008]. @nelson even compared 2D with 3D scatterplots for detecting clusters, and dependence, in multivariate data. However, there is an absence of studies comparing different visual techniques.
 
 <!-- Overview of the study -->
 We are particularly interested in assessing the effectiveness of the new radial tour relative to common practice with PCA, and relative to a grand tour. The radial tour is particularly useful for understanding variable importance relative to structure visible in a scatterplot. If the contribution of a variable is reduced and the structure disappears, then that variable makes an important role in the presence of that structure in the data. For example, if in the scatterplot cluster can be seen, but them gap between them is reduced when a variable is removed it means that the clustering is due, at least partially, to that variable. Understanding which variables are important is a key aspect of interpretability of models. <!-- TOO EARLY TO GO INTO THIS DETAIL Cluster data is simulated under several additional experimental factors: location, shape, and dimensionality. We task participants with identifying the variables attributing to the separation between two clusters. We define an accuracy measure for this task. Mixed model regression on this measure finds strong evidence supporting the radial tour has a considerable improvement in accuracy over alternatives.-->
 
-XXX Add a figure with two plots here: (1)  clearly separated clusters, and a variable that points in the direction of the clustering; (2) variable is removed and gap between clusters is gone. 
+```{r figClSep, echo = F, out.width = "100%", fig.cap = "Illustrastion of cluster separation. Panel (a) shows clear separation in the V2, no separation in V1, V3 has negligable contribution to the frame. The contributions of V2 is then swapped with V3 in panel (b). There is no separation between the cluster means in V3, and the separation contained in V2 no longer influences the frame."}
+if(F)
+  file.edit("./paper/R/fig_biplot_scoring.r")
+knitr::include_graphics("./figures/figClSep.pdf")
+```
 
 <!--- black-box models-->
 Knowing which variables to use is also important for statistical modeling and their interpretations. Models are becoming increasingly complex involving many interacting, or otherwise non-linear terms cause an opaqueness to their interpretability. Exploratory Artificial Intelligence [XAI, @adadi_peeking_2018; @arrieta_explainable_2020] is an emerging field that attempts to extend the interpretability of such black-box models by offering techniques to increase their interpretability. Multivariate data visualization is essential for exploring features spaces and communicating interpretations of models [@biecek_dalex_2018; @biecek_explanatory_2021; @wickham_visualizing_2015].
@@ -226,7 +231,7 @@ The evaluation measure of this task was designed with a few of features in mind:
 Let a data $\textbf{X}_{n \times p}$ be a simulation containing clusters of observations of different distributions. Where $n$ is the number of observations, $p$ is the number of variables, and $k$ indicates the number of the cluster an observation belongs. Cluster membership is exclusive; an observation cannot belong to more than one cluster.
 
 <!-- W, weights -->
-We define weights, $W$ as a vector explaining the variable-wise difference between two clusters. Namely, the difference of each variable between clusters, as a proportion of the total difference, less $1/p$, the amount of difference each variable would hold if it were uniformly distributed. <!-- R, participant responses -->Participant responses are a logical value for each variable - whether or not the participant thinks each variable separates the two clusters more than uniformly distributed separation. Then $Y$ is a vector of variable accuracy.
+We define weights, $W$ as a vector explaining the variable-wise difference between two clusters. Namely, the difference of each variable between clusters, as a proportion of the total difference, less $1/p$, the amount of difference each variable would hold if it were uniformly distributed. <!-- R, participant responses -->Participant responses are a logical value for each variable - whether or not the participant thinks each variable separates the two clusters more than uniformly distributed separation. 
 
 <!-- __Old measure:__ -->
 <!-- \begin{align*} -->
@@ -239,20 +244,20 @@ We define weights, $W$ as a vector explaining the variable-wise difference betwe
 <!-- \text{Accuracy}, Y &= \sum_{j=1}^{p}I(r_j) \cdot sign(w_j) \cdot \sqrt{|w_j|} \\ -->
 <!-- \end{align*} -->
 
+<!-- Piece wise:
+\left\{ \begin{aligned}
+    \frac{w_+^2}{\sum w_+^2}  &&\Bigg\vert w_+ \text{ the positive elements of } w \\
+    \frac{w_-^2}{\sum w_-^2}  &&\Bigg\vert w_- \text{ the negative elements of } w \\ \end{aligned} \right. -->
+
 <!-- __Current measure:__ -->
 \begin{align*}
-  W_{i} &=\frac{(\overline{X_{i=1, k=1}} - \overline{X_{1, 2}}, ~...~ 
-    (\overline{X_{p, 1}} - \overline{X_{p, 2}})}
-    {\sum_{i=1}^{p}(|\overline{X_{i, k=1}} - \overline{X_{i, 2}}|)} - \frac{1}{p} \\
-\\
-\text{Accuracy}, Y &= \sum_{i=1}^{p}I(r_i) \cdot sign(w_i) \cdot 
-  \left\{ \begin{aligned}
-    \frac{w_+^2}{\sum w_+^2}  &&\Bigg\vert w_+ \text{ the positive elements of } w \\
-    \frac{w_-^2}{\sum w_-^2}  &&\Bigg\vert w_- \text{ the negative elements of } w \\
-  \end{aligned} \right.
+  w_{j} &=\frac{(\overline{X}_{\cdot, j=1, k=1} - \overline{X}_{\cdot, 1, 2}, ~...~ 
+    (\overline{X}_{\cdot, p, 1} - \overline{X}_{\cdot, p, 2})}
+    {\sum_{j=1}^{p}(|\overline{X}_{\cdot, j, k=1} - \overline{X}_{\cdot, j, 2}|)} - \frac{1}{p} \shortintertext{Where accuracy, A, is defined as:}
+A &= \sum_{j=1}^{p}I(j) \cdot sign(w_j) \cdot w^2
 \end{align*}
 
-Where $I(r_i)$ is the indicator function on the response for variable $i$.
+Where $I(j)$ is the indicator function, the binary response for variable $j$.
 
 ```{r, figBiplotScoring, out.width='100%', fig.cap = "(L), PCA biplot of the components showing the most cluster separation with (R) illustration of the magnitude of cluster separation is for each variable (bars) and the weight of the variable accuracy if selected (red/green lines). The horizontal dashed line is $1 / p$, the amount of separation each variable would have if evenly distributed. The weights equal the signed square of the difference between each variable value and the dashed line."}
 if(F)
@@ -276,7 +281,7 @@ PCA inputs allowed users to select between the top four principal components for
 ## Data simulation
 
 <!-- Clusters and correlation -->
-Each dimension is originally distributed as $\mathcal{N}(0, 1)~|~\text{covariance}~\Sigma$, a function of the shape factor. Clusters were originally separated by a distance of two before location mixing. Signal variables had a correlation of 0.9 when they had equal orientation and -0.9 when their orientations vary. Noise variables were restricted to zero correlation. Each cluster is simulated with 140 observations and is offset in a variable that did not distinguish previous variables.
+Each dimension is originally distributed as $\mathcal{N}(0, 1)~|~\Sigma~\text{(covariance)}$, a function of the shape factor. Clusters were originally separated by a distance of two before location mixing. Signal variables had a correlation of 0.9 when they had equal orientation and -0.9 when their orientations vary. Noise variables were restricted to zero correlation. Each cluster is simulated with 140 observations and is offset in a variable that did not distinguish previous variables.
  
 <!-- Apply shape and location transformations -->
 Clusters of the EVV shape are transformed to the banana-chevron shape (illustrated in figure \@ref(fig:figFactorPca), shape row). Then location mixing is applied by post-multiplying a (2x2) rotation matrix to the signal variable and a noise variable for the clusters in question.<!-- Preprocess and replicate and save --> All variables are then standardized by standard deviation. The rows and columns are then shuffled randomly. The observation's cluster and order of shuffling are attached to the data and saved.
@@ -300,7 +305,7 @@ Each period starts with an untimed training task at the simplest remaining exper
 The order of the factor and location levels is randomized with a nested Latin square where all levels of the visual factor are exhausted before advancing to the next level of location. That means we need $3!^2 = 36$ participants to evaluate all permutations of the experimental factors once. This randomization controls for potential learning effects the participant may receive. Figure \@ref(fig:figParmeterizationExample) illustrates how an arbitrary participant experiences the experimental factors.
 
 <!-- Nested latin square assignment -->
-```{r figParmeterizationExample, out.width="100%", fig.cap = "Illustration of how a hypothetical participant 63 is assigned experimental factors. Each of the 6 factor order permutations is exhausted before iterating to the next permutation of location order."}
+```{r figParmeterizationExample, out.width="100%", fig.cap = "Illustration of how a hypothetical participant 63 is assigned experimental factors. Each of the six factor order permutations is exhausted before iterating to the next permutation of location order."}
 knitr::include_graphics("./figures/figParmeterizationExample.png") 
 ## This is a .pttx screen cap, .png ok.
 ```

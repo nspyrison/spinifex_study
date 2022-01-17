@@ -4,18 +4,48 @@
   require("spinifex")
   require("magrittr")
   
+  ## For figBiplotScoring
   tgt_sim_nm <- "EEV_p6_33_66_rep2"
   tgt_fp <- paste0("./apps_supplementary/data/", tgt_sim_nm, ".rda") 
-  ## Make data plot
   load(tgt_fp, envir = globalenv())
-  dat <- EEV_p6_33_66_rep2
-  bas <- basis_pca(dat, d = 4)[, c(1, 4)]
+  dat  <- get(tgt_sim_nm)
+  bas  <- basis_pca(dat, d = 4)[, c(1, 4)]
   clas <- attr(dat, "cluster")
+  
+  ## For figClSep
+  set.seed(2022)
+  .n <- 100
+  cl1  <- data.frame(
+    V1 = rnorm(n = .n, mean = 0, sd = 1),
+    V2 = rnorm(n = .n, mean = 0, sd = 1),
+    V3 = rnorm(n = .n, mean = 0, sd = 1)
+  )
+  cl2  <- data.frame(
+    V1 = rnorm(n = .n, mean = 0, sd = 1),
+    V2 = rnorm(n = .n, mean = 4, sd = 1),
+    V3 = rnorm(n = .n, mean = 0, sd = 3)
+  )
+  dat2  <- rbind(cl1, cl2)
+  clas2 <- rep(c("A", "B"), each = .n)
+  bas2  <- basis_olda(dat2, clas2, d = 3)
   
   source("./paper/R/9_util_funcs.r") ## previously ggproto_pca_biplot.r
   if(F)
     file.edit("./paper/R/9_util_funcs.r")
 }
+
+# fig_cl_sep -----
+(ClSep1 <- ggtour(bas2[, c(1, 3)], dat2) + 
+  proto_basis() + proto_point(aes_args = list(color = clas2, shape = clas2)))
+(ClSep2 <- ggtour(bas2[, c(1, 2)], dat2) + 
+    proto_basis() + proto_point(aes_args = list(color = clas2, shape = clas2)))
+(ClSep <- cowplot::plot_grid(ClSep1, ClSep2, nrow = 1, labels = c("a", "b")))
+if(F){
+  ggsave("./paper/figures/figClSep.pdf", ClSep,
+         device = "pdf", width = 6, height = 2.5, units = "in")
+}
+
+
 
 
 ## Make figBiplotScoring.pdf -----
