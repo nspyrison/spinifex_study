@@ -1,15 +1,16 @@
 ---
-documentclass: jdssv
-classoption: article
+#documentclass: article #jdssv
+#classoption: article
 output:
   bookdown::pdf_document2:
+  #rticles::ieee_article:
     keep_tex: true
     toc: false
-    template: template/jdssv_template.tex
-title:
-  formatted: "A Study on the Benefit of a User-Controlled Radial Tour for Variable Importance for Structure in High-Dimensional Data"
-  plain:     "A Study on the Benefit of a User-Controlled Radial Tour for Variable Importance for Structure in High-Dimensional Data"
-  short:     "Study on Using the Radial Tour for Understanding Variable Importance"
+    #template: template/jdssv_template.tex
+title: "A Study on the Benefit of a User-Controlled Radial Tour for Variable Importance for Structure in High-Dimensional Data"
+  # formatted: "A Study on the Benefit of a User-Controlled Radial Tour for Variable Importance for Structure in High-Dimensional Data"
+  # plain:     "A Study on the Benefit of a User-Controlled Radial Tour for Variable Importance for Structure in High-Dimensional Data"
+  # short:     "Study on Using the Radial Tour for Understanding Variable Importance"
 author:
   - name: Nicholas Spyrison
     affiliation: Monash University
@@ -34,7 +35,7 @@ abstract: |
   Principal component analysis is a long-standing go-to method for exploring multivariate data. Data visualization _tours_ are a class of linear projections animated over small changes in the projection basis. The grand tour original selects target bases at random to animate between. Alternatively, the manual tour rotates the contribution of a selected variable novelly offering analysts a means to control the basis. This paper describes a within-participants user study evaluating the radial tour's efficacy compared with principal component analysis and the grand tour. We devise a supervised classification task where participants evaluate variable attribution of the separation between two classes. We define an accuracy measure as the response variable. Data were collected from 108 crowdsourced participants, who performed two trials of each visual for 648 trials in total. Mixed model regression provides strong evidence that the radial tour increases accuracy over the alternatives. Participants subjectively prefer the use of the radial tour.
 ##preamble: > ## Moved to /template/jdsssv_template.tex
 keywords:
-  formatted: [multivariate data, exploratory data analysis, grand tour, manual tour, dimension reduction, linear projections, linear embeddings, "\\proglang{R}"]
+  formatted: [multivariate data, exploratory data analysis, grand tour, manual tour, dimension reduction, linear projections, linear embeddings, R]
   plain:     [multivariate data, exploratory data analysis, grand tour, manual tour, dimension reduction, linear projections, linear embeddings, R]
 bibliography: spyrison-cook-marriott.bib
 editor_options:
@@ -43,7 +44,9 @@ header-includes:
     - \usepackage{amsmath}
     - \usepackage{hyperref}
     - \hypersetup{colorlinks = true, linkcolor = red, urlcolor = blue}
-    - \usepackage{mathtools} # for \shortintertext{} in aligned
+    - \usepackage{mathtools} ##%% for \shortintertext{} in aligned
+    - \usepackage{graphicx}
+    - \PassOptionsToPackage{hyphens}{url}\usepackage{hyperref} ##%% Trying to wrap and format urls correctly
 ---
 \bibliography{spyrison-cook-marriott}
 ```{r setup_paper, include=FALSE}
@@ -73,12 +76,12 @@ require("gganimate")
 ## chunk options
 knitr::opts_chunk$set(
   fig.align = "center",
-  echo = FALSE,
-  collapse = TRUE,
-  message = FALSE,
-  warning = FALSE,
-  error = FALSE,
-  cache = TRUE,
+  echo       = FALSE,
+  collapse   = TRUE,
+  message    = FALSE,
+  warning    = FALSE,
+  error      = FALSE,
+  cache      = FALSE,
   cache.lazy = FALSE
 )
 ```
@@ -168,7 +171,7 @@ The manual tour [@cook_manual_1997] defines its basis path by manipulating the b
 To simplify the task and keep its duration realistic, we consider a variant of the manual tour called a _radial_ tour. In a radial tour, the selected variable can change its magnitude of contribution but not its angle; it must move along the direction of its original contribution radius. The radial tour benefits from both continuity of the data alongside grand tours and allows the user to steer via choosing the variable to rotate.
 
 <!-- spinifex -->
-Manual tours have been recently made available in the \proglang{R} package \pkg{spinifex} [@spyrison_spinifex_2020], which facilitates manual tours (and radial variant). It also provides an interface for a layered composition of tours and exporting to .gif and .mp4 with \pkg{gganimate} [@pedersen_gganimate_2020] or .html widget with \pkg{plotly} [@sievert_interactive_2020]. It is also compatible with tours made by \pkg{tourr} [@wickham_tourr:_2011]. Now that we have a readily available means to produce various tours, we want to see how they fare against traditional discrete displays commonly used with PCA.
+Manual tours have been recently made available in the __R__ package __spinifex__ [@spyrison_spinifex_2020], which facilitates manual tours (and radial variant). It also provides an interface for a layered composition of tours and exporting to .gif and .mp4 with __gganimate__ [@pedersen_gganimate_2020] or .html widget with __plotly__ [@sievert_interactive_2020]. It is also compatible with tours made by __tourr__ [@wickham_tourr:_2011]. Now that we have a readily available means to produce various tours, we want to see how they fare against traditional discrete displays commonly used with PCA.
 
 
 # User study {#sec:userstudy}
@@ -254,7 +257,7 @@ We define weights, $w$ as a vector explaining the variable-wise difference betwe
   w_{j} &=\frac{(\overline{X}_{\cdot, j=1, k=1} - \overline{X}_{\cdot, 1, 2}, ~...~ 
     (\overline{X}_{\cdot, p, 1} - \overline{X}_{\cdot, p, 2})}
     {\sum_{j=1}^{p}(|\overline{X}_{\cdot, j, k=1} - \overline{X}_{\cdot, j, 2}|)} - \frac{1}{p} \shortintertext{Where accuracy, A, is defined as:}
-A &= \sum_{j=1}^{p}I(j) \cdot sign(w_j) \cdot w^2
+  A &= \sum_{j=1}^{p}I(j) \cdot sign(w_j) \cdot w^2
 \end{align*}
 
 Where $I(j)$ is the indicator function, the binary response for variable $j$.
@@ -322,7 +325,7 @@ We recruited $N = 108$ participants via prolific.co [@palan_prolific_2018]. We f
 ## Data collection
 
 <!-- App, data collection, network issues -->
-Data were recorded in \pkg{shiny} application and written to a Google Sheet after each third of the study. Especially at the start of the study, participants experienced adverse network conditions due to the volume of participants hitting the application with modest allocated resources. In addition to this, API read/write limitations further hindered data collection. To mitigate this, we throttled the number of participants and over-collect survey trials until we received our target three evaluations of all permutation levels.
+Data were recorded in __shiny__ application and written to a Google Sheet after each third of the study. Especially at the start of the study, participants experienced adverse network conditions due to the volume of participants hitting the application with modest allocated resources. In addition to this, API read/write limitations further hindered data collection. To mitigate this, we throttled the number of participants and over-collect survey trials until we received our target three evaluations of all permutation levels.
 
 <!-- Preprocessing steps -->
 The processing steps were minimal. First, we format to an analysis-ready form, decoding values to a more human-readable state, and add a flag indicating whether the survey had complete data. We filter to only the latest three complete studies of each experimental factor, which should have experienced the most minor adverse network conditions. The bulk of the studies removed were partial data and a few over-sampled permutations. This brings us to the 108 studies described in the paper, from which models and aggregation tables were built. The post-study surveys were similarly decoded to human-readable format and then filtered to include only those 84 associated with the final 108 studies.
@@ -447,7 +450,7 @@ There are several ways that this study could be extended. In addition to expandi
 
 # Accompanying tool: radial tour application {#sec:spinifex}
 
-We have produced an application to illustrate the radial tour to accompany this study. The \pkg{R} package, \pkg{spinifex}, [@spyrison_spinifex_2020] is free, open-source and now contains a \pkg{shiny} [@chang_shiny_2020] application that allows users to apply various preprocessing tasks and interactively explore their data via interactive radial tour. Example datasets are provided with the ability to upload data. The .html widget produced is a more interactive variant relative to the one used in the user study. Screen captures and more details are provided in the appendix. Run the following \proglang{R} code will run the application locally.
+We have produced an application to illustrate the radial tour to accompany this study. The __R__ package, __spinifex__, [@spyrison_spinifex_2020] is free, open-source and now contains a __shiny__ [@chang_shiny_2020] application that allows users to apply various preprocessing tasks and interactively explore their data via interactive radial tour. Example datasets are provided with the ability to upload data. The .html widget produced is a more interactive variant relative to the one used in the user study. Screen captures and more details are provided in the appendix. Run the following __R__ code will run the application locally.
 
 ```{r getting_started, eval=FALSE, echo=TRUE}
 ## Download:
@@ -459,7 +462,7 @@ spinifex::run_app()
 
 # Acknowledgments {#sec:acknowledgments}
 
-This research was supported by an Australian Government Research Training Program (RTP) scholarship. This article was created in \proglang{R} [@r_core_team_r:_2020] and \pkg{rmarkdown} [@xie_r_2018]. Visuals were prepared with \pkg{spinifex}. All packages used are available from the Comprehensive R Archive Network [CRAN](https://CRAN.R-project.org/). The source files for this article, application, data, and analysis can be found on [GitHub](https://github.com/nspyrison/spinifex_study/). The source code for the \pkg{spinifex} package and accompanying shiny application can be found [here](https://github.com/nspyrison/spinifex/). We thank Jieyang Chong for his help in proofreading this article.
+This research was supported by an Australian Government Research Training Program (RTP) scholarship. This article was created in __R__ [@r_core_team_r:_2020] and __rmarkdown__ [@xie_r_2018]. Visuals were prepared with __spinifex__. All packages used are available from the Comprehensive R Archive Network [CRAN](https://CRAN.R-project.org/). The source files for this article, application, data, and analysis can be found on [GitHub](https://github.com/nspyrison/spinifex_study/). The source code for the __spinifex__ package and accompanying application can be found [here](https://github.com/nspyrison/spinifex/). We thank Jieyang Chong for his help in proofreading this article.
 
 
 # References

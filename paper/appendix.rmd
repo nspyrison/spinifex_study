@@ -74,7 +74,7 @@ knitr::include_graphics("./figures/figTeffectRange.pdf")
 
 ## Radial tour application details {-}
 
-Below we describe the \pkg{shiny} app available in the \pkg{spinifex} package which runs locally. It streamlines creating and interacting with radial tours more interactive than the application used in the user study.
+Below we describe the __shiny__ app available in the __spinifex__ package which runs locally. It streamlines creating and interacting with radial tours more interactive than the application used in the user study.
 
 ```{r radialTourAppPg1, out.width="100%", fig.show="asis", fig.cap = "Process data tab, interactively loads or select data, check which variables to project, and optionally scale columns by standard deviation."}
 ## Manual screen capture via: spinifex::run_app()
@@ -88,6 +88,6 @@ In the initial tab, users upload their own (.csv, .rds, or .rda) data or select 
 knitr::include_graphics("./figures/app_pg2.png")
 ```
 
-The second tab contains interaction for selecting the manipulation variable and non-numeric columns can be used to change the color and shape of the data points in the projection. The radial tour is created in real-time, animated as an interactive \pkg{plotly} .html widget. The application offers users a fast, intuitive introduction elucidating what the radial tour does and some of the features offered.
+The second tab contains interaction for selecting the manipulation variable and non-numeric columns can be used to change the color and shape of the data points in the projection. The radial tour is created in real-time, animated as an interactive __plotly__ .html widget. The application offers users a fast, intuitive introduction elucidating what the radial tour does and some of the features offered.
 
 
