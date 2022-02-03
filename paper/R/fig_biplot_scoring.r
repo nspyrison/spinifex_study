@@ -18,27 +18,36 @@
   cl1  <- data.frame(
     V1 = rnorm(n = .n, mean = 0, sd = 1),
     V2 = rnorm(n = .n, mean = 0, sd = 1),
-    V3 = rnorm(n = .n, mean = 0, sd = 1)
+    V3 = rnorm(n = .n, mean = 0, sd = 1),
+    v4 = rnorm(n = .n, mean = 0, sd = 1)
   )
   cl2  <- data.frame(
     V1 = rnorm(n = .n, mean = 0, sd = 1),
     V2 = rnorm(n = .n, mean = 4, sd = 1),
-    V3 = rnorm(n = .n, mean = 0, sd = 3)
+    V3 = rnorm(n = .n, mean = 0, sd = 3),
+    v4 = rnorm(n = .n, mean = 0, sd = 1)
   )
   dat2  <- rbind(cl1, cl2)
   clas2 <- rep(c("A", "B"), each = .n)
-  bas2  <- basis_olda(dat2, clas2, d = 3)
+  bas2  <- basis_olda(dat2, clas2, d = 4)
   
   source("./paper/R/9_util_funcs.r") ## previously ggproto_pca_biplot.r
   if(F)
     file.edit("./paper/R/9_util_funcs.r")
+  
+  set.seed(2022)
+  rand <- tourr::basis_random(4, 2)
+  rand[2,] <- rand[2, ] / 20
+  rand <- tourr::orthonormalise(rand)
 }
 
 # fig_cl_sep -----
-(ClSep1 <- ggtour(bas2[, c(1, 3)], dat2) + 
-  proto_basis() + proto_point(aes_args = list(color = clas2, shape = clas2)))
-(ClSep2 <- ggtour(bas2[, c(1, 2)], dat2) + 
-    proto_basis() + proto_point(aes_args = list(color = clas2, shape = clas2)))
+(ClSep1 <- ggtour(bas2[, c(3, 4)], dat2) + 
+  proto_basis() + proto_point(aes_args = list(color = clas2, shape = clas2)) +
+   labs(color = "Cluster", shape = "Cluster"))
+(ClSep2 <- ggtour(rand, dat2) + 
+    proto_basis() + proto_point(aes_args = list(color = clas2, shape = clas2)) +
+    labs(color = "Cluster", shape = "Cluster"))
 (ClSep <- cowplot::plot_grid(ClSep1, ClSep2, nrow = 1, labels = c("a", "b")))
 if(F){
   ggsave("./paper/figures/figClSep.pdf", ClSep,

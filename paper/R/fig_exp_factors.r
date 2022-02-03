@@ -1,11 +1,11 @@
 ## Setup -----
 {
-  require("ggforce")
-  require("ggplot2")
-  require("ggExtra")
-  require("magrittr")
-  require("spinifex")
-  require("cowplot")
+  require(ggforce)
+  require(ggplot2)
+  require(ggExtra)
+  require(magrittr)
+  require(spinifex)
+  require(cowplot)
   
   this_theme <- list(
     theme_bw(),
@@ -24,10 +24,10 @@
   dat  <- EEE_p4_0_1_rep1
   clas <- attr(EEE_p4_0_1_rep1, "cluster")
   bas1 <- spinifex::basis_pca(EEE_p4_0_1_rep1)
-  gt <- tourr::save_history(EEE_p4_0_1_rep1, tour_path = grand_tour(), max_bases = 1)
+  gt   <- tourr::save_history(EEE_p4_0_1_rep1, tour_path = grand_tour(), max_bases = 1)
   bas2 <- matrix(gt[[1]], nrow=4, ncol=2, dimnames = list(colnames(dat)))
   bas3_st <- basis_half_circle(EEE_p4_0_1_rep1)
-  mt <- manual_tour(bas3_st, manip_var = 2)
+  mt   <- manual_tour(bas3_st, manip_var = 2)
   bas3 <- spinifex:::interpolate_manual_tour(mt, .05)[,,17]
   attr(bas3, "manip_var") <- 2
 }
