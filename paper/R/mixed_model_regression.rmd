@@ -97,7 +97,7 @@ dat_task_agg <- dat_task_agg %>%
     Factor      = factor,
     Shape       = shape,
     Dim         = dim,
-    Location   = location,
+    Location    = location,
     Marks       = marks)
 
 ## Local functions -----
@@ -124,7 +124,7 @@ my_ggpubr <- function(df, x = "Factor", y = "Marks", title = waiver(), subtitle 
   .facet_lvls <- 1 ## Init
   if(is.null(facet) == FALSE)
     .facet_lvls <- df %>% pull({{facet}}) %>% levels() %>% length()
-  .lab.y <- (.05 * .y_range) * (1 + .no_x_lvls) * .y_range + max(df[y])
+  .lab.y <- (.065 * .y_range) * (1 + .no_x_lvls) * .y_range + max(df[y])
   my_comparisons <- NULL
   if(.no_x_lvls == 2)
     my_comparisons <- list(c(.x_lvls[1], .x_lvls[2]))
@@ -246,10 +246,6 @@ if(interactive())
 N <- length(unique(dat_qual$instance_id))
 print(paste0("N = ", N, " unique instance_id."))
 
-## Evaluations by parameter permutation
-.mn_val <- sum(perm_num_agg$`even evaluations`[perm_num_agg$`is even instance` == TRUE], 
-               na.rm = TRUE) / 36
-
 ## Evaluation by parameter permutations with candidates removed
 print("After evaluating the evenness of participants, permutations, the probability of adverse network interactions we have selected 3 evaluations of each block permutation to perfom the analysis on:")
 print("Note: Training removed, partial evaluations removed, only the evaluations of the remaining instances.")
@@ -263,15 +259,16 @@ perm_num_agg2 <- dat_qual %>%
 (gg_eval_by_perm_num_removed <- perm_num_agg2 %>%
     ggplot(aes(x = `parameter permutation`, y = `even evaluations`,
                color = `is even instance`, fill = `is even instance`)) +
-  labs(title = "Evaluations by parameter permutaion", 
-       subtitle = "Remaining set of data, 3 evaluations of all block parameter permutations") +
+  labs(
+    title = "Evaluations by parameter permutaion", 
+    subtitle = "Remaining set of data, 3 evaluations of all block parameter permutations") +
   my_theme +
   geom_bar(stat = "identity", position = "dodge") +
   geom_hline(yintercept = 3, linetype = 2) +
   geom_text(aes(x = 33, y = 3.1, label = "target"), color = "black")
 )
   
-## Check w.r.t. raw.rds; significantlkt different means but we have removed training, partial instances and over sample permutations. Support is still realistic.  
+## Check w.r.t. raw.rds; different means but we have removed training, partial instances and over sample permutations. Support is still realistic.
 dat_qual %>% dplyr::select(Factor, Marks) %>%
   group_by(Factor) %>%
   dplyr::summarise(
@@ -691,7 +688,7 @@ botCis <-
 
 ______
 
-# Saving paper figures (not auto-ran)
+# Saving paper figures (interactive only)
 
 Note that kniting .rmd file does not save figures and .rds files while interactive run all chunks will save new figures and .rds files.
 ```{r}

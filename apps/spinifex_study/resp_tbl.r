@@ -212,15 +212,15 @@ make_save_ans_tbl <- function(){
     weight_mat[i, var_ind] <- signal_mat[i, var_ind] - bar_vect[i]
     ## Calculate weights now that sign of all elements found
     pos_c_idx <- sign(weight_mat[i, var_ind]) == 1
-    pos_sum   <- sum( weight_mat[i,  pos_c_idx]^2, na.rm = TRUE)
-    neg_sum   <- sum( weight_mat[i, !pos_c_idx]^2, na.rm = TRUE)
+    #pos_sum   <- sum( weight_mat[i,  pos_c_idx]^2, na.rm = TRUE) ## ~~01 measure
+    #neg_sum   <- sum( weight_mat[i, !pos_c_idx]^2, na.rm = TRUE) ## ~~01 measure
     
     for(j in var_ind){ ## j numeric index of the variable
-      ## variable accurcay, vector, the weight assigned to each var if selected in response
+      ## variable accuracy, vector, the weight assigned to each var if selected in response
       if(sign(weight_mat[i, j]) == 1){ ## Positive elements
-        accuracy_mat[i, j] <- sign(weight_mat[i, j]) * weight_mat[i, j]^2 / pos_sum
+        accuracy_mat[i, j] <- sign(weight_mat[i, j]) * weight_mat[i, j]^2# / pos_sum ## ~~01 measure
       }else{ ## Negative elements
-        accuracy_mat[i, j] <- sign(weight_mat[i, j]) * weight_mat[i, j]^2 / neg_sum
+        accuracy_mat[i, j] <- sign(weight_mat[i, j]) * weight_mat[i, j]^2# / neg_sum ## ~~01 measure
       }
     }
   }
