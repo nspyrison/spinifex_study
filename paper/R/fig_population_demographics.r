@@ -183,12 +183,28 @@ my_theme <- list(
   theme(legend.position = "bottom",
         legend.box = "vertical",
         legend.margin = margin(-6)))
-my_ggpubr <- function(df, x = "factor", y = "value", title = waiver(), subtitle = waiver()){
+## indirect (via ggpubr/cowplot) ggplot2 helpers
+#' @examples
+#' df=dat_qual;x="factor";y="marks";title = waiver(); subtitle = waiver(); facet = NULL
+my_ggpubr_measures <- function(df, x = "Factor", y = "Marks", title = waiver(), subtitle = waiver(), facet = NULL){
   ## Find height of global significance test text.
   .x_lvls <- df %>% pull({{x}}) %>% levels()
-  .y_range <- diff(range(df[y]))
-  .n_lvls <- length(.x_lvls)
-  .lab.y <- (.04 * .y_range) * (1 + .n_lvls) * .y_range + max(df[y])
+  # browser()
+  # ## OLD
+  # .y_range <- diff(range(df[y]))
+  # .n_lvls <- length(.x_lvls)
+  # .lab.y <- (.04 * .y_range) * (1 + .n_lvls) * .y_range + max(df[y])
+  
+  ## PURPOSED
+  .y <- df %>% pull({{y}})
+  if(is.factor(.y)) .y <- as.integer(.y)
+  .y_range <- diff(range(.y))
+  .no_x_lvls <- length(.x_lvls)
+  if(is.null(facet) == FALSE){
+    .facet_lvls <- df %>% pull({{facet}}) %>% levels() %>% length()
+  } else .facet_lvls <- 1 ## Init
+  .lab.y <- (.032 * .y_range) * (1 + .no_x_lvls) * .y_range + max(.y)
+  ## THIS IS DIFFERNT FROM THE NUMERIC
   my_comparisons <- list(c("pca", "grand"), c("grand", "radial"), c("pca", "radial"))
   
   ## Plot
@@ -196,24 +212,26 @@ my_ggpubr <- function(df, x = "factor", y = "value", title = waiver(), subtitle 
            palette = "Dark2", shape = x, trim = TRUE,
            add = c("mean"), ## Black circle, can change size, but not shape or alpha?
            draw_quantiles = c(.25, .5, .75)) +
-    stat_compare_means(method = "wilcox.test",
+    stat_compare_means(label.y = .lab.y,
+                       aes(label = paste0("p = ", ..p.format..)), ## Global test
+                       hide.ns = TRUE) + ## custom label
+    stat_compare_means(method = "wilcox.test", ## pairwise test
                        comparisons = my_comparisons,
-                       label = "p.signif", hide.ns = TRUE) + ## pairwise test
-    # stat_compare_means(label = "p.signif", label.y = .lab.y - .4,
-    #                    method = "wilcox.test", ref.group = .x_lvls[1]) + ## Test each lvl w.r.t. first level.
-    stat_compare_means( ## Global test
-      label.y = .lab.y,
-      aes(label = paste0("p=", ..p.format..))
-    ) + ## custom label
+                       label = "p.signif", hide.ns = TRUE) +
     my_theme +
-    ggtitle(title, subtitle)
+    coord_cartesian(ylim = c(min(.y), max(.y) + .6 * .y_range)) + ## ~~This is different
+    ggtitle(title, subtitle) +
+    ggplot2::xlab(paste0(x, "\n(n=", nrow(df)/(.no_x_lvls * .facet_lvls), " each)"))
 }
-my_ggpubr_facet <- function(..., facet = "measure"){
-  facet(my_ggpubr(...), facet.by = facet)
+my_ggpubr_facet_measures <- function(..., facet = "measure"){ ## ~~measure; regression is on Location
+  .facet <- facet
+  facet(my_ggpubr_measures(..., facet = .facet), facet.by = .facet)
 }
-(measure_violins <- my_ggpubr_facet(df = subjective_longer, x = "factor", y = "value")
-  + labs(x = "Factor", y = "Response", fill = "Factor"))
 
+subjective_longer$value <- as.integer(subjective_longer$value)
+(measure_violins <- my_ggpubr_facet_measures(
+  df = subjective_longer, x = "factor", y = "value", facet = "measure")
+  + labs(x = "Factor", y = "Response", fill = "Factor") + ylim(1, 20))
 
 #### Subjective measures, Likert plots -----
 ### Try to create my own likert barplots and signif tables: likert and this seem to want preaggregated format
@@ -282,7 +300,7 @@ length(unique(survey_wider$instance_id))
 require("cowplot")
 
 if(F){
-  figSubjectiveMeasures_w.violin_hori <-  cowplot::plot_grid(
+  figSubjectiveMeasures_w.violin_hori <- cowplot::plot_grid(
     subjectiveMeasures, measure_violins, ncol = 2)
   ggsave("./paper/figures/figSubjectiveMeasures_w.violin_hori.pdf",
          figSubjectiveMeasures_w.violin_hori, device = "pdf",

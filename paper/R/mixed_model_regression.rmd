@@ -119,12 +119,14 @@ my_theme <- list(
 my_ggpubr <- function(df, x = "Factor", y = "Marks", title = waiver(), subtitle = waiver(), facet = NULL){
   ## Find height of global significance test text.
   .x_lvls <- df %>% pull({{x}}) %>% levels()
-  .y_range <- diff(range(df[y]))
+  .y <- df %>% pull({{y}})
+  if(is.factor(.y)) .y <- as.integer(.y)
+  .y_range <- diff(range(.y))
   .no_x_lvls <- length(.x_lvls)
-  .facet_lvls <- 1 ## Init
-  if(is.null(facet) == FALSE)
+  if(is.null(facet) == FALSE){
     .facet_lvls <- df %>% pull({{facet}}) %>% levels() %>% length()
-  .lab.y <- (.065 * .y_range) * (1 + .no_x_lvls) * .y_range + max(df[y])
+  } else .facet_lvls <- 1 ## Init
+  .lab.y <- (.08 * .y_range) * (1 + .no_x_lvls) * .y_range + max(.y) 
   my_comparisons <- NULL
   if(.no_x_lvls == 2)
     my_comparisons <- list(c(.x_lvls[1], .x_lvls[2]))
@@ -145,9 +147,9 @@ my_ggpubr <- function(df, x = "Factor", y = "Marks", title = waiver(), subtitle 
                        comparisons = my_comparisons,
                        label = "p.signif", hide.ns = TRUE) +
     my_theme +
-    coord_cartesian(ylim = c(min(df[y]), max(df[y]) + .5 * .y_range)) +
+    coord_cartesian(ylim = c(min(.y), max(.y) + .5 * .y_range)) +
     ggtitle(title, subtitle) +
-    ggplot2::xlab(paste0(x, "\n(n=", nrow(df)/(.no_x_lvls * .facet_lvls), " ea.)"))
+    ggplot2::xlab(paste0(x, "\n(n=", nrow(df)/(.no_x_lvls * .facet_lvls), " each)"))
 }
 my_ggpubr_facet <- function(..., facet = "Location"){
   .facet <- facet
@@ -519,18 +521,20 @@ botCis <-
 ### Model alpha * beta + gamma + delta
 
 ```{r}
-.lp <- theme(legend.position = "off")
+.lp <- theme(legend.position = "off", 
+             plot.margin = ggplot2::unit(c(6,3,3,0), "points"))
+.ynums <- theme(axis.ticks.y = element_blank(), axis.text.y = element_blank())
 .yl <- ylab("")
 if(interactive())
   saveRDS(dat_qual, "./dat_qual.rds")
-.factor   <- my_ggpubr(dat_qual, x = "Factor",    y = "Marks") + .lp + ylab("Accuracy")
-.lvls <- c("0/100", "33/66", "50/50%")
-dat_qual_loc <- dat_qual %>%
+.factor   <- my_ggpubr(dat_qual, x = "Factor", y = "Marks") + .lp + ylab("Accuracy")
+.lvls     <- c("0/100%", "33/66%", "50/50%")
+dat_qual  <- dat_qual %>%
   mutate(Location = factor(.lvls[as.integer(Location)], levels = .lvls))
 levels(dat_qual_loc$Location)
-.location <- my_ggpubr(dat_qual_loc, x = "Location", y = "Marks") + .lp + .yl
-.shape    <- my_ggpubr(dat_qual,     x = "Shape",     y = "Marks") + .lp + .yl
-.dim      <- my_ggpubr(dat_qual,     x = "Dim",       y = "Marks") + .lp + .yl
+.location <- my_ggpubr(dat_qual_loc, x = "Location", y = "Marks") + .lp + .yl + .ynums
+.shape    <- my_ggpubr(dat_qual,     x = "Shape",    y = "Marks") + .lp + .yl + .ynums
+.dim      <- my_ggpubr(dat_qual,     x = "Dim",      y = "Marks") + .lp + .yl + .ynums
 .FactorLocation <- my_ggpubr_facet(
   dat_qual, x = "Factor", y = "Marks", facet = "Location") + ylab("Accuracy")
 
@@ -539,7 +543,7 @@ title <- cowplot::ggdraw() +
     "Violin plots of the terms for accuracy: Y1^ = \u03b1 * \u03b2 + \u03b3 + \u03b4", 
     x = .5, y = .75, hjust = .5, vjust = 1)
 top <- cowplot::plot_grid(
-  .factor, .location, .shape, .dim, nrow = 1)
+  .factor, .location, .shape, .dim, nrow = 1, rel_widths = c(1.15, 1, 1, 1))
 gc()
 (violin_ABcd <-
   cowplot::plot_grid(title, top, .FactorLocation + ggtitle("", ""),
@@ -690,7 +694,7 @@ ______
 
 # Saving paper figures (interactive only)
 
-Note that kniting .rmd file does not save figures and .rds files while interactive run all chunks will save new figures and .rds files.
+Note that knitting .rmd file does not save figures and .rds files while interactive run all chunks will save new figures and .rds files.
 ```{r}
 if(interactive()){
   ## instance_id whitelist, the people kept for analysis.
