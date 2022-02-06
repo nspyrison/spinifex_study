@@ -479,7 +479,7 @@ ggParticipantRanges <- ggplot(participant_agg) +
         panel.grid.minor = element_blank()) +
   coord_cartesian(ylim = c(-1, 1)) +
   ylab("CI mean marks") +
-  xlab("Participant (n=6 ea.)")
+  xlab("Participant (n=6 each)")
 ggParticipantRanges <-
   ggExtra::ggMarginal(ggParticipantRanges, type = "density", fill = "grey80")
 ## By simulation
@@ -495,7 +495,7 @@ ggSimulationRanges <- ggplot(simulation_agg) +
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()) +
   coord_cartesian(ylim = c(-1, 1)) +
-  xlab("Simulation (n=36 ea.)")
+  xlab("Simulation (n=36 each)")
 ggSimulationRanges <-
   ggExtra::ggMarginal(ggSimulationRanges, type = "density", fill = "grey80")
 ## Bringing it all together
@@ -662,7 +662,7 @@ ggParticipantRanges <- ggplot(participant_agg) +
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()) +
   geom_hline(yintercept = mean(participant_agg$log_sec_last_resp)) +
-  xlab("Participant (n=6 ea.)") +
+  xlab("Participant (n=6 each)") +
   ylab("CI mean log last response [seconds]")
 ggParticipantRanges <-
   ggExtra::ggMarginal(ggParticipantRanges, type = "density", fill = "grey80")
@@ -680,7 +680,7 @@ ggSimulationRanges <- ggplot(simulation_agg) +
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()) +
   geom_hline(yintercept = mean(simulation_agg$log_sec_last_resp)) +
-  xlab("Simulation (n=36 ea.)")
+  xlab("Simulation (n=36 each)")
 ggSimulationRanges <-
   ggExtra::ggMarginal(ggSimulationRanges, type = "density", fill = "grey80")
 ## Bringing it all together
