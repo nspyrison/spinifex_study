@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 ```
 
 <!-- segue to extended analysis -->
-This section covers peripheral and extended analysis. First we explore the demographics of the participants. Then we extend a parallel modeling analysis on log response time. Lastly, we look at the effect ranges and marginal effects of the random effect of the participants and data simulation. 
+This section covers peripheral and extended analysis. First, we explore the demographics of the participants. Then we extend a parallel modeling analysis on log response time. Lastly, we look at the effect ranges and marginal effects of the random effect of the participants and data simulation. 
 
 ## Survey participant demographics {-}
 
@@ -40,7 +40,7 @@ As a secondary explanatory variable, we also want to look at time. First, we tak
 kableExtra::kbl(
   model_comp_tbl_ls[[2]], "latex", align = c("l", rep("l", 2), rep("c", 5)),
   booktabs = TRUE, linesep = "", row.names = FALSE,
-  caption = "Model performance regressing on log response time [seconds], $\\widehat{Y_2}$ random effect models, where each includes random effect terms for participants and simulations. We see the same trade-off where AIC/BIC prefer the simplest factor model, while $R^2$ and RMSE is the largest in the full multiplicative model. We again select the model $\\alpha \\cdot \\beta + \\gamma + \\delta$ to explore further as it has relatively high marginal $R^2$ while having much less complexity than the complete interaction model. Conditional $R^2$ includes the random effects, while marginal does not.") %>%
+  caption = "Model performance regressing on log response time [seconds], $\\widehat{Y_2}$ random effect models, where each includes random effect terms for participants and simulations. We see the same trade-off where AIC/BIC prefer the simplest factor model, while $R^2$ and RMSE are the largest in the full multiplicative model. We again select the model $\\alpha \\cdot \\beta + \\gamma + \\delta$ to explore further as it has relatively high marginal $R^2$ while having much less complexity than the complete interaction model. Conditional $R^2$ includes the random effects, while marginal does not.") %>%
   kableExtra::kable_styling(bootstrap_options = "striped", font_size = 10)
 ```
 
@@ -59,9 +59,8 @@ kableExtra::kbl(
 ## Random effect ranges {-}
 
 <!-- Random effect terms specify source of the error -->
-The random effect terms further clarify the source of the error. Below we compare the effect ranges that can be attributed to the participant and to the simulations next to their marginal effect on the response, a sort of upper bound for the error they could explain. We look at the original accuracy model and then the model regressing log response time.
+The random effect terms further clarify the source of the error. Below we compare the effect ranges attributed to the participant and to the simulations next to their marginal effect on the response, a sort of upper bound of the error they could explain. We look at models regressing accuracy and then log response time.
 
-<!-- Random effects vs Mean Mark CI by participant and sim -->
 <!-- Random effects vs Mean Mark CI by participant and sim -->
 The residual plots have no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figEffectRange) illustrates (T) the effect size of the random terms participant and simulation, or more accurately, the 95\% CI from Gelman simulation of their posterior distribution. The effect size of the participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha = .95$, while none of the simulation effects significantly deviate from the null of having no effect size on the marks. In comparison, (B) 95\% confidence intervals participation and simulation mean accuracy, respectively.
 
@@ -73,7 +72,7 @@ if(F) ## Creation and saving figure at:
 knitr::include_graphics("./figures/figEffectRange.pdf")
 ```
 
-Similarly, figure \@ref(fig:figTeffectRange) shows the Gelman simulations and marginal effects of the simulation and participants for $Y_2$, the same model regressing on log response time.
+Similarly, figure \@ref(fig:figTeffectRange) shows the Gelman simulations and marginal effects of the simulation and participants for the model with the same terms regressing on log response time.
 
 ```{r figTeffectRange, out.width="100%", fig.show="asis", fig.cap = "Log response time model: (T) The effect ranges of Gelman resimulation on posterior distributions for the time model, $\\widehat{Y_2} = \\alpha \\cdot \\beta + \\gamma + \\delta$. These show the magnitude and distributions of particular participants and simulations. Simulation has a relatively small effect on response time. (B) Confidence intervals for mean log time by participant and simulation. The marginal density shows that the response times are left-skewed after log transformation. Interpreting back to linear time there is quite the spread of response times: $e^{1} = 2.7$, $e^{2.75} = 15.6$, $e^{3.75} = 42.5$ seconds. Of the simulations on the right, the bottom has a large variation in response time, relative to the effect ranges which means that the variation is explained in the terms of the model and not by the simulation itself."}
 if(F) ## Creation and saving figure at:
