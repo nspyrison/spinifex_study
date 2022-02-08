@@ -186,16 +186,14 @@ my_theme <- list(
 ## indirect (via ggpubr/cowplot) ggplot2 helpers
 #' @examples
 #' df=dat_qual;x="factor";y="marks";title = waiver(); subtitle = waiver(); facet = NULL
-my_ggpubr_measures <- function(df, x = "Factor", y = "Marks", title = waiver(), subtitle = waiver(), facet = NULL){
+my_ggpubr <- function(
+  df, x = "Factor", y = "Marks",
+  title = waiver(), subtitle = waiver(), facet = NULL,
+  y_pval_coef = .08,  ## Subjective wants .032
+  ylim_max_coef = .5 ## Subjective wants .6
+){
   ## Find height of global significance test text.
   .x_lvls <- df %>% pull({{x}}) %>% levels()
-  # browser()
-  # ## OLD
-  # .y_range <- diff(range(df[y]))
-  # .n_lvls <- length(.x_lvls)
-  # .lab.y <- (.04 * .y_range) * (1 + .n_lvls) * .y_range + max(df[y])
-  
-  ## PURPOSED
   .y <- df %>% pull({{y}})
   if(is.factor(.y)) .y <- as.integer(.y)
   .y_range <- diff(range(.y))
@@ -203,9 +201,14 @@ my_ggpubr_measures <- function(df, x = "Factor", y = "Marks", title = waiver(), 
   if(is.null(facet) == FALSE){
     .facet_lvls <- df %>% pull({{facet}}) %>% levels() %>% length()
   } else .facet_lvls <- 1 ## Init
-  .lab.y <- (.032 * .y_range) * (1 + .no_x_lvls) * .y_range + max(.y)
-  ## THIS IS DIFFERNT FROM THE NUMERIC
-  my_comparisons <- list(c("pca", "grand"), c("grand", "radial"), c("pca", "radial"))
+  .lab.y <- (y_pval_coef * .y_range) * (1 + .no_x_lvls) * .y_range + max(.y) 
+  my_comparisons <- NULL
+  if(.no_x_lvls == 2)
+    my_comparisons <- list(c(.x_lvls[1], .x_lvls[2]))
+  if(.no_x_lvls == 3)
+    my_comparisons <- list(c(.x_lvls[1], .x_lvls[2]),
+                           c(.x_lvls[2], .x_lvls[3]),
+                           c(.x_lvls[1], .x_lvls[3]))
   
   ## Plot
   ggviolin(df, x = x, y = y, fill = x, alpha = .6,
@@ -219,19 +222,21 @@ my_ggpubr_measures <- function(df, x = "Factor", y = "Marks", title = waiver(), 
                        comparisons = my_comparisons,
                        label = "p.signif", hide.ns = TRUE) +
     my_theme +
-    coord_cartesian(ylim = c(min(.y), max(.y) + .6 * .y_range)) + ## ~~This is different
+    coord_cartesian(ylim = c(min(.y), max(.y) + ylim_max_coef * .y_range)) +
     ggtitle(title, subtitle) +
-    ggplot2::xlab(paste0(x, "\n(n=", nrow(df)/(.no_x_lvls * .facet_lvls), " each)"))
+    ggplot2::xlab(paste0(
+      x, "\n(n=", nrow(df)/(.no_x_lvls * .facet_lvls), " each)"))
 }
-my_ggpubr_facet_measures <- function(..., facet = "measure"){ ## ~~measure; regression is on Location
-  .facet <- facet
-  facet(my_ggpubr_measures(..., facet = .facet), facet.by = .facet)
+my_ggpubr_facet <- function(..., facet = "Location"){
+  facet(my_ggpubr(..., facet = facet), facet.by = facet)
 }
 
 subjective_longer$value <- as.integer(subjective_longer$value)
-(measure_violins <- my_ggpubr_facet_measures(
-  df = subjective_longer, x = "factor", y = "value", facet = "measure")
-  + labs(x = "Factor", y = "Response", fill = "Factor") + ylim(1, 20))
+(measure_violins <- my_ggpubr_facet(
+  df = subjective_longer, x = "factor", y = "value", facet = "measure",
+  y_pval_coef = .032,  ## Subjective wants .032
+  ylim_max_coef = .6) + ## Subjective wants .6
+    labs(x = "Factor", y = "Response", fill = "Factor") + ylim(1, 20))
 
 #### Subjective measures, Likert plots -----
 ### Try to create my own likert barplots and signif tables: likert and this seem to want preaggregated format

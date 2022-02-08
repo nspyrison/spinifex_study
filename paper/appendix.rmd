@@ -48,7 +48,7 @@ kableExtra::kbl(
 ```{r timeCoefTbl, fig.cap = "Use the caption arg in kable(), not this."}
 kableExtra::kbl(
   coef_ls[[2]], booktabs = TRUE, linesep = "", format = "latex", digits = 5,
-  caption = "Model coefficients for log response time [seconds] $\\widehat{Y_2} = \\alpha \\cdot \\beta + \\gamma + \\delta$, with factor = PCA, location = 0/100\\%, and shape = EEE held as baselines. Location = 50/50\\% is the fixed term with the strongest evidence and takes less time. In contrast, the interaction term location = 50/50\\%:shape = EEV has the most evidence and takes much longer on average.") %>%
+  caption = "Model coefficients for log response time [seconds] $\\widehat{Y_2} = \\alpha \\cdot \\beta + \\gamma + \\delta$, with factor = pca, location = 0/100\\%, shape = EEE, and dim = 4 held as baselines. Location = 50/50\\% is the fixed term with the strongest evidence and takes less time. In contrast, the interaction term location = 50/50\\%:shape = EEV has the most evidence and takes much longer on average.") %>%
   kableExtra::pack_rows("Factor", 2, 3) %>%
   kableExtra::pack_rows("Fixed effects", 4, 8) %>%
   kableExtra::pack_rows("Interactions", 9, 12) %>%

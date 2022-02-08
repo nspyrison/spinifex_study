@@ -43,7 +43,7 @@ if(FALSE){
   raw <- readRDS(rel_path("../data_study/raw.rds"))
   ## Only plot_active rows 
   ## AND Only participants (rows where nchar(Participant) == 24 charcters long)
-  dat_active <- raw %>% filter(nchar(stringr::str_trim(prolific_id)) == 24) 
+  dat_active <- raw %>% filter(nchar(stringr::str_trim(prolific_id)) == 24)
   ## pivot variables columns longer; each row is 1 variable
   dat_longer <- pivot_longer_resp_ans_tbl(dat_active)
   ## Impute missing sec_to_resp, via mean diff with sec_on_pg, only 20 rows in 8330
@@ -60,7 +60,10 @@ if(FALSE){
         factor == "radial", task_input_inter -1, task_input_inter)) %>%
     ## Plot friendly titles
     mutate(prolific_id = stringr::str_trim(prolific_id),
-           instance_id = paste(sep = "_", participant_num, full_perm_num, prolific_id)) %>%
+           instance_id = paste(
+             sep = "_", participant_num, full_perm_num, prolific_id),
+           factor = factor(factor, levels = c("pca", "grand", "radial"))
+    ) %>%
     dplyr::rename(simulation = sim_nm,
            shape = vc,
            dim = p_dim,
@@ -116,7 +119,12 @@ my_theme <- list(
 ## indirect (via ggpubr/cowplot) ggplot2 helpers
 #' @examples
 #' df=dat_qual;x="factor";y="marks";title = waiver(); subtitle = waiver(); facet = NULL
-my_ggpubr <- function(df, x = "Factor", y = "Marks", title = waiver(), subtitle = waiver(), facet = NULL){
+my_ggpubr <- function(
+  df, x = "Factor", y = "Marks",
+  title = waiver(), subtitle = waiver(), facet = NULL,
+  y_pval_coef = .08,  ## Subjective wants .032
+  ylim_max_coef = .5 ## Subjective wants .6
+){
   ## Find height of global significance test text.
   .x_lvls <- df %>% pull({{x}}) %>% levels()
   .y <- df %>% pull({{y}})
@@ -126,7 +134,7 @@ my_ggpubr <- function(df, x = "Factor", y = "Marks", title = waiver(), subtitle 
   if(is.null(facet) == FALSE){
     .facet_lvls <- df %>% pull({{facet}}) %>% levels() %>% length()
   } else .facet_lvls <- 1 ## Init
-  .lab.y <- (.08 * .y_range) * (1 + .no_x_lvls) * .y_range + max(.y) 
+  .lab.y <- (y_pval_coef * .y_range) * (1 + .no_x_lvls) * .y_range + max(.y) 
   my_comparisons <- NULL
   if(.no_x_lvls == 2)
     my_comparisons <- list(c(.x_lvls[1], .x_lvls[2]))
@@ -147,13 +155,13 @@ my_ggpubr <- function(df, x = "Factor", y = "Marks", title = waiver(), subtitle 
                        comparisons = my_comparisons,
                        label = "p.signif", hide.ns = TRUE) +
     my_theme +
-    coord_cartesian(ylim = c(min(.y), max(.y) + .5 * .y_range)) +
+    coord_cartesian(ylim = c(min(.y), max(.y) + ylim_max_coef * .y_range)) +
     ggtitle(title, subtitle) +
-    ggplot2::xlab(paste0(x, "\n(n=", nrow(df)/(.no_x_lvls * .facet_lvls), " each)"))
+    ggplot2::xlab(paste0(
+      x, "\n(n=", nrow(df)/(.no_x_lvls * .facet_lvls), " each)"))
 }
 my_ggpubr_facet <- function(..., facet = "Location"){
-  .facet <- facet
-  facet(my_ggpubr(..., facet = .facet), facet.by = .facet)
+  facet(my_ggpubr(..., facet = facet), facet.by = facet)
 }
 ```
   
@@ -238,10 +246,13 @@ instance_id_whitelist <- dat_qual %>%
   pull(instance_id)
  
 ## Apply the final white list, the last 3 even evaluations of each perm
-dat_qual <- dat_qual %>%
-  filter(instance_id %in% instance_id_whitelist)
 .lvls = c("0/100%", "33/66%", "50/50%")
-dat_qual$Location <- factor(.lvls[as.integer(dat_qual$Location)], levels = .lvls)
+dat_qual <- dat_qual %>%
+  filter(instance_id %in% instance_id_whitelist) %>% 
+  mutate(Location = factor(
+    .lvls[as.integer(Location)], levels = .lvls)
+  )
+
 if(interactive())
   saveRDS(dat_qual, rel_path("../data_study/dat_qual.rds"))
 
@@ -531,8 +542,8 @@ if(interactive())
 .lvls     <- c("0/100%", "33/66%", "50/50%")
 dat_qual  <- dat_qual %>%
   mutate(Location = factor(.lvls[as.integer(Location)], levels = .lvls))
-levels(dat_qual_loc$Location)
-.location <- my_ggpubr(dat_qual_loc, x = "Location", y = "Marks") + .lp + .yl + .ynums
+levels(dat_qual$Location)
+.location <- my_ggpubr(dat_qual, x = "Location", y = "Marks") + .lp + .yl + .ynums
 .shape    <- my_ggpubr(dat_qual,     x = "Shape",    y = "Marks") + .lp + .yl + .ynums
 .dim      <- my_ggpubr(dat_qual,     x = "Dim",      y = "Marks") + .lp + .yl + .ynums
 .FactorLocation <- my_ggpubr_facet(
@@ -544,7 +555,7 @@ title <- cowplot::ggdraw() +
     x = .5, y = .75, hjust = .5, vjust = 1)
 top <- cowplot::plot_grid(
   .factor, .location, .shape, .dim, nrow = 1, rel_widths = c(1.15, 1, 1, 1))
-gc()
+.m <- gc()
 (violin_ABcd <-
   cowplot::plot_grid(title, top, .FactorLocation + ggtitle("", ""),
                      ncol = 1, rel_heights = c(.1, 1, 1.4)))
@@ -586,9 +597,10 @@ tACDb <- lmer(log_sec_last_resp ~ Factor * Shape * Dim + Location + (1 | Partici
 tABCD <- lmer(log_sec_last_resp ~ Factor * Location * Shape * Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
 
 t_model_ls <-
-  list(ta = ta, tab = tab, tac = tac, tad = tad, tabc = tabc, tabd = tabd, tacd = tacd,
-      tabcd = tabcd, tABcd = tABcd, tACbd = tACbd, tADbc = tADbc,
-      tABCd = tABCd, tABDc = tABDc, tACDb = tACDb, tABCD = tABCD)
+  list(ta = ta, tab = tab, tac = tac, tad = tad, tabc = tabc,
+       tabd = tabd, tacd = tacd,
+       tabcd = tabcd, tABcd = tABcd, tACbd = tACbd, tADbc = tADbc,
+       tABCd = tABCd, tABDc = tABDc, tACDb = tACDb, tABCD = tABCD)
 
 ############################
 #### COMPARE -----

@@ -157,11 +157,11 @@ if(F){
 load("./apps_supplementary/data/EEE_p4_0_1_rep1.rda") ## load obj EEE_p4_0_1_rep1
 load("./apps_supplementary/data/EEE_p6_0_1_rep1.rda") ## load obj EEE_p5_0_1_rep1
 str(EEE_p4_0_1_rep1)
-bas4 <- spinifex::basis_half_circle(EEE_p4_0_1_rep1)
-bas6 <- spinifex::basis_half_circle(EEE_p6_0_1_rep1)
+bas4  <- spinifex::basis_half_circle(EEE_p4_0_1_rep1)
+bas6  <- spinifex::basis_half_circle(EEE_p6_0_1_rep1)
 clas4 <- attr(EEE_p4_0_1_rep1, "cluster")
 clas6 <- attr(EEE_p6_0_1_rep1, "cluster")
-dim4 <- ggtour(bas4) +
+dim4  <- ggtour(bas4) +
   proto_basis() +
   this_theme + 
   ggplot2::labs(subtitle = "3 clusters in 4 dimensions")
@@ -178,18 +178,20 @@ dim_txt <- ggplot() +
 
 ### Cowplot munging ------
 .gg_empty <- ggplot() + theme_void()
-fct_row <- plot_grid(fct1, fct2, fct3, nrow = 1)
-loc_row <- plot_grid(loc1, loc2, loc3, nrow = 1)
-shp_row <- plot_grid(shp1, shp2, shp3, nrow = 1)
+fct_row <- plot_grid(fct1, fct2, fct3,    nrow = 1)
+loc_row <- plot_grid(loc1, loc2, loc3,    nrow = 1)
+shp_row <- plot_grid(shp1, shp2, shp3,    nrow = 1)
 dim_row <- plot_grid(dim4, dim6, dim_txt, nrow = 1)
 gc()
-gg_matrix <- plot_grid(fct_row, loc_row, shp_row, dim_row, ncol = 1, rel_heights = c(1,.8,.8,1))
+gg_matrix <- plot_grid(fct_row, loc_row, shp_row, 
+                       dim_row, ncol = 1, rel_heights = c(1,.8,.8,1))
 
 header_row <- ggplot() + 
   labs(title = "Levels of the experimental factors") + 
   theme_void() +
   theme(plot.title = element_text(hjust = 0.5))
-header_matrix <- plot_grid(header_row, gg_matrix, ncol = 1, rel_heights = c(0.03, 1))
+header_matrix <- plot_grid(header_row, gg_matrix, ncol = 1, 
+                           rel_heights = c(0.03, 1))
 
 t_fct <- ggplot() + 
   labs(title = "Factor") +
@@ -207,7 +209,8 @@ t_dim <- ggplot() +
   labs(title = "Dimension") +
   theme_void() +
   theme(plot.title = element_text(angle = 90))
-tbl_col <- plot_grid(.gg_empty, t_fct, t_loc, t_shp, t_dim, ncol = 1, rel_heights = c(.8, 1.2,1.2,1,1))
+tbl_col <- plot_grid(.gg_empty, t_fct, t_loc, t_shp, t_dim,
+                     ncol = 1, rel_heights = c(.8,1.2,1.2,1,1))
 
 final <- plot_grid(tbl_col, header_matrix, nrow = 1, rel_widths = c(0.05, 1))
 

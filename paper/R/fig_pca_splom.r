@@ -156,5 +156,5 @@ gg_pca <- GGally::ggpairs(
 
 if(F)
   ggsave("./paper/figures/fig_pca_splom.pdf", gg_pca,
-         device = "pdf", width = .w / 2, height = .w / 2, units = .u)
+         device = "pdf", width = .w, height = .w, units = .u)
 
