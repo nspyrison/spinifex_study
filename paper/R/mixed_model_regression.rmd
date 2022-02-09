@@ -400,13 +400,8 @@ if(FALSE)
 a    <- lmer(Marks ~ Factor + (1 | Participant) + (1 | Simulation), data = dat_qual)
 abcd <- lmer(Marks ~ Factor + Location + Shape + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
 ABcd <- lmer(Marks ~ Factor * Location + Shape + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
-ACbd <- lmer(Marks ~ Factor * Shape + Location + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
-ADbc <- lmer(Marks ~ Factor * Dim + Location + Shape + (1 | Participant) + (1 | Simulation), data = dat_qual)
 ABCd <- lmer(Marks ~ Factor * Location * Shape + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
-ABDc <- lmer(Marks ~ Factor * Location * Dim + Shape + (1 | Participant) + (1 | Simulation), data = dat_qual)
-ACDb <- lmer(Marks ~ Factor * Shape * Dim + Location + (1 | Participant) + (1 | Simulation), data = dat_qual)
 ABCD <- lmer(Marks ~ Factor * Location * Shape * Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
-
 model_ls <-list(a=a, abcd=abcd, ABcd=ABcd, ABCd=ABCd, ABCD=ABCD)
 
 ############################
@@ -557,7 +552,8 @@ tabcd <- lmer(log_sec_last_resp ~ Factor + Location + Shape + Dim + (1 | Partici
 tABcd <- lmer(log_sec_last_resp ~ Factor * Location + Shape + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
 tABCd <- lmer(log_sec_last_resp ~ Factor * Location * Shape + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
 tABCD <- lmer(log_sec_last_resp ~ Factor * Location * Shape * Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
-t_model_ls <- list(ta = ta, tabcd = tabcd, tABcd = tABcd,tABCd = tABCd, tABCD = tABCD)
+t_model_ls <- list(
+  ta = ta, tabcd = tabcd, tABcd = tABcd, tABCd = tABCd, tABCD = tABCD)
 
 ############################
 #### COMPARE -----
