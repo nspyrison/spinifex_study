@@ -62,6 +62,7 @@ if(F){ ## Manually run
 ## try to fix error from kableExtra:
 #Package xcolor Error: Undefined color `shadecolor'.
 options(kableExtra.latex.load_packages = FALSE) 
+options(knitr.table.format = "latex")
 ## kableExtra also has a new error with column_spec():
 # Undefined control sequence.
 # <argument> >{\raggedright \arraybackslash 
@@ -98,8 +99,11 @@ Dimension reduction is commonly used with visualization to provide informative l
 
 The class of dynamic linear projections known as _tours_ [@asimov_grand_1985], shown as scatterplots or biplots, can be used to animate multiple principal components. Instead of a static view of two orthogonal components, interpolations between multiple components can be viewed. Asimov originally animated between randomly selected bases in the _grand_ tour. The _manual_ tour [@cook_manual_1997] uniquely allows for user-control over the basis changes. A selected variable (or component) can be rotated to the desired contribution. A radial tour [@spyrison_spinifex_2020] is a special version of the manual tour, available in the R package `spinifex`. The permanence of the data points from frame to frame and information held in intermediate interpolated frames or user-control of the basis could plausibly lead to more information perception than a static display. This is a hypothesis that a user study could assess.
 
-<!-- Related studies & research gap -->
-There have been several user studies comparing scatterplots of dimension-reduced spaces across 2D and 3D scatterplots on traditional 2D monitors [@gracia_new_2016; @wagner_filho_immersive_2018]. There are also empirical statistics used to describe non-linear reduction and how well and faithfully they embed the data in a lower space [@bertini_quality_2011; @liu_visualizing_2017; @sedlmair_empirical_2013; @van_der_maaten_visualizing_2008]. @nelson_xgobi_1999 even compared 2D with 3D scatterplots for detecting clusters, and dependence, in multivariate data. However, there is an absence of studies comparing different visual techniques.
+<!-- 2D vs D3, mostly PCA reduced -->
+@gracia_new_2016 conducted an $n=40$ user study comparing between 2D and 3D scatterplots on traditional 2D monitors. Participants perform point classification, distance perception, and outlier identification tasks. The results are mixed and mostly small differences. There is some evidence to suggest a lower error in distance perception from 3D scatterplot. @wagner_filho_immersive_2018 performed an $n=30$ within participants using scatterplot display between 2D, 3D displays on monitors and 3D display with a head-mounted display on PCA reduced spaces. None of the tasks on any dataset lead to a significant difference in accuracy. However, the immersive display reduced effort and navigation while resulting in higher perceived accuracy and engagement. @sedlmair_empirical_2013 instead uses two expert coders to evaluate 75 datasets and four dimension reduction techniques for 2D scatterplots, interactive 3D scatterplots, and 2D scatterplot matrices. They suggest a tiered guidance approach finding that 2D scatterplots are often 'good enough'. If not, try 2D scatterplots on a different dimension reduction technique before going to scatterplot matrix display or concluding a true negative. They find that interactive 3D scatterplots help in very few cases.
+
+<!-- Nonlinear DR quality review -->
+Empirical studies scarcely compare tours. However, @nelson_xgobi_1999 compare scatterplots of grand tours on 2D monitor with 3D (stereoscopic, not head-mounted) over $n=15$ participants. Participants perform clusters detection, dimensionality and radial sparseness tasks on six dimensional data. They find that stereoscopic 3D leads to more accuracy in the cluster identification, though interaction time was much increased in the in 3D case. In this work we extend the evaluation of tours which novelly compares the radial tour as benchmarked against the grand tour and discrete pairs of principal components.
 
 <!-- Overview of the study -->
 We are particularly interested in assessing the effectiveness of the new radial tour relative to common practice with PCA and grand tour.<!-- thesis_ns introduction --> The user influence over a basis, uniquely available in the radial tour, is crucial to testing variable sensitivity to the structure visible in projection. If the contribution of a variable is reduced and the feature disappears, then we say that the variable was sensitive to that structure. For example, Figure \@ref(fig:figClSep) shows two frames of simulated data. Panel (a) has identified separation between the two clusters. The contributions in panel (b) show no such cluster separation. The former has a large contribution to V2 in the direction of separation, while it is negligible in the right frame. Because of this we say that V2 is sensitive to the separation of the clusters.
@@ -382,9 +386,9 @@ model_comp_tbl_ls <- readRDS("./figures/modelCompLs.rds")
 ## 1) Eval parameters
 model_comp <- kableExtra::kbl(
   model_comp_tbl_ls[[1]], "latex", align = c("l", rep("l", 2), rep("c", 5)),
-  booktabs = TRUE, linesep = "",
+  booktabs = TRUE, linesep = "", escape = FALSE, ## Allow cell_spec formatting
   caption = "Model performance of random effect models regressing accuracy. Each model includes a random effect term of the participant explaining the individual's influence on accuracy. Complex models perform better in terms of $R^2$ and RMSE, yet AIC and BIC penalize their large number of fixed effects in favor of the much simpler model containing only the visual factor. Conditional $R^2$ includes the random effects, while marginal does not.") %>%
-  kableExtra::kable_styling(bootstrap_options = "striped", font_size = 10)
+  kableExtra::kable_classic(font_size = 10)
 if(F)
   saveRDS(object = model_comp, "./paper/figures/model_comp_y1.rds")
 model_comp
@@ -407,7 +411,7 @@ kableExtra::kbl(
   kableExtra::pack_rows("Factor", 2, 3) %>%
   kableExtra::pack_rows("Fixed effects", 4, 8) %>%
   kableExtra::pack_rows("Interactions", 9, 12) %>%
-  kableExtra::kable_styling(bootstrap_options = "striped", font_size = 10)
+  kableExtra::kable_classic(font_size = 10) # bootstrap_options = "striped",
 ```
 
 <!-- Model selection and coefficients -->

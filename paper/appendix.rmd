@@ -39,9 +39,9 @@ As a secondary explanatory variable, we also want to look at time. First, we tak
 ## 1) Eval parameters
 kableExtra::kbl(
   model_comp_tbl_ls[[2]], "latex", align = c("l", rep("l", 2), rep("c", 5)),
-  booktabs = TRUE, linesep = "", row.names = FALSE,
+  booktabs = TRUE, linesep = "",  escape = FALSE, ## Allow cell_spec formatting
   caption = "Model performance regressing on log response time [seconds], $\\widehat{Y_2}$ random effect models, where each includes random effect terms for participants and simulations. We see the same trade-off where AIC/BIC prefer the simplest factor model, while $R^2$ and RMSE are the largest in the full multiplicative model. We again select the model $\\alpha \\cdot \\beta + \\gamma + \\delta$ to explore further as it has relatively high marginal $R^2$ while having much less complexity than the complete interaction model. Conditional $R^2$ includes the random effects, while marginal does not.") %>%
-  kableExtra::kable_styling(bootstrap_options = "striped", font_size = 10)
+  kableExtra::kable_classic(font_size = 10) # bootstrap_options = "striped",
 ```
 
 <!-- Y2 coeffiecients -->
@@ -52,7 +52,7 @@ kableExtra::kbl(
   kableExtra::pack_rows("Factor", 2, 3) %>%
   kableExtra::pack_rows("Fixed effects", 4, 8) %>%
   kableExtra::pack_rows("Interactions", 9, 12) %>%
-  kableExtra::kable_styling(bootstrap_options = "striped", font_size = 10)
+  kableExtra::kable_classic(font_size = 10) # bootstrap_options = "striped",
 ```
 
 

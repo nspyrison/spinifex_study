@@ -395,18 +395,9 @@ if(FALSE)
 ############################
 #### CREATE MODELS -----
 ############################
-# a == factor
-# b == location
-# c == shape
-# d == dim
+# a == factor, b == location, c == shape, d == dim
 ## The Models:
-a <-    lmer(Marks ~ Factor + (1 | Participant) + (1 | Simulation), data = dat_qual)
-ab <-   lmer(Marks ~ Factor + Location + (1 | Participant) + (1 | Simulation), data = dat_qual)
-ac <-   lmer(Marks ~ Factor + Shape + (1 | Participant) + (1 | Simulation), data = dat_qual)
-ad <-   lmer(Marks ~ Factor + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
-abc <-  lmer(Marks ~ Factor + Location + Shape + (1 | Participant) + (1 | Simulation), data = dat_qual)
-abd <-  lmer(Marks ~ Factor + Location + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
-acd <-  lmer(Marks ~ Factor + Shape + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
+a    <- lmer(Marks ~ Factor + (1 | Participant) + (1 | Simulation), data = dat_qual)
 abcd <- lmer(Marks ~ Factor + Location + Shape + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
 ABcd <- lmer(Marks ~ Factor * Location + Shape + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
 ACbd <- lmer(Marks ~ Factor * Shape + Location + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
@@ -416,9 +407,7 @@ ABDc <- lmer(Marks ~ Factor * Location * Dim + Shape + (1 | Participant) + (1 | 
 ACDb <- lmer(Marks ~ Factor * Shape * Dim + Location + (1 | Participant) + (1 | Simulation), data = dat_qual)
 ABCD <- lmer(Marks ~ Factor * Location * Shape * Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
 
-model_ls <-
-  list(a=a, ab=ab, ac=ac, ad=ad, abc=abc, abd=abd, acd=acd, abcd=abcd,
-       ABcd=ABcd, ACbd=ACbd, ADbc=ADbc, ABCd=ABCd, ABDc=ABDc, ACDb=ACDb, ABCD=ABCD)
+model_ls <-list(a=a, abcd=abcd, ABcd=ABcd, ABCd=ABCd, ABCD=ABCD)
 
 ############################
 #### COMPARE  MODELS -----
@@ -445,26 +434,9 @@ model_comp_tbl <- tibble(names(model_ls),
 )
 colnames(model_comp_tbl) <- .model_comp_colnms
 
-
-## Latex formatting
-#### But then these are treated as character; centered and not latex formatted...
-# model_comp_tbl <- model_comp_tbl %>%
-#   format_column_extrema(4, min) %>%
-#   format_column_extrema(5, min) %>%
-#   format_column_extrema(6, max) %>%
-#   format_column_extrema(7, max) %>%
-#   format_column_extrema(8, min)
-## Subset to 5 models to include in write up.
-.r_idx <- which(pull(model_comp_tbl[, 1]) %in%
-                  c("a", "abcd", "ABcd", "ABCd", "ABCD"))
-model_comp_tbl <- model_comp_tbl[.r_idx, 1:8]
-
 ## print table
 knitr::kable(model_comp_tbl)
-# a == factor
-# b == location
-# c == shape
-# d == dim
+# a == factor, b == location, c == shape, d == dim
 
 ############################
 #### EXPLORE SELECTED MODEL ----
@@ -580,27 +552,12 @@ As a secondary explanatory variable we also want to look at time. First we take 
 dat_qual <- dat_qual %>%
   mutate(log_sec_last_resp = log(`seconds to last response`))
 ## The Models:
-ta <-    lmer(log_sec_last_resp ~ Factor + (1 | Participant) + (1 | Simulation), data = dat_qual)
-tab <-   lmer(log_sec_last_resp ~ Factor + Location + (1 | Participant) + (1 | Simulation), data = dat_qual)
-tac <-   lmer(log_sec_last_resp ~ Factor + Shape + (1 | Participant) + (1 | Simulation), data = dat_qual)
-tad <-   lmer(log_sec_last_resp ~ Factor + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
-tabc <-  lmer(log_sec_last_resp ~ Factor + Location + Shape + (1 | Participant) + (1 | Simulation), data = dat_qual)
-tabd <-  lmer(log_sec_last_resp ~ Factor + Location + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
-tacd <-  lmer(log_sec_last_resp ~ Factor + Shape + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
+ta    <- lmer(log_sec_last_resp ~ Factor + (1 | Participant) + (1 | Simulation), data = dat_qual)
 tabcd <- lmer(log_sec_last_resp ~ Factor + Location + Shape + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
 tABcd <- lmer(log_sec_last_resp ~ Factor * Location + Shape + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
-tACbd <- lmer(log_sec_last_resp ~ Factor * Shape + Location + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
-tADbc <- lmer(log_sec_last_resp ~ Factor * Dim + Location + Shape + (1 | Participant) + (1 | Simulation), data = dat_qual)
 tABCd <- lmer(log_sec_last_resp ~ Factor * Location * Shape + Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
-tABDc <- lmer(log_sec_last_resp ~ Factor * Location * Dim + Shape +(1 | Participant) + (1 | Simulation), data = dat_qual)
-tACDb <- lmer(log_sec_last_resp ~ Factor * Shape * Dim + Location + (1 | Participant) + (1 | Simulation), data = dat_qual)
 tABCD <- lmer(log_sec_last_resp ~ Factor * Location * Shape * Dim + (1 | Participant) + (1 | Simulation), data = dat_qual)
-
-t_model_ls <-
-  list(ta = ta, tab = tab, tac = tac, tad = tad, tabc = tabc,
-       tabd = tabd, tacd = tacd,
-       tabcd = tabcd, tABcd = tABcd, tACbd = tACbd, tADbc = tADbc,
-       tABCd = tABCd, tABDc = tABDc, tACDb = tACDb, tABCD = tABCD)
+t_model_ls <- list(ta = ta, tabcd = tabcd, tABcd = tABcd,tABCd = tABCd, tABCD = tABCD)
 
 ############################
 #### COMPARE -----
@@ -613,7 +570,7 @@ mute <- lapply(seq_along(t_model_ls), function(i){
   t_factors_vec[i] <<- ncol(attr(terms(this_model), "factors"))
   t_fixef_vec[i] <<- length(fixef(this_model))
 })
-.t_perf_df <- dplyr::bind_rows(performance_ls)
+.t_perf_df <- dplyr::bind_rows(t_performance_ls)
 t_model_comp_tbl <- tibble::tibble(names(t_model_ls),
                                    t_factors_vec,
                                    t_fixef_vec,
@@ -623,18 +580,6 @@ t_model_comp_tbl <- tibble::tibble(names(t_model_ls),
                                    round(.t_perf_df[, 4], 3),
                                    round(.t_perf_df[, 6], 3))
 colnames(t_model_comp_tbl) <- .model_comp_colnms
-
-## Latex formatting
-#### But then these are treated as character; centered and not latex formatted...
-# t_model_comp_tbl <- t_model_comp_tbl %>%
-#   format_column_extrema(4, min) %>%
-#   format_column_extrema(5, min) %>%
-#   format_column_extrema(6, max) %>%
-#   format_column_extrema(7, max) %>%
-#   format_column_extrema(8, min)
-.r_idx <- which(pull(t_model_comp_tbl[, 1]) %in%
-                  c("ta", "tabcd", "tABcd", "tABCd", "tABCD"))
-t_model_comp_tbl <- t_model_comp_tbl[.r_idx, 1:8]
 
 ## print model comparison table
 knitr::kable(t_model_comp_tbl)
@@ -716,22 +661,77 @@ if(interactive()){
   
   ## Model table
   rownames(model_comp_tbl) <- rownames(t_model_comp_tbl) <- NULL
-  model_comp_tbl_ls <- list(modelComp_MarksByEval = model_comp_tbl,
-                            modelComp_TimeByEval = t_model_comp_tbl)
-  model_comp_tbl_ls[[1]]$`Fixed effects` <- model_comp_tbl_ls[[2]]$`Fixed effects` <-
+  mod_comp <- list(modelComp_MarksByEval = model_comp_tbl,
+                   modelComp_TimeByEval = t_model_comp_tbl)
+  mod_comp[[1]]$`Fixed effects` <- mod_comp[[2]]$`Fixed effects` <-
     c("a", "a+b+c+d", "a*b+c+d", "a*b*c+d", "a*b*c*d")
-  saveRDS(model_comp_tbl_ls, file = "./paper/figures/modelCompLs.rds")
-  ## Selected models: marks ~ ABC, log_sec_to_resp ~ ABC
-  #### format coefficients
+  
+  require(kableExtra)
+  ### Attempt to format cell_spec(), have to split format here...
+  format_cells <- function(
+    df, rows, cols, bold = T, format = "latex", ...
+  ){
+    df <- as.data.frame(df) ## tibbles not allowed
+    for(i in seq_along(rows)){
+      df[[cols[i]]] <- as.character( df[[cols[i]]])
+      df[rows[i], cols[i]] <- kableExtra::cell_spec(
+        df[rows[i], cols[i]], format = format, bold = bold, ...)
+    }
+    df
+  }
+  
+  c_idx <- 4:8 ## AIC   BIC `R2 cond.` `R2 marg.`  RMSE
+  ## Accuracy model
+  r_idx <- c(
+    which(mod_comp[[1]]$AIC        == min(mod_comp[[1]]$AIC)),
+    which(mod_comp[[1]]$BIC        == min(mod_comp[[1]]$BIC)),
+    which(mod_comp[[1]]$`R2 cond.` == max(mod_comp[[1]]$`R2 cond.`)),
+    which(mod_comp[[1]]$`R2 marg.` == max(mod_comp[[1]]$`R2 marg.`)),
+    which(mod_comp[[1]]$RMSE       == min(mod_comp[[1]]$RMSE))
+  )
+  ## html copy for thesis
+  mod_comp_html <- mod_comp
+  ## TeX
+  mod_comp[[1]] <- format_cells(
+    mod_comp[[1]], rows = r_idx, cols = c_idx, bold = T)
+  ## HTML
+  mod_comp_html[[1]] <- format_cells(
+    mod_comp_html[[1]], rows = r_idx, cols = c_idx, bold = T, format = "html")
+  
+  ## Log time model
+  r_idx <- c(
+    which(mod_comp[[2]]$AIC        == min(mod_comp[[2]]$AIC)),
+    which(mod_comp[[2]]$BIC        == min(mod_comp[[2]]$BIC)),
+    which(mod_comp[[2]]$`R2 cond.` == max(mod_comp[[2]]$`R2 cond.`)),
+    which(mod_comp[[2]]$`R2 marg.` == max(mod_comp[[2]]$`R2 marg.`)),
+    which(mod_comp[[2]]$RMSE       == min(mod_comp[[2]]$RMSE))
+  )
+  ## TeX
+  mod_comp[[2]] <- format_cells(
+    mod_comp[[2]], rows = r_idx, cols = c_idx, bold = T)
+  ## HTML
+  mod_comp_html[[2]] <- format_cells(
+    mod_comp_html[[2]], rows = r_idx, cols = c_idx, bold = T, format = "html")
+  ## Tex copy for this paper
+  saveRDS(mod_comp, file = "./paper/figures/modelCompLs.rds")
+  ## Save a Latex copy for thesis_ns
+  saveRDS(mod_comp, file = "../thesis_ns/figures/ch4_tab1_model_comp_ls_latex.rds")
+  ## Save a html copy for thesis_ns
+  saveRDS(mod_comp_html, file = "../thesis_ns/figures/ch4_tab1_model_comp_ls_html.rds")
+  
+  ## Model coefficients: marks ~ ABcd, log_sec_to_resp ~ ABC
   round_coef <- function(coef_df){
     coef_df[,  5] <- round(coef_df[,  5], 3) ## Pr(>|t|)
     coef_df[, -c(5, 6)] <- round(coef_df[, -c(5, 6)], 2) ## Except for Pr(>|t|), and stars
     coef_df[, 3]  <- round(coef_df[, 3], 1)  ## further round degrees of freedom
-
     coef_df
   }
-  coef_ls <- list(ABcd_coef = round_coef(ABcd_coef), t_ABcd_coef = round_coef(t_ABcd_coef))
+  coef_ls <- list(ABcd_coef = round_coef(ABcd_coef),
+                  t_ABcd_coef = round_coef(t_ABcd_coef))
+  ## Save for this paper
   saveRDS(coef_ls, file = "./paper/figures/modelCoefLs.rds")
+  ## Save a copy for thesis_ns
+  saveRDS(mod_comp, file = "../thesis_ns/figures/ch4_tab2_model_coef_ls.rds")
   
   ## RE Effect ranges by CI of mean marks
   ggsave("figEffectRange.pdf", plot = figEffectRange, path = "./paper/figures",
