@@ -740,5 +740,19 @@ if(interactive()){
          device = cairo_pdf, width = .w, height = .w, unit = .u)
 }
 .m <- gc()
+
+
+
+### Load tables; rename factor --> visual
+fp_vec <- c("./paper/figures/modelCoefLs.rds", 
+            "../thesis_ns/figures/ch4_tab1_model_comp_ls_latex.rds",
+            "../thesis_ns/figures/ch4_tab1_model_comp_ls_html.rds")
+.m <- sapply(seq_along(fp_vec), function(i){
+  this_ls <- readRDS(file = fp_vec[i])
+  rownames(this_ls[[1]]) <- gsub("Factor", "Visual", rownames(this_ls[[1]]))
+  rownames(this_ls[[2]]) <- gsub("Factor", "Visual", rownames(this_ls[[2]]))
+  saveRDS(this_ls, file = fp_vec[i])
+})
+
 ```
 
