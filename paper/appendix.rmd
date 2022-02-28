@@ -15,12 +15,38 @@ knitr::opts_chunk$set(
 )
 ```
 
+
 <!-- segue to extended analysis -->
-This section covers peripheral and extended analysis. First, we explore the demographics of the participants. Then we extend a parallel modeling analysis on log response time. Lastly, we look at the effect ranges and marginal effects of the random effect of the participants and data simulation. 
+This section covers an accompanying graphical user interface for condcting radial tours and extended analysis. First, this analysis explores the demographics of the participants. Then a parallel modeling analysis is performed regressing log response time. Lastly, we look at the effect ranges and marginal effects of the random effect of the participants and data simulation. 
+
+
+## Accompanying radial tour application {#sec:spinifex}
+
+An accompanying application illustrates the radial tour. The __R__ package, __spinifex__, [@spyrison_spinifex_2020] is an open-source and now contains a __shiny__ [@chang_shiny_2021] application allowing users to apply various preprocessing tasks and interactively explore their data via interactive radial tour. Example datasets are provided with the ability to upload data. The `html` widget produced is a more interactive variant relative to the one used in the user study. Screen captures and more details are provided in the appendix. Run the following __R__ code will run the application locally.
+
+```{r getting_started, eval=FALSE, echo=TRUE}
+install.packages("spinifex", dependencies = TRUE)
+spinifex::run_app()
+```
+
+```{r radialTourAppPg1, out.width="100%", fig.show="asis", fig.cap = "Process data tab, interactively loads or select data, check which variables to project, and optionally scale columns by standard deviation."}
+## Manual screen capture via: spinifex::run_app()
+knitr::include_graphics("./figures/app_pg1.png")
+```
+
+In the initial tab, Figure \@ref(fig:radialTourAppPg1), users upload their own (.csv, .rds, or .rda) data or select from predefined data sets. The numeric columns appear as a list of variables to include in the projection. Below that, a line displays whether or not missing rows were removed. Scaling by standard deviation is included by default, as this is a common transformation used to explore linear projections of spaces. Summaries of the raw data and processed numeric data are displayed to illustrate how the data was read and its transformation.
+
+```{r radialTourAppPg2, out.width="100%", fig.show="asis", fig.cap = "Radial tour tab, interactively create radial tours, changing the manipulation variable, color, or shape of the resulting manual tour. Here, the palmer penguins data is being explored, bill length was selected to manipulate as it is the only variable separating the green cluster from the orange. By mapping shape to island of observation, the green species can be noted to live on all three islands, while the other species live on only one island."}
+## Manual screen capture via: spinifex::run_app()
+knitr::include_graphics("./figures/app_pg2.png")
+```
+
+The second tab, Figure \@ref(fig:radialTourAppPg2) contains interaction for selecting the manipulation variable, and non-numeric columns can be used to change the color and shape of the data points in the projection. The radial tour is created in real-time, animated as an interactive __plotly__ `html` widget. The application offers users a fast, intuitive introduction elucidating what the radial tour does and some of the features offered.
+
 
 ## Survey participant demographics {-}
 
-The target population is relatively well-educated people, as linear projections may prove difficult for generalized consumption. Hence we restrict Prolific.co participants to those with an undergraduate degree (58,700 of the 150,400 users at the study time). From this cohort, 108 performed a complete study. Of these participants, 84 submitted the post-study survey, represented in the following heatmap. All participants were compensated for their time at \pounds 7.50 per hour, with a mean time of about 16 minutes. Figure \@ref(fig:figSurveyDemographics) shows a heat map of the demographics for these 84 participants.
+The target population is relatively well-educated people, as linear projections may prove difficult for generalized consumption. Hence Prolific.co participants are restricted to those with an undergraduate degree (58,700 of the 150,400 users at the study time). From this cohort, 108 performed a complete study. Of these participants, 84 submitted the post-study survey, represented in the following heatmap. All participants were compensated for their time at \pounds 7.50 per hour, with a mean time of about 16 minutes. Figure \@ref(fig:figSurveyDemographics) shows a heat map of the demographics for these 84 participants.
 
 ```{r, figSurveyDemographics, out.width="100%", fig.cap = "Heatmaps of survey participant demographics; counts of age group by completed education as faceted across preferred pronoun. Our sample tended to be between 18 and 35 years of age with an undergraduate or graduate degree."}
 if(F) ## Creation and saving figure at:
@@ -32,7 +58,8 @@ knitr::include_graphics("./figures/figSurveyDemographics.pdf")
 ## Response time regression
 
 <!-- Time as secondary interest, Y2 -->
-As a secondary explanatory variable, we also want to look at time. First, we take the log transformation of time as it is right-skewed. We repeat the same modeling procedure: 1) Compare the performance of a battery of all additive and multiplicative models. Table \@ref(tab:timeCompTbl) shows the higher level performance of these models over increasing model complexity. 2) Select the model with the same effect terms, $\alpha \cdot \beta + \gamma + \delta$, and examine its coefficients, displayed in Table \@ref(tab:timeCoefTbl).
+As a secondary explanatory variable response time is considered. Response time is first log transformed to remove its right skew. The same modeling procedure is repeated for this response. 1) Compare the performance of a battery of all additive and multiplicative models. Table \@ref(tab:timeCompTbl) shows the higher level performance of these models over increasing model complexity. 2) Select the model with the same effect terms, $\alpha \times \beta + \gamma + \delta$, with relatively high conditional $R^2$ without becoming overly complex from interaction. The coefficients of this model are displayed in Table \@ref(tab:timeCoefTbl).
+
 
 <!-- Y2 model comparisons, continue to use ABcd -->
 ```{r timeCompTbl, fig.cap = "Use the caption arg in kable(), not this."}
@@ -40,7 +67,7 @@ As a secondary explanatory variable, we also want to look at time. First, we tak
 kableExtra::kbl(
   model_comp_tbl_ls[[2]], "latex", align = c("l", rep("l", 2), rep("c", 5)),
   booktabs = TRUE, linesep = "",  escape = FALSE, ## Allow cell_spec formatting
-  caption = "Model performance regressing on log response time [seconds], $\\widehat{Y_2}$ random effect models, where each includes random effect terms for participants and simulations. We see the same trade-off where AIC/BIC prefer the simplest factor model, while $R^2$ and RMSE are the largest in the full multiplicative model. We again select the model $\\alpha \\cdot \\beta + \\gamma + \\delta$ to explore further as it has relatively high marginal $R^2$ while having much less complexity than the complete interaction model. Conditional $R^2$ includes the random effects, while marginal does not.") %>%
+  caption = "Model performance regressing on log response time [seconds], $\\widehat{Y_2}$ random effect models. Conditional $R^2$ includes the random effects, while marginal does not. The model $\\alpha \\times \\beta + \\gamma + \\delta$ model is selected to examine further as it has relatively high marginal $R^2$ while having much less complexity than the complete interaction model.") %>%
   kableExtra::kable_classic(font_size = 10) # bootstrap_options = "striped",
 ```
 
@@ -48,7 +75,7 @@ kableExtra::kbl(
 ```{r timeCoefTbl, fig.cap = "Use the caption arg in kable(), not this."}
 kableExtra::kbl(
   coef_ls[[2]], booktabs = TRUE, linesep = "", format = "latex", digits = 5,
-  caption = "Model coefficients for log response time [seconds] $\\widehat{Y_2} = \\alpha \\cdot \\beta + \\gamma + \\delta$, with factor = pca, location = 0/100\\%, shape = EEE, and dim = 4 held as baselines. Location = 50/50\\% is the fixed term with the strongest evidence and takes less time. In contrast, the interaction term location = 50/50\\%:shape = EEV has the most evidence and takes much longer on average.") %>%
+  caption = "Model coefficients for log response time [seconds] $\\widehat{Y_2} = \\alpha \\times \\beta + \\gamma + \\delta$, with factor = pca, location = 0/100\\%, shape = EEE, and dim = 4 held as baselines. Location = 50/50\\% is the fixed term with the strongest evidence and takes less time. In contrast, the interaction term location = 50/50\\%:shape = EEV has the most evidence and takes much longer on average.") %>%
   kableExtra::pack_rows("Factor", 2, 3) %>%
   kableExtra::pack_rows("Fixed effects", 4, 8) %>%
   kableExtra::pack_rows("Interactions", 9, 12) %>%
@@ -58,15 +85,16 @@ kableExtra::kbl(
 
 ## Random effect ranges {-}
 
+
 <!-- Random effect terms specify source of the error -->
-The random effect terms further clarify the source of the error. Below we compare the effect ranges attributed to the participant and to the simulations next to their marginal effect on the response, a sort of upper bound of the error they could explain. We look at models regressing accuracy and then log response time.
+The random effect terms further clarify the source of the error. Below is a comparison the effect ranges attributed to the participant and to the simulations next to their marginal effect on the response, a sort of upper bound of the error they could explain. This was performed for the models regressing accuracy and then log response time.
 
 <!-- Random effects vs Mean Mark CI by participant and sim -->
-The residual plots have no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figEffectRange) illustrates (T) the effect size of the random terms participant and simulation, or more accurately, the 95\% CI from Gelman simulation of their posterior distribution. The effect size of the participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha = .95$, while none of the simulation effects significantly deviate from the null of having no effect size on the marks. In comparison, (B) 95\% confidence intervals participation and simulation mean accuracy, respectively.
+The residual plots have no noticeable nonlinear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figEffectRange) illustrates (T) the effect size of the random terms participant and simulation, or more accurately, the 95\% CI from Gelman simulation of their posterior distribution. The effect size of the participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha = .95$, while none of the simulation effects significantly deviate from the null of having no effect size on the marks. In comparison, (B) 95\% confidence intervals participation and simulation mean accuracy, respectively.
 
-Residual plots have no noticeable non-linear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figEffectRange) illustrates (T) the effect size of the random terms participant and simulation, or more accurately, the 95\% CI from Gelman simulation of their posterior distribution. The effect size of the participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha = .95$, while none of the simulation effects significantly deviate from the null of having no effect size on the marks. In comparison, (B) 95\% confidence intervals participation and simulation mean accuracy, respectively.
+Residual plots have no noticeable nonlinear trends and contain striped patterns as an artifact from regressing on discrete variables. Figure \@ref(fig:figEffectRange) illustrates (T) the effect size of the random terms participant and simulation, or more accurately, the 95\% CI from Gelman simulation of their posterior distribution. The effect size of the participant is much larger than simulation. The most extreme participants are statistically significant at $\alpha = .95$, while none of the simulation effects significantly deviate from the null of having no effect size on the marks. In comparison, (B) 95\% confidence intervals participation and simulation mean accuracy, respectively.
 
-```{r figEffectRange, out.width="100%", fig.show="asis", fig.cap="Accuracy model: (T) Estimated effect ranges of the random effect terms participant and data simulation of the accuracy model, $\\widehat{Y_1} = \\alpha \\cdot \\beta + \\gamma + \\delta$. Confidence intervals are created with Gelman simulation on the effect posterior distributions. The effect size of the participant is relatively large, with several significant extrema. None of the simulations deviate significantly. (B) The ordered distributions of the CI of mean marks follow the same general pattern and give the additional context of how much variation is in the data, an upper limit to the effect range. The effect ranges capture about two-thirds of the range of the data without the model. All intervals for $\\alpha = .95$ confidence."}
+```{r figEffectRange, out.width="100%", fig.show="asis", fig.cap="Accuracy model: (T) Estimated effect ranges of the random effect terms participant and data simulation of the accuracy model, $\\widehat{Y_1} = \\alpha \\times \\beta + \\gamma + \\delta$. Confidence intervals are created with Gelman simulation on the effect posterior distributions. The effect size of the participant is relatively large, with several significant extrema. None of the simulations deviate significantly. (B) The ordered distributions of the CI of mean marks follow the same general pattern and give the additional context of how much variation is in the data, an upper limit to the effect range. The effect ranges capture about two-thirds of the range of the data without the model. All intervals for $\\alpha = .95$ confidence."}
 if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 knitr::include_graphics("./figures/figEffectRange.pdf")
@@ -74,7 +102,7 @@ knitr::include_graphics("./figures/figEffectRange.pdf")
 
 Similarly, figure \@ref(fig:figTeffectRange) shows the Gelman simulations and marginal effects of the simulation and participants for the model with the same terms regressing on log response time.
 
-```{r figTeffectRange, out.width="100%", fig.show="asis", fig.cap = "Log response time model: (T) The effect ranges of Gelman resimulation on posterior distributions for the time model, $\\widehat{Y_2} = \\alpha \\cdot \\beta + \\gamma + \\delta$. These show the magnitude and distributions of particular participants and simulations. Simulation has a relatively small effect on response time. (B) Confidence intervals for mean log time by participant and simulation. The marginal density shows that the response times are left-skewed after log transformation. Interpreting back to linear time there is quite the spread of response times: $e^{1} = 2.7$, $e^{2.75} = 15.6$, $e^{3.75} = 42.5$ seconds. Of the simulations on the right, the bottom has a large variation in response time, relative to the effect ranges which means that the variation is explained in the terms of the model and not by the simulation itself."}
+```{r figTeffectRange, out.width="100%", fig.show="asis", fig.cap = "Log response time model: (T) The effect ranges of Gelman resimulation on posterior distributions for the time model, $\\widehat{Y_2} = \\alpha \\times \\beta + \\gamma + \\delta$. These show the magnitude and distributions of particular participants and simulations. Simulation has a relatively small effect on response time. (B) Confidence intervals for mean log time by participant and simulation. The marginal density shows that the response times are left-skewed after log transformation. Interpreting back to linear time there is quite the spread of response times: $e^{1} = 2.7$, $e^{2.75} = 15.6$, $e^{3.75} = 42.5$ seconds. Of the simulations on the right, the bottom has a large variation in response time, relative to the effect ranges which means that the variation is explained in the terms of the model and not by the simulation itself."}
 if(F) ## Creation and saving figure at:
   file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 knitr::include_graphics("./figures/figTeffectRange.pdf")

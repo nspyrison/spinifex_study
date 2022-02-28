@@ -142,7 +142,7 @@ if(F)
 
 
 ## Subjective measures, Boxplots -----
-survey_wider <- readRDS("./apps_supplementary/survey/survey_wider.rds")
+survey_wider <- readRDS("./paper/data_survey/survey_wider.rds")
 str(survey_wider)
 
 {
@@ -173,23 +173,21 @@ subjective_longer <- subjective_longer %>%
          factor = factor(factor, levels = c("pca", "grand", "radial"))
   )
 
-## 4 panes with {ggpubr}, ggviolin or ggboxplot with tests
-require("ggpubr")
-my_theme <- list(
-  theme_bw(),
-  scale_color_brewer(palette = "Dark2"),
-  scale_fill_brewer(palette = "Dark2"),
-  geom_hline(yintercept = 0L),
-  theme(legend.position = "bottom",
-        legend.box = "vertical",
-        legend.margin = margin(-6)))
+# ch4_fig7_subjective_measures -----
+## Follow the loose setup of _analysis.rmd:
+.u <- "in"
+.w <- 6.25
+.h <- 9
+.l_lvls      <- c("most disagree", "disagree", "neutral", "agree", "most agree")
+
 ## indirect (via ggpubr/cowplot) ggplot2 helpers
 #' @examples
-#' df=dat_qual;x="factor";y="marks";title = waiver(); subtitle = waiver(); facet = NULL
+#' df=dat_qual;x="Visual";y="Marks";title = waiver(); subtitle = waiver(); facet = NULL
+require(ggpubr)
 my_ggpubr <- function(
-  df, x = "Factor", y = "Marks",
+  df, x = "Visual", y = "Marks",
   title = waiver(), subtitle = waiver(), facet = NULL,
-  y_pval_coef = .08,  ## Subjective wants .032
+  y_pval_coef = .08, ## Subjective wants .032
   ylim_max_coef = .5 ## Subjective wants .6
 ){
   ## Find height of global significance test text.
@@ -201,7 +199,7 @@ my_ggpubr <- function(
   if(is.null(facet) == FALSE){
     .facet_lvls <- df %>% pull({{facet}}) %>% levels() %>% length()
   } else .facet_lvls <- 1 ## Init
-  .lab.y <- (y_pval_coef * .y_range) * (1 + .no_x_lvls) * .y_range + max(.y) 
+  .lab.y <- (y_pval_coef * .y_range) * (1 + .no_x_lvls) * .y_range + max(.y)
   my_comparisons <- NULL
   if(.no_x_lvls == 2)
     my_comparisons <- list(c(.x_lvls[1], .x_lvls[2]))
@@ -231,21 +229,37 @@ my_ggpubr_facet <- function(..., facet = "Location"){
   facet(my_ggpubr(..., facet = facet), facet.by = facet)
 }
 
-subjective_longer$value <- as.integer(subjective_longer$value)
-(measure_violins <- my_ggpubr_facet(
-  df = subjective_longer, x = "factor", y = "value", facet = "measure",
-  y_pval_coef = .032,  ## Subjective wants .032
-  ylim_max_coef = .6) + ## Subjective wants .6
-    labs(x = "Factor", y = "Response", fill = "Factor") + ylim(1, 20))
-
-#### Subjective measures, Likert plots -----
-### Try to create my own likert barplots and signif tables: likert and this seem to want preaggregated format
-length(unique(survey_wider$instance_id))
-
-## assumes df obj survey_wider, already filtered to whitelisted 108.
-## creates df obj survey_agg and likert, a subset
-# script_survey_wider_to_survey_agg <- function(col_idx = 8:22){ 
 {
+  ## pivot_longer within visual
+  radial_longer <- survey_wider %>%
+    dplyr::select(instance_id, radial_familar:radial_like) %>%
+    tidyr::pivot_longer(radial_familar:radial_like,
+                        names_to = "visual", values_to = "value")
+  grand_longer <- survey_wider %>%
+    dplyr::select(instance_id, grand_familar:grand_like) %>%
+    tidyr::pivot_longer(grand_familar:grand_like,
+                        names_to = "visual", values_to = "value")
+  pca_longer <- survey_wider %>%
+    dplyr::select(instance_id, pca_familar:pca_like) %>%
+    tidyr::pivot_longer(pca_familar:pca_like,
+                        names_to = "visual", values_to = "value")
+  ## Combine and split measure from visual
+  subjective_longer <- rbind(radial_longer, grand_longer, pca_longer) %>%
+    tidyr::separate(visual, c("visual", "measure"), sep = "_")
+}
+## Technically not continuous numeric, will show side by side with Likert plot.
+.lvls <- c("most disagree", "disagree", "neutral", "agree", "most agree")
+subjective_longer <- subjective_longer %>%
+  mutate(value = as.integer(plyr::mapvalues(value, from = .lvls, to = 1L:5L)),
+         measure = factor(plyr::mapvalues(
+           measure,
+           from = c("like", "ease", "confidence", "familar"),
+           to = c("preference", "ease of use", "confidence", "familiarity"))),
+         visual = factor(visual, levels = c("pca", "grand", "radial"))
+  )
+
+
+{ ## Subjective violins
   .l_lvls <- c("most disagree", "disagree", "neutral", "agree", "most agree")
   col_idx <- 8:22
   col_nms <- colnames(survey_wider[, col_idx])
@@ -261,43 +275,49 @@ length(unique(survey_wider$instance_id))
                             percent = 100 * tmp[, 2] / sum(tmp[, 2]))
     survey_agg <<- rbind(survey_agg, .this_agg)
   })
-  str(survey_agg)
+  #str(survey_agg)
   
   ## Format likert questions
   likert_q_nms <- colnames(survey_wider[, 11:22])
   likert <<- survey_agg %>% filter(question %in% likert_q_nms) %>%
-    tidyr::separate(question, c("factor", "question"), sep = "_") %>%
-    mutate(factor = factor(factor, levels = rev(c("pca", "grand", "radial"))),
+    tidyr::separate(question, c("visual", "question"), sep = "_") %>%
+    mutate(visual = factor(visual, levels = rev(c("pca", "grand", "radial"))),
            response = factor(response, levels = rev(.l_lvls)))
   likert$question <-
     plyr::mapvalues(likert$question,
                     from = c("like", "ease", "confidence", "familar"),
                     to = c("preference", "ease of use", "confidence", "familiarity")) %>%
     factor()
-  str(likert)
-}
-# script_survey_wider_to_survey_agg()
+  #str(likert)
+  }
 
-# Stacked + percent
+## Likert plots -----
 (subjectiveMeasures <-
-    ggplot(likert, aes(x = percent, y = factor, fill = response)) +
-    geom_bar(position = "fill", stat = "identity", width = .6) + facet_grid(vars(question)) +
-    ggtitle("Subjective measures",
-            "Likert scale [1-5]") +
-    theme_bw() +
-    scale_fill_manual(values = rev(RColorBrewer::brewer.pal(5, "PRGn"))) +
-    theme(legend.position = "bottom",
-          legend.direction = "horizontal") +
-    # Reverse order that fill is displayed in legend.
-    guides(fill = guide_legend(reverse = TRUE)) +
-    # x as % rather than rate.
-    scale_x_continuous(labels = scales::percent) +
-    coord_flip() +
-    theme(legend.direction = "vertical") +
-    guides(fill = guide_legend(reverse = FALSE)) +
-    labs(x = "Factor", y = "Response rate", fill = "Response")
+   ggplot(likert, aes(x = percent, y = visual, fill = response)) +
+   geom_bar(position = "fill", stat = "identity", width = .6) + facet_grid(vars(question)) +
+   ggtitle("Subjective measures", "Likert scale [1-5]") +
+   theme_bw() +
+   scale_fill_manual(values = rev(RColorBrewer::brewer.pal(5, "PRGn"))) +
+   theme(legend.position = "bottom",
+         legend.direction = "horizontal") +
+   # Reverse order that fill is displayed in legend.
+   guides(fill = guide_legend(reverse = TRUE)) +
+   # x as % rather than rate.
+   scale_x_continuous(labels = scales::percent) +
+   coord_flip() +
+   theme(legend.direction = "vertical") +
+   guides(fill = guide_legend(reverse = FALSE)) +
+   labs(x = "Visual", y = "Response rate", fill = "Response")
 )
 
+(measure_violins <- my_ggpubr_facet(
+  df = subjective_longer, x = "visual", y = "value", facet = "measure",
+  y_pval_coef = .032,  ## Subjective wants .032
+  ylim_max_coef = .6) +  ## Subjective wants .6
+    labs(x = "Visual", y = "Response", fill = "Visual") +
+    theme(legend.position = "bottom", legend.direction = "horizontal"))
+figSubjectiveMeasures_w.violin_hori <-  cowplot::plot_grid(
+  subjectiveMeasures, measure_violins, ncol = 2)
 
 
 ### SAVING ------
