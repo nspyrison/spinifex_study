@@ -1,5 +1,5 @@
 ---
-title: "A Study on the Benefit of a User-Controlled Radial Tour for Variable Importance for Structure in High-Dimensional Data
+title: A Study on the Benefit of a User-Controlled Radial Tour for Variable Importance for Structure in High-Dimensional Data
 affiliation:
   ## use one only of the following #institution-columnar removed.
   author-columnar: true      ## one column per author
@@ -24,14 +24,7 @@ affiliation:
 keywords: ["multivariate data visualization", "grand tour", "radial tour", "dimension reduction", "linear projections", "user study"]
 abstract: |
   Principal component analysis is a long-standing go-to method for exploring multivariate data. Data visualization _tours_ are a class of linear projections animated over small changes in the projection basis. The grand tour selects target bases at random to animate between. Alternatively, the manual tour rotates the contribution of a selected variable, offering analysts a unique means to control the basis. This work describes a within-participants user study evaluating the radial tour's efficacy compared with principal component analysis and the grand tour. A supervised classification task is designed where participants evaluate variable attribution of the separation between two classes. An accuracy measure is defined as a response variable. Data were collected from 108 crowdsourced participants, who performed two trials with each visual for 648 trials in total. Mixed model regression provides strong evidence that the radial tour increases accuracy over the alternatives. Participants subjectively prefer the use of the radial tour.
-# use some specific Tex packages if needed. 
-# with_ifpdf: true
-# with_cite: true
-# amsmath need to be true to use with bookdown for referencing equations.
 with_amsmath: true
-# with_algorithmic: true
-# with_array: true
-# with_dblfloatfix: true
 bibliography: spyrison-cook-marriott.bib
 output: rticles::ieee_article
 editor_options:

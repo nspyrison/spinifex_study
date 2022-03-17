@@ -1,9 +1,9 @@
 ---
-title: "A Study on the Benefit of a User-Controlled Radial Tour for Variable Importance for Structure in High-Dimensional Data
+title: A Study on the Benefit of a User-Controlled Radial Tour for Variable Importance for Structure in High-Dimensional Data
 affiliation:
   ## use one only of the following #institution-columnar removed.
-  author-columnar: true      ## one column per author
-  #wide: true                 ## one column wide author/affiliation fields
+  author-columnar: true ## one column per author
+  #wide: true            ## one column wide author/affiliation fields
   institution:
     - name: Monash University
       location: Australia
@@ -32,7 +32,7 @@ with_amsmath: true
 # with_algorithmic: true
 # with_array: true
 # with_dblfloatfix: true
-bibliography: spyrison-cook-marriott.bib
+bibliography: mybibfile.bib
 output: rticles::ieee_article
 #citation_sorting: none   ## used as sorting option of the biblatex package (if selected)
 ---
@@ -54,7 +54,8 @@ Subsection text here.
 ### Subsubsection Heading Here
 Subsubsection text here.
 
-<!-- An example of a floating figure using the graphicx package.
+<!--
+An example of a floating figure using the graphicx package.
 Note that \label must occur AFTER (or within) \caption.
 For figures, \caption should occur after the \includegraphics.
 Note that IEEEtran v1.7 and later has special internal code that
@@ -70,7 +71,7 @@ displayed while in draft mode.
 \begin{figure}[!t]
 \centering
 \includegraphics[width=2.5in]{myfigure}
-where an .eps filename suffix will be assumed under latex, 
+where an .eps filename suffix will be assumed under latex,
 and a .pdf suffix will be assumed for pdflatex; or what has been declared
 via \DeclareGraphicsExtensions.
 \caption{Simulation results for the network.}
@@ -86,7 +87,7 @@ An example of a double column floating figure using two subfigures.
 The subfigure \label commands are set within each subfloat command,
 and the \label for the overall figure must come after \caption.
 \hfil is used as a separator to get equal spacing.
-Watch out that the combined width of all the subfigures on a 
+Watch out that the combined width of all the subfigures on a
 line do not exceed the text width or a line break will occur.
 
 \begin{figure*}[!t]
@@ -143,10 +144,11 @@ Note that the IEEE does not put floats in the very first column
 in-text middle ("here") positioning is typically not used, but it
 is allowed and encouraged for Computer Society conferences (but
 not Computer Society journals). Most IEEE journals/conferences use
-top floats exclusively. 
+top floats exclusively.
 Note that, LaTeX2e, unlike IEEE journals/conferences, places
 footnotes above bottom floats. This can be corrected via the
-\fnbelowfloat command of the stfloats package. -->
+\fnbelowfloat command of the stfloats package.
+-->
 
 
 Conclusion
