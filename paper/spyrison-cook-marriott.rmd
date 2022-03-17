@@ -26,7 +26,10 @@ abstract: |
   Principal component analysis is a long-standing go-to method for exploring multivariate data. Data visualization _tours_ are a class of linear projections animated over small changes in the projection basis. The grand tour selects target bases at random to animate between. Alternatively, the manual tour rotates the contribution of a selected variable, offering analysts a unique means to control the basis. This work describes a within-participants user study evaluating the radial tour's efficacy compared with principal component analysis and the grand tour. A supervised classification task is designed where participants evaluate variable attribution of the separation between two classes. An accuracy measure is defined as a response variable. Data were collected from 108 crowdsourced participants, who performed two trials with each visual for 648 trials in total. Mixed model regression provides strong evidence that the radial tour increases accuracy over the alternatives. Participants subjectively prefer the use of the radial tour.
 with_amsmath: true
 bibliography: spyrison-cook-marriott.bib
-output: rticles::ieee_article
+classoption: 10pt,onecolumn
+output:
+  bookdown::pdf_book:
+    base_format: rticles::ieee_article
 editor_options:
   chunk_output_type: console
 header-includes:
@@ -37,12 +40,11 @@ header-includes:
     - \usepackage{graphicx}
     - \PassOptionsToPackage{hyphens}{url}\usepackage{hyperref} ##%% Trying to wrap and format urls correctly
 ---
-\bibliography{spyrison-cook-marriott}
 ```{r setup, include=FALSE}
 require("knitr")
 require("kableExtra")
 require("magrittr")
-if(interactive()) setwd("./paper")
+if(interactive()) setwd("./paper") ## Unify wd for running in session.
 ## chunk options
 knitr::opts_chunk$set(
   fig.align = "center",
@@ -55,8 +57,6 @@ knitr::opts_chunk$set(
   cache.lazy = FALSE
 )
 ```
-
-\newpage
 
 # Introduction
 
@@ -87,7 +87,7 @@ knitr::include_graphics("./figures/figClSep.pdf")
 Knowing which variables to use is also important for statistical modeling and their interpretations. Models are becoming increasingly complex, and the non-linear interactions of the terms cause an opaqueness to model interpretability. Exploratory Artificial Intelligence [XAI, @adadi_peeking_2018; @arrieta_explainable_2020] is an emerging field that extends the interpretability of such black-box models. Multivariate data visualization is essential for exploring features spaces and communicating interpretations of models [@biecek_dalex_2018; @biecek_explanatory_2021; @wickham_visualizing_2015].
 
 <!-- Structure of the paper -->
-The paper is structured as follows. Section \@ref(sec:background) discusses several visualization methods and orthogonal and observation-based visuals before arriving at the three linear dimension reduction techniques compared in the study. Section \@ref(sec:userstudy) describes the experimental factors, task, and accuracy measure used. The results of the study are discussed in Section \@ref(sec:results). Conclusions and potential future directions are discussed in Section \@ref(sec:conclusion). The software used for the study is described in Section \@ref(sec:spinifex).
+The paper is structured as follows. Section \@ref(sec:background) discusses several visualization methods and orthogonal and observation-based visuals before arriving at the three linear dimension reduction techniques compared in the study. Section \@ref(sec:userstudy) describes the experimental factors, task, and accuracy measure used. The results of the study are discussed in Section \@ref(sec:results). Conclusions and potential future directions are discussed in Section \@ref(sec:conclusion). Visuals, participant demographics, and response time regression are covered in the Appendix \@ref(sec:appendix).
 
 
 # Background {#sec:background}
@@ -193,7 +193,7 @@ Experimental factors and the definition of an accuracy measure are given below. 
 In addition to the visual method, data are simulated across three experimental factors. First, the _location_ of the separation between clusters is controlled by mixing a signal and a noise variable at different ratios. Secondly, the _shape_ of the clusters reflects varying distributions of the data. And third, the _dimension_-ality of the data is also tested. The levels within each factor are described below, and Figure \@ref(fig:figExpFactors) gives a visual representation.
 
 <!-- Illustration of experimental factors -->
-```{r figExpFactors, out.width='100%', fig.cap = "Illustration of the experimental factors, the parameter space of the independent variables."}
+```{r figExpFactors, out.width='80%', fig.cap = "Illustration of the experimental factors, the parameter space of the independent variables."}
 if(F)
   file.edit("./paper/R/fig_model_families.r")
 knitr::include_graphics("./figures/figExpFactors.pdf")
@@ -316,11 +316,12 @@ Data were recorded in __shiny__ application and written to a Google Sheet after 
 The processing steps were minimal. The data were formatted and then filtered to the latest three complete studies of each experimental factor, which should have experienced the least adverse network conditions. The bulk of the studies removed were partial data and a few over-sampled permutations. This brings us to the 108 studies described in the paper, from which models and aggregation tables were built. The post-study surveys were similarly decoded to human-readable format and then filtered to include only those 84 associated with the final 108 studies.
 
 The code, response files, their analyses, and the study application are publicly available at \url{https://github.com/nspyrison/spinifex_study}.
+<!-- note: \url{} handles better -->
 
 
 # Results {#sec:results}
 
-To recap, the primary response variable is accuracy, as defined in Section \@ref(sec:task). The parallel analysis of the log response time is provided in the appendix, Section \@ref(sec:responsetime). Two primary data sets were collected; the user study evaluations and the post-study survey. The former is the 108 participants with the experimental factors: visual, location of the cluster separation signal, the shape of variance-covariance matrix, and the dimensionality of the data. Experimental factors and randomization were discussed in section \@ref(sec:expfactors). A followup survey was completed by 84 of these 108 people. It collected demographic information (preferred pronoun, age, and education), and subjective measures for each visual (preference, familiarity, ease of use, and confidence).
+To recap, the primary response variable is accuracy, as defined in Section \@ref(sec:task). Two primary data sets were collected; the user study evaluations and the post-study survey. The former is the 108 participants with the experimental factors: visual, location of the cluster separation signal, the shape of variance-covariance matrix, and the dimensionality of the data. Experimental factors and randomization were discussed in section \@ref(sec:expfactors). A followup survey was completed by 84 of these 108 people. It collected demographic information (preferred pronoun, age, and education), and subjective measures for each visual (preference, familiarity, ease of use, and confidence).
 
 Below a battery of mixed regression models is built to examine the degree of the evidence and the size of the effects from the experimental factors. Then, Likert plots and rank-sum tests to compare the subjective measures between the visuals.
 
@@ -375,7 +376,6 @@ model_comp <- kableExtra::kbl(
 if(F)
   saveRDS(object = model_comp, "./paper/figures/model_comp_y1.rds")
 model_comp
-#knitr::kable(model_comp_tbl_ls[[1]])
 ```
 
 
@@ -384,12 +384,14 @@ model_comp
 if(F) ## Creation and saving at:
   file.edit("./paper/R/mixed_model_regression.rmd")
 coef_ls <- readRDS("./figures/modelCoefLs.rds")
+colnames(coef_ls[[1]]) <- c("Estimate", "Std. Error", "df", "t value", "Prob", "")
+colnames(coef_ls[[2]]) <- c("Estimate", "Std. Error", "df", "t value", "Prob", "")
 
 ## For grouping rows see:
 if(F)
   browseURL("https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html#Group_rows_via_labeling")
 kableExtra::kbl(
-  coef_ls[[1]], format = "latex", booktabs = TRUE, linesep = "", digits = 5,
+  coef_ls[[1]], format = "latex", escape = TRUE, booktabs = TRUE, linesep = "", digits = 5,
   caption = "The task accuracy model coefficients for $\\widehat{Y} = \\alpha \\times \\beta + \\gamma + \\delta$, with visual = pca, location = 0/100\\%, shape = EEE, and dim = 4 held as baselines. Visual being radial is the fixed term with the strongest evidence supporting the hypothesis. Interacting with the location term, there is evidence suggesting radial performs with minimal improvement for 33/66\\% location mixing.") %>%
   kableExtra::pack_rows("Factor", 2, 3) %>%
   kableExtra::pack_rows("Fixed effects", 4, 8) %>%
@@ -419,7 +421,6 @@ The 84 evaluations of the post-study survey also collect four subjective measure
 ```{r figSubjectiveMeasures, out.width="100%", fig.show="asis", fig.cap = "The subjective measures of the 84 responses of the post-study survey, five discrete Likert scale levels of agreement (L) Likert plots (stacked percent bar plots) with (R) violin plots of the same measures. Violin plots are overlaid with global significance from the Kruskal-Wallis test and pairwise significance from the Wilcoxon test. Both are non-parametric, ranked sum tests. Participants are more confident using the radial tour and find it easier to use than the grand tour. The radial tour is the most preferred visual."}
 if(F)
   browseURL("https://bookdown.org/Rmadillo/likert/is-there-a-significant-difference.html#permutation-mann-whitney-tests")
-
 if(F) ## Creation and saving figure at:
   file.edit("./paper/R/fig_population_demographics.r")
 knitr::include_graphics("./figures/figSubjectiveMeasures_w.violin_hori.pdf")
@@ -448,7 +449,7 @@ This research was supported by an Australian Government Research Training Progra
 <div id="refs"></div>
 
 <!-- Try to force better pagination -->
-\pagebreak 
+\pagebreak
 
 # Appendix {#sec:appendix}
 
