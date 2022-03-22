@@ -29,7 +29,7 @@ knitr::include_graphics("./figures/figSurveyDemographics.pdf")
 ## Response time {#sec:responsetime}
 
 <!-- Time as secondary interest, Y2 -->
-As a secondary explanatory variable, response time is considered. Response time is first log-transformed to remove its right skew. The same modeling procedure is repeated for this response. 1) Compare the performance of a battery of all additive and multiplicative models. Table \@ref(tab:timeCompTbl) shows the higher level performance of these models over increasing model complexity. 2) Select the model with the same effect terms, $\alpha \times \beta + \gamma + \delta$, with relatively high conditional $R^2$ without becoming overly complex from interaction. The coefficients of this model are displayed in Table \@ref(tab:timeCoefTbl).
+As a secondary explanatory variable, response time is considered. Response time is first log-transformed to remove its right skew. The same modeling procedure is repeated for this response. 1) Compare the performance of a battery of all additive and multiplicative models. Table \@ref(tab:timeCompTbl) shows the higher level performance of these models over increasing model complexity. 2) Select the model with the same effect terms, $\alpha \times \beta + \gamma + \delta$, with relatively high conditional $R^2$ without becoming overly complex from variable interactions. The coefficients of this model are displayed in Table \@ref(tab:timeCoefTbl).
 
 
 <!-- Y2 model comparisons, continue to use ABcd -->

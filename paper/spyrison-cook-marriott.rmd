@@ -17,16 +17,18 @@ affiliation:
           email: |
             | DiCook@monash.edu
             | ORCiD: 0000-0002-3813-7155
-        - name: Kimbal Marriottt
+        - name: Kimbal Marriott
           email: |
             | Kim.Marriott@monash.edu
             | ORCiD: 0000-0002-9813-0377
-keywords: ["multivariate data visualization", "grand tour", "radial tour", "dimension reduction", "linear projections", "user study"]
+keywords: ["High-Dimensional Data", "Linear Dimension Reduction", "Visual Analytics", "Grand Tour"]
 abstract: |
   Principal component analysis is a long-standing go-to method for exploring multivariate data. Data visualization _tours_ are a class of linear projections animated over small changes in the projection basis. The grand tour selects target bases at random to animate between. Alternatively, the manual tour rotates the contribution of a selected variable, offering analysts a unique means to control the basis. This work describes a within-participants user study evaluating the radial tour's efficacy compared with principal component analysis and the grand tour. A supervised classification task is designed where participants evaluate variable attribution of the separation between two classes. An accuracy measure is defined as a response variable. Data were collected from 108 crowdsourced participants, who performed two trials with each visual for 648 trials in total. Mixed model regression provides strong evidence that the radial tour increases accuracy over the alternatives. Participants subjectively prefer the use of the radial tour.
 with_amsmath: true
 bibliography: spyrison-cook-marriott.bib
-classoption: 10pt,onecolumn
+## cls defaults to 10pt, author guide saya 11pt for 2 col, 12pm for single col.
+#classoption: 11pm,twocolumn
+classoption: 12pt,onecolumn
 output:
   bookdown::pdf_book:
     base_format: rticles::ieee_article
@@ -69,13 +71,13 @@ Dimension reduction is commonly used with visualization to provide informative l
 The class of dynamic linear projections known as _tours_ [@asimov_grand_1985], can be used to animate over small changes to the basis. Instead of a static view of two orthogonal components, tours interpolation many intermediate frames. There are various types of tours that are distinguished by the generation of their basis paths. Asimov originally animated between randomly selected bases in the _grand_ tour. The _manual_ tour [@cook_manual_1997; @spyrison_spinifex_2020] uniquely allows for user-control over the basis changes. A selected variable (or component) can be rotated to the desired contribution. A _radial tour_  is a variant of the manual tour, that fixes the contribution angle and changes the magnitude along the radius. The permanence of the data points from frame to frame and information held in intermediate interpolated frames and user-control of the basis could plausibly lead to more information perception than a static display. This is a hypothesis that a user study could assess.
 
 <!-- 2D vs D3, mostly PCA reduced -->
-@gracia_new_2016 conducted an $n=40$ user study comparing between 2D and 3D scatterplots on traditional 2D monitors. Participants perform point classification, distance perception, and outlier identification tasks. The results are mixed and mostly small differences. There is some evidence to suggest a lower error in distance perception from 3D scatterplot. @wagner_filho_immersive_2018 performed an $n=30$ within participants using scatterplot display between 2D, 3D displays on monitors and 3D display with a head-mounted display on PCA reduced spaces. None of the tasks on any dataset lead to a significant difference in accuracy. However, the immersive display reduced effort and navigation while resulting in higher perceived accuracy and engagement. @sedlmair_empirical_2013 instead uses two expert coders to evaluate 75 datasets and four dimension reduction techniques for 2D scatterplots, interactive 3D scatterplots, and 2D scatterplot matrices. They suggest a tiered guidance approach finding that 2D scatterplots are often 'good enough'. If not, try 2D scatterplots on a different dimension reduction technique before going to scatterplot matrix display or concluding a true negative. They find that interactive 3D scatterplots help in very few cases.
+@gracia_new_2016 conducted an $n=40$ user study comparing PCA reduced spaces as 2D and 3D scatterplots on traditional 2D monitors. Participants perform point classification, distance perception, and outlier identification tasks. The results are mixed and mostly small differences. There is some evidence to suggest a lower error in distance perception from 3D scatterplot. @wagner_filho_immersive_2018 performed an $n=30$ within participants using scatterplot display between 2D, 3D displays on monitors and 3D display with a head-mounted display on PCA reduced spaces. None of the tasks on any dataset lead to a significant difference in accuracy. However, the immersive display reduced effort and navigation that led to a perception of improved accuracy and engagement. @sedlmair_empirical_2013 instead uses two expert coders to evaluate 75 datasets and four dimension reduction techniques for 2D scatterplots, interactive 3D scatterplots, and 2D scatterplot matrices. They suggest a tiered guidance approach finding that 2D scatterplots are often 'good enough'. If not, try 2D scatterplots on a different dimension reduction technique before going to scatterplot matrix display or concluding a true negative. They find that interactive 3D scatterplots help in very few cases.
 
 <!-- Nonlinear DR quality review -->
-Empirical studies scarcely compare tours. However, @nelson_xgobi_1999 compare scatterplots of grand tours on 2D monitor with 3D (stereoscopic, not head-mounted) over $n=15$ participants. Participants perform clusters detection, dimensionality and radial sparseness tasks on six dimensional data. They find that stereoscopic 3D leads to more accuracy in the cluster identification, though interaction time was much increased in the in 3D case. In this work we extend the evaluation of tours which novelly compares the radial tour as benchmarked against the grand tour and discrete pairs of principal components.
+Empirical studies scarcely compare tours. However, @nelson_xgobi_1999 compare scatterplots of grand tours on 2D monitor with 3D (stereoscopic, not head-mounted) over $n=15$ participants. Participants perform clusters detection, dimensionality, and radial sparseness tasks on six-dimensional data. They find that stereoscopic 3D leads to more accuracy in the cluster identification, though interaction time was much increased in the 3D case. In this work, we extend the evaluation of tours which novelly compares the radial tour as benchmarked against the grand tour and discrete pairs of principal components.
 
 <!-- Overview of the study -->
-We are particularly interested in assessing the effectiveness of the new radial tour relative to common practice with PCA and grand tour.<!-- thesis_ns introduction --> The user influence over a basis, uniquely available in the radial tour, is crucial to testing variable sensitivity to the structure visible in projection. If the contribution of a variable is reduced and the feature disappears, then we say that the variable was sensitive to that structure. For example, Figure \@ref(fig:figClSep) shows two frames of simulated data. Panel (a) has identified separation between the two clusters. The contributions in panel (b) show no such cluster separation. The former has a large contribution to V2 in the direction of separation, while it is negligible in the right frame. Because of this we say that V2 is sensitive to the separation of the clusters.
+We are particularly interested in assessing the effectiveness of the new radial tour relative to common practice with PCA and grand tour.<!-- thesis_ns introduction --> The user influence over a basis, uniquely available in the radial tour, is crucial to testing variable sensitivity to the structure visible in projection. If the contribution of a variable is reduced and the feature disappears, then we say that the variable was sensitive to that structure. For example, Figure \@ref(fig:figClSep) shows two frames of simulated data. Panel (a) has identified separation between the two clusters. The contributions in panel (b) show no such cluster separation. The former has a large contribution to V2 in the direction of separation, while it is negligible in the right frame. Because of this, we say that V2 is sensitive to the separation of the clusters.
 
 ```{r figClSep, echo = F, out.width = "100%", fig.cap = "Illustration of cluster separation. Panel (a) shows clear separation in V2 and no separation in the direction of V3. While V1 and v4 have relatively small contributions to the frame. Panel (b) has a random basis with a minimal contribution from V2, and no separation between the cluster means is resolved."}
 if(F)
@@ -102,10 +104,10 @@ One could consider looking at $p$ histograms or univariate densities. Doing so w
 ## Parallel coordinates plot
 
 <!-- PCP -->
-Another common way to display multivariate data is with a parallel coordinates plot [@ocagne_coordonnees_1885], which shows observations by quantile or normalized values for each variable connected by lines to the quantile value in subsequent variables. Parallel coordinates plots and other observations-based visuals, such as pixel plots or Chernoff faces scale well with dimensions but poorly with observations. These are perhaps best used when there are more variables than observations.
+Another common way to display multivariate data is with a parallel coordinates plot [@ocagne_coordonnees_1885], which shows observations by quantile or normalized values for each variable connected by lines to the quantile value in subsequent variables. Parallel coordinates plots and other observations-linked gylph visuals, such as pixel plots or Chernoff faces, scale well with dimensions but poorly with observations. These are perhaps best used when there are more variables than observations.
 
 <!-- extending to other obs-based visuals -->
-Observations-based visuals have a couple of issues. They are asymmetric across variable ordering in that a change in the order can leading to different conclusions. Another notable observation-based visual is the graphical channel used to convey information. Munzner suggests that position is the visual channel that is most perceptible to humans [@munzner_visualization_2014]. In the case of parallel coordinates plots, the horizontal axes span variables rather than the values of one variable; the loss of a display dimension to be used by our most perceptible visual channel.
+Observations-based visuals have a couple of issues. They are asymmetric across variable ordering, in that shuffling the order of the variable can lead to different conclusions. Another shortcoming is the graphical channel used to convey information. Munzner suggests that position is the visual channel that is most perceptible to humans [@munzner_visualization_2014]. In the case of parallel coordinates plots, the horizontal axes span variables rather than the values of one variable; the loss of a display dimension to be used by our most perceptible visual channel.
 
 <!-- Turning to Linear DR -->
 At some point, visualization will be forced to turn to dimension reduction to scale better with the dimensionality of the data. Non-linear transformations bend and distort spaces are not entirely accurate or faithful to the original variable space. In light of this, we preclude non-linear techniques and instead decide on PCA, the grand tour, and the radial tour.
@@ -120,6 +122,7 @@ if(F)
   file.edit("./paper/R/fig_pca_splom.r")
 knitr::include_graphics("./figures/fig_pca_splom.pdf")
 ```
+
 
 ## Animated linear projections, tours {#sec:tours}
 
@@ -139,29 +142,49 @@ Target bases are selected randomly in a grand tour [@asimov_grand_1985]. These t
 Whether an analyst uses PCA or the grand tour, they cannot influence the basis. They cannot explore the structure identified or change the contribution of the variables. User-control-steering is a key aspect of _manual_ tours that should facilitate testing variable attribution.
 
 <!-- Manual tour -->
-The manual tour [@cook_manual_1997] defines its basis path by manipulating the basis contribution of a selected variable. A manipulation dimension is appended onto the projection plane, giving a full contribution to the selected variable. The target bases are then chosen to rotate this newly created manipulation space. This manipulation space is similarly orthogonally restrained. The data is projected through its interpolated frames and rendered into an animation. When the contribution of one variable changes, the contributions of the other variables must also change, maintaining the orthonormality of the basis and space. A key feature of the manual tour is that it allows users to control the variable contributions to the basis. Such manipulations can be queued in advance or selected in real-time for human-in-the-loop analysis [@karwowski_international_2006]. Manual navigation is relatively time-consuming due to the vast volume of resulting view space and the abstract method of steering the projection basis. It is advisable to first identify a basis of particular interest and then use the manual tour as a more directed, local exploration tool to explore the sensitivity of a variable's contribution to the feature of interest.
+The manual tour [@cook_manual_1997] defines its basis path by manipulating the basis contribution of a selected variable. A manipulation dimension is appended onto the projection plane, giving a full contribution to the selected variable. The target bases are then chosen to rotate this newly created manipulation space. This manipulation space is similarly orthogonally restrained. The data is projected through its interpolated frames and rendered into an animation. When the contribution of one variable changes, the contributions of the other variables must also change, maintaining the orthonormality of the basis and space. A key feature of the manual tour is that it allows users to control the variable contributions to the basis. Such manipulations can be queued in advance or selected in real-time for human-in-the-loop analysis [@karwowski_international_2006]. Manual navigation is relatively time-consuming due to the vast volume of resulting view space and the abstract method of steering the projection basis. First, it is advisable to identify a basis of particular interest and then use the manual tour as a more directed, local exploration tool to explore the sensitivity of a variable's contribution to the feature of interest.
 
 <!-- Radial tour variant -->
 To simplify the task and keep its duration realistic, we consider a variant of the manual tour called a _radial_ tour. In a radial tour, the magnitude of along the radius with a fixed angle of contribution to the frame; it must move along the direction of its original contribution radius. The radial tour benefits from both continuity of the data alongside grand tours and user-steering via choosing the variable to rotate.
 
 <!-- spinifex -->
-Manual tours have been recently made available in the __R__ package __spinifex__ [@spyrison_spinifex_2020], which facilitates manual tours (and radial variant). It also provides an interface for a layered composition of tours and exporting to .gif and .mp4 with __gganimate__ [@pedersen_gganimate_2020] or .html widget with __plotly__ [@sievert_interactive_2020]. It is also compatible with tours made by __tourr__ [@wickham_tourr:_2011]. Now that we have a readily available means to produce various tours, we want to see how they fare against traditional discrete displays commonly used with PCA.
+Manual tours have been recently made available in the __R__ package __spinifex__ [@spyrison_spinifex_2020], which facilitates manual tours (and radial variant). It also provides an interface for a layered composition of tours and exporting to `gif` and `mp4` with __gganimate__ [@pedersen_gganimate_2020] or `html` widget with __plotly__ [@sievert_interactive_2020]. It is also compatible with tours made by __tourr__ [@wickham_tourr:_2011]. Now that we have a readily available means to produce various tours, we want to see how they fare against traditional discrete displays commonly used with PCA.
+
+## Relation to existing work
+
+<!-- Link to _Rolling the dice_ -->
+The work of @elmqvist_rolling_2008 allows users to interactively change the face of a local display by navigating to adjacent faces on a global overview scatterplot matrix. This offers analysts a way to geometrically explore the transition between adjacent faces of a scatterplot matrix as though rotating the face of dice at a right angle. The interpolated frames between the orthogonal faces display linear combination of three variables at varying degrees. This can be thought of as a sort of constrained tour as it essentially performs consecutive radial tours that transition between full variable contributions either horizontally or vertically.
+
+<!-- Link to star coord & Orthographic star coord -->
+Star Coordinates [@kandogan_star_2000] also arrive at the biplot scatterplot displays starting from the perspective of radial parallel coordinates. @lehmann_orthographic_2013 extend this idea, mapping it back to orthogonal projections. They provide a means to interpolate through PCA components, the orthogonal contributions of scatterplot matrix, and the grand tour. It also defines user-controlled interaction similar to the manual and radial tours.
+
+<!-- Link to TripAdvisorN-D -->
+TripAdvisor [@nam_tripadvisornd_2012] is an interactive application that plans sequential interpolation between distant target frames. It also provides additional global context of a subset of possible frames with glyph representation and overview of variable attribtuion with by summarizing the top ten prinicpal components. It allows for use steering through the use of a "touchpad polygon". This touchpad allows the magnitude of the contributions to be changed similar to an incremental change with the manual tour.
+
+
+<!-- ## Survey reviews 
+
+> meta lit reviews
+>Visual Interaction with Dimensionality Reduction:
+A Structured Literature Analysis
+>Visual Parameter Space Analysis: A Conceptual Framework
+-->
 
 
 ## Empirical evaluation
 
 <!-- Orthogonal variables -->
 Some studies compare visualizations across complete contributions of variables.
-@chang_evaluation_2018 conduct an $n=51$ participant study comparing parallel coordinate plots and SPLOM either in isolation, sequentially, or as a coordinated view. Accuracy, completion time, and eye focus were measured for six tasks. Three tasks were more accurate with SPLOM and three with parallel coordinates while coordinated view was usually marginally more accurate than the max of the separate visuals. @cao_z-glyph_2018 compare unstandardized line-gylph and star-gylphs with standardized variants (with and without curve fill). Each of the $n=18$ participant perform 72 trials across the six visuals, two levels of dimensions, and two levels of observations. Visuals with variable standardization outperform the unstandardized variants, and the radial star-gylph reportedly outperformed line-variant.
+@chang_evaluation_2018 conducted an $n=51$ participant study comparing parallel coordinate plots and SPLOM either in isolation, sequentially, or as a coordinated view. Accuracy, completion time, and eye focus were measured for six tasks. Three tasks were more accurate with SPLOM and three with parallel coordinates, while coordinated view was usually marginally more accurate than the max of the separate visuals. @cao_z-glyph_2018 compare unstandardized line-glyph and star-glyphs with standardized variants (with and without curve fill). Each of the $n=18$ participants perform 72 trials across the six visuals, two levels of dimensions, and two levels of observations. Visuals with variable standardization outperformed the unstandardized variants, and the radial star-glyph reportedly outperformed line-variant.
 
 <!-- 2D vs D3, mostly PCA reduced -->
 Other studies have investigated the relative benefits of projecting to 2- or 3D scatterplots in PCA-reduced spaces. @gracia_new_2016 conducted an $n=40$ user study comparing 2- and 3D scatterplots on traditional 2D monitors. Participants perform point classification, distance perception, and outlier identification tasks. The results are mixed and primarily have small differences. There is some evidence to suggest a lower error in distance perception from a 3D scatterplot. @wagner_filho_immersive_2018 performed an $n=30$ within participants study on PCA reduced space using scatterplot displays between 2D on monitors, 3D on monitors, and 3D display with a head-mounted display. None of the tasks on any dataset lead to a significant difference in accuracy. However, the immersive display reduced effort and navigation, resulting in higher perceived accuracy and engagement. 
 
 <!-- Expert & cohort coding -->
-Some studies use an expert or cohort coding. @sedlmair_empirical_2013 instead use two expert coders to evaluate 75 datasets and four dimension reduction techniques across 2D scatterplots, 2D scatterplot matrices, and interactive 3D scatterplots. They suggest a tiered guidance approach finding that 2D scatterplots are often sufficient to resolve a feature. If not, try an alternative dimension reduction technique before going to scatterplot matrix display or concluding a true negative. They find that interactive 3D scatterplots help in relatively rare cases. @lewis_behavioral_2012 compare across three cohorts: experts, uninformed novices, and informed novices ($n=5+15+16=36$). Participants were asked their opinion of the quality of nine different embedding for each of sever data sets. Expert opinion in reportedly more consistent than the novice groups, though this is confounded with the different sample sizes. Interestingly, cohort responses correlated with different quality metrics. Positive ratings from the expert group correlated strongest with the Trustworthiness metric.
+Some studies use expert or cohort encoding. @sedlmair_empirical_2013 instead use two expert coders to evaluate 75 datasets and four dimension reduction techniques across 2D scatterplots, 2D scatterplot matrices, and interactive 3D scatterplots. They suggest a tiered guidance approach finding that 2D scatterplots are often sufficient to resolve a feature. If not, try an alternative dimension reduction technique before going to scatterplot matrix display or concluding a true negative. They find that interactive 3D scatterplots help in relatively rare cases. @lewis_behavioral_2012 compare across three cohorts: experts, uninformed novices, and informed novices ($n=5+15+16=36$). Participants were asked their opinion of the quality of nine different embedding for each of several data sets. Expert opinion is reportedly more consistent than the novice groups, though this is confounded with the different sample sizes. Interestingly, cohort responses correlated with different quality metrics. Positive ratings from the expert group correlated strongest with the Trustworthiness metric.
 
 <!-- Nonlinear DR quality review -->
-Tours are absent from studies calculable quality measures. However, @nelson_xgobi_1999 compare scatterplots of grand tours on a 2D monitor with 3D display (stereoscopic, not head-mounted) over $n=15$ participants. Participants perform clusters detection, dimensionality, and radial sparseness tasks on six-dimensional data. They find that stereoscopic 3D leads to more accuracy for cluster identification, though interaction time greatly increased in the 3D case.
+Tours are absent from studies of calculable quality measures. However, @nelson_xgobi_1999 compare scatterplots of grand tours on a 2D monitor with 3D display (stereoscopic, not head-mounted) over $n=15$ participants. Participants perform clusters detection, dimensionality, and radial sparseness tasks on six-dimensional data. They find that stereoscopic 3D leads to more accuracy for cluster identification, though interaction time greatly increased in the 3D case.
 
 
 # User study {#sec:userstudy}
@@ -206,13 +229,13 @@ The _location_ of the separation between the clusters is at the heart of the mea
 In selecting the _shape_ of the clusters, the convention given by @scrucca_mclust_2016 is followed. They describe 14 variants of model families containing three clusters. The model family name is the abbreviation of the clusters respective volume, shape, and orientation. The levels are either *E*qual or *V*ary. The models EEE, EEV, and EVV are used. For instance, in the EEV model, the volume and shape of clusters are constant, while the shape's orientation varies. The EVV model is modified by moving four-fifths of the data out in a ">" or banana-like shape.
 
 <!-- Dimensionality -->
-_Dimension_-ality is tested at two modest levels: four dimensions containing threeclusters and six with four clusters. Such modest dimensionality is required to limit the difficulty and search space to make the task realistic for crowdsourcing.
+_Dimension_-ality is tested at two modest levels: four dimensions containing three clusters and six with four clusters. Such modest dimensionality is required to limit the difficulty and search space to make the task realistic for crowdsourcing.
 
 
 ## Task and evaluation {#sec:task}
 
 <!-- segue to task and evaluation -->
-With our hypothesis formulated and data at hand, let us turn our attention to the task and how to evaluate it. Regardless of the visual method, the display elements are held constant, shown as a 2D scatterplot with a biplot [@gabriel_biplot_1971] to its left. A biplot is a visual depiction of the variable contributions from the basis inscribed in a unit circle. Observations were supervised with cluster membership mapped to (colorblind safe) colors and shape.
+With our hypothesis formulated and data at hand, let us turn our attention to the task and how to evaluate it. Regardless of the visual method, the display elements are held constant, shown as a 2D scatterplot with a biplot [@gabriel_biplot_1971] to its left. A biplot is a visual depiction of the variable contributions from the basis inscribed in a unit circle. Observations were supervised with cluster membership mapped to (colorblind safe) colors and shapes.
 
 <!-- Geom, clusters, explicit task -->
 Participants were asked to "check any/all variables that contribute more than average to the cluster separation green circles and orange triangles," which was further explained in the explanatory video as "mark any and all variable that carries more than their fair share of the weight, or one quarter in the case of four variables".
@@ -253,7 +276,7 @@ knitr::include_graphics("./figures/figBiplotScoring.pdf")
 ## Visual design standardization {#sec:standardization}
 
 <!-- Background for methodology, application here -->
-The visual methods are tested within-participant, with each visual being evaluated twice by each participant. The order that experimental factors are experienced is randomized with the assignment, as illustrated in Figure \@ref(fig:figParmeterizationExample). Below discusses the design standardization and unique input associated with each visual.
+The visual methods are tested within-participant, with each visual being evaluated twice by each participant. The order which experimental factors are experienced is randomized with the assignment, as illustrated in Figure \@ref(fig:figParmeterizationExample). Below discusses the design standardization and unique input associated with each visual.
 
 <!-- Aesthetic standardization -->
 The visualization methods were standardized wherever possible. Data were displayed as 2D scatterplots with biplots. All aesthetic values (colors, shapes, sizes, absence of legend, and axis titles) were constant. Variable contributions were always shown left of the scatterplot embeddings with their aesthetic values consistent. What did vary between visuals were their inputs.
@@ -321,7 +344,7 @@ The code, response files, their analyses, and the study application are publicly
 
 # Results {#sec:results}
 
-To recap, the primary response variable is accuracy, as defined in Section \@ref(sec:task). Two primary data sets were collected; the user study evaluations and the post-study survey. The former is the 108 participants with the experimental factors: visual, location of the cluster separation signal, the shape of variance-covariance matrix, and the dimensionality of the data. Experimental factors and randomization were discussed in section \@ref(sec:expfactors). A followup survey was completed by 84 of these 108 people. It collected demographic information (preferred pronoun, age, and education), and subjective measures for each visual (preference, familiarity, ease of use, and confidence).
+To recap, the primary response variable is accuracy, as defined in Section \@ref(sec:task). Two primary data sets were collected; the user study evaluations and the post-study survey. The former is the 108 participants with the experimental factors: visual, location of the cluster separation signal, the shape of variance-covariance matrix, and the dimensionality of the data. Experimental factors and randomization were discussed in section \@ref(sec:expfactors). A follow-up survey was completed by 84 of these 108 people. It collected demographic information (preferred pronoun, age, and education), and subjective measures for each visual (preference, familiarity, ease of use, and confidence).
 
 Below a battery of mixed regression models is built to examine the degree of the evidence and the size of the effects from the experimental factors. Then, Likert plots and rank-sum tests to compare the subjective measures between the visuals.
 
@@ -329,7 +352,7 @@ Below a battery of mixed regression models is built to examine the degree of the
 ## Accuracy
 
 <!-- Introduce regression model, explaining accuracy, and random effect term -->
-To quantify the contribution of the experimental factors to the accuracy, a mixed-effects models were fit. All models have a random effect term on the participant and the simulation. These terms explain the amount of error that can be attributed to the individual participant's effect and variation due to the random sampling data.
+To quantify the contribution of the experimental factors to the accuracy, mixed-effects models were fit. All models have a random effect term on the participant and the simulation. These terms explain the amount of error that can be attributed to the individual participant's effect and variation due to the random sampling data.
 
 <!-- Building a battery of models -->
 In building a set of models to test, a base model with only the visual term is compared with the full linear model term and progressively interacting an additional experimental factor. The models with three and four interacting variables are rank deficient; there is not enough varying information in the data to explain all interacting terms.
