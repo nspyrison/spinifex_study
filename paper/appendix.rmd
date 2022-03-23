@@ -39,7 +39,7 @@ kableExtra::kbl(
   model_comp_tbl_ls[[2]], "latex", align = c("l", rep("l", 2), rep("c", 5)),
   booktabs = TRUE, linesep = "",  escape = FALSE, ## Allow cell_spec formatting
   caption = "Model performance regressing on log response time [seconds], $\\widehat{Y_2}$ random effect models. Conditional $R^2$ includes the random effects, while marginal does not. The model $\\alpha \\times \\beta + \\gamma + \\delta$ model is selected to examine further as it has relatively high marginal $R^2$ while having much less complexity than the complete interaction model.") %>%
-  kableExtra::kable_classic(font_size = 10) # bootstrap_options = "striped",
+  kableExtra::kable_classic(font_size = 12) # bootstrap_options = "striped",
 ```
 
 <!-- Y2 coeffiecients -->
@@ -50,7 +50,7 @@ kableExtra::kbl(
   kableExtra::pack_rows("Factor", 2, 3) %>%
   kableExtra::pack_rows("Fixed effects", 4, 8) %>%
   kableExtra::pack_rows("Interactions", 9, 12) %>%
-  kableExtra::kable_classic(font_size = 10) # bootstrap_options = "striped",
+  kableExtra::kable_classic(font_size = 12) # bootstrap_options = "striped",
 ```
 
 

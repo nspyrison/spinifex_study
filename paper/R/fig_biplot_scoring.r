@@ -3,10 +3,8 @@
   require("ggplot2")
   require("spinifex")
   require("magrittr")
+  require("patchwork")
   
-}
-
-{
   ## For figClSep
   set.seed(2022)
   .n <- 100
@@ -14,13 +12,13 @@
     V1 = rnorm(n = .n, mean = 0, sd = 1),
     V2 = rnorm(n = .n, mean = 0, sd = 1),
     V3 = rnorm(n = .n, mean = 0, sd = 1),
-    v4 = rnorm(n = .n, mean = 0, sd = 1)
+    V4 = rnorm(n = .n, mean = 0, sd = 1)
   )
   cl2  <- data.frame(
     V1 = rnorm(n = .n, mean = 0, sd = 1),
     V2 = rnorm(n = .n, mean = 4, sd = 1),
     V3 = rnorm(n = .n, mean = 0, sd = 3),
-    v4 = rnorm(n = .n, mean = 0, sd = 1)
+    V4 = rnorm(n = .n, mean = 0, sd = 1)
   )
   dat2  <- rbind(cl1, cl2)
   clas2 <- rep(c("A", "B"), each = .n)
@@ -35,12 +33,12 @@
      labs(color = "Cluster", shape = "Cluster"))
   (ClSep2 <- ggtour(rand, dat2) + 
       proto_basis() + proto_point(aes_args = list(color = clas2, shape = clas2)) +
-      labs(color = "Cluster", shape = "Cluster"))
-  (ClSep <- cowplot::plot_grid(ClSep1, ClSep2, nrow = 1, labels = c("a", "b")))
+      labs(color = "Cluster", shape = "Cluster") + theme(legend.position = "none"))
+  (pw <- ClSep1 + ClSep2)
 }
 if(F){
-  ggsave("./paper/figures/figClSep.pdf", ClSep,
-         device = "pdf", width = 6, height = 2.5, units = "in")
+  ggsave("./paper/figures/figClSep.pdf", pw,
+         device = "pdf", width = 7.5, height = 3, units = "in")
 }
 
 
