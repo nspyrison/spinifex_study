@@ -519,7 +519,7 @@ botCis <-
           #legend.text = element_text(size=6),
           legend.margin = margin(-.05,0,-.01,0, "npc"),
           legend.box.margin = margin(0,0,0,0, "npc"),
-          plot.margin = margin(0,0,0,0, "npc")),
+          plot.margin = margin(1,1,1,1, "pt")),
     labs(color = "", fill = "")
   )
   .visual   <- my_ggpubr(dat_qual, x = "Visual", y = "Marks") + .lp + ylab("Accuracy")
