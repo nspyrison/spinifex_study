@@ -2,8 +2,8 @@
 title: A Study on the Benefit of a User-Controlled Radial Tour for Variable Importance for Structure in High-Dimensional Data
 affiliation:
   ## use one only of the following #institution-columnar removed.
-  author-columnar: true      ## one column per author
-  #wide: true                 ## one column wide author/affiliation fields
+  author-columnar: true ## one column per author
+  #wide: true            ## one column wide author/affiliation fields
   institution:
     - name: Monash University
       location: Australia
@@ -32,6 +32,8 @@ classoption: 12pt,onecolumn
 output:
   bookdown::pdf_book:
     base_format: rticles::ieee_article
+    # includes:
+    #   in_header: "preamble.tex"
 editor_options:
   chunk_output_type: console
 header-includes:
@@ -41,6 +43,9 @@ header-includes:
     - \usepackage{mathtools} ##%% for \shortintertext{} in aligned
     - \usepackage{graphicx}
     - \PassOptionsToPackage{hyphens}{url}\usepackage{hyperref} ##%% Trying to wrap and format urls correctly
+    #- \IEEEsetsidemargin{i}{1in} ## Trying to set margin to all 1 inch, doesn't knit with 'o' or 1
+    #- \IEEEsetsidemargin{o}{1in} ## Accepts last line. but all attempts result in assyemetry.
+    #- \IEEEsetsidemargin{c}{.5in}
 ---
 ```{r setup, include=FALSE}
 require("knitr")
@@ -164,6 +169,7 @@ TripAdvisor [@nam_tripadvisornd_2012] is an interactive application that plans s
 
 <!-- ## Survey reviews 
 
+>> Tentative, IEEE tvcg review papers that are loosely related, keep in mind not cheem paper or thesis.
 > meta lit reviews
 >Visual Interaction with Dimensionality Reduction:
 A Structured Literature Analysis
