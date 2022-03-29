@@ -48,10 +48,11 @@ header-includes:
     #- \IEEEsetsidemargin{c}{.5in}
 ---
 ```{r setup, include=FALSE}
+kable_font_size <- 10
 require("knitr")
 require("kableExtra")
 require("magrittr")
-if(interactive()) setwd("./paper") ## Unify wd for running in session.
+#if(interactive()) setwd("./paper") ## Unify wd for running in session.
 ## chunk options
 knitr::opts_chunk$set(
   fig.align  = "center",
@@ -83,7 +84,6 @@ Empirical studies have rarely assessed tours. An exception is @nelson_xgobi_1999
 
 <!-- Overview of the study -->
 We are particularly interested in assessing the effectiveness of the new radial tour relative to common practice with PCA and grand tour.<!-- thesis_ns introduction --> The user influence over a basis, uniquely available in the radial tour, is crucial to testing variable sensitivity to the structure visible in projection. If the contribution of a variable is reduced and the feature disappears, then we say that the variable was sensitive to that structure. For example, Figure \@ref(fig:figClSep) shows two frames of simulated data. Panel (a) has identified separation between the two clusters. The contributions in panel (b) show no such cluster separation. The former has a large contribution of V2 in the direction of separation, while it is negligible in the right frame. Because of this, we say that V2 is sensitive to the separation of the clusters.
-
 
 ```{r figClSep, echo = F, out.width = "100%", fig.env = "figure*", fig.cap = "Illustration of cluster separation. Panel (a) shows clear separation in V2 and no separation in the direction of V3. While V1 and V4 have relatively small contributions to the frame. Panel (b) has a random basis with a minimal contribution from V2, and no separation between the cluster means is resolved."}
 if(F)
@@ -223,7 +223,7 @@ Experimental factors and the definition of an accuracy measure are given below. 
 In addition to the visual method, data are simulated across three experimental factors. First, the _location_ of the separation between clusters is controlled by mixing a signal and a noise variable at different ratios. Secondly, the _shape_ of the clusters reflects varying distributions of the data. And third, the _dimension_-ality of the data is also tested. The levels within each factor are described below, and Figure \@ref(fig:figExpFactors) gives a visual representation.
 
 <!-- Illustration of experimental factors -->
-```{r figExpFactors, out.width='85%', fig.cap = "Illustration of the experimental factors, the parameter space of the independent variables."}
+```{r figExpFactors, out.width='85%', fig.env = "figure*", fig.cap = "Illustration of the experimental factors, the parameter space of the independent variables."}
 if(F)
   file.edit("./paper/R/fig_model_families.r")
 knitr::include_graphics("./figures/figExpFactors.pdf")
@@ -273,7 +273,7 @@ The weights, $w$, is a vector, the variable-wise difference between the mean of 
 
 Where $I(j)$ is the indicator function, the binary response for variable $j$. Figure \@ref(fig:figBiplotScoring) shows one projection of a simulation with its observed variable separation (wide bars), expected uniform separation (dashed line), and accuracy if selected (thin lines).
 
-```{r, figBiplotScoring, out.width="100%", fig.cap = "Illustration of how accuracy is measured. (L), Scatterplot and biplot of PC1 by PC4 of a simulated data set (R) illustrate cluster separation between the green circles and orange triangles. Bars indicate observed cluster separation, and (red/green) lines show the accuracy weight of the variable if selected. The horizontal dashed line is $1 / p$, the expected value of cluster separation. The accuracy weights equal the signed square of the difference between each variable value and the dashed line."}
+```{r, figBiplotScoring, out.width="100%", fig.env = "figure*", fig.cap = "Illustration of how accuracy is measured. (L), Scatterplot and biplot of PC1 by PC4 of a simulated data set (R) illustrate cluster separation between the green circles and orange triangles. Bars indicate observed cluster separation, and (red/green) lines show the accuracy weight of the variable if selected. The horizontal dashed line is $1 / p$, the expected value of cluster separation. The accuracy weights equal the signed square of the difference between each variable value and the dashed line."}
 if(F)
   file.edit("./paper/R/fig_biplot_scoring.r")
 knitr::include_graphics("./figures/figBiplotScoring.pdf")
@@ -322,7 +322,7 @@ Each period starts with an untimed training task at the simplest remaining exper
 The order of the visual and location levels is randomized with a nested Latin square where all levels of the visuals are exhausted before advancing to the next level of location. This requires $3!^2 = 36$ participants to evaluate all permutations of the experimental factors once. This randomization controls for potential learning effects the participant may receive. Figure \@ref(fig:figParmeterizationExample) illustrates how an arbitrary participant experiences the experimental factors.
 
 <!-- Nested latin square assignment -->
-```{r figParmeterizationExample, out.width="100%", fig.cap = "Illustration of how a hypothetical participant 63 is assigned experimental factors. Each of the six visual order permutations is exhausted before iterating to the next permutation of location order."}
+```{r figParmeterizationExample, out.width="100%", fig.env = "figure*", fig.cap = "Illustration of how a hypothetical participant 63 is assigned experimental factors. Each of the six visual order permutations is exhausted before iterating to the next permutation of location order."}
 ## This is a .pttx screen cap, .png ok.
 knitr::include_graphics("./figures/figParmeterizationExample.png") 
 ```
@@ -401,8 +401,9 @@ model_comp_tbl_ls <- readRDS("./figures/modelCompLs.rds")
 model_comp <- kableExtra::kbl(
   model_comp_tbl_ls[[1]], "latex", align = c("l", rep("l", 2), rep("c", 5)),
   booktabs = TRUE, linesep = "", escape = FALSE, ## Allow cell_spec formatting
+  table.envir = "table*", ## Wide tables; from `*`
   caption = "Model performance of random effect models regressing accuracy. Complex models perform better in terms of $R^2$ and RMSE, yet AIC and BIC penalize their large number of fixed effects in favor of the much simpler model containing only the visuals. Conditional $R^2$ includes error explained by the random effects, while marginal does not.") %>%
-  kableExtra::kable_classic(font_size = 12)
+  kableExtra::kable_classic(font_size = kable_font_size)
 if(F)
   saveRDS(object = model_comp, "./paper/figures/model_comp_y1.rds")
 model_comp
@@ -421,12 +422,13 @@ colnames(coef_ls[[2]]) <- c("Estimate", "Std. Error", "df", "t value", "Prob", "
 if(F)
   browseURL("https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html#Group_rows_via_labeling")
 kableExtra::kbl(
-  coef_ls[[1]], format = "latex", escape = TRUE, booktabs = TRUE, linesep = "", digits = 5,
+  coef_ls[[1]], format = "latex", escape = TRUE, booktabs = TRUE, 
+  linesep = "", digits = 5, table.envir = "table*", ## Wide tables; from `*`
   caption = "The task accuracy model coefficients for $\\widehat{Y} = \\alpha \\times \\beta + \\gamma + \\delta$, with visual = pca, location = 0/100\\%, shape = EEE, and dim = 4 held as baselines. Visual being radial is the fixed term with the strongest evidence supporting the hypothesis. Interacting with the location term, there is evidence suggesting radial performs with minimal improvement for 33/66\\% location mixing.") %>%
   kableExtra::pack_rows("Factor", 2, 3) %>%
   kableExtra::pack_rows("Fixed effects", 4, 8) %>%
   kableExtra::pack_rows("Interactions", 9, 12) %>%
-  kableExtra::kable_classic(font_size = 12) # bootstrap_options = "striped",
+  kableExtra::kable_classic(font_size = kable_font_size) # bootstrap_options = "striped",
 ```
 
 <!-- Model selection and coefficients -->
@@ -436,7 +438,7 @@ Table \@ref(tab:marksCompTbl) compares the model summaries across increasing com
 We also want to visually examine the conditional variables in the model. Figure \@ref(fig:figMarksABcd) illustrates the violin plots of accuracy for each of the model terms.
 
 <!-- Violin plots and test overlay for Y1 visuals -->
-```{r, figMarksABcd, out.width="100%", fig.cap = "Violin plots of terms of the model $\\widehat{Y} = \\alpha \\times \\beta + \\gamma + \\delta$. Overlaid with global significance from the Kruskal-Wallis test and pairwise significance from the Wilcoxon test, both are non-parametric, ranked-sum tests. Viewing marginal accuracy of the terms corroborate the primary findings that use of the radial tour leads to a significant increase in accuracy, at least over PCA, and this effect is particularly well support when no location mixing is applied."}
+```{r, figMarksABcd, out.width="100%", fig.env = "figure*", fig.cap = "Violin plots of terms of the model $\\widehat{Y} = \\alpha \\times \\beta + \\gamma + \\delta$. Overlaid with global significance from the Kruskal-Wallis test and pairwise significance from the Wilcoxon test, both are non-parametric, ranked-sum tests. Viewing marginal accuracy of the terms corroborate the primary findings that use of the radial tour leads to a significant increase in accuracy, at least over PCA, and this effect is particularly well support when no location mixing is applied."}
 if(F) ## Creation and saving figure at:
   file.edit("./paper/R/mixed_model_regression.rmd")
 knitr::include_graphics("./figures/figMarksABcd.pdf")
@@ -448,7 +450,7 @@ knitr::include_graphics("./figures/figMarksABcd.pdf")
 <!-- Introduce subjective measures from n=84 survey responses -->
 The 84 evaluations of the post-study survey also collect four subjective measures for each visual. Figure \@ref(fig:figSubjectiveMeasures) shows the Likert plots, or stacked percentage bar plots, alongside violin plots with the same non-parametric, ranked sum tests previously used. Participants preferred to use radial for this task. Participants were also more confident of their answers and found radial tours easier than grand tours. All visuals have reportedly low familiarity, as expected from crowdsourced participants.
 
-```{r figSubjectiveMeasures, out.width="100%", fig.show="asis", fig.cap = "The subjective measures of the 84 responses of the post-study survey, five discrete Likert scale levels of agreement (L) Likert plots (stacked percent bar plots) with (R) violin plots of the same measures. Violin plots are overlaid with global significance from the Kruskal-Wallis test and pairwise significance from the Wilcoxon test. Both are non-parametric, ranked sum tests. Participants are more confident using the radial tour and find it easier to use than the grand tour. The radial tour is the most preferred visual."}
+```{r figSubjectiveMeasures, out.width="100%", fig.env = "figure*",  fig.show="asis", fig.cap = "The subjective measures of the 84 responses of the post-study survey, five discrete Likert scale levels of agreement (L) Likert plots (stacked percent bar plots) with (R) violin plots of the same measures. Violin plots are overlaid with global significance from the Kruskal-Wallis test and pairwise significance from the Wilcoxon test. Both are non-parametric, ranked sum tests. Participants are more confident using the radial tour and find it easier to use than the grand tour. The radial tour is the most preferred visual."}
 if(F)
   browseURL("https://bookdown.org/Rmadillo/likert/is-there-a-significant-difference.html#permutation-mann-whitney-tests")
 if(F) ## Creation and saving figure at:
