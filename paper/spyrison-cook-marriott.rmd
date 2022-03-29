@@ -100,20 +100,20 @@ The paper is structured as follows. Section \@ref(sec:background) provides backg
 
 # Background {#sec:background}
 
-Before discussing PCA, the grand tour, and the radial tour, this section covers orthogonal views and observation-based visuals of the full variable space. Consider data to be a complete matrix of $n$ observations across $p$ variables, $X_{n \times p}$.
+Consider the data to be a matrix of $n$ observations (rows) and $p$ variables (columns), denoted as $X_{n \times p}$.
 
 
 ## Scatterplot matrix
 
-One could consider looking at $p$ histograms or univariate densities. Doing so will miss features in two or more dimensions. A scatterplot matrix [@chambers_graphical_1983] is a $p \times p$ matrix with univariate densities on the diagonal and all combinations of pairs of variables in off-diagonal elements. Figure \@ref(fig:figFactorPca) shows a scatterplot matrix of the first four components of simulated data. Such displays do not scale well with dimension, quickly becoming dense. Scatterplot matrices also display information in two orthogonal dimensions; features in three dimensions will never be fully resolved.
+One could consider looking at $p$ histograms or univariate densities. Doing so will miss features in two or more dimensions. A scatterplot matrix [@chambers_graphical_1983] is a $p \times p$ matrix typically with univariate densities on the diagonal and all combinations of pairs of variables in off-diagonal elements. Figure \@ref(fig:figFactorPca) shows a scatterplot matrix of the four principal components of simulated data. Such displays do not scale well with dimension, because each plot would get less and less space. Scatterplot matrices can only display information in two orthogonal dimensions, so features in three dimensions may not be fully resolved.
 
 ## Parallel coordinates plot
 
 <!-- PCP -->
-Another common way to display multivariate data is with a parallel coordinates plot [@ocagne_coordonnees_1885], which shows observations by quantile or normalized values for each variable connected by lines to the quantile value in subsequent variables. Parallel coordinates plots and other observations-linked glyph visuals, such as pixel plots or Chernoff faces, scale well with dimensions but poorly with observations. These are perhaps best used when there are more variables than observations.
+Another common way to display multivariate data is with a parallel coordinates plot [@ocagne_coordonnees_1885], which shows observations by quantile or normalized values for each variable connected by lines to the quantile value in subsequent variables. Parallel coordinates plots <!--and other observations-linked glyph visuals, such as pixel plots or Chernoff faces,--> scale well with dimensions, but poorly with observations as the lines overcrowd the display. <!--These are perhaps best used when there are more variables than observations.-->
 
-<!-- extending to other obs-based visuals -->
-Observations-based visuals have a couple of issues. They are asymmetric across variable ordering, in that shuffling the order of the variable can lead to different conclusions. Another shortcoming is the graphical channel used to convey information. Munzner suggests that position is the visual channel that is most perceptible to humans [@munzner_visualization_2014]. In the case of parallel coordinates plots, the horizontal axes span variables rather than the values of one variable; the loss of a display dimension to be used by our most perceptible visual channel.
+<!-- extending to other obs-based visuals 
+Observations-based visuals have a couple of issues.--> Parallel coordinate plots are asymmetric across variable ordering, in that shuffling the order of the variable can lead to different conclusions. Another shortcoming is the graphical channel used to convey information. @munzner_visualization_2014 suggests that position is the visual channel that is most perceptible to humans. In the case of parallel coordinates plots, the horizontal axes span variables rather than the values of one variable, causing the loss of a display dimension to be used by our most perceptible visual channel.
 
 <!-- Turning to Linear DR -->
 At some point, visualization will be forced to turn to dimension reduction to scale better with the dimensionality of the data. Nonlinear transformations bend and distort spaces are not entirely accurate or faithful to the original variable space. In light of this, we preclude nonlinear techniques and instead decide on PCA, the grand tour, and the radial tour.
