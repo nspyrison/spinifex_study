@@ -46,7 +46,8 @@ gg_pca <- GGally::ggpairs(
   #diag = "blank",
   upper = "blank",
   lower = list(continuous = wrap("points", alpha = 0.7, size=1)),
-  columnLabels = paste0("PC", 1:4)) + 
+  columnLabels = paste0("PC", 1:4),
+  switch = "both") + 
   theme_bw() +
   theme(axis.ticks = element_blank(), 
         axis.text = element_blank()) +
