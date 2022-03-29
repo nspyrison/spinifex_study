@@ -11,15 +11,15 @@ affiliation:
       author:
         - name: Nicholas Spyrison
           email: |
-            | Nicholas.Spyrison@monash.edu
+            | nicholas.spyrison@monash.edu
             | ORCiD: 0000-0002-8417-0212
         - name: Dianne Cook
           email: |
-            | DiCook@monash.edu
+            | dicook@monash.edu
             | ORCiD: 0000-0002-3813-7155
         - name: Kimbal Marriott
           email: |
-            | Kim.Marriott@monash.edu
+            | kim.marriott@monash.edu
             | ORCiD: 0000-0002-9813-0377
 keywords: ["High-Dimensional Data", "Linear Dimension Reduction", "Visual Analytics", "Grand Tour"]
 abstract: |
@@ -299,7 +299,7 @@ PCA allowed users to select between the top four principal components for each a
 Each dimension is distributed initially as $\mathcal{N}(0, 1)$, given the covariance set by the shape factor. Clusters were initially separated by a distance of two before location mixing. Signal variables had a correlation of 0.9 when they had equal orientation and -0.9 when their orientations varied. Noise variables were restricted to zero correlation. Each cluster is simulated with 140 observations and is offset in a variable that did not distinguish previous variables.
  
 <!-- Apply shape and location transformations -->
-Clusters of the EVV shape are transformed to the banana-chevron shape (illustrated in figure \@ref(fig:figExpFactors), shape row). Then location mixing is applied by post-multiplying a  rotation matrix to the signal variable and a noise variable for the clusters in question.<!-- Preprocess and replicate and save --> All variables are then standardized by standard deviations away from the mean. The columns are then shuffled randomly.  
+Clusters of the EVV shape are transformed to the banana-chevron shape (illustrated in Figure \@ref(fig:figExpFactors), shape row). Then location mixing is applied by post-multiplying a  rotation matrix to the signal variable and a noise variable for the clusters in question.<!-- Preprocess and replicate and save --> All variables are then standardized by standard deviations away from the mean. The columns are then shuffled randomly.  
 
 <!-- Iterating over visual -->
 Each of these replications is then iterated with each level of the visual. For PCA, projections were saved (to `png`) for each of the 12 pairs of the top four principal components. A grand tour basis path is saved for each dimensionality level. The data from each simulation is then projected through its corresponding bases path and saved to `gif` file. The radial tour starts at either the four or six-variable "half-clock" basis. A radial tour is then produced for each variable and saved as a `gif`.
