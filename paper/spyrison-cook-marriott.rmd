@@ -375,18 +375,18 @@ $$
 \alpha \times \beta \times \gamma \times \delta &\widehat{Y} = \mu + \alpha_i \times \beta_j \times \gamma_k \times \delta_l + \textbf{Z} + \textbf{W} + \epsilon
 \end{array}
 $$
-<!-- !!!Extra Escape character in html version -->
+<!-- Merging envirnments is a headache -->
 $$
-\begin{array}{ll}
-\text{where }
-&\mu \text{, the intercept of the model} \\
-&\alpha_i \text{, fixed term for visual}~|~i\in (\text{pca, grand, radial}) \\
-&\beta_j  \text{, fixed term for location}~|~j\in (\text{0/100\%, 33/66\%, 50/50\%}) \text{  noise/signal mixing} \\
-&\gamma_k \text{, fixed term for shape}~|~k\in (\text{EEE, EEV, EVV banana}) \text{ model shapes} \\
-&\delta_l \text{, fixed term for dimension}~|~l\in (\text{4 variables \& 3 cluster, 6 variables \& 4 clusters}) \\
-&\textbf{Z} \sim \mathcal{N}(0,~\tau), \text{ the error of the random effect of participant} \\
-&\textbf{W} \sim \mathcal{N}(0,~\upsilon), \text{ the error of the random effect of simulation} \\
-&\epsilon   \sim \mathcal{N}(0,~\sigma), \text{ the remaining error in the model} \\
+\begin{array}{l}
+\text{where} \\
+~~\mu \text{, the intercept of the model} \\
+~~\alpha_i \text{, visual term}~|~i\in (\text{pca, grand, radial}) \\
+~~\beta_j  \text{, location term}~|~j\in (\text{0/100\%, 33/66\%, 50/50\%}) \text{ mix} \\
+~~\gamma_k \text{, shape term}~|~k\in (\text{EEE, EEV, EVV banana}) \\
+~~\delta_l \text{, dimension term}~|~l\in \text{(4 \& 3, 6 \& 4) var \& clust}, \ \\
+~~\textbf{Z} \sim \mathcal{N}(0,~\tau), \text{ error of the random effect of participant} \\
+~~\textbf{W} \sim \mathcal{N}(0,~\upsilon), \text{ error of the random effect of simulation} \\
+~~\epsilon   \sim \mathcal{N}(0,~\sigma), \text{ remaining error of the model} \\
 \end{array}
 $$
 
