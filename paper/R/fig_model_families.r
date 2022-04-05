@@ -153,7 +153,7 @@ dim6  <- ggtour(bas6) +
 ## text block about cluster d
 dim_txt <- ggplot() +
   geom_text(aes(0, 0), size = 3.3, hjust = .5, vjust = .3,
-            label = "Cluster 'd', above, only exists \n when there are six dimensions, \n is spherical, and has cluster \n separation orthogonal to the \n plane of the other three \n isodensities.") +
+            label = "Cluster 'd', above, only exists \n when there are six dimensions, \n is spherical and has a cluster \n separation orthogonal to the \n plane of the other three \n isodensities.") +
   theme_void() +
   theme(text = element_text(hjust = .5, vjust = .5))
 
@@ -196,7 +196,7 @@ final   <- plot_grid(tbl_col, header_matrix, nrow = 1, rel_widths = c(0.05, 1))
 
 ### Save -----
 ggsave("./paper/figures/figExpFactors.pdf", final,
-       device = "pdf", width = 6.25, height = 9, units = "in")
+       device = "pdf", width = 8, height = 9, units = "in")
 
 
 
