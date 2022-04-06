@@ -86,7 +86,7 @@ Empirical studies have rarely assessed tours. An exception is @nelson_xgobi_1999
 <!-- Overview of the study -->
 We are particularly interested in assessing the effectiveness of the new radial tour relative to common practice with PCA and grand tour.<!-- thesis_ns introduction --> The user influence over a basis, uniquely available in the radial tour, is crucial to testing variable sensitivity to the structure visible in projection. If the contribution of a variable is reduced and the feature disappears, then we say that the variable was sensitive to that structure. For example, Figure \@ref(fig:figClSep) shows two frames of simulated data. Panel (a) has identified separation between the two clusters. The contributions in panel (b) show no such cluster separation. The former has a large contribution of V2 in the direction of separation, while it is negligible in the right frame. Because of this, we say that V2 is sensitive to the separation of the clusters.
 
-```{r figClSep, echo = F, out.width = "100%", fig.env = "figure*", fig.cap = "Illustration of cluster separation. Panel (a) shows clear separation in the direction of V2 and no separation in that of V3. While V1 and V4 have relatively small contributions to the frame. Panel (b) has a random basis with a minimal contribution from V2, and no separation between the cluster means is resolved."}
+```{r figClSep, echo = F, out.width = "100%", fig.env = "figure*", fig.cap = "Illustration of cluster separation, in relation to variable importance. Panel (a) is a projection mostly of V2 and V3 and the  separation between clusters is in the direction of V2 not V3. This suggests V2 is important for clustering, but V3 isn't. Panel (b) shows a projection of mostly V3 and V4, with no contribution from V2, and little from V3. That there is no separation between the clusters indicates that V3 and V4 are not important."}
 if(F)
   file.edit("./paper/R/fig_biplot_scoring.r")
 knitr::include_graphics("./figures/figClSep.pdf")
@@ -125,7 +125,7 @@ At some point, visualization will be forced to turn to dimension reduction to sc
 
 PCA is a good baseline of comparison for linear projections because of its frequent and broad use across disciplines. PCA [@pearson_liii._1901] defines new components, linear combinations of the original variables, ordered by decreasing variation through the help of eigenvalue matrix decomposition. While the resulting dimensionality is the same size, the benefit comes from the ordered nature of the components. The data can be said to be approximated by the first several components. The exact number is subjectively selected given the variance contained in each component, typically guided from a scree plot [@cattell_scree_1966]. Features with sizable signal regularly appear in the leading components that commonly approximate data. However, this is not always the case, and component spaces should be fully explored to look for signal in components with less variation. This is especially true for cluster structure [@donnell1994].
 
-```{r figFactorPca, echo = F, out.width = "100%", fig.env = "figure*", fig.cap = "Scatterplot matrix of the first four principal components of 6D simulated data containing four classes. The separation between classes is primarily in PC1 and PC4. This is not uncommon because PCA is summarizing variance, not cluster structure."}
+```{r figFactorPca, echo = F, out.width = "100%", fig.cap = "Scatterplot matrix of the first four principal components of 6D simulated data containing four classes. The separation between classes is primarily in PC1 and PC4. This is not uncommon because PCA is summarizing variance, not cluster structure."}
 if(F)
   file.edit("./paper/R/fig_pca_splom.r")
 knitr::include_graphics("./figures/fig_pca_splom.pdf")
@@ -199,7 +199,7 @@ Some studies use cohort encoding. @sedlmair_empirical_2013 instead use two exper
 # User study {#sec:userstudy}
 
 <!-- Overview of visual -->
-An experiment was constructed to assess the performance of the radial tour relative to the grand tour and PCA for interpreting the variable attribution to the separation between two clusters. <!-- Introduce experimental factors --> Data were simulated across three experimental factors: location of the cluster separation, cluster shape, and data dimensionality. Participant responses were collected using a web application and crowdsourced through prolific.co, [@palan_prolific_2018] an alternative to MTurk.
+The experiment was designed to assess the performance of the radial tour relative to the grand tour and PCA for interpreting the variable attribution to the separation between two clusters. <!-- Introduce experimental factors --> Data were simulated across three experimental factors: location of the cluster separation, cluster shape, and data dimensionality. Participant responses were collected using a web application and crowdsourced through prolific.co, [@palan_prolific_2018] an alternative to MTurk.
 
 
 ## Objective {#sec:objective}
