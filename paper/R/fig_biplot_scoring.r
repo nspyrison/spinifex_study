@@ -28,17 +28,22 @@
   rand[2,] <- rand[2, ] / 20
   rand <- tourr::orthonormalise(rand)
   # fig_cl_sep -----
-  (ClSep1 <- ggtour(bas2[, c(3, 4)], dat2) + 
-     proto_basis() + proto_point(aes_args = list(color = clas2, shape = clas2)) +
-     labs(color = "Cluster", shape = "Cluster"))
-  (ClSep2 <- ggtour(rand, dat2) + 
-      proto_basis() + proto_point(aes_args = list(color = clas2, shape = clas2)) +
-      labs(color = "Cluster", shape = "Cluster") + theme(legend.position = "none"))
+  (ClSep1 <- ggtour(bas2[, c(3, 4)], dat2) +
+     proto_basis() +
+     proto_point(aes_args = list(color = clas2, shape = clas2)) +
+     labs(color = "Cluster", shape = "Cluster", title= "a") +
+     theme(panel.border = element_rect(fill = NA)))
+  (ClSep2 <- ggtour(rand, dat2) +
+      proto_basis() +
+      proto_point(aes_args = list(color = clas2, shape = clas2)) +
+      labs(color = "Cluster", shape = "Cluster", title= "b") +
+      theme(legend.position = "none",
+            panel.border = element_rect(fill = NA)))
   (pw <- ClSep1 + ClSep2)
 }
 if(F){
   ggsave("./paper/figures/figClSep.pdf", pw,
-         device = "pdf", width = 7.5, height = 3, units = "in")
+         device = "pdf", width = 8, height = 3, units = "in")
 }
 
 
