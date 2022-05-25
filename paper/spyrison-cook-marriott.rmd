@@ -102,9 +102,8 @@ Consider the data to be a matrix of $n$ observations (rows) and $p$ variables (c
 
 ## Orthogonal multivariate visualization
 
-@grinstein_high-dimensional_2002 illustrate many multivariate visualization methods. In particular, this work shows examples of actual visuals. @liu_visualizing_2017 give a good classification and taxonomy of such methods. The content below focuses on the most common and the most relevant visuals.
+@grinstein_high-dimensional_2002 illustrate many multivariate visualization methods. In particular, this work shows examples of actual visuals. @liu_visualizing_2017 give a good classification and taxonomy of such methods. The content below focuses on the most common visuals that use the full data space before discussing linear combinations of those variables in projections.
 
->> TODO Below we will 
 
 ### Scatterplot matrix
 
@@ -122,12 +121,12 @@ Another common way to display multivariate data is with a parallel coordinates p
 ## Multivariate projections
 
 <!-- Turning to Linear DR -->
-At some point, visualization will be forced to turn to dimension reduction to scale better with the dimensionality of the data. Nonlinear transformations bend and distort spaces are not entirely accurate or faithful to the original variable space. In light of this, we preclude nonlinear techniques and instead decide on PCA, the grand tour, and the radial tour.
+At some point, visualization will be forced to turn to dimension reduction to scale better with the dimensionality of the data. Below we introduce linear projections and the common principal component analysis. Then we touch on nonlinear projections and exclude them from consideration.
 
 
 ### Linear
 
-
+Linear projections map a higher $p$-dimensional space onto a smaller $d$-space with an affine mapping (where parallel lines stay parallel). A projection is the resulting space of the data multiplied by a basis $Y_{n \times d} = X_{n \times p} \cdot A_{p \times d}$, this is essentially a reorientation of the original variable. The intuition of this is conveyed by thinking of a shadow as 2D projection of a 3D object. Rotating the the object reflects a change in the basis and which side/variable of the object are exposed and cast a shadow.
 
 
 ### Principal component analysis
@@ -143,6 +142,9 @@ knitr::include_graphics("./figures/fig_pca_splom.pdf")
 
 ### Nonlinear
 
+Nonlinear transformations bend and distort spaces are not entirely accurate or faithful to the original variable space. There are various quality metrics, such as Trustworthiness, Continuity, Normalized stress, and Average local error, have been introduced to describe the distortion of the space [@espadoto_toward_2021; @gracia_new_2016]. Unfortunately these metrics are hard to visualize and communicate making the distortions introduced opaque to the analyst. The intuition of this can be demonstrated with map projections. @snyder_map_1987 lists over 200 different projections that distort the surface of the earth to display as a 2D map, each with unique properties and use cases.
+
+Because of the difficultly to interpreting the distortions of nonlinear spaces and the added subjectivity of hyperparemeter selection, we exclude nonlinear techniques and instead decide to compare three linear techniques.
 
 
 ## Tours, animated linear projections {#sec:tours}
@@ -464,6 +466,7 @@ knitr::include_graphics("./figures/figSubjectiveMeasures_w.violin_hori.pdf")
 ```
 
 There was strong evidence to support that participants preferred the radial tour to either alternative. There is less evidence that the radial tour led to more confidence and found easier to use than the grand tour. In confirmation of expectations, crowd sourced participants had low familiarity with all visuals, with no difference in mean supported.
+
 
 # Discussion
 
