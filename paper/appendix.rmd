@@ -11,7 +11,7 @@ This section covers extended analysis. First, it illustrations of the different 
 
 Below illustrates the three visual methods evaluated in the user study. Data was collected from a __shiny__ application, and pre-rendered `gif` files were displayed based on the selected inputs.
 
-```{r out.width="100%", fig.env = "figure*", fig.cap = "Examples of the application displays for PCA, grand tour, and radial tour."}
+```{r out.width="100%", fig.env = "figure", fig.cap = "Examples of the application displays for PCA, grand tour, and radial tour."}
 knitr::include_graphics("./figures/study_app_combined.PNG")
 ```
 
@@ -19,7 +19,7 @@ knitr::include_graphics("./figures/study_app_combined.PNG")
 
 The target population is relatively well-educated people, as linear projections may prove difficult for generalized consumption. Hence, Prolific.co participants are restricted to those with an undergraduate degree (58,700 of the 150,400 users at the study time). From this cohort, 108 performed a complete study. Of these participants, 84 submitted the post-study survey, represented in the following heatmap. All participants were compensated for their time at \pounds 7.50 per hour, with a mean time of about 16 minutes. Figure \@ref(fig:figSurveyDemographics) shows a heat map of the demographics for these 84 participants.
 
-```{r, figSurveyDemographics, out.width="100%", fig.env = "figure*", fig.cap = "Heatmaps of survey participant demographics; counts of age group by completed education as faceted across preferred pronoun. Our sample tended to be between 18 and 35 years of age with an undergraduate or graduate degree."}
+```{r, figSurveyDemographics, out.width="100%", fig.env = "figure", fig.cap = "Heatmaps of survey participant demographics; counts of age group by completed education as faceted across preferred pronoun. Our sample tended to be between 18 and 35 years of age with an undergraduate or graduate degree."}
 if(F) ## Creation and saving figure at:
   file.edit("./paper/R/fig_population_demographics.r")
 knitr::include_graphics("./figures/figSurveyDemographics.pdf")

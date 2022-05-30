@@ -368,6 +368,7 @@ To quantify the contribution of the experimental factors to the accuracy, mixed-
 In building a set of models to test, a base model with only the visual term being compared with the full linear model term and progressively interacting with an additional experimental factor. The models with three and four interacting variables are rank deficient; there is not enough varying information in the data to explain all interacting terms.
 
 <!-- Y1 accuracy regression -->
+\begin{small}
 $$
 \begin{array}{ll}
 \textbf{Fixed effects} &\textbf{Full model} \\
@@ -378,20 +379,22 @@ $$
 \alpha \times \beta \times \gamma \times \delta &\widehat{Y} = \mu + \alpha_i \times \beta_j \times \gamma_k \times \delta_l + \textbf{Z} + \textbf{W} + \epsilon
 \end{array}
 $$
-<!-- Merging environments is a headache -->
+
 $$
 \begin{array}{l}
 \text{where} \\
 ~~\mu \text{, the intercept of the model} \\
 ~~\alpha_i \text{, visual term}~|~i\in (\text{pca, grand, radial}) \\
-~~\beta_j  \text{, location term}~|~j\in (\text{0/100\%, 33/66\%, 50/50\%}) \text{ mix} \\
+~~\beta_j  \text{, location term}~|~j\in (\text{0/100, 33/66, 50/50\% mix}) \\
 ~~\gamma_k \text{, shape term}~|~k\in (\text{EEE, EEV, EVV banana}) \\
-~~\delta_l \text{, dimension term}~|~l\in \text{(4 \& 3, 6 \& 4) var \& clust}, \ \\
-~~\textbf{Z} \sim \mathcal{N}(0,~\tau), \text{ error of the random effect of participant} \\
-~~\textbf{W} \sim \mathcal{N}(0,~\upsilon), \text{ error of the random effect of simulation} \\
+~~\delta_l \text{, dimension term}~|~l\in \text{(4 \& 3, 6 \& 4) var \& clusters},  \\
+~~\textbf{Z} \sim \mathcal{N}(0,~\tau), \text{ the random effect of participant} \\
+~~\textbf{W} \sim \mathcal{N}(0,~\upsilon), \text{ the random effect of simulation} \\
 ~~\epsilon   \sim \mathcal{N}(0,~\sigma), \text{ the remaining error of the model}
 \end{array}
 $$
+\end{small}
+<!-- Merging environments is a headache -->
 
 <!-- Y1 model comparisons -->
 ```{r marksCompTbl, fig.cap = "Use the caption arg in kable(), not this."}
@@ -406,7 +409,7 @@ model_comp <- kableExtra::kbl(
   table.envir = "table*", ## Wide tables; from `*`
   caption = "Model performance of random effect models regressing accuracy. Complex models perform better in terms of $R^2$ and RMSE, yet AIC and BIC penalize their large number of fixed effects in favor of the much simpler model containing only the visuals. Conditional $R^2$ includes error explained by the random effects, while marginal does not.") %>%
   kableExtra::kable_classic(font_size = kable_font_size,
-                            latex_options = "striped") 
+                            latex_options = "striped")
 ## latex_options = "hold_position" NOR "HOLD_position" seem toi have any impact on table 1.
 if(F)
   saveRDS(object = model_comp, "./paper/figures/model_comp_y1.rds")
