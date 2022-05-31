@@ -401,6 +401,8 @@ $$
 if(F) ## Creation and saving at:
   file.edit("./paper/R/mixed_model_regression.rmd")
 model_comp_tbl_ls <- readRDS("./figures/modelCompLs.rds")
+colnames(model_comp_tbl_ls[[1]][2:3]) <- c("No. terms", "No. levels")
+colnames(model_comp_tbl_ls[[2]][2:3]) <- c("No. terms", "No. levels")
 
 ## 1) Eval parameters
 model_comp <- kableExtra::kbl(
@@ -454,8 +456,10 @@ knitr::include_graphics("./figures/figMarksABcd.pdf")
 
 ## Subjective measures
 
+Modeling has shown us that use of the radial tour leads to a sizably improvement in the accuracy measure for this task. This is not the whole story though. It is desirable to know what the users are think of using the visuals. We follow the lead set by @wagner_filho_immersive_2018. They observe four subjective measures. The following were used in this study: confidence, easy of use, prior familiarity, and preference. Each of these questions were asked of all for each visual as 5-point likert items.
+
 <!-- Introduce subjective measures from n=84 survey responses -->
-The 84 evaluations of the post-study survey also collect four subjective measures for each visual. Responses were 5-point Likert items on confidence, ease of use, familiarity, and preference with each of the visuals. Figure \@ref(fig:figSubjectiveMeasures) shows the Likert plots or stacked percentage bar plots, alongside violin plots with the same non-parametric, ranked sum tests previously used.
+The 84 evaluations of the post-study survey collect these Figure \@ref(fig:figSubjectiveMeasures) shows the Likert plots or stacked percentage bar plots, alongside violin plots with the same non-parametric, ranked sum tests previously used.
 
 ```{r figSubjectiveMeasures, out.width="100%", fig.env = "figure*", fig.show="asis", fig.cap = "The subjective measures of the 84 responses of the post-study survey with five-point Likert items levels of agreement. (L) Likert plots (stacked percent bar plots) with (R) violin plots of the same measures. Violin plots are overlaid with global significance from the Kruskal-Wallis test and pairwise significance from the Wilcoxon test. Participants are more confident using the radial tour and find it easier to use than the grand tour. The radial tour is the most preferred visual."}
 if(F)
@@ -470,7 +474,9 @@ There was strong evidence to support that participants preferred the radial tour
 
 # Discussion
 
->> TODO
+Developers and analysts have the task of choosing which visualization technique to use.  We have discussed Orthogonal visualization, observation-link glyphs and projections of data. There are many empirical evaluations comparing across visualization and display dimensionality for multivariate data. However animated and tour related are rarely compared in the literature. This user study is the first to compare the radial tour. The hypothesis that the user control over the basis and the permanence of observations between intermediate frames lead to 
+
+>>> XXX finish disucssion
 
 # Conclusion {#sec:conclusion}
 
@@ -481,7 +487,7 @@ Data visualization is an integral part of understanding relationships in data an
 This paper discussed a within-participant user study ($n=108$) comparing the efficacy of three linear projection techniques: PCA, grand tour, and radial tour. The participants performed a supervised cluster task, explicitly identifying which variables contribute to the separation of two target clusters. This was evaluated evenly over four experimental factors. In summary, mixed-model regression finds strong evidence that using the radial tour sizably increases accuracy, especially when cluster separation location is not mixed at 33/66%. The effect sizes on accuracy are large relative to the change from the other experimental factors and the random effect of data simulation, though smaller than the random effect of the participant. The radial tour was the most preferred of the three visuals.
 
 <!-- Future work -->
-There are several ways that this study could be extended. In addition to expanding the support of the experimental factors, more exciting directions include: introducing a new task, visualizations used, and the experience level of the target population. It is difficult to achieve good coverage given the number of possible experimental factors.
+There are a number of implicit limitations to this study: the task, type of data, levels of the factors selected There are several ways that this study could be extended. In addition to expanding the support of the experimental factors, more exciting directions include: introducing a new task, including more visualizations , and changing the  experience level of the target population. It is difficult to achieve good coverage given the number of possible experimental factors.
 
 
 # Acknowledgments {#sec:acknowledgments}
