@@ -20,22 +20,22 @@
     V3 = rnorm(n = .n, mean = 0, sd = 3),
     V4 = rnorm(n = .n, mean = 0, sd = 1)
   )
-  dat2  <- rbind(cl1, cl2)
-  clas2 <- rep(c("A", "B"), each = .n)
-  bas2  <- basis_olda(dat2, clas2, d = 4)
+  dat  <- rbind(cl1, cl2)
+  clas <- rep(c("A", "B"), each = .n)
+  bas1 <- basis_olda(dat, clas, d = 4)[, c(4, 3)]
   
-  rand <- tourr::basis_random(4, 2)
-  rand[2,] <- rand[2, ] / 20
-  rand <- tourr::orthonormalise(rand)
+  bas2 <- tourr::basis_random(4, 2)
+  bas2[2,] <- rand[2, ] / 20
+  bas2 <- tourr::orthonormalise(rand)
   # fig_cl_sep -----
-  (ClSep1 <- ggtour(bas2[, c(3, 4)], dat2) +
+  (ClSep1 <- ggtour(bas1, dat) +
      proto_basis() +
-     proto_point(aes_args = list(color = clas2, shape = clas2)) +
+     proto_point(aes_args = list(color = clas, shape = clas)) +
      labs(color = "Cluster", shape = "Cluster", title= "a") +
      theme(panel.border = element_rect(fill = NA)))
-  (ClSep2 <- ggtour(rand, dat2) +
+  (ClSep2 <- ggtour(bas2, dat) +
       proto_basis() +
-      proto_point(aes_args = list(color = clas2, shape = clas2)) +
+      proto_point(aes_args = list(color = clas, shape = clas)) +
       labs(color = "Cluster", shape = "Cluster", title= "b") +
       theme(legend.position = "none",
             panel.border = element_rect(fill = NA)))
@@ -44,6 +44,46 @@
 if(F){
   ggsave("./paper/figures/figClSep.pdf", pw,
          device = "pdf", width = 8, height = 3, units = "in")
+}
+
+## fig_radial_tour -----
+bas <- basis_olda(dat, clas, d = 4)[, c(4, 3)]
+# y <- as.matrix(dat) %*% bas %>% as.data.frame()
+# GGally::ggpairs(y, ggplot2::aes(color = clas))
+mt_path <- manual_tour(bas, 2, data = dat)
+
+ggt <- ggtour(mt_path, dat, .3) +
+  proto_point(list(color = clas, shape = clas)) +
+  proto_basis(line_size = .6) + theme(legend.position = "off")
+## Use this to pick frame 2 (full), 8 (half), 10 (0)
+(fs <- filmstrip(ggt, ncol = 3))
+
+interp <- spinifex:::interpolate_manual_tour(mt_path, angle = .3)
+bas_full <- interp[,,2]
+bas_half <- interp[,,5]
+bas_zero <- interp[,,8]
+attr(bas_full, "manip_var") <-
+  attr(bas_half, "manip_var") <-
+  attr(bas_zero, "manip_var") <- attributes(mt_path)$manip_var
+
+full <- ggtour(bas_full, dat, .3) +
+  proto_point(list(color = clas, shape = clas)) +
+  proto_basis(line_size = .6) +
+  proto_origin() +
+  theme(legend.position = "off")
+half <- ggtour(bas_half, dat, .3) +
+  proto_point(list(color = clas, shape = clas)) +
+  proto_basis(line_size = .6) + 
+  proto_origin()
+zero <- ggtour(bas_zero, dat, .3) +
+  proto_point(list(color = clas, shape = clas)) +
+  proto_basis(line_size = .6) +
+  proto_origin() +
+  theme(legend.position = "off")
+(pw <- full + half + zero)
+if(F){
+  ggsave("./paper/figures/figRadialTour.pdf", pw, device = "pdf",
+         width = 8, height = 3, units = "in")
 }
 
 
