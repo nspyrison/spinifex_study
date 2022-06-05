@@ -6,12 +6,23 @@
 <!-- segue to extended analysis -->
 This section covers extended analysis. First, it illustrations of the different visuals are provided. Then, the participant demographics are covered. Lastly, a parallel modeling analysis on log response time is conducted.
 
+## Data simulation
+
+<!-- Clusters and correlation -->
+Each dimension is distributed initially as $\mathcal{N}(0, 1)$, given the covariance set by the shape factor. Clusters were initially separated by a distance of two before location mixing. Signal variables had a correlation of 0.9 when they had equal orientation and -0.9 when their orientations varied. Noise variables were restricted to zero correlation. Each cluster is simulated with 140 observations and is offset in a variable that did not distinguish previous variables.
+ 
+<!-- Apply shape and location transformations -->
+Clusters of the EVV shape are transformed into the banana-chevron shape (illustrated in Figure \@ref(fig:figExpFactors), shape row). Then location mixing is applied by post-multiplying a rotation matrix to the signal variable and a noise variable for the clusters in question.<!-- Preprocess and replicate and save --> All variables are then standardized by standard deviations away from the mean. The columns are then shuffled randomly.
+
+<!-- Iterating over visual -->
+Each of these replications is then iterated with each level of the visual. For PCA, projections were saved (to `png`) for the 12 pairs of the top four principal components. A grand tour basis path is saved for each dimensionality level. The data from each simulation is then projected through its corresponding bases path and saved to `gif` file. The radial tour starts at either the four or six-variable "half-clock" basis. A radial tour is then produced for each variable and saved as a `gif`.
+
 
 ## Illustrations of visual methods
 
 Below illustrates the three visual methods evaluated in the user study. Data was collected from a __shiny__ application, and pre-rendered `gif` files were displayed based on the selected inputs.
 
-```{r out.width="100%", fig.env = "figure", fig.cap = "Examples of the application displays for PCA, grand tour, and radial tour."}
+```{r out.width="100%", fig.env = "figure*", fig.cap = "Examples of the application displays for PCA, grand tour, and radial tour."}
 knitr::include_graphics("./figures/study_app_combined.PNG")
 ```
 
@@ -36,7 +47,7 @@ As a secondary explanatory variable, response time is considered. Response time 
 ```{r timeCompTbl, fig.cap = "Use the caption arg in kable(), not this."}
 ## 1) Eval parameters
 kableExtra::kbl(
-  model_comp_tbl_ls[[2]], "latex", align = c("l", rep("r", 7)),
+  model_comp[[2]], "latex", align = c("l", rep("r", 7)),
   booktabs = TRUE, linesep = "", escape = FALSE, ## Allow cell_spec formatting
   table.envir = "table*", ## Wide tables; from `*`
   caption = "Model performance regressing on log response time [seconds], $\\widehat{Y_2}$ random effect models. Conditional $R^2$ includes the random effects, while marginal does not. The model $\\alpha \\times \\beta + \\gamma + \\delta$ model is selected to examine further as it has relatively high marginal $R^2$ while having much less complexity than the complete interaction model.") %>%
