@@ -4,7 +4,8 @@
 
 
 <!-- segue to extended analysis -->
-This section covers extended analysis. First, it illustrations of the different visuals are provided. Then, the participant demographics are covered. Lastly, a parallel modeling analysis on log response time is conducted.
+This section covers some auxiliary details for the data simulation and collection. It continues on with an illustration of the visual methods and the demographics of the participants. Lastly, a parallel modeling analysis on log response time is conducted.
+
 
 ## Data simulation
 
@@ -17,6 +18,14 @@ Clusters of the EVV shape are transformed into the banana-chevron shape (illustr
 <!-- Iterating over visual -->
 Each of these replications is then iterated with each level of the visual. For PCA, projections were saved (to `png`) for the 12 pairs of the top four principal components. A grand tour basis path is saved for each dimensionality level. The data from each simulation is then projected through its corresponding bases path and saved to `gif` file. The radial tour starts at either the four or six-variable "half-clock" basis. A radial tour is then produced for each variable and saved as a `gif`.
 
+## Data collection
+
+<!-- App, data collection, network issues -->
+Data were recorded in a __shiny__ application and written to a Google Sheet after each third of the study. Especially at the start of the study, participants experienced adverse network conditions due to the volume of participants hitting the application with modest allocated resources. In addition to this, API read/write limitations further hindered data collection. To mitigate this, the thru-put of participants was throttled, and over-collect survey trials until three evaluations were collected for all permutation levels.
+
+<!-- Preprocessing steps -->
+The processing steps were minimal. The data were formatted and then filtered to the latest three complete studies of each experimental factor, which should have experienced the least adverse network conditions. The bulk of the studies removed were partial data and a few over-sampled permutations. This brings us to the 108 studies described in the paper, from which models and aggregation tables were built. The post-study surveys were similarly decoded to human-readable format and then filtered to include only those 84 associated with the final 108 studies.
+
 
 ## Illustrations of visual methods
 
@@ -26,7 +35,7 @@ Below illustrates the three visual methods evaluated in the user study. Data was
 knitr::include_graphics("./figures/study_app_combined.PNG")
 ```
 
-## Survey participant demographics {#sec:demographics}
+## Participant demographics {#sec:demographics}
 
 The target population is relatively well-educated people, as linear projections may prove difficult for generalized consumption. Hence, Prolific.co participants are restricted to those with an undergraduate degree (58,700 of the 150,400 users at the study time). From this cohort, 108 performed a complete study. Of these participants, 84 submitted the post-study survey, represented in the following heatmap. All participants were compensated for their time at \pounds 7.50 per hour, with a mean time of about 16 minutes. Figure \@ref(fig:figSurveyDemographics) shows a heat map of the demographics for these 84 participants.
 
@@ -49,7 +58,7 @@ As a secondary explanatory variable, response time is considered. Response time 
 kableExtra::kbl(
   model_comp[[2]], "latex", align = c("l", rep("r", 7)),
   booktabs = TRUE, linesep = "", escape = FALSE, ## Allow cell_spec formatting
-  table.envir = "table*", ## Wide tables; from `*`
+  table.envir = "table", ## Wide tables; from `*`
   caption = "Model performance regressing on log response time [seconds], $\\widehat{Y_2}$ random effect models. Conditional $R^2$ includes the random effects, while marginal does not. The model $\\alpha \\times \\beta + \\gamma + \\delta$ model is selected to examine further as it has relatively high marginal $R^2$ while having much less complexity than the complete interaction model.") %>%
   kableExtra::kable_classic(font_size = kable_font_size,
                             latex_options = "striped")
@@ -59,7 +68,7 @@ kableExtra::kbl(
 ```{r timeCoefTbl, fig.cap = "Use the caption arg in kable(), not this."}
 kableExtra::kbl(
   coef_ls[[2]], booktabs = TRUE, linesep = "", format = "latex", digits = 5,
-  table.envir = "table*", ## Wide tables; from `*`
+  table.envir = "table", ## Wide tables; from `*`
   caption = "Model coefficients for log response time [seconds] $\\widehat{Y_2} = \\alpha \\times \\beta + \\gamma + \\delta$, with factor = pca, location = 0/100\\%, shape = EEE, and dim = 4 held as baselines. Location = 50/50\\% is the fixed term with the strongest evidence and takes less time. In contrast, the interaction term location = 50/50\\%:shape = EEV has the most evidence and takes much longer on average.") %>%
   kableExtra::pack_rows("Factor", 2, 3) %>%
   kableExtra::pack_rows("Fixed effects", 4, 8) %>%

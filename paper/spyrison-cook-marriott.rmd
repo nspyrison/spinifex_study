@@ -252,7 +252,7 @@ PCA allowed users to select between the top four principal components for each a
 In addition to the visual method, data are simulated across three experimental factors. First, the _location_ of the separation between clusters is controlled by mixing a signal and a noise variable at different ratios. Secondly, the _shape_ of the clusters reflects varying distributions of the data. And third, the _dimension_-ality of the data is also tested. The levels within each factor are described below, and Figure \@ref(fig:figExpFactors) gives a visual representation.
 
 <!-- Illustration of experimental factors -->
-```{r figExpFactors, out.width='100%', fig.env = "figure", fig.cap = "Levels of the visuals and three experimental factors: location of cluster separation, the shape of clusters, and dimensionality of the sampled data."}
+```{r figExpFactors, out.width='100%', fig.env = "figure*", fig.cap = "Levels of the visuals and three experimental factors: location of cluster separation, the shape of clusters, and dimensionality of the sampled data."}
 if(F)
   file.edit("./paper/R/fig_model_families.r")
 knitr::include_graphics("./figures/figExpFactors.pdf")
@@ -334,15 +334,6 @@ Through pilot studies sampled by convenience (information technology and statist
 $N = 108$ participants were recruited via prolific.co [@palan_prolific_2018]. Participants are restricted based on their claimed education requiring that they have completed at least an undergraduate degree (some 58,700 of the 150,400 users at the time). This restriction is used on the premise that linear projections and biplot displays will not be regularly used for consumption by general audiences. There is also the implicit filter that Prolific participants must be at least 18 years of age and have implicit biases of timezone, location, and language biases. Participants were compensated for their time at \pounds 7.50 per hour, whereas the mean duration of the survey was about 16 minutes. Previous knowledge or familiarity was minimal, as validated in the follow-up survey. The appendix, Section \@ref(sec:demographics), contains a heatmap distribution of age and education paneled across preferred pronouns of the participants that completed the survey, who are relatively young, well educated, and slightly more likely to identify as males.
 
 
-## Data collection
-
-<!-- App, data collection, network issues -->
-Data were recorded in a __shiny__ application and written to a Google Sheet after each third of the study. Especially at the start of the study, participants experienced adverse network conditions due to the volume of participants hitting the application with modest allocated resources. In addition to this, API read/write limitations further hindered data collection. To mitigate this, the thru-put of participants was throttled, and over-collect survey trials until three evaluations were collected for all permutation levels.
-
-<!-- Preprocessing steps -->
-The processing steps were minimal. The data were formatted and then filtered to the latest three complete studies of each experimental factor, which should have experienced the least adverse network conditions. The bulk of the studies removed were partial data and a few over-sampled permutations. This brings us to the 108 studies described in the paper, from which models and aggregation tables were built. The post-study surveys were similarly decoded to human-readable format and then filtered to include only those 84 associated with the final 108 studies.
-
-
 # Results {#sec:results}
 
 To recap, the primary response variable is accuracy, as defined in Section \@ref(sec:task). Two primary data sets were collected; the user study evaluations and the post-study survey. The former is the 108 participants with the experimental factors: visual, location of the cluster separation signal, the shape of the variance-covariance matrix, and the dimensionality of the data. Experimental factors and randomization were discussed in section \@ref(sec:expfactors). A follow-up survey was completed by 84 of these 108 people. It collected demographic information (preferred pronoun, age, and education) and subjective measures for each visual (preference, familiarity, ease of use, and confidence).
@@ -395,12 +386,14 @@ model_comp <- readRDS("./figures/modelCompLs.rds")
 cn <- c("Model", "Terms", "Lvls")
 colnames(model_comp[[1]])[1:3] <- cn
 colnames(model_comp[[2]])[1:3] <- cn
+model_comp[[1]] <- model_comp[[1]][-(2:3)]
+model_comp[[2]] <- model_comp[[2]][-(2:3)]
 
 ## 1) Eval parameters
 model_out <- kableExtra::kbl(
   model_comp[[1]], "latex", align = c("l", rep("r", 7)),
   booktabs = TRUE, linesep = "", escape = FALSE, ## Allow cell_spec formatting
-  table.envir = "table*", ## Wide tables; from `*`
+  table.envir = "table", ## Wide tables; from `*`
   caption = "Model performance of random effect models regressing accuracy. Complex models perform better in terms of $R^2$ and RMSE, yet AIC and BIC penalize their large number of fixed effects in favor of the much simpler model containing only the visuals. Conditional $R^2$ includes error explained by the random effects, while marginal does not.") %>%
   kableExtra::kable_classic(font_size = kable_font_size,
                             latex_options = "striped")
@@ -415,15 +408,24 @@ model_out
 if(F) ## Creation and saving at:
   file.edit("./paper/R/mixed_model_regression.rmd")
 coef_ls <- readRDS("./figures/modelCoefLs.rds")
-colnames(coef_ls[[1]]) <- c("Estimate", "Std. Error", "df", "t value", "Prob", "")
-colnames(coef_ls[[2]]) <- c("Estimate", "Std. Error", "df", "t value", "Prob", "")
+colnames(coef_ls[[1]]) <- c("Est", "Std Err", "df", "t val", "Prob", "")
+colnames(coef_ls[[2]]) <- c("Est", "Std Err", "df", "t val", "Prob", "")
+rn <- c("(Intercept)", "VisGrand", "VisRadial", "Loc33/66%",
+        "Loc50/50%", "ShapeEEV", "ShapeBanana", "Dim6",
+        "VisGrand:Loc33/66%", "VisRadial:Loc33/66%",
+        "VisGrand:Loc50/50%", "VisRadial:Loc50/50%")
+rownames(coef_ls[[1]]) <- rn
+rownames(coef_ls[[2]]) <- rn
+
+
+
 
 ## For grouping rows see:
 if(F)
   browseURL("https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html#Group_rows_via_labeling")
 kableExtra::kbl(
-  coef_ls[[1]], format = "latex", escape = TRUE, booktabs = TRUE, 
-  linesep = "", digits = 5, table.envir = "table*", ## Wide tables; from `*`
+  coef_ls[[1]], format = "latex", escape = TRUE, booktabs = TRUE,
+  linesep = "", digits = 5, table.envir = "table", ## Wide tables; from `*`
   caption = "The task accuracy model coefficients for $\\widehat{Y} = \\alpha \\times \\beta + \\gamma + \\delta$, with visual = pca, location = 0/100\\%, shape = EEE, and dim = 4 held as baselines. Visual being radial is the fixed term with the strongest evidence supporting the hypothesis. Interacting with the location term, there is evidence suggesting radial performs with minimal improvement for 33/66\\% location mixing.") %>%
   kableExtra::pack_rows("Factor", 2, 3) %>%
   kableExtra::pack_rows("Fixed effects", 4, 8) %>%
