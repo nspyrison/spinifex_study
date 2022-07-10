@@ -70,16 +70,22 @@ full <- ggtour(bas_full, dat, .3) +
   proto_point(list(color = clas, shape = clas)) +
   proto_basis(line_size = .6) +
   proto_origin() +
-  theme(legend.position = "off")
+  ggtitle("a") +
+  theme(legend.position = "off",
+        panel.border = element_rect(fill = NA))
 half <- ggtour(bas_half, dat, .3) +
   proto_point(list(color = clas, shape = clas)) +
   proto_basis(line_size = .6) + 
-  proto_origin()
+  proto_origin() +
+  ggtitle("b") +
+  theme(panel.border = element_rect(fill = NA))
 zero <- ggtour(bas_zero, dat, .3) +
   proto_point(list(color = clas, shape = clas)) +
   proto_basis(line_size = .6) +
   proto_origin() +
-  theme(legend.position = "off")
+  ggtitle("3") +
+  theme(legend.position = "off",
+        panel.border = element_rect(fill = NA))
 (pw <- full + half + zero)
 if(F){
   ggsave("./paper/figures/figRadialTour.pdf", pw, device = "pdf",

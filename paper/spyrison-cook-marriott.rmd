@@ -86,12 +86,11 @@ We are particularly interested in assessing the effectiveness of the new radial 
 ```{r figClSep, echo = F, out.width = "100%", fig.env = "figure*", fig.cap = "Illustration of cluster separation affected by variable importance. Panel (a) is a projection mostly of V2 and V3, and the separation between clusters is in the direction of V2, not V3. This suggests V2 is important for clustering, but V3 is not. Panel (b) shows a projection of mostly V3 and V4, with no contribution from V2 and little from V3. That there is no separation between the clusters indicates that V3 and V4 are not important."}
 if(F)
   file.edit("./paper/R/fig_biplot_scoring.r")
-cat(dir())
 knitr::include_graphics("./figures/figClSep.pdf")
 ```
 
 <!--- Black-box models-->
-Knowing which variables to use is also important for statistical modeling and their interpretations. Models are becoming increasingly complex, and the nonlinear interactions of the terms cause opaqueness to the model's interpretability. Exploratory Artificial Intelligence [XAI, @adadi_peeking_2018; @arrieta_explainable_2020] is an emerging field that extends the interpretability of such black-box models. Multivariate data visualization is essential for exploring features spaces and communicating interpretations of models [@biecek_dalex_2018; @biecek_explanatory_2021; @wickham_visualizing_2015].
+Variable sensitivity is important for the interpretation of machine learning models. They are the magnitude and direction of contribution to the model. It is important that we maintain the interpretability of models as their terms becoming increasingly complex. Exploratory Artificial Intelligence [XAI, @adadi_peeking_2018; @arrieta_explainable_2020] is an emerging field that extends the interpretability of such black-box models. Multivariate data visualization is essential for exploring features spaces and communicating interpretations of models [@biecek_dalex_2018; @biecek_explanatory_2021; @wickham_visualizing_2015].
 
 <!-- Structure of the paper -->
 The paper is structured as follows. Section \@ref(sec:relatedwork) provides background on standard visualization methods and linear dimension reduction techniques. Section \@ref(sec:userstudy) describes the experimental factors, task, and accuracy measure used. The results of the study are discussed in Section \@ref(sec:results). Conclusions and potential future directions are discussed in Section \@ref(sec:conclusion). More results, participant demographics, and analysis of the response time are available in the appendix, Section \@ref(sec:appendix).
@@ -108,15 +107,13 @@ Consider the data to be a matrix of $n$ observations (rows) and $p$ variables (c
 
 ### Scatterplot matrix
 
-One could consider looking at $p$ histograms or univariate densities. Doing so will miss features in two or more dimensions. A scatterplot matrix [@chambers_graphical_1983] is a $p \times p$ matrix typically with univariate densities on the diagonal and all combinations of pairs of variables in off-diagonal elements. Figure \@ref(fig:figFactorPca) shows a scatterplot matrix of the four principal components of simulated data. Such displays do not scale well with dimensions because each plot would get less and less space. Scatterplot matrices can only display information in two orthogonal dimensions, so features in three dimensions may not be fully resolved.
+One could consider looking at $p$ histograms or univariate densities. Doing so will miss features in two or more dimensions. Figure \@ref(fig:figFactorPca) shows a scatterplot matrix [@chambers_graphical_1983] of the four principal components of simulated data. Such displays do not scale well with dimensions because each plot would get less and less space. Scatterplot matrices can only display information in two orthogonal dimensions, so features in three dimensions may not be fully resolved.
 
 
 ### Parallel coordinates plot
 
 <!-- PCP -->
-Another common way to display multivariate data is with a parallel coordinates plot [@ocagne_coordonnees_1885], which shows observations by quantile or normalized values for each variable connected by lines to the quantile value in subsequent variables. Parallel coordinates plots <!--and other observations-linked glyph visuals, such as pixel plots or Chernoff faces,--> scale well with dimensions but poorly with observations as the lines overcrowd the display. <!--These are perhaps best used when there are more variables than observations.-->
-
-<!-- issues with obs-based visuals --> Parallel coordinate plots are asymmetric across variable ordering. In that, shuffling the order of the variable can lead to different conclusions. Another shortcoming is the graphical channel used to convey information. @munzner_visualization_2014 suggests that position is the visual channel that is most perceptible to humans. In the case of parallel coordinates plots, the horizontal axes span variables rather than the values of one variable, causing the loss of a display dimension to be used by our most perceptible visual channel.
+Another common way to display multivariate data is with a parallel coordinates plot [@ocagne_coordonnees_1885]. Parallel coordinates plots scale well with dimensions but poorly with observations as the lines overcrowd the display. <!-- issues with obs-based visuals --> Parallel coordinate plots are asymmetric across variable ordering. In that, shuffling the order of the variable can lead to different conclusions. Another shortcoming is the graphical channel used to convey information. @munzner_visualization_2014 suggests that position is the visual channel that is most perceptible to humans. In the case of parallel coordinates plots, the horizontal axes span variables rather than the values of one variable, causing the loss of a display dimension to be used by our most perceptible visual channel.
 
 
 ## Multivariate projections
@@ -271,7 +268,7 @@ _Dimension_-ality is tested at two modest levels: four dimensions containing thr
 ## Task and evaluation {#sec:task}
 
 <!-- Segue to task and evaluation -->
-With our hypothesis formulated, let us turn our attention to the task and how it is evaluated.<!-- Participant instruction --> Participants were asked to "check any/all variables that contribute more than average to the cluster separation green circles and orange triangles". This was further explained in the explanatory video as "mark any and all variable that carries more than their fair share of the weight, or one quarter in the case of four variables".
+With our hypothesis formulated, let us turn our attention to the task and how it is evaluated.<!-- Participant instruction --> Participants were asked to "check any/all variables that contribute more than average to the cluster separation green circles and orange triangles". This was further explained in the explanatory video as "mark any and all variable that carries more than their fair share of the weight, or one quarter in the case of four variables".  The participant instruction video can be viewed at \url{https://vimeo.com/712674984}.
 
 <!-- Instruction and time limit -->
 The instructions iterated several times in the video were: 1) use the input controls to find a frame that contains separation between the clusters of green circles and orange triangles, 2) look at the orientation of the variable contributions in the grey circle (biplot axes orientation), and 3) select all variables that contribute more than uniformed distributed cluster separation in the scatterplot. Independent of the experimental level, participants were limited to 60 seconds for each evaluation of this task. This restriction did not impact many participants as the 25th, 50th, and 75th quantiles of the response time were about 7, 21, and 30 seconds, respectively.
@@ -408,16 +405,15 @@ model_out
 if(F) ## Creation and saving at:
   file.edit("./paper/R/mixed_model_regression.rmd")
 coef_ls <- readRDS("./figures/modelCoefLs.rds")
-colnames(coef_ls[[1]]) <- c("Est", "Std Err", "df", "t val", "Prob", "")
-colnames(coef_ls[[2]]) <- c("Est", "Std Err", "df", "t val", "Prob", "")
+cn <- c("Est", "SE", "df", "t val", "Prob", "")
+colnames(coef_ls[[1]]) <- cn
+colnames(coef_ls[[2]]) <- cn
 rn <- c("(Intercept)", "VisGrand", "VisRadial", "Loc33/66%",
         "Loc50/50%", "ShapeEEV", "ShapeBanana", "Dim6",
-        "VisGrand:Loc33/66%", "VisRadial:Loc33/66%",
-        "VisGrand:Loc50/50%", "VisRadial:Loc50/50%")
+        "VisGrand:Loc33/66", "VisRadial:Loc33/66",
+        "VisGrand:Loc50/50", "VisRadial:Loc50/50")
 rownames(coef_ls[[1]]) <- rn
 rownames(coef_ls[[2]]) <- rn
-
-
 
 
 ## For grouping rows see:
