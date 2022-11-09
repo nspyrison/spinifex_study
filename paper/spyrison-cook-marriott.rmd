@@ -286,23 +286,21 @@ The instructions iterated several times in the video were: 1) use the input cont
 The accuracy measure of this task was designed with a couple of features in mind. 1) Symmetric about the expected value, without preference for under- or over-guessing. 2) Heavier than linear weight with an increasing difference from the expected value. The following measure is defined for evaluating the task.
 
 <!-- Notation -->
-Let the data $\textbf{X}_{n,~p,~k}$ be a simulation containing clusters of observations of different distributions. Where $n$ is the number of observations, $p$ is the number of variables, and $k$ indicates the observation's cluster. Cluster membership is exclusive; an observation cannot belong to more than one cluster.
+Let the data $\textbf{X}_{ijk}, i=1,...,n; j=1,...,p; k=1,...,K$ be simulated observations containing clusters of observations of different distributions. Where $n$ is the number of observations, $p$ is the number of variables, and $K$ indicates the number of clusters. Cluster membership is exclusive; an observation cannot belong to more than one cluster.
 
 <!-- W, weights -->
-The weights, $w$, is a vector of the variable-wise difference between the mean of two clusters of less $1/p$, the expected cluster separation if it were uniformly distributed. Accuracy, $A$ is defined as the signed square of these weights if selected by the participant. Participant responses are a logical value for each variable --- whether or not the participant thinks each variable separates the two clusters more than uniformly distributed separation.
+The weights, $w$, is a vector of the variable-wise difference between the mean of two clusters of less $1/p$, the expected cluster separation if it were uniformly distributed. Accuracy, $A$ is defined as the signed square of these weights if selected by the participant. Participant responses are a logical value for each variable --- whether or not the participant thinks each variable separates the two clusters more than uniformly distributed separation. Weights comparing clusters 1 and 2 are calculated as follows:
 
 <!-- __v2 measure sq__ -->
-\begin{equation*}
-  w_{j} = \frac{
-    (\overline{X}_{\cdot, j=1, k=1} - \overline{X}_{\cdot, 1, 2}, ~...~ 
-    (\overline{X}_{\cdot, p, 1} - \overline{X}_{\cdot, p, 2})}
-    {\sum_{j=1}^{p}(|\overline{X}_{\cdot, j, k=1} - \overline{X}_{\cdot, j, 2}|)} - \frac{1}{p}
-\end{equation*} <!-- Merging to one equ is painful -->
-\begin{equation*}
-  A = \sum_{j=1}^{p}I(j) \cdot sign(w_j) \cdot w^2
-\end{equation*}
+\begin{align*}
+  A &=& \sum_{j=1}^{p}I(j) \cdot sign(w_j) \cdot w^2, \mbox{~where~~~~~~~~~~~~~~} \\
+  w_{j} &=& \frac{
+    (\overline{X}_{\cdot 11} - \overline{X}_{\cdot 12}, ~...~ 
+    (\overline{X}_{\cdot p 1} - \overline{X}_{\cdot p2})}
+    {\sum_{j=1}^{p}(|\overline{X}_{\cdot j1} - \overline{X}_{\cdot j2}|)} - \frac{1}{p}
+\end{align*}
 
-Where $I(j)$ is the indicator function, the binary response for variable $j$. Figure \@ref(fig:figBiplotScoring) shows one projection of a simulation with its observed variable separation (wide bars), expected uniform separation (dashed line), and accuracy if selected (thin vertical lines).
+\noindent where $I(j)$ is the indicator function, the binary response for variable $j$. Figure \@ref(fig:figBiplotScoring) shows one projection of a simulation with its observed variable separation (wide bars), expected uniform separation (dashed line), and accuracy if selected (thin vertical lines).
 
 ```{r, figBiplotScoring, out.width="100%", fig.env = "figure*", fig.cap = "Illustration of how accuracy is measured. (L), Scatterplot and biplot of PC1 by PC4 of a simulated data set (R) illustrate cluster separation between the green circles and orange triangles. Bars indicate observed cluster separation, and (red/green) lines show the accuracy weight of the variable if selected. The horizontal dashed line has a height $1 / p$, the expected value of cluster separation. The accuracy weights equal the signed square of the difference between each variable value and the dashed line."}
 if(F)
