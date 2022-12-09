@@ -45,7 +45,7 @@ gg_pca <- GGally::ggpairs(
   columns = 1:4,
   #diag = "blank",
   upper = "blank",
-  lower = list(continuous = wrap("points", alpha = 0.7, size=1)),
+  lower = list(continuous = wrap("points", alpha = 0.7, size=.8)),
   columnLabels = paste0("PC", 1:4),
   switch = "both") + 
   theme_bw() +
@@ -56,5 +56,5 @@ gg_pca <- GGally::ggpairs(
 
 if(F)
   ggsave("./paper/figures/fig_pca_splom.pdf", gg_pca,
-         device = "pdf", width = .w, height = .w, units = .u)
+         device = "pdf", width = 3.48, height = 3.48, units = "in")
 

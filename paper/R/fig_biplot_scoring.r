@@ -25,17 +25,17 @@
   bas1 <- basis_olda(dat, clas, d = 4)[, c(4, 3)]
   
   bas2 <- tourr::basis_random(4, 2)
-  bas2[2,] <- rand[2, ] / 20
-  bas2 <- tourr::orthonormalise(rand)
+  bas2[2,] <- bas2[2, ] / 20
+  bas2 <- tourr::orthonormalise(bas2)
   # fig_cl_sep -----
   (ClSep1 <- ggtour(bas1, dat) +
      proto_basis() +
-     proto_point(aes_args = list(color = clas, shape = clas)) +
+     proto_point(aes_args = list(color = clas, shape = clas), list(size=1)) +
      labs(color = "Cluster", shape = "Cluster", title= "a") +
      theme(panel.border = element_rect(fill = NA)))
   (ClSep2 <- ggtour(bas2, dat) +
       proto_basis() +
-      proto_point(aes_args = list(color = clas, shape = clas)) +
+      proto_point(aes_args = list(color = clas, shape = clas), list(size=1)) +
       labs(color = "Cluster", shape = "Cluster", title= "b") +
       theme(legend.position = "none",
             panel.border = element_rect(fill = NA)))
@@ -43,7 +43,7 @@
 }
 if(F){
   ggsave("./paper/figures/figClSep.pdf", pw,
-         device = "pdf", width = 8, height = 3, units = "in")
+         device = "pdf", width = 3.48*2+0.17, height = 3, units = "in")
 }
 
 ## fig_radial_tour -----
@@ -67,29 +67,31 @@ attr(bas_full, "manip_var") <-
   attr(bas_zero, "manip_var") <- attributes(mt_path)$manip_var
 
 full <- ggtour(bas_full, dat, .3) +
-  proto_point(list(color = clas, shape = clas)) +
+  proto_point(list(color = clas, shape = clas), list(size=1)) +
   proto_basis(line_size = .6) +
   proto_origin() +
   ggtitle("a") +
   theme(legend.position = "off",
         panel.border = element_rect(fill = NA))
 half <- ggtour(bas_half, dat, .3) +
-  proto_point(list(color = clas, shape = clas)) +
+  proto_point(list(color = clas, shape = clas), list(size=1)) +
   proto_basis(line_size = .6) + 
   proto_origin() +
   ggtitle("b") +
-  theme(panel.border = element_rect(fill = NA))
+  theme(panel.border = element_rect(fill = NA),
+        legend.title = element_text()) +
+  labs(color = "Cluster", size="Cluster", shape="Cluster")
 zero <- ggtour(bas_zero, dat, .3) +
-  proto_point(list(color = clas, shape = clas)) +
+  proto_point(list(color = clas, shape = clas), list(size=1)) +
   proto_basis(line_size = .6) +
   proto_origin() +
-  ggtitle("3") +
+  ggtitle("c") +
   theme(legend.position = "off",
         panel.border = element_rect(fill = NA))
 (pw <- full + half + zero)
 if(F){
   ggsave("./paper/figures/figRadialTour.pdf", pw, device = "pdf",
-         width = 8, height = 3, units = "in")
+         width = 3.48*2+0.17, height = 2.2, units = "in")
 }
 
 
@@ -109,7 +111,7 @@ if(F)
 ### Left pane ----
 proj <- as.matrix(dat) %*% bas %>% as.data.frame()
 (gg1 <- ggplot(proj, aes(PC1, PC4)) +
-    geom_point(aes(shape = clas, color = clas)) +
+    geom_point(aes(shape = clas, color = clas), size=1) +
     draw_basis(bas, proj) + coord_fixed() +
     theme_void() +
     theme(axis.title = element_text(),
@@ -130,16 +132,14 @@ sub_longer <- pivot_longer_resp_ans_tbl(dat = sub)
 gg2 <- ggplot() + theme_bw() +
   ggproto_ans_plot(sub_longer) +
   theme(plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(hjust = 0.5)) +
+        plot.subtitle = element_text(hjust = 0.5),
+        axis.title.y = element_text(hjust = .5)) +
   labs(y = "Bars: observed cluster separation\nLines: accuracy weights if selected", x = "Variable") +
   theme(legend.position = "off")
 
-(final <- cowplot::plot_grid(gg1, gg2 + theme(aspect.ratio = 8/6), rel_widths = c(1.2, 1)))
-.w = 6.25
-.h = 9
-.u = "in"
+(final <- cowplot::plot_grid(gg1, gg2 + theme(aspect.ratio = 8/6), rel_widths = c(1.8, 1)))
 if(F){
   ggsave("./paper/figures/figBiplotScoring.pdf", final,
-         device = "pdf", width = .w, height = .w / 2, units = .u)
+         device = "pdf", width = 3.48*2+0.17, height = 3, units = "in")
 }
 

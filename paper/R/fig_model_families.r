@@ -17,7 +17,9 @@
           axis.ticks = element_blank(),
           legend.position = "off",
           plot.title = element_text(hjust = 0.5),
-          plot.subtitle = element_text(hjust = 0.5))
+          plot.subtitle = element_text(hjust = 0.5),
+          plot.margin = margin(t = .5,r = .5, b = .5, l = .5, "lines")
+    )
   )
   
   load("./apps_supplementary/data/EEE_p4_0_1_rep1.rda") ## load obj EEE_p4_0_1_rep1  clas <- attr(EEE_p4_0_1_rep1, "cluster")
@@ -158,7 +160,8 @@
     geom_text(aes(0, 0), size = 3.3, hjust = .5, vjust = .3,
               label = "Cluster 'd', above, only exists \n when there are six dimensions, \n is spherical and has a cluster \n separation orthogonal to the \n plane of the other three \n isodensities.") +
     theme_void() +
-    theme(text = element_text(hjust = .5, vjust = .5))
+    theme(text = element_text(hjust = .5, vjust = .5),
+          plot.margin = unit(rep(.5, 4), "lines"))
 }
 
 ### Cowplot munging ------
@@ -170,7 +173,7 @@
   dim_row   <- plot_grid(dim4, dim6, dim_txt, nrow = 1)
   .m        <- gc()
   gg_matrix <- plot_grid(fct_row, loc_row, shp_row,
-                         dim_row, ncol = 1, rel_heights = c(1,.8,.8,1))
+                         dim_row, ncol = 1, rel_heights = c(1,.8,.8,.8))
   
   header_row <- ggplot() +
     labs(title = "Levels of the experimental factors") +
@@ -182,27 +185,31 @@
   t_fct   <- ggplot() +
     labs(title = "Visual") +
     theme_void()+
-    theme(plot.title = element_text(angle = 90))
+    theme(plot.title = element_text(angle = 90),
+          plot.margin = margin(rep(.5, 4), unit = "lines"))
   t_loc   <- ggplot() +
     labs(title = "Location") +
     theme_void()+
-    theme(plot.title = element_text(angle = 90))
+    theme(plot.title = element_text(angle = 90),
+          plot.margin = margin(rep(.5, 4), unit = "lines"))
   t_shp   <- ggplot() +
     labs(title = "Shape") +
     theme_void()+
-    theme(plot.title = element_text(angle = 90))
+    theme(plot.title = element_text(angle = 90),
+          plot.margin = margin(rep(.5, 4), unit = "lines"))
   t_dim   <- ggplot() +
     labs(title = "Dimension") +
     theme_void() +
-    theme(plot.title = element_text(angle = 90))
+    theme(plot.title = element_text(angle = 90),
+          plot.margin = margin(rep(.5, 4), unit = "lines"))
   tbl_col <- plot_grid(.gg_empty, t_fct, t_loc, t_shp, t_dim,
-                       ncol = 1, rel_heights = c(.8,1.2,1.2,1,1))
-  final   <- plot_grid(tbl_col, header_matrix, nrow = 1, rel_widths = c(0.05, 1))
+                       ncol = 1, rel_heights = c(1,1.4,1.3,1.2,1), greedy = T)
+  final   <- plot_grid(tbl_col, header_matrix, nrow = 1, rel_widths = c(0.01, 1), greedy = T)
 }
 
 ### Save -----
 ggsave("./paper/figures/figExpFactors.pdf", final,
-       device = "pdf", width = 8, height = 9, units = "in")
+       device = "pdf", width = 3.48*2+.17, height = 11/8*(3.48*2+.17), units = "in")
 
 
 
