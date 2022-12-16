@@ -11,16 +11,17 @@ In summary, using mixed modeling there is strong evidence that use of the radial
 
 This repository contains the code, app, ethics approval, data, analysis, and findings paper. It is structured as follows:
 
-????????? apps                # Contains the shiny application
-????????? apps_supplementary  # Supplementary and setup, simulation, figure production
-????????? ethics              # Ethics documents and approval from Monash University
-????????? IEEE_example        # Ignore (example IEEE tex and template)
-????????? paper               # Directory for the article
-???   ????????? data_study      # Data at various stages for the study
-???   ????????? data_survey     # Data at various stages for the post-study survey
-???   ????????? figures         # Figures, and table output (.rds)
-???   ????????? R               # Analysis (mixed_model_regression.rmd) and figure scripts
-????????? paper_aux           # Ignore (example rmd file compiling to old IEEE template)
+
+- apps               # Contains the shiny application
+- apps_supplementary # Supplementary and setup, simulation, figure production
+- ethics             # Ethics documents and approval from Monash University
+- paper              # Directory for the article
+- paper/data_study   # Data at various stages for the study
+- paper/data_survey  # Data at various stages for the post-study survey
+- paper/figures      # Figures, and table output (rds files)
+- paper/R            # Analysis (mixed_model_regression.rmd) and figure scripts
+- tvcg-journal-latex-2019.10.01 # Ignore (example latex template)
+
 
 Tours are produced and saved with the [spinifex](https://github.com/nspyrison/spinifex) package.
 

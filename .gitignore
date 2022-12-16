@@ -24,3 +24,10 @@ output_SimDifficulty/
 /zDevExamples/animated_pdf_files/figure-latex/*
 /zDevExamples/animated_pdf_files/*
 
+**.aux
+**.bbl
+**.blg
+**.log
+**.out
+**.synctex.gz
+
