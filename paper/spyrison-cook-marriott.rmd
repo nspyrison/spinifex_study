@@ -141,7 +141,7 @@ knitr::include_graphics("./figures/fig_pca_splom.pdf")
 
 ### Nonlinear
 
-Nonlinear transformations bend and distort spaces that are not entirely accurate or faithful to the original variable space. There are various quality metrics, such as Trustworthiness, Continuity, Normalized stress, and Average local error, have been introduced to describe the distortion of the space [@espadoto_toward_2021; @gracia_new_2016]. Unfortunately, these distortions are hard to visualize and comprehend, effectively breaking the variable interpretability of the resulting space. The intuition of this can be demonstrated with map projections. @snyder_map_1987 lists over 200 different projections that distort the surface of the earth to display as a 2D map, each with unique properties and use cases.
+Nonlinear transformations bend and distort spaces that are not entirely accurate or faithful to the original variable space. Popular modern methods include t-SNE and UMAP [@van_der_maaten_visualizing_2008; mcinnes_umap_2018]. There are various quality metrics, such as Trustworthiness, Continuity, Normalized stress, and Average local error, have been introduced to describe the distortion of the space [@espadoto_toward_2021; @gracia_new_2016]. Unfortunately, these distortions are hard to visualize and comprehend, effectively breaking the variable interpretability of the resulting space. The intuition of this can be demonstrated with map projections. @snyder_map_1987 lists over 200 different projections that distort the surface of the earth to display as a 2D map, each with unique properties and use cases.
 
 Because of the difficulty of interpreting the distortions of nonlinear spaces and the added subjectivity of hyperparameter selection, we exclude nonlinear techniques and instead, decide to compare three linear techniques.
 
@@ -196,26 +196,26 @@ TripAdvisor [@nam_tripadvisornd_2012] is an interactive application that plans s
 The number of orthogonal axes in static plots as well as the number of bases to view in a tour increase quadratically with the dimensions, $p$. This is why it is particularly important to properly select variables or otherwise reduce the dimensions before viewing. PCA, Linear discriminant analysis and entropy are common approaches to variable selection [@wang_linear_2017; @sanchez_scaled_2018; @sanchez_feature_2021]. Such methods often yield a sort of screeplot [@cattell_scree_1966] where the analyst selects a subjective, but informed, number of components to approximate the data while discarding the least information. The variable sensitivity we test for, in contrast, is the act of visual analysis of one variable's contribution to the structure. In practice, this is a tool for the analyst to fine-tune their variable selection or otherwise evaluate the resulting approximated space.
 
 <!-- Objective functions -->
-In order to further mitigate the view time, objective functions can be used to inform static or animated biplots. A dissimilarity statistic can be used to solve a basis path for showing a particularly interesting tour [@lehmann_optimal_2016]. More generally projection pursuit can be used to conduct a guided tour of any objective function applied to an embedding space [cook_projection_1993; @cook_grand_2008]. However, the function optimized is likely to show some feature of interest if it is ultimately selected by the analyst. The ability to stop and control the exploration at any point only stands to improve one's understanding of the data.
+In order to further mitigate the view time, objective functions can be used to inform static or animated biplots. A dissimilarity statistic can be used to solve a basis path for showing a particularly interesting tour [@lehmann_optimal_2016]. More generally projection pursuit can be used to conduct a guided tour of any objective function applied to an embedding space [@cook_projection_1993; @cook_grand_2008]. However, the function optimized is likely to show some feature of interest if it is ultimately selected by the analyst. The ability to stop and control the exploration at any point only stands to improve one's understanding of the data.
 
 
 ## Empirical evaluation
 
-[@gadiraju_crowdsourcing_2017]
-[@borgo_crowdsourcing_2017]
+<!-- [@gadiraju_crowdsourcing_2017] -->
+<!-- [@borgo_crowdsourcing_2017] -->
 
 <!-- Orthogonal variables -->
 Some studies compare visualizations across complete contributions of variables. @chang_evaluation_2018 conducted an $n=51$ participant study comparing parallel coordinate plots and scatterplot matrix either in isolation, sequentially, or as a coordinated view. Accuracy, completion time, and eye focus were measured for six tasks. Three tasks were more accurate with scatterplot matrix and three with parallel coordinates, while the coordinated view was usually marginally more accurate than the max of the separate visuals. @cao_z-glyph_2018 compare nonstandardized line-glyph and star-glyphs with standardized variants (with and without fill under the curve). Each of the $n=18$ participants performed 72 trials across the six visuals, two levels of dimensions, and two levels of observations. Visuals with variable standardization outperformed the nonstandardized variants, and the radial star-glyph reportedly outperformed the line variant.
 
 <!-- 2D vs D3, mostly PCA reduced -->
-Other studies have investigated the relative benefits of projecting to 2- or 3D scatterplots in PCA-reduced spaces. @gracia_new_2016 conducted an $n=40$ user study comparing 2- and 3D scatterplots on traditional 2D monitors. Participants perform point classification, distance perception, and outlier identification tasks. The results are mixed and primarily have small differences. There is some evidence to suggest a lower error in distance perception from a 3D scatterplot. @wagner_filho_immersive_2018 performed an $n=30$ mixed-design study on PCA reduced space using scatterplot displays between 2D on monitors, 3D on monitors, and 3D display with a head-mounted display. None of the tasks on any dataset lead to a significant difference in accuracy. However, the immersive display reduced effort and navigation, resulting in higher perceived accuracy and engagement. @sedlmair_empirical_2013 instead use two expert coders to evaluate 75 datasets and four dimension reduction techniques across the displays of 2D scatterplots, interactive 3D scatterplots, and 2D scatterplot matrices. They suggest a tiered guidance approach finding that 2D scatterplots are often sufficient to resolve a feature. If not, try 2D scatterplots on a different dimension reduction technique before going to scatterplot matrix display or concluding a true negative. They find that interactive 3D scatterplots help in very few cases.
+Other studies have investigated the relative benefits of projecting to 2- or 3D scatterplots in PCA-reduced spaces. @gracia_new_2016 conducted an $n=40$ user study comparing 2- and 3D scatterplots on traditional 2D monitors. Participants perform point classification, distance perception, and outlier identification tasks. The results are mixed and primarily have small differences. There is some evidence to suggest a lower error in distance perception from a 3D scatterplot. @wagner_filho_immersive_2018 performed an $n=30$ mixed-design study on PCA reduced space using scatterplot displays between 2D on monitors, 3D on monitors, and 3D display with a head-mounted display. None of the tasks on any dataset lead to a significant difference in accuracy. However, the immersive display reduced effort and navigation, resulting in higher perceived accuracy and engagement. @sedlmair_empirical_2013 instead used two expert coders to evaluate 75 datasets and four dimension reduction techniques across the displays of 2D scatterplots, interactive 3D scatterplots, and 2D scatterplot matrices. They suggested a tiered guidance approach finding that 2D scatterplots are often sufficient to resolve a feature. If not, try 2D scatterplots on a different dimension reduction technique before going to scatterplot matrix display or concluding a true negative. They find that interactive 3D scatterplots help in very few cases.
 
 
 ## Conclusion
 
 Orthogonal axes visualizations either scale poorly with dimensionality or introduce an asymmetry of the variable ordering. Projections visualize the full $p$-data as fewer dimensions, traditionally 1-3 at a time. In linear, orthogonal projections, the resulting space is composed of a linear combination of the original variables that maintain variable interpretability. While nonlinear techniques distort and bend space in different ways that are hard to visualize and communicate.
 
-Tours are linear projections that are animated over changes in the basis. Several more-recent other methods animate or facilitate manual change on the basis that is related to tour techniques. Some quality metrics and empirical studies compare techniques but scarcely with animated methods. Below we conduct a user study to compare the radial tour with PCA and the grand tour on a variable attribution task on clustered data.
+Tours are linear projections that are animated over changes in the basis. Several more-recent, orthographic-star coordinate methods independently reach animated linear projections similar to tours. Some quality metrics and empirical studies compare techniques but scarcely with animated methods. Below we conduct a user study to compare the radial tour with PCA and the grand tour on a variable attribution task on clustered data.
 
 
 # User study {#sec:userstudy}
@@ -282,7 +282,7 @@ _Dimension_-ality is tested at two modest levels: four dimensions containing thr
 ## Task and evaluation {#sec:task}
 
 <!-- Segue to task and evaluation -->
-With our hypothesis formulated, let us turn our attention to the task and how it is evaluated.<!-- Participant instruction --> Participants were asked to "check any/all variables that contribute more than average to the cluster separation of the green circles and the orange triangles". This was further explained in the explanatory video as "mark any and all variable that carries more than their fair share of the weight, or one quarter in the case of four variables".  The participant instruction video can be viewed at \url{https://vimeo.com/712674984}.
+With our hypothesis formulated, let us turn our attention to the task and how it is evaluated.<!-- Participant instruction --> Participants were asked to "check any/all variables that contribute more than average to the cluster separation of the green circles and the orange triangles". This was further explained in the explanatory video as "mark any and all variable that carries more than their fair share of the weight, or one quarter in the case of four variables". The participant instruction video can be viewed at \url{https://vimeo.com/712674984}.
 
 <!-- Instruction and time limit -->
 The instructions iterated several times in the video were: 1) use the input controls to find a basis that contains separation between the clusters of green circles and orange triangles, 2) look at the orientation of the variable contributions in the grey circle (biplot axes orientation), and 3) select all variables that contribute more than uniformed distributed cluster separation in the scatterplot. Independent of the experimental level, participants were limited to 60 seconds for each evaluation of this task. This restriction did not impact many participants as the 25th, 50th, and 75th quantiles of the response time were about 7, 21, and 30 seconds, respectively.
@@ -298,17 +298,17 @@ The weights, $w$, is a vector of the variable-wise difference between the mean o
 
 <!-- __v2 measure sq__ -->
 \begin{align*}
-  A &=& \sum_{j=1}^{p}I(j) \cdot sign(w_j) \cdot w^2, \mbox{~where~~~~~~~~~~~~~~} \\
-  w_{j} &=& \frac{
-    (\overline{X}_{\cdot 11} - \overline{X}_{\cdot 12}, ~...~ 
-    (\overline{X}_{\cdot p 1} - \overline{X}_{\cdot p2})}
-    {\sum_{j=1}^{p}(|\overline{X}_{\cdot j1} - \overline{X}_{\cdot j2}|)} - \frac{1}{p}
+  A =&~~ \sum_{j=1}^{p}I(j) \cdot sign(w_j) \cdot w_j^2, \mbox{~where~~~~~~~~~~~~~~} \\
+  w_{j} =&~~ \frac{
+  \overline{X}_{\cdot j1} - \overline{X}_{\cdot j2}
+  }
+  {\sum_{j=1}^{p}(|\overline{X}_{\cdot j1} - \overline{X}_{\cdot j2}|)} - \frac{1}{p}
 \end{align*}
 
 $$
 \begin{array}{l}
 \text{where} \\
-~~I() \text{ is the indicator function, a binary response}
+~~I \text{ is the indicator function, returning a binary response}
 \\
 ~~\overline{X}_{\cdot j k} \text{, mean of the } j\text{-th variable of the } k\text{-th cluster}
 \end{array}
@@ -335,7 +335,9 @@ The study is sectioned into three periods. Each period is linked to a randomized
 Each period starts with an untimed training task at the simplest remaining experimental levels; location = 0/100%, shape = EEE, and four dimensions with three clusters. This serves to introduce and familiarize participants with input and visual differences. After the training, the participant performs two trials with the same visual and location level across the increasing difficulty of dimension and shape. The plot was removed after 60 seconds, though participants rarely reached this limit.
 
 <!-- visual*location nested latin square -->
-The order of the visual and location levels were randomized with a nested Latin square where all levels of the visuals are exhausted before advancing to the next level of location. This requires $(3!)^2 = 36$ participants to evaluate all permutations of the experimental factors once. This randomization controls for potential learning effects the participant may receive.
+We assigned these factors based on the following order: visual methods, location, shape, and dimensionality. We first assigned three visual methods to three different sessions. The session order and the order of location follow a nested Latin square. The order of dimension and shape are assigned based on increasing order of difficulty.
+
+<!-- The order of the visual and location levels were randomized with a nested Latin square where all levels of the visuals are exhausted before advancing to the next level of location. This requires $(3!)^2 = 36$ participants to evaluate all permutations of the experimental factors once. This randomization controls for potential learning effects the participant may receive. -->
 
 <!-- Pilot study; 3 even evaluations of each -->
 Through pilot studies sampled by convenience (information technology and statistics Ph.D. students attending Monash University), it was estimated that three complete evaluations are needed to power the study properly, a total of $N = 3 \times 3!^2 = 108$ participants.
@@ -451,10 +453,10 @@ kableExtra::kbl(
 Table \@ref(tab:marksCompTbl) compares the model summaries across increasing complexity. The $\alpha \times \beta + \gamma + \delta$ model is selected to examine in more detail as it has relatively high condition $R^2$ and not overly complex interacting terms. Table \@ref(tab:marksCoefTbl) looks at the coefficients for this model. There is strong evidence suggesting a relatively large increase in accuracy from the radial tour, though there is evidence that almost all of the increase the is lost under 33/66% mixing.
 
 <!-- Conditional effects of variables -->
-We also want to visually examine the conditional variables in the model. Figure \@ref(fig:figMarksABcd) illustrates the violin plots of accuracy for each model term.
+We also want to visually examine the conditional variables in the model. Figure \@ref(fig:figMarksABcd) illustrates Accuracy of terms showning mean and 95% confidence intervals.
 
 <!-- Violin plots and test overlay for Y1 visuals -->
-```{r, figMarksABcd, out.width="100%", fig.env = "figure", fig.cap = "Violin plots of terms of the model $\\widehat{Y} = \\alpha \\times \\beta + \\gamma + \\delta$. Overlaid with global significance from the Kruskal-Wallis test and pairwise significance from the Wilcoxon test, both are non-parametric, ranked-sum tests. Viewing the marginal accuracy of the terms corroborates the primary findings that the use of the radial tour leads to a significant increase in accuracy, at least over PCA, and this effect is particularly well supported when no location mixing is applied."}
+```{r, figMarksABcd, out.width="100%", fig.env = "figure", fig.cap = "Accuracy of terms of the model $\widehat{Y} = \alpha \times \beta + \gamma + \delta$. Viewing the marginal accuracy of the terms corroborates the primary findings that the use of the radial tour leads to a significant increase in accuracy, at least over PCA, and this effect is particularly well supported when no location mixing is applied."}
 if(F) ## Creation and saving figure at:
   file.edit("./paper/R/mixed_model_regression.rmd")
 knitr::include_graphics("./figures/figMarksABcd.pdf")
@@ -463,12 +465,12 @@ knitr::include_graphics("./figures/figMarksABcd.pdf")
 
 ## Subjective measures
 
-Modeling has proven that the use of the radial tour leads to a sizably improvement in the accuracy measure for this task. This is not the whole story. It is desirable to know what the users think of using the visuals. We follow the lead set by @wagner_filho_immersive_2018. They observe four subjective measures. The following were used in this study: confidence, ease of use, prior familiarity, and preference. Each of these questions was asked of all for each visual as 5-point Likert items.
+Modeling has proven that the use of the radial tour leads to a sizable improvement in the accuracy measure for this task. This is not the whole story. It is desirable to know what the users think of using the visuals. We follow the lead set by @wagner_filho_immersive_2018. They observe four subjective measures. The following were used in this study: confidence, ease of use, prior familiarity, and preference. Each of these questions was asked of all for each visual as 5-point Likert items.
 
 <!-- Introduce subjective measures from n=84 survey responses -->
-The 84 evaluations of the post-study survey are shown in Figure \@ref(fig:figSubjectiveMeasures). The figure uses Likert plots or stacked percentage bar plots, alongside violin plots with the same non-parametric, ranked sum tests previously used.
+The 84 evaluations of the post-study survey are shown in Figure \@ref(fig:figSubjectiveMeasures). The figure uses Likert plots or stacked percentage bar plots and asscoisated mean and 95\% confidence intervals.
 
-```{r figSubjectiveMeasures, out.width="100%", fig.env = "figure", fig.show="asis", fig.cap = "The subjective measures of the 84 responses of the post-study survey with five-point Likert items levels of agreement. (L) Likert plots (stacked percent bar plots) with (R) violin plots of the same measures. Violin plots are overlaid with global significance from the Kruskal-Wallis test and pairwise significance from the Wilcoxon test. Participants are more confident using the radial tour and find it easier to use than the grand tour. The radial tour is the most preferred visual."}
+```{r figSubjectiveMeasures, out.width="100%", fig.env = "figure", fig.show="asis", fig.cap = "The subjective measures of the 84 responses of the post-study survey with five-point Likert items levels of agreement. (L) Likert plots (stacked percent bar plots) with (R) mean and 95\% CI of the same measures. Participants are more confident using the radial tour and find it easier to use than the grand tour. The radial tour is the most preferred visual."}
 if(F)
   browseURL("https://bookdown.org/Rmadillo/likert/is-there-a-significant-difference.html#permutation-mann-whitney-tests")
 if(F) ## Creation and saving figure at:
@@ -484,22 +486,22 @@ There was strong evidence to support that participants preferred the radial tour
 <!-- Burden to visualize multivariate space -->
 Data visualization is an integral part of understanding relationships in data and how models are fitted. When it comes to multivariate data giving a comprehensive view quickly becomes difficult as the dimensions become sizable. Analysts have the task of choosing which visualization technique to use. Because the viewing volume/time of multivariate spaces typically increase quadratically with dimensions dimension reduction must be properly conducted. While there are optimization methods for static and animated visuals, the particular function used is a guided choice of the analyst.
 
-We have discussed orthogonal visualization, observation-link glyphs, and the focus on linear projections of data. There are many empirical evaluations comparing visualization and display dimensionality for multivariate data. However, animated techniques are rarely compared in the literature. This user study is the first to compare the radial tour.
+<!-- Relation to related work -->
+Section \@ref(sec:relatedwork) discussed various types of visualization which are may be preferred for differing tasks and ends. The visualization and perception of multivariate spaces is a broad and heterogeneous task. This work focuses a subset of linear projections and especially sheds light on potential benefit of providing user control in conjunction with the animated projection over many bases as a radial tour.
 
 <!-- radial tour and hypothesis -->
 The radial tour is a method for the analyst to choose a variable to alter its contribution to the basis. The animation over small changes to the basis allows the sensitivity of the structure to be assessed from the variable contribution. The hypothesis is that user control over the basis and the permanence of observations between intermediate frames may lead to a better perception of the variable attribution causing the separation of clusters.
 
-<!-- Results & surprising -->
+<!-- Results & surprises -->
 A mixed modeling analysis of the study provides strong support for this conclusion. That is, there is significant evidence to suggest the use of the radial tour leads to a sizable increase in accuracy. One unexpected caveat is that mixing the location of the signal at 33/66% almost completely negates this gain. Perhaps this is because the "half-clock" basis used did not give enough weight to the variable containing the small fraction. It was also interesting to note that no level of the experimental factors alone had a significant effect on this setup. Lastly, the follow-up survey asked participants to evaluate measures of the visuals. Most notably, participants preferred the radial tour to the other visuals. Knowing that the radial tour outperforms alternatives and is the preferred choice can help inform the selection of visual methods for developers and analysts.
 
+<!-- Limitations and extensions -->
+There are several implicit limitations to this study: the task, type of data, and levels of the factors to name a few. The expansion of any of these areas is conceptually simple, but exponentially increases the number of participants needed to properly power the study. Additionally the sample of crowd-sourced, educated, but unfamiliar users may not extrapolate well to more experienced users. There are several ways that future work could be extended. Aside from expanding the support of the experimental factors, more exciting directions include: introducing a new task, including more visualizations, and changing the experience level of the target population. It is difficult to achieve good coverage given the number of possible factors to vary.
 
 # Conclusion {#sec:conclusion}
 
 <!-- Recap study -->
 This paper discussed a crowdsourced mixed design user study ($n=108$) comparing the efficacy of three linear projection techniques: PCA, grand tour, and radial tour. The participants performed a supervised cluster task, explicitly identifying which variables contribute to the separation of two target clusters. This was evaluated evenly over four experimental factors. In summary, mixed model regression finds strong evidence that using the radial tour sizably increases accuracy, especially when cluster separation location is not mixed at 33/66%. The effect sizes on accuracy are large relative to the change from the other experimental factors and the random effect of data simulation, though smaller than the random effect of the participant. The radial tour was the most preferred of the three visuals.
-
-<!-- Limitations and extensions -->
-There are several implicit limitations to this study: the task, type of data, levels of the factors, and the use of educated, but unfamiliar users to name a few. The expansion of any of these areas is conceptually simple, but exponentially increases the number of participants needed to properly power the study. There are several ways that this study could be extended. In addition to expanding the support of the experimental factors, more exciting directions include: introducing a new task, including more visualizations, and changing the experience level of the target population. It is difficult to achieve good coverage given the number of possible experimental factors.
 
 There is no panacea for the comprehensive visualization of multivariate spaces. We have demonstrated that there is a definite value of user-control in linear projections. The agency of the analyst remains an important tool for the exploratory analysis of multivariate data.
 

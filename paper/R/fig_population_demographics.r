@@ -2,8 +2,6 @@ require("tidyverse")
 require("dplyr")
 
 ## Follow the loose setup of _analysis.rmd:
-if(F)
-  file.edit("./apps_supplementary/v4_prolifico_100/_analysis.rmd")
 
 .u = "in"
 .w = 6.25
@@ -190,40 +188,22 @@ my_ggpubr <- function(
   y_pval_coef = .08, ## Subjective wants .032
   ylim_max_coef = .5 ## Subjective wants .6
 ){
-  ## Find height of global significance test text.
-  .x_lvls <- df %>% pull({{x}}) %>% levels()
-  .y <- df %>% pull({{y}})
-  if(is.factor(.y)) .y <- as.integer(.y)
-  .y_range <- diff(range(.y))
-  .no_x_lvls <- length(.x_lvls)
-  if(is.null(facet) == FALSE){
-    .facet_lvls <- df %>% pull({{facet}}) %>% levels() %>% length()
-  } else .facet_lvls <- 1 ## Init
-  .lab.y <- (y_pval_coef * .y_range) * (1 + .no_x_lvls) * .y_range + max(.y)
-  my_comparisons <- NULL
-  if(.no_x_lvls == 2)
-    my_comparisons <- list(c(.x_lvls[1], .x_lvls[2]))
-  if(.no_x_lvls == 3)
-    my_comparisons <- list(c(.x_lvls[1], .x_lvls[2]),
-                           c(.x_lvls[2], .x_lvls[3]),
-                           c(.x_lvls[1], .x_lvls[3]))
-  
   ## Plot
-  ggviolin(df, x = x, y = y, fill = x, alpha = .6,
-           palette = "Dark2", shape = x, trim = TRUE,
-           add = c("mean"), ## Black circle, can change size, but not shape or alpha?
-           draw_quantiles = c(.25, .5, .75)) +
-    stat_compare_means(label.y = .lab.y,
-                       aes(label = paste0("p = ", ..p.format..)), ## Global test
-                       hide.ns = TRUE) + ## custom label
-    stat_compare_means(method = "wilcox.test", ## pairwise test
-                       comparisons = my_comparisons,
-                       label = "p.signif", hide.ns = TRUE) +
-    my_theme +
-    coord_cartesian(ylim = c(min(.y), max(.y) + ylim_max_coef * .y_range)) +
+  ggplot(df, aes_string(x, y, color = x), size=2) +
+    facet_grid(~measure) +
+    stat_summary(geom="errorbar", fun.data=mean_cl_boot, width=0.2)+
+    stat_summary(geom="point", fun.y=mean) +
     ggtitle(title, subtitle) +
-    ggplot2::xlab(paste0(
-      x, "\n(n=", nrow(df)/(.no_x_lvls * .facet_lvls), " each)"))
+    list(
+      theme_bw(),
+      scale_color_brewer(palette = "Dark2"),
+      scale_fill_brewer( palette = "Dark2"),
+      labs(x="Visual",y="Likert score [0, 5]"),
+      theme(
+            legend.position = "off",
+            plot.margin = margin(t = .5,r = .5, b = .5, l = .5, "lines")
+      )
+    )
 }
 my_ggpubr_facet <- function(..., facet = "Location"){
   facet(my_ggpubr(..., facet = facet), facet.by = facet)
@@ -325,8 +305,6 @@ figSubjectiveMeasures_w.violin_hori <-  cowplot::plot_grid(
 require("cowplot")
 
 if(F){
-  figSubjectiveMeasures_w.violin_hori <- cowplot::plot_grid(
-    subjectiveMeasures, measure_violins, ncol = 2)
   ggsave("./paper/figures/figSubjectiveMeasures_w.violin_hori.pdf",
          figSubjectiveMeasures_w.violin_hori, device = "pdf",
          width = .w, height = .w * 1, units = "in")
